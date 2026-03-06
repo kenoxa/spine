@@ -1,4 +1,5 @@
 ---
+name: do-debug
 description: >
   Diagnose and fix bugs through structured 4-phase debugging.
   Use when facing failing tests, crashes, regressions, or unexpected behavior.

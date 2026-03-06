@@ -1,4 +1,5 @@
 ---
+name: frontend
 description: >
   Frontend development standards for UI implementation.
   Use when editing components, pages, or UI code.

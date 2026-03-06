@@ -1,4 +1,5 @@
 ---
+name: do-execute
 description: >
   Execute an approved plan through structured phases with built-in quality gates.
   Use when an approved plan exists or the task is explicit enough to skip planning.

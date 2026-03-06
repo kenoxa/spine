@@ -1,4 +1,5 @@
 ---
+name: do-commit
 description: >
   Safe, scoped commit workflow.
   Use when ready to commit changes. Do NOT use mid-implementation —

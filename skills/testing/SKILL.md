@@ -1,4 +1,5 @@
 ---
+name: testing
 description: >
   Risk-based testing standards with structured test design.
   Use when adding tests, evaluating coverage, or validating edge cases.

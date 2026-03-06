@@ -1,4 +1,5 @@
 ---
+name: skill-craft
 description: >
   Write, review, or fix skills and AGENTS.md files.
   Use when creating a new skill, auditing an existing one, refactoring a

@@ -1,4 +1,5 @@
 ---
+name: backend
 description: >
   Backend development standards for APIs, databases, and infrastructure.
   Use when editing server code, API routes, database schemas, or migrations.

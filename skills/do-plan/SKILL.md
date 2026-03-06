@@ -1,4 +1,5 @@
 ---
+name: do-plan
 description: >
   Structured planning before complex implementation.
   Use when the task is open-ended, has architectural implications, or requires

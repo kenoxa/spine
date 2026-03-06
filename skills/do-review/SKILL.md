@@ -1,4 +1,5 @@
 ---
+name: do-review
 description: >
   Structured code review with severity-bucketed findings and resolution gates.
   Use after code changes or when the user asks for review.
