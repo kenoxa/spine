@@ -6,58 +6,16 @@ Cross-platform AI coding setup for Cursor, Claude Code, and Codex. One set of sk
 
 ## Contents
 
-- [What's Inside](#whats-inside)
 - [Quick Start](#quick-start)
 - [Typical Flow](#typical-flow)
+- [Skills and Agents](#skills-and-agents)
 - [Tips](#tips)
-- [External Skills](#external-skills)
 - [Design Principles](#design-principles)
 - [Further Reading](#further-reading)
-
-## What's Inside
-
-> **Every change deserves a plan.**
-
-```
-AGENTS.global.md        Global guardrails (installed as AGENTS.md / CLAUDE.md)
-skills/                 11 skills (5 workflow + 5 domain + skill-craft)
-agents/                 2 subagents (explorer, reviewer)
-hooks/                  Claude Code SessionStart hook for AGENTS.md injection
-global-skills.md        External skills to install separately
-```
-
-### Skills
-
-| Skill | Type | Purpose |
-|-------|------|---------|
-| `do-plan` | workflow | Structured planning before complex implementation |
-| `do-execute` | workflow | Execute an approved plan through phased quality gates |
-| `do-review` | workflow | Severity-bucketed code review |
-| `do-debug` | workflow | 4-phase root-cause diagnosis and fix |
-| `do-commit` | workflow | Scoped staging with conventional commits |
-| `explore` | domain | Bounded codebase navigation and architecture mapping |
-| `writing` | domain | Docs, changelogs, ADRs, and prose quality |
-| `frontend` | domain | UI development with state coverage and accessibility gates |
-| `backend` | domain | APIs, migrations, and security boundaries |
-| `testing` | domain | Risk-based test design with perspective tables |
-| `skill-craft` | meta | Write, review, or fix skills and AGENTS.md files |
-
-**Workflow skills** are invoked explicitly via `/do-plan`, `/do-execute`, etc.
-
-**Domain skills** are loaded automatically when the task matches their description.
-
-### Subagents
-
-| Agent | Model | Purpose |
-|-------|-------|---------|
-| `explorer` | haiku | Fast, readonly codebase navigation |
-| `reviewer` | inherit | Spec compliance review with severity buckets |
 
 ## Quick Start
 
 > **If it's worth changing, it's worth planning.**
-
-### Quick Install
 
 Installs guardrails, skills, agents, and hooks for all detected tools (Cursor, Claude Code, Codex):
 
@@ -65,7 +23,10 @@ Installs guardrails, skills, agents, and hooks for all detected tools (Cursor, C
 curl -fsSL https://raw.githubusercontent.com/kenoxa/spine/main/install.sh | bash
 ```
 
-Or inspect first:
+The installer auto-detects which tools you have (`~/.cursor/`, `~/.claude/`, `~/.codex/`) and installs to all of them. For Claude Code, it also sets up the SessionStart hook and patches `settings.json`.
+
+<details>
+<summary>Inspect before running</summary>
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/kenoxa/spine/main/install.sh -o install.sh
@@ -73,7 +34,7 @@ less install.sh
 bash install.sh
 ```
 
-The installer auto-detects which tools you have (`~/.cursor/`, `~/.claude/`, `~/.codex/`) and installs to all of them. For Claude Code, it also sets up the SessionStart hook and patches `settings.json`.
+</details>
 
 <details>
 <summary>Local checkout (recommended for contributors)</summary>
@@ -88,7 +49,8 @@ cd spine
 
 </details>
 
-### Individual Skills
+<details>
+<summary>Install individual skills</summary>
 
 Install specific skills without the full setup:
 
@@ -97,9 +59,12 @@ npx skills add kenoxa/spine -s do-plan -a '*' -g -y
 npx skills add kenoxa/spine -s do-review -a '*' -g -y
 ```
 
-### Manual Install
+</details>
 
-Copy files to your tool's config directory. Each tool loads from different paths.
+<details>
+<summary>Manual install</summary>
+
+Copy files to your tool's config directory:
 
 | Source | Cursor | Claude Code | Codex |
 |--------|--------|-------------|-------|
@@ -107,10 +72,7 @@ Copy files to your tool's config directory. Each tool loads from different paths
 | `skills/` | `~/.cursor/skills/` | `~/.claude/skills/` | `~/.codex/skills/` |
 | `agents/` | `~/.cursor/agents/` | `~/.claude/agents/` | `~/.codex/agents/` |
 
-<details>
-<summary>Claude Code AGENTS.md hook</summary>
-
-Claude Code natively loads `CLAUDE.md` but not `AGENTS.md`. If your projects use `AGENTS.md` files (shared with Cursor/Codex), install the SessionStart hook so Claude Code sees them too:
+**Claude Code AGENTS.md hook:** Claude Code natively loads `CLAUDE.md` but not `AGENTS.md`. If your projects use `AGENTS.md` files (shared with Cursor/Codex), install the SessionStart hook so Claude Code sees them too:
 
 ```sh
 mkdir -p ~/.claude/hooks/
@@ -135,7 +97,7 @@ Add to `~/.claude/settings.json`:
 
 > **Measure twice, ship once.**
 
-The workflow follows a structured path: plan the change, execute it with quality gates, then commit.
+Plan the change, execute it with quality gates, then commit.
 
 1. **`/do-plan`** — always start here for non-trivial work. Draft and validate the plan.
 2. Refine the plan via messages until ready.
@@ -226,6 +188,69 @@ Canonical entry: [`skills/do-debug/SKILL.md`](skills/do-debug/SKILL.md).
 
 </details>
 
+## Skills and Agents
+
+> **Every change deserves a plan.**
+
+```
+AGENTS.global.md        Global guardrails (installed as AGENTS.md / CLAUDE.md)
+skills/                 11 skills (5 workflow + 5 domain + skill-craft)
+agents/                 2 subagents (explorer, reviewer)
+hooks/                  Claude Code SessionStart hook for AGENTS.md injection
+global-skills.md        External skills to install separately
+```
+
+### Workflow skills
+
+Invoked explicitly via `/do-plan`, `/do-execute`, etc.
+
+| Skill | Purpose |
+|-------|---------|
+| `do-plan` | Structured planning before complex implementation |
+| `do-execute` | Execute an approved plan through phased quality gates |
+| `do-review` | Severity-bucketed code review |
+| `do-debug` | 4-phase root-cause diagnosis and fix |
+| `do-commit` | Scoped staging with conventional commits |
+
+### Domain skills
+
+Loaded automatically when the task matches their description — no slash command needed.
+
+| Skill | Purpose |
+|-------|---------|
+| `explore` | Bounded codebase navigation and architecture mapping |
+| `writing` | Docs, changelogs, ADRs, and prose quality |
+| `frontend` | UI development with state coverage and accessibility gates |
+| `backend` | APIs, migrations, and security boundaries |
+| `testing` | Risk-based test design with perspective tables |
+
+### Meta
+
+| Skill | Purpose |
+|-------|---------|
+| `skill-craft` | Write, review, or fix skills and AGENTS.md files |
+
+### Subagents
+
+| Agent | Model | Purpose |
+|-------|-------|---------|
+| `explorer` | haiku | Fast, readonly codebase navigation |
+| `reviewer` | inherit | Spec compliance review with severity buckets |
+
+### External skills
+
+Some local skills reference external skills too complex to distill. These are optional — local skills work without them. See [`global-skills.md`](global-skills.md) for the full list and which local skills reference them.
+
+```sh
+npx skills add obra/superpowers -s brainstorming -a '*' -g -y
+npx skills add nicobailon/visual-explainer -s visual-explainer -a '*' -g -y
+npx skills add jeffallan/claude-skills -s security-reviewer -a '*' -g -y
+npx skills add anthropics/claude-code -s frontend-design -a '*' -g -y
+npx skills add wshobson/agents -s wcag-audit-patterns -a '*' -g -y
+npx skills add softaworks/agent-toolkit -s reducing-entropy -a '*' -g -y
+npx skills add sickn33/antigravity-awesome-skills -s typescript-expert -a '*' -g -y
+```
+
 ## Tips
 
 > **Plan every change. No exceptions.**
@@ -240,35 +265,34 @@ Text after a slash command is the task scope. Examples:
 - `/explore auth module architecture`
 - `/do-execute` — starts execution of an approved plan (or plans inline if none exists)
 
+### Screenshot shortcuts (macOS)
+
+- **Screenshot → clipboard:** `Control-Shift-Command-3` (full screen) or `Control-Shift-Command-4` (selection); image goes to clipboard — paste directly into your tool's chat.
+- **Thumbnail drag:** `Shift-Command-4` (selection) shows a thumbnail in the corner; drag it into the chat before it fades.
+- **Ergonomic remap:** if `Control-Shift-Command` feels awkward, remap to an `Option-Command` combo in System Settings → Keyboard → Shortcuts → Screenshots.
+
 ### Workflow tips
 
 - **Domain skills auto-load** — `frontend`, `backend`, `testing`, `writing`, and `explore` activate automatically when the task matches. No slash command needed.
 - **Refine before executing** — polish the plan via messages before running `/do-execute`. The plan drives all quality gates downstream.
+- **Fresh chat for execution** — after planning is ready, consider opening a fresh chat for `/do-execute` to reduce context carryover and keep the execution window clean.
 - **Use subagents for parallel work** — the `explorer` agent handles fast codebase navigation; the `reviewer` agent runs focused code review. Both are readonly and can run in parallel without conflicts.
 - **Evidence levels matter** — all claims in plans, reviews, and execution are tagged E0–E3. Blocking claims require code evidence (E2+). Verification requires executed output (E3).
 - **Skill-craft for meta-work** — use `/skill-craft` to write, review, or audit skills and AGENTS.md files. It enforces the authoring test: every skill line must address something an LLM handles worse without guidance.
+
+### Which model to use
+
+Use cost-effective defaults for orchestration, then escalate only when quality or risk requires it.
+
+- **Default orchestration:** use your tool's auto/default model for planning and coordination.
+- **Frontier reserve:** escalate to stronger models (Opus, Sonnet, Codex) for implementation-heavy work, ambiguous requirements, and debugging.
+- **Planning is the lever:** structured planning (`/do-plan`) improves output quality more than model choice alone. Strong model + planning > strong model without planning > weak model + planning.
 
 ### Installer tips
 
 - **Re-run to update** — run `./install.sh` again after pulling new changes to sync skills and guardrails.
 - **Isolated test** — verify the installer in a sandbox: `HOME=$(mktemp -d) bash install.sh`
 - **Individual skills** — install just the skills you need via `npx skills add kenoxa/spine -s <skill-name> -a '*' -g -y`
-
-## External Skills
-
-Some local skills reference external skills that provide specialized capabilities too complex to distill. Install them separately:
-
-```sh
-npx skills add obra/superpowers -s brainstorming -a '*' -g -y
-npx skills add nicobailon/visual-explainer -s visual-explainer -a '*' -g -y
-npx skills add jeffallan/claude-skills -s security-reviewer -a '*' -g -y
-npx skills add anthropics/claude-code -s frontend-design -a '*' -g -y
-npx skills add wshobson/agents -s wcag-audit-patterns -a '*' -g -y
-npx skills add softaworks/agent-toolkit -s reducing-entropy -a '*' -g -y
-npx skills add sickn33/antigravity-awesome-skills -s typescript-expert -a '*' -g -y
-```
-
-These are optional — local skills work without them but reference them for specialized tasks. See [`global-skills.md`](global-skills.md) for which local skills reference which external skills.
 
 ## Design Principles
 
