@@ -32,6 +32,21 @@ Testable acceptance conditions. Must be verifiable without running the plan auth
 Explicit statement that when the plan is approved, execution begins. Note any domain-specific skills
 or context required for execution subagents.
 
+## Conditionally Required Sections
+
+Include when scope meets the stated condition. Omission requires explicit skip rationale.
+
+### Documentation Tasks
+
+Required when scope has user-visible, API, or config changes (`docs_impact` ≠ `none`).
+Explicit doc updates with target files. When `docs_impact` is `customer-facing` or `both`,
+include changelog entries following the `writing` skill's changelog rules.
+
+### Test Scenarios
+
+Required for behavior-changing work. Concrete cases with given/when/then expectations
+and expected inputs/outputs. Not abstract "add tests" tasks.
+
 ## Optional Sections
 
 Use when scope warrants. When present, each section's MUST-when-present rules apply.
@@ -45,15 +60,11 @@ Use when scope warrants. When present, each section's MUST-when-present rules ap
   with evidence before synthesis.
 - **Phased Plan** — Multi-phase sequencing when work spans distinct phases.
 - **Risks and Rollback** — Notable risks and rollback strategy.
-- **Documentation Tasks** — Explicit doc updates. Required when scope has user-visible, API,
-  or config changes.
 - **Implementation Intent** — Goal-level intent: `code_intent` (pattern-level what/how),
   `acceptance_criteria` (testable per-task conditions). MAY include `reference_anchors`
   (existing code to align with). Outcome-focused "what" over implementation "how".
 - **Code Anchors** — Repo-relative file paths and existing code to align with or modify.
   When present, MUST list explicit paths.
-- **Test Scenarios** — Concrete cases with given/when/then expectations. Not abstract "add tests" tasks.
-  When present, MUST include expected inputs and outputs per scenario.
 - **Draft Artifacts** — Pre-written text for docs, config, schema changes. Workers refine rather than
   create from scratch. When present, MUST be non-placeholder.
 

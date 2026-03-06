@@ -71,7 +71,11 @@ Output: `polish_findings`, updated `files_modified`.
 
 Two stages, sequential:
 
-1. **Tests & docs** (conditional): skip when no behavior-changing code or docs impact. Otherwise run tests, add coverage, update documentation. Their output is context for stage 2.
+1. **Tests & docs** (conditional): skip when no behavior-changing code AND `docs_impact` is `none`.
+   Otherwise:
+   - **Tests**: run test suites covering changed behavior; add missing coverage; produce test evidence (command executed + pass/fail + coverage data). Absent test evidence for behavior-changing code is a **blocking finding**.
+   - **Docs**: update documentation per `docs_impact` classification. When `customer-facing` or `both`, include changelog entries using `writing` skill rules. Absent docs updates when `docs_impact` ≠ `none` is a **blocking finding**.
+   Their output is context for stage 2.
 2. **Adversarial review**: independent reviewers with distinct lenses, dispatched in parallel. Never skipped. At `focused` depth, run as a single inline pass with multiple lenses rather than dispatching separate reviewers.
 
 Blocking findings (E2+) → produce `re_dispatch_brief` → re-enter polish.
@@ -113,9 +117,9 @@ Each re-entry at polish counts as one iteration. Cap: **5 iterations**. On cap: 
 
 Finalize cannot declare completion unless:
 
-- **Tests** for behavior-changing work
+- **Tests** for behavior-changing work — with E3 evidence (executed command + pass/fail output)
 - **Edge/failure coverage** for risk-bearing work
-- **Docs** for user-visible, API, or config changes
+- **Docs** for user-visible, API, or config changes (`docs_impact` ≠ `none`) — including changelog entries when `docs_impact` is `customer-facing` or `both`
 
 ## Completion Declaration
 
@@ -133,3 +137,5 @@ Exact phrases:
 - Making inline main-thread edits when not at focused depth
 - Overlapping concurrent writes to the same file
 - Auto-applying learnings in finalize
+- Skipping tests-and-docs stage without verifying `docs_impact` classification
+- Declaring completion without test evidence (E3) for behavior-changing code

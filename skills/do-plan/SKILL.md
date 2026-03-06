@@ -40,6 +40,9 @@ Distill `discovery_findings` into a `planning_brief` all planners share. Fields:
 | `key_decisions` | Numbered IDs, A/B/C options, explicit tradeoffs |
 | `planner_focus_cues` | E2 pointers to entry points, patterns, tests — no narrative |
 | `evidence_manifest` | Artifact paths with why-relevant; planners lazy-load from here |
+| `docs_impact` | Classification: `customer-facing`, `internal`, `both`, or `none` — with skip rationale when `none` |
+
+Classify `docs_impact` for every plan. When `none`, record explicit skip rationale in the brief. When `customer-facing` or `both`, changelog updates are in scope — load `writing` skill for changelog rules.
 
 No raw dumps — distilled signals only.
 
@@ -109,9 +112,9 @@ Never carry unresolved decisions silently into synthesis.
 Synthesis cannot declare readiness unless the plan includes:
 
 - **Self-sufficiency**: executable without chat history; repo-relative paths; defined terms; decision rationale
-- **Test tasks**: explicit for behavior-changing work
+- **Test tasks**: explicit for behavior-changing work; includes concrete scenarios (given/when/then), not abstract "add tests" placeholders
 - **Edge/failure coverage**: enumeration for low risk; perspective table for medium/high risk
-- **Docs tasks**: explicit for user-visible/API/config changes
+- **Docs tasks**: explicit for user-visible/API/config changes; includes changelog entries when `docs_impact` is `customer-facing` or `both`
 - **Completion criteria**: testable acceptance conditions
 
 See [references/plan-template.md](references/plan-template.md) for required sections and scaffold.
@@ -132,3 +135,4 @@ On cap: freeze best plan snapshot and request explicit user approval to continue
 - Carrying E0-only objections as blocking findings into synthesis
 - Declaring readiness when self-sufficiency contract is unmet
 - Silently carrying unresolved `key_decisions` past the ask checkpoint
+- Declaring readiness without `docs_impact` classification in the planning brief
