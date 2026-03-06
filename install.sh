@@ -230,14 +230,19 @@ main() {
   info "Spine installer — cross-platform AI coding setup"
   echo ""
 
-  # Download (or use SPINE_LOCAL_SRC for testing)
-  local src
-  if [ -n "${SPINE_LOCAL_SRC:-}" ]; then
+  # Resolve source: local repo > SPINE_LOCAL_SRC env > remote download
+  local src script_dir
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  if [ -f "$script_dir/AGENTS.global.md" ] && [ -d "$script_dir/skills" ]; then
+    src="$script_dir"
+    info "Using local repo: $src"
+  elif [ -n "${SPINE_LOCAL_SRC:-}" ]; then
     src="$SPINE_LOCAL_SRC"
     info "Using local source: $src"
   else
     src=$(download_source)
-    trap 'rm -rf "$(dirname "$src")"' EXIT
+    _SPINE_CLEANUP_DIR="$(dirname "$src")"
+    trap 'rm -rf "$_SPINE_CLEANUP_DIR"' EXIT
   fi
 
   # Detect tools
