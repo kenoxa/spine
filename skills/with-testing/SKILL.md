@@ -47,9 +47,6 @@ Minimum boundaries: `0`, min, max, `±1`, empty, null.
 
 ## Anti-Patterns
 
-- Writing tests that mirror implementation details instead of behavior
 - Vacuous assertions (`>= 0`, `length >= 0`)
-- Swallowing errors in try/catch instead of asserting and failing fast
-- Sleep-based timing instead of condition-based waits
 - Claiming coverage improvements without execution evidence
 - Skipping the perspective table for medium/high risk changes

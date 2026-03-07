@@ -32,7 +32,7 @@ Classify scope before writing:
 
 1. **Classify** — identify artifact type and docs impact lane before writing.
 2. **Structure first** — lay out headings and sections matching the artifact type, then fill.
-3. **Write concretely** — specific over vague, examples over descriptions, scannable over dense.
+3. **Write concretely** — every how-to must include a runnable example; every reference section must use a consistent field table.
 4. **Verify completeness** — check required sections exist for the artifact type.
 
 ## Changelog Rules
@@ -46,6 +46,4 @@ Classify scope before writing:
 
 - Starting to write without classifying the artifact type
 - Mixing Diataxis modes in a single section (tutorial steps inside a reference page)
-- Walls of text without headings or scannable structure
-- Documenting implementation details instead of user-facing behavior
 - Changelog entries that describe code changes instead of user impact

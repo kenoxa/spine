@@ -29,12 +29,9 @@ Every UI component MUST account for these states where applicable:
 
 ## Accessibility
 
-Accessibility is a gate, not a polish step — build it in, don't bolt it on afterward.
+Accessibility gates completion — do not defer to a follow-up pass.
 
-- Prefer semantic HTML over ARIA. If a native element does the job, don't layer ARIA on top.
-- Keyboard navigation for all interactive elements; no keyboard traps.
 - Focus management on route changes and modal open/close — visible focus indicators required.
-- Color contrast: 4.5:1 normal text, 3:1 large text (WCAG AA).
 
 For comprehensive audits, use the `wcag-audit-patterns` skill.
 
@@ -42,6 +39,4 @@ For comprehensive audits, use the `wcag-audit-patterns` skill.
 
 - Implementing without proposing layout when scope is ambiguous
 - Missing loading, error, or empty states
-- Using divs with click handlers instead of buttons or links
 - Treating accessibility as a follow-up task
-- Inline styles where utility classes or design tokens exist

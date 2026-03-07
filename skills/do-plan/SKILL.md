@@ -2,9 +2,12 @@
 name: do-plan
 description: >
   Structured planning before complex implementation.
-  Use when the task is open-ended, has architectural implications, or requires
-  coordinating multiple workstreams. Do NOT use for single-file edits or
-  straightforward bug fixes.
+  Use this skill whenever the user mentions planning, architecture decisions,
+  multi-file changes, migration strategies, or asks to "think through",
+  "map out", or "figure out the approach" before coding. Also trigger when
+  the task is open-ended, touches 3+ files, or requires evaluating multiple
+  approaches. Do NOT use for single-file edits, straightforward bug fixes,
+  or when the user already has an approved plan.
 argument-hint: "[task description]"
 ---
 
@@ -17,6 +20,8 @@ to explore alternatives and get user sign-off on direction before entering disco
 ## Phases
 
 Every subagent prompt MUST be self-contained — include all prior-phase context explicitly.
+
+**Session ID**: generate once at phase entry using `{skill}-{YYYYMMDD}-{short-hash}` (e.g., `plan-20260307-a3f2`). Reuse the same session ID across all phases of a single do-plan run. All output paths below use `<session>` as placeholder.
 
 ### 1. Discovery
 
@@ -62,9 +67,9 @@ Dispatch planners **in parallel** (Explore type, read-only). Each receives `plan
 
 | Role | Persona | Output |
 |------|---------|--------|
-| `conservative` | Minimizes change surface, prefers existing patterns, avoids risk | `.agents/scratch/<session>/plan-planning-conservative.md` |
-| `thorough` | Full coverage with explicit edge cases, failure modes, and boundary enumeration | `.agents/scratch/<session>/plan-planning-thorough.md` |
-| `innovative` | Proposes structural improvements when scope allows, challenges conventions | `.agents/scratch/<session>/plan-planning-innovative.md` |
+| `conservative` | Rejects changes without a working codebase precedent; prefers no-change over novelty when risk is ambiguous | `.agents/scratch/<session>/plan-planning-conservative.md` |
+| `thorough` | Enumerates every edge case and failure mode; treats missing boundary coverage as a gap, not an optimization | `.agents/scratch/<session>/plan-planning-thorough.md` |
+| `innovative` | Proposes structural improvements when scope allows; must justify each departure from existing patterns with concrete benefit | `.agents/scratch/<session>/plan-planning-innovative.md` |
 
 **Synthesis**: main thread reads all output files, merges into `canonical_plan`. Deduplicate by meaning; rank E3 > E2 > E1 > E0; conflicting E2+ claims on blocking topics → targeted verification pass aiming for E3.
 

@@ -2,8 +2,11 @@
 name: do-execute
 description: >
   Execute an approved plan through structured phases with built-in quality gates.
-  Use when an approved plan exists or the task is explicit enough to skip planning.
-  Do NOT use when planning is incomplete — run do-plan first.
+  Use this skill whenever the user says "plan is approved", "go ahead", "proceed
+  with implementation", "let's build this", or otherwise confirms they want to
+  start implementing a previously planned task. Also trigger when the user has a
+  clear, explicit task that doesn't need planning. Do NOT use when planning is
+  incomplete or the user is still exploring approaches — run do-plan first.
 argument-hint: "[plan reference or task]"
 ---
 
@@ -13,7 +16,7 @@ Execute an approved plan through six phases: scope → implement → polish → 
 
 No approved plan in context → run do-plan first. Never begin execution when planning is incomplete. Never edit the plan file for status tracking.
 
-**"Approved" means explicit user confirmation after the readiness declaration — not the readiness declaration itself. If the user has not confirmed since the last `Plan is ready for execution.` statement, stop and ask.**
+**"Approved" means explicit user confirmation after `Plan is ready for execution.` — not the readiness declaration itself. If the user has not confirmed, stop and ask.** See do-plan Readiness Declaration for approval definition.
 
 ## Depth
 
@@ -30,6 +33,8 @@ Classify at entry. Depth controls fanout per phase, not which phases run — all
 See AGENTS.md for E0–E3 definitions. Blocking claims MUST be E2+. Verify claims MUST be E3.
 
 ## Phases
+
+**Session ID**: generate once at scope phase using `{skill}-{YYYYMMDD}-{short-hash}` (e.g., `exec-20260307-b7c1`). Reuse across all phases. All output paths below use `<session>` as placeholder.
 
 At `focused` depth, main thread handles every phase inline — no subagent dispatch. The subagent roles below apply to `standard` and `deep` only. Every subagent prompt MUST be self-contained: include scope artifact, files modified, and plan excerpt. Subagents inherit no conversation history.
 
@@ -50,7 +55,7 @@ Ask the user when blocking questions are non-empty. Never carry unresolved quest
 
 ### 2. Implement
 
-Implementation workers: one per partition. Parallel for independent partitions; sequential for dependent. No overlapping writes to the same file.
+Dispatch implementation workers (general-purpose type, read-write): one per partition. Parallel for independent partitions; sequential for dependent. No overlapping writes to the same file.
 
 Output: `files_modified` — repo-relative list of all changed files.
 
@@ -66,8 +71,8 @@ Two sub-steps:
 
    | Role | Persona | Output |
    |------|---------|--------|
-   | `conventions-advisor` | Checks naming patterns, project conventions, and style consistency against codebase norms | `.agents/scratch/<session>/execute-polish-conventions-advisor.md` |
-   | `complexity-advisor` | Identifies defensive bloat on trusted paths (NEVER flag auth/authz/validation) and unnecessary abstraction | `.agents/scratch/<session>/execute-polish-complexity-advisor.md` |
+   | `conventions-advisor` | Checks naming against codebase norms; flags deviations from established patterns, not style preferences | `.agents/scratch/<session>/execute-polish-conventions-advisor.md` |
+   | `complexity-advisor` | Identifies defensive bloat on trusted paths (NEVER flag auth/authz/validation) and premature abstraction | `.agents/scratch/<session>/execute-polish-complexity-advisor.md` |
 
    **Synthesis**: main thread reads both output files, deduplicates findings, assigns E-levels. Every E2+ finding: action or explicit rejection with rationale. Silent drops prohibited.
 
@@ -88,9 +93,9 @@ Two stages, sequential:
 
    | Role | Persona | Output |
    |------|---------|--------|
-   | `spec-reviewer` | Validates implementation against plan requirements and acceptance criteria | `.agents/scratch/<session>/execute-review-spec-reviewer.md` |
-   | `correctness-reviewer` | Probes for logic errors, edge cases, race conditions, and failure paths | `.agents/scratch/<session>/execute-review-correctness-reviewer.md` |
-   | `risk-reviewer` | Evaluates security boundaries, performance implications, and scalability concerns (scaled by risk level) | `.agents/scratch/<session>/execute-review-risk-reviewer.md` |
+   | `spec-reviewer` | Validates every plan requirement has a corresponding implementation; flags missing and extra behavior | `.agents/scratch/<session>/execute-review-spec-reviewer.md` |
+   | `correctness-reviewer` | Probes for logic errors, edge cases, race conditions, and failure paths — assumes adversarial inputs | `.agents/scratch/<session>/execute-review-correctness-reviewer.md` |
+   | `risk-reviewer` | Evaluates security boundaries, performance implications, and scalability; scales depth by risk classification | `.agents/scratch/<session>/execute-review-risk-reviewer.md` |
 
    **Synthesis**: main thread reads all output files. Deduplicate findings across reviewers. Assign final E-levels and severity buckets per `do-review` skill rules.
 

@@ -31,15 +31,6 @@ terms in subsequent searches instead of generic names.
 - `risks_or_unknowns` — explicit gaps and unexplored areas
 - `terminology_discovered` — non-obvious project naming (omit when not applicable)
 
-## External Dependencies
-
-When exploring external libraries or APIs, use this source reliability hierarchy:
-official docs > versioned examples > changelog > blog posts > community forums > Stack Overflow.
-
-- Never mix guidance from different major versions
-- Check maintenance status before recommending a library
-- Capture version and context assumptions for every recommendation
-
 ## Anti-Patterns
 
 - Speculating about behavior without repository evidence

@@ -32,7 +32,7 @@ description: >
 ---
 ```
 
-Name is derived from the directory name — do not add a `name` field.
+Include a `name` field matching the directory name (with prefix).
 Add `disable-model-invocation: true` only when the skill is a thin routing wrapper
 that immediately delegates to another skill.
 
