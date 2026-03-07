@@ -5,10 +5,10 @@ description: >
 model: haiku
 readonly: true
 skills:
-  - explore
+  - use-explore
 ---
 
-Fast, read-only codebase exploration. Follows the `explore` skill workflow — framing, bounded discovery, context triage, and structured handoff.
+Follow the `use-explore` skill workflow — framing, bounded discovery, context triage, and structured handoff.
 
 ## Dispatch Context
 

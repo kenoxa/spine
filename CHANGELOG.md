@@ -2,11 +2,17 @@
 
 All notable changes are documented here, focused on user impact.
 
+## 2026-03-07
+
+### Changed
+
+- **Skill prefix convention** — non-workflow skills now use `with-*` (domain standards) and `use-*` (active tools) prefixes for better slash-autocomplete grouping. Domain: `with-frontend`, `with-backend`, `with-testing`. Tools: `use-explore`, `use-writing`, `use-skill-craft`. External skills keep their upstream names.
+
 ## 2026-03-06
 
 ### Initial Release
 
-- **11 skills** — 5 workflow (`do-plan`, `do-execute`, `do-review`, `do-debug`, `do-commit`) + 5 domain (`explore`, `writing`, `frontend`, `backend`, `testing`) + 1 meta (`skill-craft`)
+- **11 skills** — 5 workflow (`do-plan`, `do-execute`, `do-review`, `do-debug`, `do-commit`) + 3 domain (`with-frontend`, `with-backend`, `with-testing`) + 3 tools (`use-explore`, `use-writing`, `use-skill-craft`)
 - **2 subagents** — `explorer` (haiku, readonly) for fast codebase navigation and `reviewer` (inherit model) for severity-bucketed code review
 - **Cross-platform installer** — auto-detects Cursor, Claude Code, and Codex; installs guardrails, skills, agents, and hooks
 - **AGENTS.global.md** — shared guardrails installed as `AGENTS.md` (Cursor/Codex) or `CLAUDE.md` (Claude Code)

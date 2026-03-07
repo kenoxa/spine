@@ -42,7 +42,7 @@ Distill `discovery_findings` into a `planning_brief` all planners share. Fields:
 | `evidence_manifest` | Artifact paths with why-relevant; planners lazy-load from here |
 | `docs_impact` | Classification: `customer-facing`, `internal`, `both`, or `none` — with skip rationale when `none` |
 
-Classify `docs_impact` for every plan. When `none`, record explicit skip rationale in the brief. When `customer-facing` or `both`, changelog updates are in scope — load `writing` skill for changelog rules.
+Classify `docs_impact` for every plan. When `none`, record explicit skip rationale in the brief. When `customer-facing` or `both`, changelog updates are in scope — load `use-writing` skill for changelog rules.
 
 No raw dumps — distilled signals only.
 
@@ -121,7 +121,7 @@ See [references/plan-template.md](references/plan-template.md) for required sect
 
 ## Readiness Declaration
 
-- `Plan is ready for execution.`
+- `Plan is ready for execution.` — STOP. Do not proceed. Await explicit user approval before any execution begins. User approval means a direct confirmation in the next message (e.g. "go", "approved", "proceed") — the readiness declaration itself does not constitute approval.
 - `Plan is NOT ready for execution` — followed by specific gaps listed.
 
 ## Iteration Cap

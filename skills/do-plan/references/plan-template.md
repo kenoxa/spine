@@ -40,7 +40,7 @@ Include when scope meets the stated condition. Omission requires explicit skip r
 
 Required when scope has user-visible, API, or config changes (`docs_impact` ≠ `none`).
 Explicit doc updates with target files. When `docs_impact` is `customer-facing` or `both`,
-include changelog entries following the `writing` skill's changelog rules.
+include changelog entries following the `use-writing` skill's changelog rules.
 
 ### Test Scenarios
 

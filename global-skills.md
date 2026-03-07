@@ -21,8 +21,8 @@ npx skills add sickn33/antigravity-awesome-skills -s typescript-expert -a '*' -g
 | `brainstorming` | `obra/superpowers` | do-plan — optional upstream when requirements are unclear |
 | `visual-explainer` | `nicobailon/visual-explainer` | do-plan, do-review — visual architecture and diff explanations |
 | `security-reviewer` | `jeffallan/claude-skills` | do-review — high-risk security probe heuristics |
-| `frontend-design` | `anthropics/claude-code` | frontend — distinctive visual craft (typography, color, motion, composition) |
-| `wcag-audit-patterns` | `wshobson/agents` | frontend — comprehensive WCAG 2.2 audit methodology |
+| `frontend-design` | `anthropics/claude-code` | with-frontend — distinctive visual craft (typography, color, motion, composition) |
+| `wcag-audit-patterns` | `wshobson/agents` | with-frontend — comprehensive WCAG 2.2 audit methodology |
 | `reducing-entropy` | `softaworks/agent-toolkit` | do-review — net-complexity measurement, counters code bloat |
 
 ## Standalone

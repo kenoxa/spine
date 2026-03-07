@@ -22,7 +22,7 @@ Use built-in search and file tools over shell equivalents when available. When s
 For any task with 3+ steps or architectural decisions: plan before implementing. If the approach stalls, stop and re-plan — don't keep pushing.
 
 **Skills** (load with `/do-<name>`):
-- `plan` — required before complex implementation
+- `plan` — required before complex implementation. After emitting a readiness declaration, STOP and await explicit user approval before proceeding to execution. The readiness declaration is not approval.
 - `execute` — implement an approved plan
 - `debug` — diagnose and fix a failing system
 - `commit` — stage, message, and push

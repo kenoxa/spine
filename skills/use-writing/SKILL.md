@@ -1,5 +1,5 @@
 ---
-name: writing
+name: use-writing
 description: >
   Documentation and prose quality standards.
   Use when creating or editing docs, READMEs, changelogs, ADRs, or user-facing text.

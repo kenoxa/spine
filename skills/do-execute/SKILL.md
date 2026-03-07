@@ -13,6 +13,8 @@ Execute an approved plan through six phases: scope → implement → polish → 
 
 No approved plan in context → run do-plan first. Never begin execution when planning is incomplete. Never edit the plan file for status tracking.
 
+**"Approved" means explicit user confirmation after the readiness declaration — not the readiness declaration itself. If the user has not confirmed since the last `Plan is ready for execution.` statement, stop and ask.**
+
 ## Depth
 
 Classify at entry. Depth controls fanout per phase, not which phases run — all six always execute.
@@ -74,7 +76,7 @@ Two stages, sequential:
 1. **Tests & docs** (conditional): skip when no behavior-changing code AND `docs_impact` is `none`.
    Otherwise:
    - **Tests**: run test suites covering changed behavior; add missing coverage; produce test evidence (command executed + pass/fail + coverage data). Absent test evidence for behavior-changing code is a **blocking finding**.
-   - **Docs**: update documentation per `docs_impact` classification. When `customer-facing` or `both`, include changelog entries using `writing` skill rules. Absent docs updates when `docs_impact` ≠ `none` is a **blocking finding**.
+   - **Docs**: update documentation per `docs_impact` classification. When `customer-facing` or `both`, include changelog entries using `use-writing` skill rules. Absent docs updates when `docs_impact` ≠ `none` is a **blocking finding**.
    Their output is context for stage 2.
 2. **Adversarial review**: independent reviewers with distinct lenses, dispatched in parallel. Never skipped. At `focused` depth, run as a single inline pass with multiple lenses rather than dispatching separate reviewers.
 

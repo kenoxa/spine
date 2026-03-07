@@ -1,9 +1,9 @@
 ---
-name: backend
+name: with-backend
 description: >
   Backend development standards for APIs, databases, and infrastructure.
   Use when editing server code, API routes, database schemas, or migrations.
-  Do NOT use for UI-only changes — see the frontend skill.
+  Do NOT use for UI-only changes — see the with-frontend skill.
 argument-hint: "[API, migration, or backend task]"
 ---
 

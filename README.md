@@ -194,7 +194,7 @@ Canonical entry: [`skills/do-debug/SKILL.md`](skills/do-debug/SKILL.md).
 
 ```
 AGENTS.global.md        Global guardrails (installed as AGENTS.md / CLAUDE.md)
-skills/                 11 skills (5 workflow + 5 domain + skill-craft)
+skills/                 11 skills (5 workflow + 3 domain + 3 tools)
 agents/                 2 subagents (explorer, reviewer)
 hooks/                  Claude Code SessionStart hook for AGENTS.md injection
 global-skills.md        External skills to install separately
@@ -212,23 +212,25 @@ Invoked explicitly via `/do-plan`, `/do-execute`, etc.
 | `do-debug` | 4-phase root-cause diagnosis and fix |
 | `do-commit` | Scoped staging with conventional commits |
 
-### Domain skills
+### Domain standards (`with-*`)
 
 Loaded automatically when the task matches their description — no slash command needed.
 
 | Skill | Purpose |
 |-------|---------|
-| `explore` | Bounded codebase navigation and architecture mapping |
-| `writing` | Docs, changelogs, ADRs, and prose quality |
-| `frontend` | UI development with state coverage and accessibility gates |
-| `backend` | APIs, migrations, and security boundaries |
-| `testing` | Risk-based test design with perspective tables |
+| `with-frontend` | UI development with state coverage and accessibility gates |
+| `with-backend` | APIs, migrations, and security boundaries |
+| `with-testing` | Risk-based test design with perspective tables |
 
-### Meta
+### Active tools (`use-*`)
+
+Invoked explicitly to produce artifacts or perform discovery.
 
 | Skill | Purpose |
 |-------|---------|
-| `skill-craft` | Write, review, or fix skills and AGENTS.md files |
+| `use-explore` | Bounded codebase navigation and architecture mapping |
+| `use-writing` | Docs, changelogs, ADRs, and prose quality |
+| `use-skill-craft` | Write, review, or fix skills and AGENTS.md files |
 
 ### Subagents
 
@@ -236,6 +238,20 @@ Loaded automatically when the task matches their description — no slash comman
 |-------|-------|---------|
 | `explorer` | haiku | Fast, readonly codebase navigation |
 | `reviewer` | inherit | Spec compliance review with severity buckets |
+
+### Skill prefix convention
+
+Prefixes group skills in slash-autocomplete — type `do-`, `with-`, or `use-` to filter to the category you need.
+
+| Prefix | Semantic | When to use |
+|--------|----------|-------------|
+| `do-` | Workflow commands | Multi-phase execution: planning, implementation, review, debugging, committing |
+| `with-` | Domain standards | Applied passively when the task matches — UI, API, or test work |
+| `use-` | Active tools | Invoked explicitly to produce artifacts or perform discovery |
+
+**Why prefixes?** Without them, spine's 11 skills get lost among globally installed skills in slash-autocomplete. Typing the first few characters of a prefix immediately narrows the list to the relevant group.
+
+External skills (installed via `npx skills add`) keep their upstream names and do not follow this convention — we don't own those names.
 
 ### External skills
 
@@ -262,7 +278,7 @@ Text after a slash command is the task scope. Examples:
 - `/do-plan add retry strategy for API calls`
 - `/do-review` — reviews current changes against the plan
 - `/do-debug failing auth test in CI`
-- `/explore auth module architecture`
+- `/use-explore auth module architecture`
 - `/do-execute` — starts execution of an approved plan (or plans inline if none exists)
 
 ### Screenshot shortcuts (macOS)
@@ -273,12 +289,12 @@ Text after a slash command is the task scope. Examples:
 
 ### Workflow tips
 
-- **Domain skills auto-load** — `frontend`, `backend`, `testing`, `writing`, and `explore` activate automatically when the task matches. No slash command needed.
+- **Domain skills auto-load** — `with-frontend`, `with-backend`, and `with-testing` activate automatically when the task matches. No slash command needed.
 - **Refine before executing** — polish the plan via messages before running `/do-execute`. The plan drives all quality gates downstream.
 - **Fresh chat for execution** — after planning is ready, consider opening a fresh chat for `/do-execute` to reduce context carryover and keep the execution window clean.
 - **Use subagents for parallel work** — the `explorer` agent handles fast codebase navigation; the `reviewer` agent runs focused code review. Both are readonly and can run in parallel without conflicts.
 - **Evidence levels matter** — all claims in plans, reviews, and execution are tagged E0–E3. Blocking claims require code evidence (E2+). Verification requires executed output (E3).
-- **Skill-craft for meta-work** — use `/skill-craft` to write, review, or audit skills and AGENTS.md files. It enforces the authoring test: every skill line must address something an LLM handles worse without guidance.
+- **Skill-craft for meta-work** — use `/use-skill-craft` to write, review, or audit skills and AGENTS.md files. It enforces the authoring test: every skill line must address something an LLM handles worse without guidance.
 
 ### Which model to use
 

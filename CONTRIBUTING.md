@@ -2,7 +2,7 @@
 
 ## Adding a Skill
 
-Use `/skill-craft` — it covers the full authoring workflow. Key points:
+Use `/use-skill-craft` — it covers the full authoring workflow. Key points:
 
 1. **Pass the authoring test**: Would an LLM perform the task worse without this skill? If the agent can figure it out from general knowledge or target files, don't create the skill.
 2. **Structure**: `frontmatter → overview → core directives → anti-patterns`. No other sections unless prerequisites require it.

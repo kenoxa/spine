@@ -1,5 +1,5 @@
 ---
-name: explore
+name: use-explore
 description: >
   Bounded codebase exploration and architecture mapping.
   Use when discovery is needed before implementation.

@@ -1,10 +1,10 @@
 ---
-name: skill-craft
+name: use-skill-craft
 description: >
   Write, review, or fix skills and AGENTS.md files.
   Use when creating a new skill, auditing an existing one, refactoring a
   bloated AGENTS.md, or reviewing whether content passes the authoring test.
-  Do NOT use for general documentation writing — see the `writing` skill.
+  Do NOT use for general documentation writing — see the `use-writing` skill.
 argument-hint: "[skill name or AGENTS.md path]"
 ---
 
