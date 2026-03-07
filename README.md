@@ -198,7 +198,10 @@ skills/                 11 skills (5 workflow + 3 domain + 3 tools)
 agents/                 2 subagents (explorer, reviewer)
 hooks/                  Claude Code SessionStart hook for AGENTS.md injection
 global-skills.md        External skills to install separately
+.agents/scratch/        Ephemeral subagent output (gitignore this)
 ```
+
+`.agents/scratch/` is created at runtime by `do-plan` and `do-execute` subagents to store intermediate output files. It is ephemeral — safe to delete at any time. Add `.agents/scratch/` to your project's `.gitignore`.
 
 ### Workflow skills
 

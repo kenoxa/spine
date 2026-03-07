@@ -20,13 +20,15 @@ Every subagent prompt MUST be self-contained — include all prior-phase context
 
 ### 1. Discovery
 
-Map the codebase before planning. Subagent scope:
+Map the codebase before planning. Dispatch discovery subagents **in parallel** (Explore type, read-only):
 
-- **File scouting**: entry points, call graph, tests, config flags, change surface
-- **Docs exploration**: intended behavior, spec bullets, ambiguities
-- **External research**: upstream breaking changes, API gotchas, compatibility (when touching external dependencies)
+| Role | Persona | Output | When |
+|------|---------|--------|------|
+| `file-scout` | Traces entry points, call graphs, config flags, and change surface | `.agents/scratch/<session>/plan-discovery-file-scout.md` | Always |
+| `docs-explorer` | Extracts intended behavior, spec bullets, and ambiguities from documentation | `.agents/scratch/<session>/plan-discovery-docs-explorer.md` | Always |
+| `external-researcher` | Checks upstream breaking changes, API gotchas, and version compatibility | `.agents/scratch/<session>/plan-discovery-external-researcher.md` | When touching external dependencies |
 
-Output: `discovery_findings` — all claims tagged with evidence level (see [Evidence Levels](#evidence-levels)).
+**Synthesis**: main thread reads all output files, merges into `discovery_findings`. All claims tagged with evidence level (see [Evidence Levels](#evidence-levels)). Conflicting claims across subagents → prefer higher evidence level; same level → flag for framing.
 
 ### 2. Framing
 
@@ -56,15 +58,15 @@ Present context + options first, then prompt the user with short structured ques
 
 ### 3. Planning
 
-Dispatch planners with `planning_brief` + `evidence_manifest` in every prompt.
-For multi-planner runs, assign distinct approach angles to avoid duplicate plans:
+Dispatch planners **in parallel** (Explore type, read-only). Each receives `planning_brief` + `evidence_manifest` and produces an independent plan from a distinct angle:
 
-- `conservative`: minimize surface area, prefer existing patterns
-- `thorough`: full coverage, explicit edge/failure enumeration
-- `innovative`: structural improvements if scope allows
+| Role | Persona | Output |
+|------|---------|--------|
+| `conservative` | Minimizes change surface, prefers existing patterns, avoids risk | `.agents/scratch/<session>/plan-planning-conservative.md` |
+| `thorough` | Full coverage with explicit edge cases, failure modes, and boundary enumeration | `.agents/scratch/<session>/plan-planning-thorough.md` |
+| `innovative` | Proposes structural improvements when scope allows, challenges conventions | `.agents/scratch/<session>/plan-planning-innovative.md` |
 
-Merge parallel outputs via consensus: deduplicate by meaning; rank E3 > E2 > E1 > E0;
-conflicting E2+ claims on blocking topics → targeted verification pass aiming for E3.
+**Synthesis**: main thread reads all output files, merges into `canonical_plan`. Deduplicate by meaning; rank E3 > E2 > E1 > E0; conflicting E2+ claims on blocking topics → targeted verification pass aiming for E3.
 
 ### 4. Challenge
 
@@ -78,8 +80,16 @@ lower risk — never block without one.
 
 Useful review lenses: approach correctness (`assumptions`) and non-functional risks (`nfr`: security, perf, scalability).
 For visual architecture explanations, use the `visual-explainer` skill.
-If blocking findings remain unresolved after asking, dispatch a structured debate
-(thesis-champion, counterpoint-dissenter, tradeoff-analyst) before synthesis.
+
+If blocking findings remain unresolved after asking, dispatch a structured debate **in parallel** (Explore type, read-only). Each debater receives: `canonical_plan`, unresolved blocking findings, and the full `evidence_manifest`.
+
+| Role | Persona | Output |
+|------|---------|--------|
+| `thesis-champion` | Defends the canonical plan, steelmans its strengths, rebuts each objection with evidence | `.agents/scratch/<session>/plan-challenge-thesis-champion.md` |
+| `counterpoint-dissenter` | Attacks assumptions, surfaces hidden risks, proposes concrete alternatives for each weakness | `.agents/scratch/<session>/plan-challenge-counterpoint-dissenter.md` |
+| `tradeoff-analyst` | Weighs both positions, quantifies costs and reversibility, identifies irreversible commitments | `.agents/scratch/<session>/plan-challenge-tradeoff-analyst.md` |
+
+**Synthesis**: main thread reads all output files. Blocking findings that survive the debate (E2+ with no viable alternative surfaced) are incorporated into the plan. Findings resolved by the debate are closed with rationale.
 
 ### 5. Synthesis
 

@@ -6,6 +6,7 @@ All notable changes are documented here, focused on user impact.
 
 ### Changed
 
+- **Explicit parallel subagent dispatch** — upgraded `do-plan` and `do-execute` with named roles, personas, dedicated output paths (`.agents/scratch/`), and synthesis steps for all subagent phases
 - **Skill prefix convention** — non-workflow skills now use `with-*` (domain standards) and `use-*` (active tools) prefixes for better slash-autocomplete grouping. Domain: `with-frontend`, `with-backend`, `with-testing`. Tools: `use-explore`, `use-writing`, `use-skill-craft`. External skills keep their upstream names.
 
 ## 2026-03-06

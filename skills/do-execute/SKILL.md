@@ -62,10 +62,16 @@ Worker self-review before reporting: completeness, naming clarity, YAGNI discipl
 
 Two sub-steps:
 
-1. **Advisory pass** (read-only): reviewers read modified files and produce findings with E-levels. They do NOT write files. Focus on convention mismatches, defensive bloat on trusted paths (but NEVER flag auth/authz/validation), and unnecessary complexity.
-2. **Apply**: workers apply synthesis actions from the advisory pass.
+1. **Advisory pass**: dispatch reviewers **in parallel** (Explore type, read-only). They do NOT write files.
 
-Main thread MUST acknowledge every E2+ finding: action or explicit rejection with rationale. Silent drops prohibited. Apply sub-step skipped when no actions exist.
+   | Role | Persona | Output |
+   |------|---------|--------|
+   | `conventions-advisor` | Checks naming patterns, project conventions, and style consistency against codebase norms | `.agents/scratch/<session>/execute-polish-conventions-advisor.md` |
+   | `complexity-advisor` | Identifies defensive bloat on trusted paths (NEVER flag auth/authz/validation) and unnecessary abstraction | `.agents/scratch/<session>/execute-polish-complexity-advisor.md` |
+
+   **Synthesis**: main thread reads both output files, deduplicates findings, assigns E-levels. Every E2+ finding: action or explicit rejection with rationale. Silent drops prohibited.
+
+2. **Apply**: workers apply synthesis actions from the advisory pass. Apply sub-step skipped when no actions exist.
 
 Output: `polish_findings`, updated `files_modified`.
 
@@ -78,7 +84,15 @@ Two stages, sequential:
    - **Tests**: run test suites covering changed behavior; add missing coverage; produce test evidence (command executed + pass/fail + coverage data). Absent test evidence for behavior-changing code is a **blocking finding**.
    - **Docs**: update documentation per `docs_impact` classification. When `customer-facing` or `both`, include changelog entries using `use-writing` skill rules. Absent docs updates when `docs_impact` ≠ `none` is a **blocking finding**.
    Their output is context for stage 2.
-2. **Adversarial review**: independent reviewers with distinct lenses, dispatched in parallel. Never skipped. At `focused` depth, run as a single inline pass with multiple lenses rather than dispatching separate reviewers.
+2. **Adversarial review**: dispatch reviewers **in parallel** (Explore type, read-only). Never skipped. At `focused` depth, run as a single inline pass with all three lenses rather than dispatching separate reviewers.
+
+   | Role | Persona | Output |
+   |------|---------|--------|
+   | `spec-reviewer` | Validates implementation against plan requirements and acceptance criteria | `.agents/scratch/<session>/execute-review-spec-reviewer.md` |
+   | `correctness-reviewer` | Probes for logic errors, edge cases, race conditions, and failure paths | `.agents/scratch/<session>/execute-review-correctness-reviewer.md` |
+   | `risk-reviewer` | Evaluates security boundaries, performance implications, and scalability concerns (scaled by risk level) | `.agents/scratch/<session>/execute-review-risk-reviewer.md` |
+
+   **Synthesis**: main thread reads all output files. Deduplicate findings across reviewers. Assign final E-levels and severity buckets per `do-review` skill rules.
 
 Blocking findings (E2+) → produce `re_dispatch_brief` → re-enter polish.
 Advisory findings → record; proceed to verify.
