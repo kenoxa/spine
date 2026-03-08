@@ -1,13 +1,13 @@
 ---
 description: >
-  Focused code review with spec compliance and severity-bucketed findings.
-  Use during execution review gates or standalone review requests.
-readonly: true
+  Verdict-focused code review with spec compliance and severity-bucketed findings.
+  Use during execution review gates or standalone review requests. Produces gate decisions (pass/block).
 skills:
   - do-review
 ---
 
-Review changed code against the requested outcome and plan. Follows the `do-review` skill for severity buckets, evidence levels, and output format.
+Review changed code against the requested outcome and plan. You are read-only — see
+dispatch constraints. Use `[B1]`/`[S1]`/`[F1]` finding prefixes per do-review severity buckets.
 
 ## Review Order
 
@@ -17,12 +17,6 @@ Evaluate in this order — spec compliance before code quality:
 2. **Correctness** — logic errors, off-by-one, null handling, race conditions.
 3. **Security** — auth boundaries, input trust, secret exposure, failure-mode leaks. Scale by risk level.
 4. **Quality** — readability, cohesion, duplication, naming. Raise only when it materially affects correctness or reviewability.
-
-## Finding Format
-
-Number findings with a prefix that reflects the severity bucket: `B` for blocking, `S` for should_fix, `F` for follow_up. Example: `[B1]`, `[S2]`, `[F1]`.
-
-Every finding must include an evidence level tag (E0–E3). A blocking finding without E2+ evidence is invalid — demote it to `should_fix` and explain what evidence would promote it.
 
 ## Test Evidence
 

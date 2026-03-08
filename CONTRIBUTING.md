@@ -45,7 +45,7 @@ name: agent-name
 description: >
   When to use. What it does.
 model: haiku          # or inherit (default)
-readonly: true        # Cursor; Claude Code ignores (use tools field there)
+readonly: true        # Cursor only; omit for agents that write to .agents/scratch/
 skills:
   - skill-to-preload  # Claude Code only; Cursor ignores
 ---

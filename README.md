@@ -203,7 +203,7 @@ Canonical entry: [`skills/do-debug/SKILL.md`](skills/do-debug/SKILL.md).
 ```
 AGENTS.global.md        Global guardrails (installed as AGENTS.md / CLAUDE.md)
 skills/                 11 skills (5 workflow + 3 domain + 3 tools)
-agents/                 2 subagents (explorer, reviewer)
+agents/                 6 subagents (scout, researcher, planner, debater, inspector, analyst)
 claude/                 Claude Code plugin (hooks + use-agent-teams skill)
 .claude-plugin/         Plugin marketplace configuration
 global-skills.md        External skills to install separately
@@ -248,8 +248,12 @@ Invoked explicitly to produce artifacts or perform discovery.
 
 | Agent | Model | Purpose |
 |-------|-------|---------|
-| `explorer` | haiku | Fast, readonly codebase navigation |
-| `reviewer` | inherit | Spec compliance review with severity buckets |
+| `scout` | haiku | Fast codebase reconnaissance, preloads `use-explore` |
+| `researcher` | inherit | Deep discovery and evidence gathering, preloads `use-explore` |
+| `planner` | inherit | Angle-committed planning, preloads `do-plan` |
+| `debater` | inherit | Adversarial Socratic dialogue |
+| `inspector` | inherit | Verdict-focused code review, preloads `do-review` |
+| `analyst` | inherit | Advisory pattern analysis, preloads `do-review` |
 
 ### Skill prefix convention
 
@@ -320,7 +324,7 @@ Text after a slash command is the task scope. Examples:
 - **Domain skills auto-load** — `with-frontend`, `with-backend`, and `with-testing` activate automatically when the task matches. No slash command needed.
 - **Refine before executing** — polish the plan via messages before running `/do-execute`. The plan drives all quality gates downstream.
 - **Fresh chat for execution** — after planning is ready, consider opening a fresh chat for `/do-execute` to reduce context carryover and keep the execution window clean.
-- **Use subagents for parallel work** — the `explorer` agent handles fast codebase navigation; the `reviewer` agent runs focused code review. Both are readonly and can run in parallel without conflicts.
+- **Use subagents for parallel work** — the `scout` agent handles fast codebase reconnaissance; the `researcher` agent performs deep discovery; the `inspector` and `analyst` agents run focused code review with different lenses.
 - **Evidence levels matter** — all claims in plans, reviews, and execution are tagged E0–E3. Blocking claims require code evidence (E2+). Verification requires executed output (E3).
 - **Skill-craft for meta-work** — use `/use-skill-craft` to write, review, or audit skills and AGENTS.md files. It enforces the authoring test: every skill line must address something an LLM handles worse without guidance.
 

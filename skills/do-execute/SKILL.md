@@ -34,9 +34,21 @@ See AGENTS.md for E0–E3 definitions. Blocking claims MUST be E2+. Verify claim
 
 ## Phases
 
-**Session ID**: generate once at scope phase using `{skill}-{YYYYMMDD}-{short-hash}` (e.g., `exec-20260307-b7c1`). Reuse across all phases. All output paths below use `<session>` as placeholder.
+**Session ID**: when executing an approved do-plan, reuse the plan's session ID and directory (e.g., `2610-rename-session-ids-a3f2`). When executing without a prior plan, generate a new session ID using `{YYWW}-{slug}-{hash}` — `YYWW` is two-digit year + zero-padded ISO week, `slug` is 3–5 words from the task (lowercase, hyphen-separated, alphanumeric only), `hash` is a 4-character random hex. Reuse across all phases. All output paths below use `<session>` as placeholder.
 
 At `focused` depth, main thread handles every phase inline — no subagent dispatch. The subagent roles below apply to `standard` and `deep` only. Every subagent prompt MUST be self-contained: include scope artifact, files modified, and plan excerpt. Subagents inherit no conversation history.
+
+**Subagent dispatch policy**: Each role uses its specialized agent type. Every dispatch prompt MUST include:
+- The exact output file path (`.agents/scratch/<session>/<prescribed-filename>.md`)
+- The constraint: "Write your complete output to that path. You may read any repository file. Do NOT edit, create, or delete files outside `.agents/scratch/<session>/`. Do NOT run build commands, tests, or destructive shell commands."
+
+| Phase | Agent type | Rationale |
+|-------|-----------|-----------|
+| Implement | `general-purpose` | Read-write workers — no specialized agent spec needed |
+| Polish | `@analyst` | Advisory-only findings with `[S]`/`[F]` prefixes, no gate authority |
+| Review | `@inspector` | Verdict-focused review with `[B]`/`[S]`/`[F]` severity and spec compliance taxonomy |
+
+This is a prompt-level constraint, not a platform-enforced restriction. It is adequate for review workloads where agents have no operational reason to modify source files.
 
 ### 1. Scope
 
@@ -55,7 +67,7 @@ Ask the user when blocking questions are non-empty. Never carry unresolved quest
 
 ### 2. Implement
 
-Dispatch implementation workers (general-purpose type, read-write): one per partition. Parallel for independent partitions; sequential for dependent. No overlapping writes to the same file.
+Dispatch implementation workers (`general-purpose` type, read-write): one per partition. Parallel for independent partitions; sequential for dependent. No overlapping writes to the same file.
 
 Output: `files_modified` — repo-relative list of all changed files.
 
@@ -67,7 +79,7 @@ Worker self-review before reporting: completeness, naming clarity, YAGNI discipl
 
 Two sub-steps:
 
-1. **Advisory pass**: dispatch reviewers **in parallel** (Explore type, read-only). They do NOT write files.
+1. **Advisory pass**: dispatch analysts **in parallel** (`@analyst` type):
 
    | Role | Persona | Output |
    |------|---------|--------|
@@ -89,7 +101,7 @@ Two stages, sequential:
    - **Tests**: run test suites covering changed behavior; add missing coverage; produce test evidence (command executed + pass/fail + coverage data). Absent test evidence for behavior-changing code is a **blocking finding**.
    - **Docs**: update documentation per `docs_impact` classification. When `customer-facing` or `both`, include changelog entries using `use-writing` skill rules. Absent docs updates when `docs_impact` ≠ `none` is a **blocking finding**.
    Their output is context for stage 2.
-2. **Adversarial review**: dispatch reviewers **in parallel** (Explore type, read-only). Never skipped. At `focused` depth, run as a single inline pass with all three lenses rather than dispatching separate reviewers.
+2. **Adversarial review**: dispatch inspectors **in parallel** (`@inspector` type). Never skipped. At `focused` depth, run as a single inline pass with all three lenses rather than dispatching separate inspectors.
 
    | Role | Persona | Output |
    |------|---------|--------|
@@ -152,7 +164,7 @@ Exact phrases:
 ## Anti-Patterns
 
 - Skipping phases regardless of depth
-- Advisory reviewer writing files during polish
+- Advisory analyst writing to codebase files during polish (scratch writes are expected)
 - Silently dropping E2+ polish findings without action or explicit rejection
 - Blocking completion on E2- verifier output
 - Making inline main-thread edits when not at focused depth

@@ -21,11 +21,23 @@ to explore alternatives and get user sign-off on direction before entering disco
 
 Every subagent prompt MUST be self-contained — include all prior-phase context explicitly.
 
-**Session ID**: generate once at phase entry using `{skill}-{YYYYMMDD}-{short-hash}` (e.g., `plan-20260307-a3f2`). Reuse the same session ID across all phases of a single do-plan run. All output paths below use `<session>` as placeholder.
+**Subagent dispatch policy**: Each role uses its specialized agent type. Every dispatch prompt MUST include:
+- The exact output file path (`.agents/scratch/<session>/<prescribed-filename>.md`)
+- The constraint: "Write your complete output to that path. You may read any repository file. Do NOT edit, create, or delete files outside `.agents/scratch/<session>/`. Do NOT run build commands, tests, or destructive shell commands."
+
+| Phase | Agent type | Rationale |
+|-------|-----------|-----------|
+| Discovery | `@researcher` | Deep evidence gathering with structured E-level output |
+| Planning | `@planner` | Angle-committed, no phase re-entry |
+| Challenge | `@debater` | Adversarial Socratic dialogue, peer-reactive |
+
+This is a prompt-level constraint, not a platform-enforced restriction. It is adequate for planning workloads where agents have no operational reason to modify source files.
+
+**Session ID**: generate once at phase entry using `{YYWW}-{slug}-{hash}` (e.g., `2610-rename-session-ids-a3f2`). `YYWW` is two-digit year + zero-padded ISO week. `slug` is 3–5 words derived from the initial user prompt (lowercase, hyphen-separated, alphanumeric only). `hash` is a 4-character random hex. Reuse the same session ID across all phases of a single do-plan run — and carry it forward into do-execute. All output paths below use `<session>` as placeholder.
 
 ### 1. Discovery
 
-Map the codebase before planning. Dispatch discovery subagents **in parallel** (Explore type, read-only):
+Map the codebase before planning. Dispatch discovery subagents **in parallel** (`@researcher` type):
 
 | Role | Persona | Output | When |
 |------|---------|--------|------|
@@ -63,7 +75,7 @@ Present context + options first, then prompt the user with short structured ques
 
 ### 3. Planning
 
-Dispatch planners **in parallel** (Explore type, read-only). Each receives `planning_brief` + `evidence_manifest` and produces an independent plan from a distinct angle:
+Dispatch planners **in parallel** (`@planner` type). Each receives `planning_brief` + `evidence_manifest` and produces an independent plan from a distinct angle:
 
 | Role | Persona | Output |
 |------|---------|--------|
@@ -86,7 +98,7 @@ lower risk — never block without one.
 Useful review lenses: approach correctness (`assumptions`) and non-functional risks (`nfr`: security, perf, scalability).
 For visual architecture explanations, use the `visual-explainer` skill.
 
-If blocking findings remain unresolved after asking, dispatch a structured debate **in parallel** (Explore type, read-only). Each debater receives: `canonical_plan`, unresolved blocking findings, and the full `evidence_manifest`.
+If blocking findings remain unresolved after asking, dispatch a structured debate **in parallel** (`@debater` type). Each debater receives: `canonical_plan`, unresolved blocking findings, and the full `evidence_manifest`.
 
 | Role | Persona | Output |
 |------|---------|--------|
@@ -100,7 +112,7 @@ If blocking findings remain unresolved after asking, dispatch a structured debat
 
 Main thread only. Sole readiness authority. No subagent dispatch.
 
-1. Assemble final plan using [references/plan-template.md](references/plan-template.md) as scaffold.
+1. Assemble final plan using [references/plan-template.md](references/plan-template.md) as scaffold. Write the assembled plan to `.agents/scratch/<session>/plan.md`.
 2. Validate all content requirements (see [Plan Requirements](#plan-requirements)).
 3. Confirm every blocking finding is incorporated or rejected with explicit rationale.
 4. Confirm no open ask-checkpoint decisions without user-deferred evidence.

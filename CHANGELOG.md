@@ -6,8 +6,11 @@ All notable changes are documented here, focused on user impact.
 
 ### Changed
 
+- **Agent roster expanded** — 6 subagents (scout, researcher, planner, debater, inspector, analyst) replace the previous 2 (explorer, reviewer). Each agent has a distinctive cognitive profile: orient → investigate → commit → argue → judge → advise.
+- **Agents renamed** — `explorer` → `scout` (avoids collision with builtin Explore type), `reviewer` → `inspector` (clarifies gate-authority role vs advisory analyst).
 - **Claude Code plugin** — hooks and `use-agent-teams` skill are now distributed as a Claude Code plugin at `claude/`. Install via `claude plugin marketplace add kenoxa/spine` and `claude plugin install spine@kenoxa`.
 - **Installer updated** — `install.sh` attempts plugin installation for Claude Code; falls back to manual hook copy when the CLI doesn't support plugins. References to deleted root `hooks/` directory removed.
+- **Session IDs redesigned** — format changed from `{skill}-{YYYYMMDD}-{hash}` to `{YYWW}-{slug}-{hash}` (e.g., `2610-rename-session-ids-a3f2`). Scratch directories are now self-documenting via prompt-derived slugs. Plan and execute share a single session directory instead of creating separate ones. `plan-final.md` renamed to `plan.md`.
 - **Documentation aligned** — README, plugin READMEs, and CONTRIBUTING updated to reflect plugin-based distribution.
 
 ## 2026-03-07

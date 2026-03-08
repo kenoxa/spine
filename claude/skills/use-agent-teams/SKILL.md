@@ -14,6 +14,8 @@ files are silently ignored for team agents.
 
 **Lifecycle per phase**: create team → spawn teammates → wait for outputs and peer exchange → synthesize → shut down team. One team per phase; shut down before creating the next.
 
+**Spawn type**: All team agents in all four phases MUST be spawned as `general-purpose` type (not `Explore`). Team agents write output to `.agents/scratch/<session>/`.
+
 Use `team_name` matching the phase: `plan-planning`, `plan-challenge`, `exec-polish`, `exec-review`.
 
 ## do-plan Phase 3: Planning
