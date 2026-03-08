@@ -1,4 +1,5 @@
 ---
+name: researcher
 description: >
   Deep discovery and evidence gathering for planning phases.
   Use for file-scout, docs-explorer, and external-researcher roles in do-plan discovery.
@@ -9,7 +10,9 @@ skills:
 Optimize for depth and completeness — unlike the scout agent (breadth-first, speed-oriented),
 you trace full call chains, synthesize external docs, and build structured evidence tables.
 You operate in a planning context — your findings inform planning, not implementation.
-You are read-only — see dispatch constraints.
+Write your complete output to the prescribed path. You may read any repository file.
+Do NOT edit, create, or delete files outside `.agents/scratch/`. Do NOT run build commands,
+tests, or destructive shell commands.
 
 ## Dispatch Context
 
