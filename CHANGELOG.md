@@ -2,6 +2,14 @@
 
 All notable changes are documented here, focused on user impact.
 
+## 2026-03-08
+
+### Changed
+
+- **Claude Code plugin** — hooks and `use-agent-teams` skill are now distributed as a Claude Code plugin at `claude/`. Install via `claude plugin marketplace add kenoxa/spine` and `claude plugin install spine@kenoxa`.
+- **Installer updated** — `install.sh` attempts plugin installation for Claude Code; falls back to manual hook copy when the CLI doesn't support plugins. References to deleted root `hooks/` directory removed.
+- **Documentation aligned** — README, plugin READMEs, and CONTRIBUTING updated to reflect plugin-based distribution.
+
 ## 2026-03-07
 
 ### Changed

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Spine installer — cross-platform AI coding setup for Cursor, Claude Code, and Codex.
+# Spine installer — AI coding setup for Cursor, Claude Code, and Codex.
 # https://github.com/kenoxa/spine
 #
 # Usage:
@@ -11,6 +11,14 @@
 #   bash install.sh
 
 set -euo pipefail
+
+# --- Colors (https://no-color.org/) ---
+
+_C_BLUE='\033[1;34m' _C_YELLOW='\033[1;33m'
+_C_RED='\033[1;31m'  _C_GREEN='\033[1;32m'
+_C_RESET='\033[0m'
+# shellcheck disable=SC2034
+[ -n "${NO_COLOR:-}" ] && _C_BLUE='' _C_YELLOW='' _C_RED='' _C_GREEN='' _C_RESET=''
 
 REPO="kenoxa/spine"
 BRANCH="main"
@@ -26,10 +34,89 @@ GLOBAL_SKILLS=(
 
 # --- Helpers ---
 
-info()  { printf '\033[1;34m==>\033[0m %s\n' "$*" >&2; }
-warn()  { printf '\033[1;33mWARN:\033[0m %s\n' "$*" >&2; }
-error() { printf '\033[1;31mERROR:\033[0m %s\n' "$*" >&2; }
-done_msg() { printf '\033[1;32m✓\033[0m %s\n' "$*" >&2; }
+info()     { printf "${_C_BLUE}==>${_C_RESET} %s\n" "$*" >&2; }
+warn()     { printf "${_C_YELLOW}WARN:${_C_RESET} %s\n" "$*" >&2; }
+error()    { printf "${_C_RED}ERROR:${_C_RESET} %s\n" "$*" >&2; }
+done_msg() { printf "  ${_C_GREEN}✓${_C_RESET} %s\n" "$*" >&2; }
+
+# Run a command silently; on failure show captured output then return 1.
+quiet() { local out; out=$("$@" 2>&1) || { echo "$out" >&2; return 1; }; }
+
+# Step progress: step "1/5" "Checking dependencies"
+step() { printf "\n${_C_BLUE}[%s]${_C_RESET} %s\n" "$1" "$2" >&2; }
+
+# --- Dependency detection ---
+
+# Check if a tool binary is on PATH.
+# Handles formula-to-binary name differences (e.g., ripgrep → rg).
+dep_present() {
+  case "$1" in
+    ripgrep)   command -v rg        >/dev/null 2>&1 ;;
+    node)      command -v node      >/dev/null 2>&1 || command -v nodejs >/dev/null 2>&1 ;;
+    coreutils) command -v gtimeout  >/dev/null 2>&1 || command -v timeout >/dev/null 2>&1 ;;
+    *)         command -v "$1"      >/dev/null 2>&1 ;;
+  esac
+}
+
+has_brew() { command -v brew >/dev/null 2>&1; }
+
+# Install a Homebrew formula if not already on PATH or installed via brew.
+brew_install_if_missing() {
+  local formula="$1"
+  dep_present "$formula" && return 0
+  brew list --formula "$formula" >/dev/null 2>&1 && return 0
+  if quiet brew install "$formula" </dev/null; then
+    done_msg "Installed $formula via Homebrew"
+  else
+    warn "Failed to install $formula via Homebrew"
+    return 1
+  fi
+}
+
+# Ensure system deps are available. Attempts brew install on macOS; prints hints otherwise.
+ensure_system_deps() {
+  local os missing=()
+  os="$(uname -s)"
+
+  # Deps spine uses — "formula:binary" when they differ, otherwise just "formula"
+  local -a required=(git jq node)
+  local -a recommended=(bun coreutils fd ripgrep)
+
+  local use_brew=false
+  if has_brew; then
+    use_brew=true
+  elif [ "$os" = "Darwin" ]; then
+    warn "Homebrew not found — install it from https://brew.sh"
+  fi
+
+  # Collect missing deps
+  for dep in "${required[@]}" "${recommended[@]}"; do
+    dep_present "$dep" || missing+=("$dep")
+  done
+
+  if [ ${#missing[@]} -eq 0 ]; then
+    done_msg "All dependencies found"
+    return 0
+  fi
+
+  if $use_brew; then
+    info "Installing missing tools via Homebrew: ${missing[*]}..."
+    for dep in "${missing[@]}"; do
+      brew_install_if_missing "$dep" || true
+    done
+  else
+    warn "Missing tools: ${missing[*]}"
+    if [ "$os" = "Darwin" ]; then
+      echo "  After installing Homebrew, run:" >&2
+      echo "    brew install ${missing[*]}" >&2
+    else
+      echo "  Install via your package manager, e.g.:" >&2
+      echo "    sudo apt install ${missing[*]}  # Debian/Ubuntu (fd→fd-find, node→nodejs, coreutils is preinstalled)" >&2
+      echo "    sudo dnf install ${missing[*]}  # Fedora/RHEL" >&2
+    fi
+    echo "" >&2
+  fi
+}
 
 # --- Download source into temp dir ---
 
@@ -37,11 +124,9 @@ download_source() {
   local tmpdir
   tmpdir=$(mktemp -d)
 
-  if command -v git &>/dev/null && git clone --depth 1 --branch "$BRANCH" "https://github.com/$REPO.git" "$tmpdir/spine" 2>/dev/null; then
-    info "Cloned $REPO"
+  if command -v git &>/dev/null && quiet git clone --depth 1 --branch "$BRANCH" "https://github.com/$REPO.git" "$tmpdir/spine"; then
     echo "$tmpdir/spine"
   elif command -v curl &>/dev/null && command -v tar &>/dev/null; then
-    info "Downloading $REPO archive..."
     curl -fsSL "https://github.com/$REPO/archive/refs/heads/$BRANCH.tar.gz" | tar -xz -C "$tmpdir"
     echo "$tmpdir/spine-$BRANCH"
   else
@@ -55,13 +140,22 @@ download_source() {
 
 detect_tools() {
   local tools=()
-  [ -d "$HOME/.cursor" ] && tools+=("cursor")
-  [ -d "$HOME/.claude" ] && tools+=("claude")
-  [ -d "$HOME/.codex" ]  && tools+=("codex")
 
-  # Default to Claude Code if nothing detected
+  # Cursor: config dir is sufficient (no standalone CLI binary)
+  [ -d "$HOME/.cursor" ] && tools+=("cursor")
+
+  # Claude Code / Codex: require CLI binary on PATH
+  for tool in claude codex; do
+    if command -v "$tool" >/dev/null 2>&1; then
+      tools+=("$tool")
+    elif [ -d "$HOME/.$tool" ]; then
+      warn "$tool: config directory exists but CLI not found on PATH — skipping"
+    fi
+  done
+
   if [ ${#tools[@]} -eq 0 ]; then
-    tools=("claude")
+    warn "No AI coding tools found (cursor, claude, codex)"
+    warn "Install at least one, then re-run this installer"
   fi
 
   echo "${tools[@]}"
@@ -72,8 +166,6 @@ detect_tools() {
 install_tool() {
   local tool="$1" src="$2"
   local target="$HOME/.$tool"
-
-  info "Installing to $target/..."
 
   # Guardrails: CLAUDE.md for Claude Code, AGENTS.md for others
   if [ "$tool" = "claude" ]; then
@@ -90,64 +182,63 @@ install_tool() {
 
   done_msg "$tool: guardrails, agents"
 
-  # Claude Code extras: hook + settings.json
+  # Claude Code extras: plugin (hooks + agent-teams skill)
   if [ "$tool" = "claude" ]; then
-    install_claude_hook "$src" "$target"
+    install_claude_plugin "$src" "$target"
   fi
 }
 
-# --- Claude Code hook + settings.json ---
+# --- Claude Code plugin (hooks + agent-teams skill) ---
 
-install_claude_hook() {
+install_claude_plugin() {
   local src="$1" target="$2"
 
-  # Copy hook script
-  mkdir -p "$target/hooks"
-  cp "$src/hooks/inject-agents-md.sh" "$target/hooks/"
-  chmod +x "$target/hooks/inject-agents-md.sh"
+  # Determine marketplace source: local path for persistent checkouts, GitHub for downloads.
+  # Check _SPINE_CLEANUP_DIR to distinguish local checkouts from git-cloned temp dirs.
+  local marketplace_src="kenoxa/spine"
+  [ -z "${_SPINE_CLEANUP_DIR:-}" ] && [ -d "$src/.git" ] && marketplace_src="$src"
 
-  done_msg "claude: SessionStart hook"
-
-  # Patch settings.json
-  patch_settings_json "$target"
-}
-
-patch_settings_json() {
-  local target="$1"
-  local settings="$target/settings.json"
-  local hook_cmd="$target/hooks/inject-agents-md.sh"
-
-  if ! command -v jq &>/dev/null; then
-    warn "jq not found — cannot auto-patch settings.json"
-    echo ""
-    echo "  Add this to $settings manually:"
-    echo ""
-    echo '  {'
-    echo '    "hooks": {'
-    echo '      "SessionStart": [{'
-    echo '        "hooks": [{ "type": "command", "command": "'"$hook_cmd"'" }]'
-    echo '      }]'
-    echo '    }'
-    echo '  }'
-    echo ""
+  # Attempt plugin installation
+  if quiet claude plugin marketplace add "$marketplace_src" && \
+     quiet claude plugin install spine@kenoxa; then
+    done_msg "claude: plugin (hooks + agent-teams skill)"
     return 0
   fi
 
-  # Create settings.json if missing
-  if [ ! -f "$settings" ]; then
-    echo '{}' > "$settings"
+  # Fallback: manual hook installation from claude/hooks/
+  warn "Could not install Claude plugin — installing hook manually"
+
+  local settings="$target/settings.json"
+  local hook_cmd="$target/hooks/inject-agents-md.sh"
+
+  mkdir -p "$target/hooks"
+  for script in "$src"/claude/hooks/*.sh; do
+    [ -f "$script" ] || continue
+    cp "$script" "$target/hooks/"
+    chmod +x "$target/hooks/$(basename "$script")"
+  done
+
+  done_msg "claude: hook scripts (fallback)"
+
+  # Patch settings.json with SessionStart hook
+  if ! command -v jq &>/dev/null; then
+    warn "jq not found — cannot auto-patch settings.json"
+    echo "  Install jq and re-run, or patch $settings manually." >&2
+    return 0
   fi
 
-  # Check if hook is already registered (idempotent)
-  if jq -e ".hooks.SessionStart[]?.hooks[]? | select(.command == \"$hook_cmd\")" "$settings" &>/dev/null; then
+  [ -f "$settings" ] || echo '{}' > "$settings"
+
+  # Already registered? Skip.
+  if jq -e --arg cmd "$hook_cmd" \
+    '.hooks.SessionStart[]?.hooks[]? | select(.command == $cmd)' \
+    "$settings" &>/dev/null; then
     done_msg "claude: settings.json already has SessionStart hook"
     return 0
   fi
 
-  # Backup
   backup_if_exists "$settings"
 
-  # Merge hook config, preserving existing settings
   local tmp
   tmp=$(mktemp)
   jq --arg cmd "$hook_cmd" '
@@ -156,7 +247,6 @@ patch_settings_json() {
     .hooks.SessionStart += [{"hooks": [{"type": "command", "command": $cmd}]}]
   ' "$settings" > "$tmp"
 
-  # Validate JSON before replacing
   if jq empty "$tmp" 2>/dev/null; then
     mv "$tmp" "$settings"
     done_msg "claude: settings.json patched with SessionStart hook"
@@ -179,34 +269,60 @@ backup_if_exists() {
 # --- Install skills via npx ---
 
 install_skills() {
+  local skills_src="$1"; shift
+  local detected_tools=("$@")
+
+  # Build -a flags from detected tools, mapping to npx skills agent names
+  local agent_flags=()
+  for tool in "${detected_tools[@]}"; do
+    case "$tool" in
+      claude) agent_flags+=(-a "claude-code") ;;
+      *)      agent_flags+=(-a "$tool") ;;
+    esac
+  done
+
   if ! command -v npx &>/dev/null; then
     warn "npx not found — cannot install skills automatically"
-    echo ""
-    echo "  Install skills manually:"
-    echo "    npx skills add $REPO -s '*' -a '*' -g -y"
+    echo "" >&2
+    echo "  Install skills manually:" >&2
+    echo "    npx skills add $skills_src -s '*' ${agent_flags[*]} -g -y" >&2
     for entry in "${GLOBAL_SKILLS[@]}"; do
-      echo "    npx skills add $entry -a '*' -g -y"
+      echo "    npx skills add $entry ${agent_flags[*]} -g -y" >&2
     done
-    echo ""
+    echo "" >&2
     return 0
   fi
 
-  # Spine skills (all at once)
-  info "Installing spine skills..."
-  if npx skills add "$REPO" -s '*' -a '*' -g -y 2>/dev/null; then
+  # Spine skills: install all, then remove any renamed/deleted orphans
+  if quiet npx skills add "$skills_src" -s '*' "${agent_flags[@]}" -g -y; then
     done_msg "spine: all skills"
   else
     warn "Failed to install spine skills"
-    echo "    npx skills add $REPO -s '*' -a '*' -g -y" >&2
+    echo "    npx skills add $skills_src -s '*' ${agent_flags[*]} -g -y" >&2
+  fi
+
+  # Clean up orphaned spine skills (handles renames)
+  local lock_file="$HOME/.agents/.skill-lock.json"
+  if [ -f "$lock_file" ] && command -v jq &>/dev/null; then
+    local orphans=()
+    while IFS= read -r skill; do
+      [ -z "$skill" ] && continue
+      if [ ! -d "$skills_src/skills/$skill" ]; then
+        orphans+=("$skill")
+      fi
+    done < <(jq -r '.skills | to_entries[] | select(.value.source == "kenoxa/spine" or .value.source == "'"$skills_src"'") | .key' "$lock_file" 2>/dev/null)
+
+    if [ ${#orphans[@]} -gt 0 ]; then
+      quiet npx skills remove "${orphans[@]}" "${agent_flags[@]}" -g -y || true
+    fi
   fi
 
   # Global/external skills
-  info "Installing global skills..."
   local failed=()
   for entry in "${GLOBAL_SKILLS[@]}"; do
     # entry is e.g. "obra/superpowers -s brainstorming"
     local skill_name="${entry##*-s }"
-    if npx skills add $entry -a '*' -g -y 2>/dev/null; then
+    if quiet npx skills add $entry "${agent_flags[@]}" -g -y; then
       done_msg "global: $skill_name"
     else
       failed+=("$entry")
@@ -217,54 +333,66 @@ install_skills() {
   if [ ${#failed[@]} -gt 0 ]; then
     warn "Some global skills failed. Install manually:"
     for entry in "${failed[@]}"; do
-      echo "    npx skills add $entry -a '*' -g -y" >&2
+      echo "    npx skills add $entry ${agent_flags[*]} -g -y" >&2
     done
   fi
-  echo ""
 }
 
 # --- Main ---
 
 main() {
-  echo ""
-  info "Spine installer — cross-platform AI coding setup"
-  echo ""
+  echo "" >&2
+  info "Spine installer — AI coding setup"
 
-  # Resolve source: local repo > SPINE_LOCAL_SRC env > remote download
+  # Step 1: System dependencies
+  step "1/5" "Checking system dependencies..."
+  ensure_system_deps
+
+  # Step 2: Resolve source
+  step "2/5" "Resolving source..."
   local src script_dir
   script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
   if [ -f "$script_dir/AGENTS.global.md" ] && [ -d "$script_dir/skills" ]; then
     src="$script_dir"
-    info "Using local repo: $src"
+    done_msg "Using local repo: $src"
   elif [ -n "${SPINE_LOCAL_SRC:-}" ]; then
     src="$SPINE_LOCAL_SRC"
-    info "Using local source: $src"
+    done_msg "Using local source: $src"
   else
     src=$(download_source)
     _SPINE_CLEANUP_DIR="$(dirname "$src")"
     trap 'rm -rf "$_SPINE_CLEANUP_DIR"' EXIT
+    done_msg "Downloaded $REPO"
   fi
 
-  # Detect tools
+  # Step 3: Detect tools
+  step "3/5" "Detecting installed tools..."
   local tools
   read -ra tools <<< "$(detect_tools)"
 
-  info "Detected tools: ${tools[*]}"
-  echo ""
+  if [ ${#tools[@]} -eq 0 ] || [ -z "${tools[0]}" ]; then
+    echo "" >&2
+    error "Nothing to install — no supported tools detected"
+    return 1
+  fi
 
-  # Install guardrails, agents, and hooks per tool
+  done_msg "Found: ${tools[*]}"
+
+  # Step 4: Install guardrails, agents, and plugin
+  step "4/5" "Installing guardrails, agents, and plugin..."
   for tool in "${tools[@]}"; do
     install_tool "$tool" "$src"
-    echo ""
   done
 
-  # Install skills via npx skills
-  install_skills
+  # Step 5: Install skills
+  step "5/5" "Installing skills..."
+  install_skills "$src" "${tools[@]}"
 
   # Summary
-  echo "---"
-  done_msg "Spine installed for: ${tools[*]}"
-  echo ""
+  echo "" >&2
+  echo "---" >&2
+  printf "${_C_GREEN}✓ Spine installed for: ${tools[*]}${_C_RESET}\n" >&2
+  echo "" >&2
 }
 
 main "$@"

@@ -2,13 +2,14 @@
 
 > **Same skills, same workflow — every developer, every tool.**
 
-Cross-platform AI coding setup for Cursor, Claude Code, and Codex. One set of skills, agents, and guardrails that works everywhere.
+AI coding setup for Cursor, Claude Code, and Codex. One set of skills, agents, and guardrails that works everywhere.
 
 ## Contents
 
 - [Quick Start](#quick-start)
 - [Typical Flow](#typical-flow)
 - [Skills and Agents](#skills-and-agents)
+- [Claude Code Plugin](#claude-code-plugin)
 - [Tips](#tips)
 - [Design Principles](#design-principles)
 - [Further Reading](#further-reading)
@@ -23,7 +24,7 @@ Installs guardrails, skills, agents, and hooks for all detected tools (Cursor, C
 curl -fsSL https://raw.githubusercontent.com/kenoxa/spine/main/install.sh | bash
 ```
 
-The installer auto-detects which tools you have (`~/.cursor/`, `~/.claude/`, `~/.codex/`) and installs to all of them. For Claude Code, it also sets up the SessionStart hook and patches `settings.json`.
+The installer auto-detects which tools you have (`~/.cursor/`, `~/.claude/`, `~/.codex/`) and installs to all of them. For Claude Code, it also installs the [Spine plugin](#claude-code-plugin) (hooks and `use-agent-teams` skill).
 
 <details>
 <summary>Inspect before running</summary>
@@ -72,11 +73,18 @@ Copy files to your tool's config directory:
 | `skills/` | `~/.cursor/skills/` | `~/.claude/skills/` | `~/.codex/skills/` |
 | `agents/` | `~/.cursor/agents/` | `~/.claude/agents/` | `~/.codex/agents/` |
 
-**Claude Code AGENTS.md hook:** Claude Code natively loads `CLAUDE.md` but not `AGENTS.md`. If your projects use `AGENTS.md` files (shared with Cursor/Codex), install the SessionStart hook so Claude Code sees them too:
+**Claude Code plugin:** Install the Spine plugin for hooks and the `use-agent-teams` skill:
+
+```sh
+claude plugin marketplace add kenoxa/spine
+claude plugin install spine@kenoxa
+```
+
+If your Claude Code CLI doesn't support plugins, install the AGENTS.md hook manually:
 
 ```sh
 mkdir -p ~/.claude/hooks/
-cp hooks/inject-agents-md.sh ~/.claude/hooks/
+cp claude/hooks/inject-agents-md.sh ~/.claude/hooks/
 ```
 
 Add to `~/.claude/settings.json`:
@@ -196,7 +204,8 @@ Canonical entry: [`skills/do-debug/SKILL.md`](skills/do-debug/SKILL.md).
 AGENTS.global.md        Global guardrails (installed as AGENTS.md / CLAUDE.md)
 skills/                 11 skills (5 workflow + 3 domain + 3 tools)
 agents/                 2 subagents (explorer, reviewer)
-hooks/                  Claude Code SessionStart hook for AGENTS.md injection
+claude/                 Claude Code plugin (hooks + use-agent-teams skill)
+.claude-plugin/         Plugin marketplace configuration
 global-skills.md        External skills to install separately
 .agents/scratch/        Ephemeral subagent output (gitignore this)
 ```
@@ -269,6 +278,22 @@ npx skills add wshobson/agents -s wcag-audit-patterns -a '*' -g -y
 npx skills add softaworks/agent-toolkit -s reducing-entropy -a '*' -g -y
 npx skills add sickn33/antigravity-awesome-skills -s typescript-expert -a '*' -g -y
 ```
+
+## Claude Code Plugin
+
+Spine ships a Claude Code plugin at `claude/` with Claude-specific extensions that don't apply to Cursor or Codex:
+
+- **SessionStart hook** — injects project-level `AGENTS.md` files into Claude Code context (Claude Code natively loads `CLAUDE.md` but not `AGENTS.md`)
+- **`use-agent-teams` skill** — upgrades subagent dispatch to Agent Teams for `do-plan` and `do-execute` phases (requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`)
+
+The installer attempts plugin installation automatically. To install manually:
+
+```sh
+claude plugin marketplace add kenoxa/spine
+claude plugin install spine@kenoxa
+```
+
+See [`claude/README.md`](claude/README.md) for details.
 
 ## Tips
 

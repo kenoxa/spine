@@ -1,0 +1,11 @@
+{
+	"name": "kenoxa",
+	"owner": { "name": "kenoxa" },
+	"plugins": [
+		{
+			"name": "spine",
+			"source": "./claude",
+			"description": "Set of skills, agents, and guardrails to complement the Spine AI platform."
+		}
+	]
+}

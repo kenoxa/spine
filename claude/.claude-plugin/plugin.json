@@ -1,0 +1,9 @@
+{
+	"name": "spine",
+	"description": "Set of skills, agents, and guardrails to complement the Spine AI platform.",
+	"author": {
+		"name": "Kenoxa GmbH",
+		"email": "contact@kenoxa.de",
+		"url": "https://kenoxa.de"
+	}
+}

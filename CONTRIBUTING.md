@@ -55,18 +55,19 @@ Keep subagent bodies focused — they should define constraints and output forma
 
 ## Installer (`install.sh`)
 
-The install script downloads spine and copies files to each detected tool's config directory. If you change file layout or add install targets, update accordingly.
+The install script downloads spine and copies files to each detected tool's config directory. For Claude Code, it also installs the Spine plugin.
 
 **What it does**:
 1. Downloads the repo via `git clone --depth 1` (or `curl` tarball fallback)
 2. Detects tools by checking for `~/.cursor/`, `~/.claude/`, `~/.codex/`
-3. Copies guardrails, skills, and agents to each tool's directory
-4. For Claude Code: installs the SessionStart hook and patches `settings.json` via `jq`
+3. Copies guardrails, agents, and skills to each tool's directory
+4. For Claude Code: attempts `claude plugin marketplace add` + `claude plugin install`; falls back to manual hook installation if the CLI doesn't support plugins
 
 **When to update**:
 - Adding a new supported tool → add detection in `detect_tools()` and install logic in `install_tool()`
 - Changing the guardrails filename → update the copy logic in `install_tool()`
-- Adding new hook types → extend `install_claude_hook()`
+- Changing plugin hooks → update `claude/hooks/hooks.json` and `claude/hooks/`
+- Changing plugin metadata → update `claude/.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`
 
 **Testing**: Run with `HOME=$(mktemp -d) bash install.sh` to verify in an isolated environment.
 
