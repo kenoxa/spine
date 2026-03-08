@@ -107,26 +107,46 @@ Add to `~/.claude/settings.json`:
 
 Plan the change, execute it with quality gates, then commit.
 
-1. **`/do-plan`** — always start here for non-trivial work. Draft and validate the plan.
-2. Refine the plan via messages until ready.
-3. **`/do-execute`** — runs phased implementation with built-in review and verification.
-4. Apply learnings, if any.
-5. **`/do-commit`** — stage scoped files and commit with a conventional message.
+1. **`/do-discuss`** *(optional)* — frame the problem when it's vague. Socratic dialogue before planning.
+2. **`/do-plan`** — always start here for non-trivial work. Draft and validate the plan.
+3. Refine the plan via messages until ready.
+4. **`/do-execute`** — runs phased implementation with built-in review and verification.
+5. Apply learnings, if any.
+6. **`/do-commit`** — stage scoped files and commit with a conventional message.
 
 ```mermaid
 graph TD
-    A[User request] --> B[do-plan]
-    B --> C{Plan ready?}
-    C -->|No| D[Refine via messages]
-    D --> B
-    C -->|Yes| E[do-execute]
-    E --> F{Review + Verify passed?}
-    F -->|No| G[Fix findings]
-    G --> E
-    F -->|Yes| H[do-commit]
+    A[User request] --> B{Problem clear?}
+    B -->|No| C[do-discuss]
+    C --> D[do-plan]
+    B -->|Yes| D
+    D --> E{Plan ready?}
+    E -->|No| F[Refine via messages]
+    F --> D
+    E -->|Yes| G[do-execute]
+    G --> H{Review + Verify passed?}
+    H -->|No| I[Fix findings]
+    I --> G
+    H -->|Yes| J[do-commit]
 ```
 
 For straightforward tasks, start directly with `/do-execute` — it handles planning inline when no plan exists.
+
+<details>
+<summary>What <code>/do-discuss</code> does</summary>
+
+Structured problem framing through tiered Socratic dialogue:
+
+1. **Intake** — classify the input: redirect plan-ready tasks to do-plan, bugs to do-debug, ideation to brainstorming. Proceed when the problem is vague or ambiguous.
+2. **Clarify** — Socratic dialogue (tier 1). Batch 2–4 questions per round, track known/unknown inventory, 3-round budget.
+3. **Investigate** — (tier 2, conditional) dispatch `@scout` or `@researcher` when codebase evidence is needed to resolve unknowns.
+4. **Explore** — (tier 3, conditional) multi-perspective agent team (`@framer` personas: stakeholder-advocate, systems-thinker, skeptic) for ambiguous scope with one-way-door decisions.
+5. **Frame** — produce a `problem_frame` artifact with goal, scope, constraints, key decisions, and unknowns. Self-sufficient without chat history.
+6. **Handoff** — confidence-gated recommendation: proceed to do-plan, explore further, or brainstorm first.
+
+Canonical entry: [`skills/do-discuss/SKILL.md`](skills/do-discuss/SKILL.md).
+
+</details>
 
 <details>
 <summary>What <code>/do-plan</code> runs under the hood</summary>
@@ -202,15 +222,15 @@ Canonical entry: [`skills/do-debug/SKILL.md`](skills/do-debug/SKILL.md).
 
 ```
 AGENTS.global.md        Global guardrails (installed as AGENTS.md / CLAUDE.md)
-skills/                 11 skills (5 workflow + 3 domain + 3 tools)
-agents/                 6 subagents (scout, researcher, planner, debater, inspector, analyst)
+skills/                 12 skills (6 workflow + 3 domain + 3 tools)
+agents/                 7 subagents (scout, researcher, planner, debater, inspector, analyst, framer)
 claude/                 Claude Code plugin (hooks + use-agent-teams skill)
 .claude-plugin/         Plugin marketplace configuration
 global-skills.md        External skills to install separately
 .agents/scratch/        Ephemeral subagent output (gitignore this)
 ```
 
-`.agents/scratch/` is created at runtime by `do-plan` and `do-execute` subagents to store intermediate output files. It is ephemeral — safe to delete at any time. Add `.agents/scratch/` to your project's `.gitignore`.
+`.agents/scratch/` is created at runtime by `do-discuss`, `do-plan`, and `do-execute` subagents to store intermediate output files. It is ephemeral — safe to delete at any time. Add `.agents/scratch/` to your project's `.gitignore`.
 
 ### Workflow skills
 
@@ -218,6 +238,7 @@ Invoked explicitly via `/do-plan`, `/do-execute`, etc.
 
 | Skill | Purpose |
 |-------|---------|
+| `do-discuss` | Structured problem framing before planning |
 | `do-plan` | Structured planning before complex implementation |
 | `do-execute` | Execute an approved plan through phased quality gates |
 | `do-review` | Severity-bucketed code review |
@@ -254,6 +275,7 @@ Invoked explicitly to produce artifacts or perform discovery.
 | `debater` | inherit | Adversarial Socratic dialogue |
 | `inspector` | inherit | Verdict-focused code review, preloads `do-review` |
 | `analyst` | inherit | Advisory pattern analysis, preloads `do-review` |
+| `framer` | inherit | Perspective-committed problem exploration |
 
 ### Skill prefix convention
 
@@ -265,7 +287,7 @@ Prefixes group skills in slash-autocomplete — type `do-`, `with-`, or `use-` t
 | `with-` | Domain standards | Applied passively when the task matches — UI, API, or test work |
 | `use-` | Active tools | Invoked explicitly to produce artifacts or perform discovery |
 
-**Why prefixes?** Without them, spine's 11 skills get lost among globally installed skills in slash-autocomplete. Typing the first few characters of a prefix immediately narrows the list to the relevant group.
+**Why prefixes?** Without them, spine's 12 skills get lost among globally installed skills in slash-autocomplete. Typing the first few characters of a prefix immediately narrows the list to the relevant group.
 
 External skills (installed via `npx skills add`) keep their upstream names and do not follow this convention — we don't own those names.
 
@@ -288,7 +310,7 @@ npx skills add sickn33/antigravity-awesome-skills -s typescript-expert -a '*' -g
 Spine ships a Claude Code plugin at `claude/` with Claude-specific extensions that don't apply to Cursor or Codex:
 
 - **SessionStart hook** — injects project-level `AGENTS.md` files into Claude Code context (Claude Code natively loads `CLAUDE.md` but not `AGENTS.md`)
-- **`use-agent-teams` skill** — upgrades subagent dispatch to Agent Teams for `do-plan` and `do-execute` phases (requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`)
+- **`use-agent-teams` skill** — upgrades subagent dispatch to Agent Teams for `do-discuss`, `do-plan`, and `do-execute` phases (requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`)
 
 The installer attempts plugin installation automatically. To install manually:
 
@@ -307,6 +329,7 @@ See [`claude/README.md`](claude/README.md) for details.
 
 Text after a slash command is the task scope. Examples:
 
+- `/do-discuss the auth flow feels broken on mobile`
 - `/do-plan add retry strategy for API calls`
 - `/do-review` — reviews current changes against the plan
 - `/do-debug failing auth test in CI`

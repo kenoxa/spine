@@ -4,6 +4,12 @@ All notable changes are documented here, focused on user impact.
 
 ## 2026-03-08
 
+### Added
+
+- **`do-discuss` skill** — structured problem framing before planning through tiered Socratic dialogue; escalates from conversational to codebase-assisted to multi-perspective exploration as complexity demands
+- **`framer` subagent** — perspective-committed problem exploration with three roles (stakeholder-advocate, systems-thinker, skeptic); advisory, peer-reactive
+- **Agent teams coverage for do-discuss** — `use-agent-teams` skill now covers do-discuss explore phase alongside existing do-plan and do-execute phases
+
 ### Changed
 
 - **Agent roster expanded** — 6 subagents (scout, researcher, planner, debater, inspector, analyst) replace the previous 2 (explorer, reviewer). Each agent has a distinctive cognitive profile: orient → investigate → commit → argue → judge → advise.

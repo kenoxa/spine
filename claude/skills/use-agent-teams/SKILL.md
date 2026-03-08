@@ -1,13 +1,13 @@
 ---
 name: use-agent-teams
 description: >
-  Upgrades subagent dispatch to Agent Teams for do-plan and do-execute phases.
-  Use when running do-plan or do-execute at standard/deep depth.
+  Upgrades subagent dispatch to Agent Teams for do-plan, do-execute, and do-discuss phases.
+  Use when running do-plan, do-execute, or do-discuss at standard/deep depth.
 metadata:
   internal: true
 ---
 
-Overlay that replaces Spine's parallel subagent dispatch with Agent Teams for 4 phases.
+Overlay that replaces Spine's parallel subagent dispatch with Agent Teams for 5 phases.
 
 All teammate personas MUST be defined inline in the spawn prompt — custom `.claude/agents/`
 files are silently ignored for team agents.
@@ -16,7 +16,7 @@ files are silently ignored for team agents.
 
 **Spawn type**: Use the custom agent type matching the phase's dispatch table (`@planner`, `@debater`, `@analyst`, `@inspector`). If a custom agent type is unavailable, fall back to `general-purpose`. Team agents write output to `.agents/scratch/<session>/`.
 
-Use `team_name` matching the phase: `plan-planning`, `plan-challenge`, `exec-polish`, `exec-review`.
+Use `team_name` matching the phase: `plan-planning`, `plan-challenge`, `exec-polish`, `exec-review`, `discuss-explore`.
 
 ## do-plan Phase 3: Planning
 
@@ -70,6 +70,20 @@ Create one team:
 | `risk-reviewer` | React to correctness findings by assessing their risk severity. |
 
 Lead reads all teammate outputs + peer messages. Deduplicates, assigns final E-levels and severity buckets per do-review rules.
+
+## do-discuss Phase 4: Explore
+
+Create one team. Perspective-committed framers react to each other's outputs — advisory dialogue, not independent position papers.
+
+| Teammate | Peer directive |
+|----------|---------------|
+| `stakeholder-advocate` | Surface user needs and adoption friction. When peers raise technical concerns, assess user impact. |
+| `systems-thinker` | Map dependencies and second-order effects. When peers surface needs, assess feasibility and coupling. |
+| `skeptic` | Challenge assumptions and demand evidence. When peers agree, ask "what if that assumption is wrong?" |
+
+Lead reads all teammate outputs + peer messages. Irreconcilable positions become `key_decisions` in the problem frame. Convergent findings become `known_facts`.
+
+---
 
 ## Excluded Phases
 
