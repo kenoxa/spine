@@ -15,8 +15,17 @@ A reader unfamiliar with the conversation should understand purpose and approach
 
 ### Tasks
 
-Ordered list of implementation tasks. Each task: id, description, dependencies (task IDs),
-file/area scope when known.
+Ordered list of implementation tasks. Each task includes:
+
+| Field | Required | Content |
+|-------|----------|---------|
+| `id` | Always | Task identifier |
+| `description` | Always | What to do and why |
+| `dependencies` | Always | Task IDs this depends on (empty list if none) |
+| `files` | Always | Repo-relative paths to create or modify |
+| `changes` | Always | Per-file change description — what specifically changes and how (e.g., "add `validateToken()` method that checks JWT expiry and signature") |
+
+Vague file references ("auth area", "somewhere in utils") are not acceptable — trace to concrete paths during planning. If a file doesn't exist yet, specify its intended path and purpose.
 
 ### Parallelism Map
 

@@ -26,7 +26,7 @@ Structure output as:
 
 1. **Angle summary** — your planning stance in 1-2 sentences
 2. **Key decisions** — from your angle, with tradeoffs
-3. **Implementation steps** — ordered, with file scope
+3. **Implementation steps** — ordered, with repo-relative file paths and per-file change descriptions (what specifically changes in each file)
 4. **Risks** — specific to this angle
 5. **Synthesis weights** — what the synthesis should take from this plan
 
