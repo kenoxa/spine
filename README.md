@@ -215,14 +215,32 @@ Canonical entry: [`skills/do-debug/SKILL.md`](skills/do-debug/SKILL.md).
 
 </details>
 
+<details>
+<summary>What <code>/do-debrief</code> does</summary>
+
+Periodic cross-tool session analysis. Python scripts parse raw session data from Claude Code, Codex, and Cursor (~256 MB) into structured analytics (~100 KB), then subagents mine it for automation opportunities.
+
+1. **Collect** — run parser scripts to extract and normalize session data from all three tools into `analytics.json`.
+2. **Analyze** — dispatch source-expert `@miner` subagents in parallel (one per provider with sessions) to identify provider-specific patterns.
+3. **Synthesize** — a synthesizer `@miner` merges all expert outputs into recommendations across 5 categories: skills, plugins, agents, CLAUDE.md rules, and anti-patterns.
+4. **Present** — activity stats table and prioritized recommendations in the terminal. Optional HTML dashboard via `visual-explainer`.
+
+Every recommendation includes evidence (session counts, specific examples) and a concrete action. Cross-tool patterns — the same workflow repeated across multiple tools — are the highest-value findings.
+
+Requires Python 3.9+. Run weekly or bi-weekly.
+
+Canonical entry: [`skills/do-debrief/SKILL.md`](skills/do-debrief/SKILL.md).
+
+</details>
+
 ## Skills and Agents
 
 > **Every change deserves a plan.**
 
 ```
 AGENTS.global.md        Global guardrails (installed as AGENTS.md / CLAUDE.md)
-skills/                 13 skills (7 workflow + 3 domain + 3 tools)
-agents/                 8 subagents (scout, researcher, planner, debater, inspector, analyst, framer, verifier)
+skills/                 14 skills (8 workflow + 3 domain + 3 tools)
+agents/                 9 subagents (scout, researcher, planner, debater, inspector, analyst, framer, verifier, miner)
 claude/                 Claude Code plugin (hooks + use-agent-teams skill)
 .claude-plugin/         Plugin marketplace configuration
 global-skills.md        External skills to install separately
@@ -244,6 +262,7 @@ Invoked explicitly via `/do-plan`, `/do-execute`, etc.
 | `do-debug` | 4-phase root-cause diagnosis and fix |
 | `do-polish` | Advisory code polish with conventions, complexity, and efficiency lenses |
 | `do-commit` | Scoped staging with conventional commits |
+| `do-debrief` | Mine cross-tool session history for automation recommendations (Python 3.9+, Claude Code) |
 
 ### Domain standards (`with-*`)
 
@@ -277,6 +296,7 @@ Invoked explicitly to produce artifacts or perform discovery.
 | `analyst` | inherit | Advisory pattern analysis, preloads `do-review` and `do-polish` |
 | `framer` | inherit | Perspective-committed problem framing |
 | `verifier` | inherit | Adversarial verification with E3 evidence, preloads `with-testing` |
+| `miner` | inherit | Session data analysis and cross-session pattern extraction |
 
 ### Skill prefix convention
 
@@ -288,7 +308,7 @@ Prefixes group skills in slash-autocomplete — type `do-`, `with-`, or `use-` t
 | `with-` | Domain standards | Applied passively when the task matches — UI, API, or test work |
 | `use-` | Active tools | Invoked explicitly to produce artifacts or perform discovery |
 
-**Why prefixes?** Without them, spine's 13 skills get lost among globally installed skills in slash-autocomplete. Typing the first few characters of a prefix immediately narrows the list to the relevant group.
+**Why prefixes?** Without them, spine's 14 skills get lost among globally installed skills in slash-autocomplete. Typing the first few characters of a prefix immediately narrows the list to the relevant group.
 
 External skills (installed via `npx skills add`) keep their upstream names and do not follow this convention — we don't own those names.
 

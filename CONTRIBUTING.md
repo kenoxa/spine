@@ -8,6 +8,7 @@ Use `/use-skill-craft` — it covers the full authoring workflow. Key points:
 2. **Structure**: `frontmatter → overview → core directives → anti-patterns`. No other sections unless prerequisites require it.
 3. **Be concrete**: Vague directives fail the authoring test. "Handle errors properly" is cut. "Fail-closed: deny by default, allowlist explicitly" stays.
 4. **Size**: Under 500 lines. Extract examples and templates to `references/` if needed. Never nest deeper than `SKILL.md → references/file.md`.
+5. **Scripts**: Acceptable when the task involves processing data volumes exceeding LLM context limits. Place in `scripts/` subdirectory of the skill. Document runtime requirements (e.g., Python 3.9+) in the skill description. Keep scripts stdlib-only — no package-manager dependencies.
 
 ### Frontmatter
 
