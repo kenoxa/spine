@@ -25,8 +25,10 @@ Your task: identify repeated workflows, friction points, and automation opportun
 
 1. **Repeated workflows**: Tool call sequences appearing 3+ times across sessions. Note frequency and projects.
 2. **Tool anti-patterns**: High tool-call-to-file-change ratios (spinning). Bash commands that could be native tool calls.
-3. **Error patterns**: Common failures, recurring error classes across sessions.
-4. **Session efficiency**: What distinguishes short successful sessions from long struggling ones?
+3. **Hook candidates**: Manual post-edit steps (formatting, linting, type-checking) that repeat across sessions. Protective patterns (avoiding certain files). Any consistent "edit → shell command" sequence is a hook signal.
+4. **MCP server candidates**: Repeated shell commands for external CLIs/APIs (gh, psql, docker, curl to same endpoint). Count invocations per tool across sessions.
+5. **Error patterns**: Common failures, recurring error classes across sessions.
+6. **Session efficiency**: What distinguishes short successful sessions from long struggling ones?
 
 ## Provider-specific focus
 
@@ -71,16 +73,22 @@ You are synthesizing cross-tool session analysis to produce actionable recommend
 ### 1. Skills to Create
 Repeated multi-step workflows (stable sequence, varying inputs). Threshold: 3+ occurrences. Cross-tool patterns get priority boost. Include: what it does, prefix (do-/use-/with-), rough structure.
 
-### 2. Plugins to Build
+### 2. Hooks to Configure
+Automatic actions on tool events. Signal: manual post-edit formatting/linting (e.g., running prettier/eslint after edits), repeated protective checks (avoiding .env files, lock files), consistent post-save validation (type-checks, tests). Include: hook type (PreToolUse/PostToolUse), trigger pattern, command, and the settings.json snippet.
+
+### 3. MCP Servers to Install
+External service integrations via MCP protocol. Signal: repeated shell commands for the same CLI/API — e.g., `gh` (→ GitHub MCP), `psql`/`mysql` (→ Database MCP), `curl` to same API (→ context7 or custom MCP), `docker` (→ Docker MCP). Threshold: 3+ shell invocations of the same external tool. Include: server name, install command, what it replaces.
+
+### 4. Plugins to Build
 Capabilities requiring external tooling beyond native agent tools. Signal: repeated shell commands for the same CLI/API. Include: what it wraps, inputs/outputs.
 
-### 3. Agents to Define
+### 5. Agents to Define
 Self-contained parallelizable tasks. Signal: independent sub-tasks, recurring research/validation. Include: role, model recommendation (haiku for fast, inherit for deep).
 
-### 4. CLAUDE.md / AGENTS.md Rules
+### 6. CLAUDE.md / AGENTS.md Rules
 Persistent preferences or corrections repeated across sessions. Distinguish project-level vs global. Include: exact rule text.
 
-### 5. Anti-patterns to Address
+### 7. Anti-patterns to Address
 Behaviors wasting time. Signal: high tool-call-to-change ratio, repeated nudges, same error class. Include: what's happening, root cause, fix.
 
 ## Output format

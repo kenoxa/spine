@@ -17,7 +17,7 @@ description: >
 argument-hint: "[--days N, default 14] [--project filter]"
 ---
 
-Periodic cross-tool session analysis. Python scripts extract and compress ~256MB of raw session data into ~100KB of normalized analytics. Subagents analyze patterns and produce recommendations in 5 categories.
+Periodic cross-tool session analysis. Python scripts extract and compress ~256MB of raw session data into ~100KB of normalized analytics. Subagents analyze patterns and produce recommendations in 7 categories.
 
 ## Phases
 
@@ -72,13 +72,15 @@ Dispatch 1 synthesizer subagent with all source-expert outputs.
 |------|-----------|-------|--------|
 | `synthesizer` | `@miner` | All debrief-analyze-*.md files + cross_tool + sample_prompts sections | `.scratch/<session>/debrief-synthesize-synthesizer.md` |
 
-The synthesizer produces recommendations in 5 categories:
+The synthesizer produces recommendations in 7 categories:
 
 1. **Skills** — Repeated multi-step workflows where the sequence is stable but inputs vary. Threshold: 3+ occurrences across sessions.
-2. **Plugins** — Capabilities requiring external tooling beyond native agent tools. Signal: repeated shell commands for the same external tool.
-3. **Agents** — Self-contained, parallelizable tasks that don't need interactive feedback. Signal: independent sub-tasks within larger workflows.
-4. **CLAUDE.md / AGENTS.md rules** — Persistent preferences, conventions, corrections repeated across sessions. Distinguish project-level from global rules.
-5. **Anti-patterns** — Behaviors that waste time: high tool-call-to-change ratio, repeated nudges, same error class across sessions.
+2. **Hooks** — Automatic actions on tool events. Signal: manual post-edit formatting/linting runs, repeated protective checks before edits, consistent post-save validation steps. If a user runs `prettier` or `eslint --fix` after every edit, that's a hook. If they manually avoid `.env` files, that's a PreToolUse block hook.
+3. **MCP Servers** — External service integrations. Signal: repeated shell commands for the same CLI tool or API (`gh`, `psql`, `curl` to the same endpoint, `docker` commands). If sessions show 3+ shell invocations of the same external tool, recommend the corresponding MCP server.
+4. **Plugins** — Capabilities requiring external tooling beyond native agent tools. Signal: repeated shell commands for the same external tool.
+5. **Agents** — Self-contained, parallelizable tasks that don't need interactive feedback. Signal: independent sub-tasks within larger workflows.
+6. **CLAUDE.md / AGENTS.md rules** — Persistent preferences, conventions, corrections repeated across sessions. Distinguish project-level from global rules.
+7. **Anti-patterns** — Behaviors that waste time: high tool-call-to-change ratio, repeated nudges, same error class across sessions.
 
 Each recommendation must include: title, type, priority (high/medium/low), evidence (which sessions, how often), concrete action (what to create/write), example (what the skill/rule would look like).
 
