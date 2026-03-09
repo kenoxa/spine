@@ -10,12 +10,16 @@
 - Don't create helpers or abstractions for one-time operations. Extract only on the third use.
 - Never combine refactor and feature in the same change.
 - Never run destructive commands (drop, delete, force-push) without explicit user confirmation.
+- When working inside a project directory, never edit files outside it (global configs, home-directory dotfiles, other projects) unless explicitly instructed.
 
 ## Tools
 
-Use built-in search and file tools over shell equivalents when available. When shell is unavoidable:
-- Prefer `rg` over `grep`, `fd` over `find`, `jq` over grepping JSON
-- Include a short description (4–7 words) on every shell command
+Prefer native tools over shell equivalents: Grep not `rg`/`grep`, Glob not `find`/`ls`, Read not `cat`/`head`/`tail`, Edit not `sed`/`awk`. When MCP documentation tools are available (e.g., context7), prefer them over WebFetch/WebSearch for library and framework docs. Resolve the library ID first, then query specific topics.
+
+When shell is unavoidable:
+- Prefer `rg` over `grep`, `fd` over `find`, `jq` over grepping JSON.
+- Always quote glob and regex arguments to prevent shell expansion (`rg 'pattern'`, not `rg pattern`; `fd '*.ts'`, not `fd *.ts`).
+- Include a short description (4–7 words) on every shell command.
 - Detect package manager from lockfile before running commands (bun.lock → bun, pnpm-lock.yaml → pnpm, yarn.lock → yarn, package-lock.json → npm). Never assume npm.
 
 ## Workflow

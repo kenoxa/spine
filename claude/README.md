@@ -19,6 +19,24 @@ Injects project-level `AGENTS.md` files into Claude Code context. Claude Code na
 
 Configured in [`hooks/hooks.json`](hooks/hooks.json). Script: [`hooks/inject-agents-md.sh`](hooks/inject-agents-md.sh).
 
+### PostToolUse hook (check-on-edit)
+
+Runs project-appropriate checkers after file edits (Edit, Write, MultiEdit). Uses a registry-based pattern with `detect_*/run_*` function pairs for easy extensibility.
+
+**Supported checkers:**
+
+| Checker | Detects via | Runs |
+|---------|------------|------|
+| TypeScript | `tsconfig.json` + `.ts/.tsx/.mts/.cts` file | `tsc --noEmit` |
+| Svelte | `svelte.config.*` + `.svelte/.ts/.js` file | `svelte-check` |
+| Biome | `biome.json` or `biome.jsonc` | `biome check <file>` |
+
+Automatically detects the project's package manager from lockfiles. Always exits 0 — errors are reported via `systemMessage`, never by exit code. Output is truncated to 20 lines per checker.
+
+To add a new checker, define `detect_<name>` and `run_<name>` functions and append to the `CHECKERS` array.
+
+Configured in [`hooks/hooks.json`](hooks/hooks.json) (30s timeout). Script: [`hooks/check-on-edit.sh`](hooks/check-on-edit.sh).
+
 ### `use-agent-teams` skill
 
 Upgrades Spine's parallel subagent dispatch to Claude Code Agent Teams for 4 phases:
@@ -39,8 +57,9 @@ claude/
 ├── .claude-plugin/
 │   └── plugin.json          Plugin metadata
 ├── hooks/
-│   ├── hooks.json           Hook definitions (SessionStart)
-│   └── inject-agents-md.sh  Hook script
+│   ├── hooks.json           Hook definitions (SessionStart, PostToolUse)
+│   ├── check-on-edit.sh     PostToolUse checker hook
+│   └── inject-agents-md.sh  SessionStart hook script
 └── skills/
     └── use-agent-teams/
         └── SKILL.md          Agent Teams overlay skill

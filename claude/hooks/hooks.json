@@ -9,6 +9,18 @@
 					}
 				]
 			}
+		],
+		"PostToolUse": [
+			{
+				"matcher": "Edit|Write|MultiEdit",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/check-on-edit.sh",
+						"timeout": 30
+					}
+				]
+			}
 		]
 	}
 }
