@@ -22,8 +22,8 @@ to explore alternatives and get user sign-off on direction before entering disco
 Every subagent prompt MUST be self-contained — include all prior-phase context explicitly.
 
 **Subagent dispatch policy**: Each role uses its specialized agent type. Every dispatch prompt MUST include:
-- The exact output file path (`.agents/scratch/<session>/<prescribed-filename>.md`)
-- The constraint: "Write your complete output to that path. You may read any repository file. Do NOT edit, create, or delete files outside `.agents/scratch/<session>/`. Do NOT run build commands, tests, or destructive shell commands."
+- The exact output file path (`.scratch/<session>/<prescribed-filename>.md`)
+- The constraint: "Write your complete output to that path. You may read any repository file. Do NOT edit, create, or delete files outside `.scratch/<session>/`. Do NOT run build commands, tests, or destructive shell commands."
 
 | Phase | Agent type | Rationale |
 |-------|-----------|-----------|
@@ -41,9 +41,9 @@ Map the codebase before planning. Dispatch discovery subagents **in parallel** (
 
 | Role | Persona | Output | When |
 |------|---------|--------|------|
-| `file-scout` | Traces entry points, call graphs, config flags, and change surface | `.agents/scratch/<session>/plan-discovery-file-scout.md` | Always |
-| `docs-explorer` | Extracts intended behavior, spec bullets, and ambiguities from documentation | `.agents/scratch/<session>/plan-discovery-docs-explorer.md` | Always |
-| `external-researcher` | Checks upstream breaking changes, API gotchas, and version compatibility | `.agents/scratch/<session>/plan-discovery-external-researcher.md` | When touching external dependencies |
+| `file-scout` | Traces entry points, call graphs, config flags, and change surface | `.scratch/<session>/plan-discovery-file-scout.md` | Always |
+| `docs-explorer` | Extracts intended behavior, spec bullets, and ambiguities from documentation | `.scratch/<session>/plan-discovery-docs-explorer.md` | Always |
+| `external-researcher` | Checks upstream breaking changes, API gotchas, and version compatibility | `.scratch/<session>/plan-discovery-external-researcher.md` | When touching external dependencies |
 
 **Synthesis**: main thread reads all output files, merges into `discovery_findings`. All claims tagged with evidence level (see [Evidence Levels](#evidence-levels)). Conflicting claims across subagents → prefer higher evidence level; same level → flag for framing.
 
@@ -79,9 +79,9 @@ Dispatch planners **in parallel** (`@planner` type). Each receives `planning_bri
 
 | Role | Persona | Output |
 |------|---------|--------|
-| `conservative` | Rejects changes without a working codebase precedent; prefers no-change over novelty when risk is ambiguous | `.agents/scratch/<session>/plan-planning-conservative.md` |
-| `thorough` | Enumerates every edge case and failure mode; treats missing boundary coverage as a gap, not an optimization | `.agents/scratch/<session>/plan-planning-thorough.md` |
-| `innovative` | Proposes structural improvements when scope allows; must justify each departure from existing patterns with concrete benefit | `.agents/scratch/<session>/plan-planning-innovative.md` |
+| `conservative` | Rejects changes without a working codebase precedent; prefers no-change over novelty when risk is ambiguous | `.scratch/<session>/plan-planning-conservative.md` |
+| `thorough` | Enumerates every edge case and failure mode; treats missing boundary coverage as a gap, not an optimization | `.scratch/<session>/plan-planning-thorough.md` |
+| `innovative` | Proposes structural improvements when scope allows; must justify each departure from existing patterns with concrete benefit | `.scratch/<session>/plan-planning-innovative.md` |
 
 **Synthesis**: main thread reads all output files, merges into `canonical_plan`. Deduplicate by meaning; rank E3 > E2 > E1 > E0; conflicting E2+ claims on blocking topics → targeted verification pass aiming for E3.
 
@@ -102,9 +102,9 @@ If blocking findings remain unresolved after asking, dispatch a structured debat
 
 | Role | Persona | Output |
 |------|---------|--------|
-| `thesis-champion` | Defends the canonical plan, steelmans its strengths, rebuts each objection with evidence | `.agents/scratch/<session>/plan-challenge-thesis-champion.md` |
-| `counterpoint-dissenter` | Attacks assumptions, surfaces hidden risks, proposes concrete alternatives for each weakness | `.agents/scratch/<session>/plan-challenge-counterpoint-dissenter.md` |
-| `tradeoff-analyst` | Weighs both positions, quantifies costs and reversibility, identifies irreversible commitments | `.agents/scratch/<session>/plan-challenge-tradeoff-analyst.md` |
+| `thesis-champion` | Defends the canonical plan, steelmans its strengths, rebuts each objection with evidence | `.scratch/<session>/plan-challenge-thesis-champion.md` |
+| `counterpoint-dissenter` | Attacks assumptions, surfaces hidden risks, proposes concrete alternatives for each weakness | `.scratch/<session>/plan-challenge-counterpoint-dissenter.md` |
+| `tradeoff-analyst` | Weighs both positions, quantifies costs and reversibility, identifies irreversible commitments | `.scratch/<session>/plan-challenge-tradeoff-analyst.md` |
 
 **Synthesis**: main thread reads all output files. Blocking findings that survive the debate (E2+ with no viable alternative surfaced) are incorporated into the plan. Findings resolved by the debate are closed with rationale.
 
@@ -112,7 +112,7 @@ If blocking findings remain unresolved after asking, dispatch a structured debat
 
 Main thread only. Sole readiness authority. No subagent dispatch.
 
-1. Assemble final plan using [references/plan-template.md](references/plan-template.md) as scaffold. Write the assembled plan to `.agents/scratch/<session>/plan.md`.
+1. Assemble final plan using [references/plan-template.md](references/plan-template.md) as scaffold. Write the assembled plan to `.scratch/<session>/plan.md`.
 2. Validate all content requirements (see [Plan Requirements](#plan-requirements)).
 3. Confirm every blocking finding is incorporated or rejected with explicit rationale.
 4. Confirm no open ask-checkpoint decisions without user-deferred evidence.

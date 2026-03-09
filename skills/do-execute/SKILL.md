@@ -39,8 +39,8 @@ See AGENTS.md for E0–E3 definitions. Blocking claims MUST be E2+. Verify claim
 At `focused` depth, main thread handles every phase inline — no subagent dispatch. The subagent roles below apply to `standard` and `deep` only. Every subagent prompt MUST be self-contained: include scope artifact, files modified, and plan excerpt. Subagents inherit no conversation history.
 
 **Subagent dispatch policy**: Each role uses its specialized agent type. Every dispatch prompt MUST include:
-- The exact output file path (`.agents/scratch/<session>/<prescribed-filename>.md`)
-- The constraint: "Write your complete output to that path. You may read any repository file. Do NOT edit, create, or delete files outside `.agents/scratch/<session>/`. Do NOT run build commands, tests, or destructive shell commands."
+- The exact output file path (`.scratch/<session>/<prescribed-filename>.md`)
+- The constraint: "Write your complete output to that path. You may read any repository file. Do NOT edit, create, or delete files outside `.scratch/<session>/`. Do NOT run build commands, tests, or destructive shell commands."
 
 | Phase | Agent type | Rationale |
 |-------|-----------|-----------|
@@ -83,8 +83,8 @@ Two sub-steps:
 
    | Role | Persona | Output |
    |------|---------|--------|
-   | `conventions-advisor` | Checks naming against codebase norms; flags deviations from established patterns, not style preferences | `.agents/scratch/<session>/execute-polish-conventions-advisor.md` |
-   | `complexity-advisor` | Identifies defensive bloat on trusted paths (NEVER flag auth/authz/validation) and premature abstraction | `.agents/scratch/<session>/execute-polish-complexity-advisor.md` |
+   | `conventions-advisor` | Checks naming against codebase norms; flags deviations from established patterns, not style preferences | `.scratch/<session>/execute-polish-conventions-advisor.md` |
+   | `complexity-advisor` | Identifies defensive bloat on trusted paths (NEVER flag auth/authz/validation) and premature abstraction | `.scratch/<session>/execute-polish-complexity-advisor.md` |
 
    **Synthesis**: main thread reads both output files, deduplicates findings, assigns E-levels. Every E2+ finding: action or explicit rejection with rationale. Silent drops prohibited.
 
@@ -105,9 +105,9 @@ Two stages, sequential:
 
    | Role | Persona | Output |
    |------|---------|--------|
-   | `spec-reviewer` | Validates every plan requirement has a corresponding implementation; flags missing and extra behavior | `.agents/scratch/<session>/execute-review-spec-reviewer.md` |
-   | `correctness-reviewer` | Probes for logic errors, edge cases, race conditions, and failure paths — assumes adversarial inputs | `.agents/scratch/<session>/execute-review-correctness-reviewer.md` |
-   | `risk-reviewer` | Evaluates security boundaries, performance implications, and scalability; scales depth by risk classification | `.agents/scratch/<session>/execute-review-risk-reviewer.md` |
+   | `spec-reviewer` | Validates every plan requirement has a corresponding implementation; flags missing and extra behavior | `.scratch/<session>/execute-review-spec-reviewer.md` |
+   | `correctness-reviewer` | Probes for logic errors, edge cases, race conditions, and failure paths — assumes adversarial inputs | `.scratch/<session>/execute-review-correctness-reviewer.md` |
+   | `risk-reviewer` | Evaluates security boundaries, performance implications, and scalability; scales depth by risk classification | `.scratch/<session>/execute-review-risk-reviewer.md` |
 
    **Synthesis**: main thread reads all output files. Deduplicate findings across reviewers. Assign final E-levels and severity buckets per `do-review` skill rules.
 

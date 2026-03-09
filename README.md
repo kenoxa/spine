@@ -226,10 +226,10 @@ agents/                 7 subagents (scout, researcher, planner, debater, inspec
 claude/                 Claude Code plugin (hooks + use-agent-teams skill)
 .claude-plugin/         Plugin marketplace configuration
 global-skills.md        External skills to install separately
-.agents/scratch/        Ephemeral subagent output (gitignore this)
+.scratch/               Ephemeral subagent output (gitignore this)
 ```
 
-`.agents/scratch/` is created at runtime by `do-discuss`, `do-plan`, and `do-execute` subagents to store intermediate output files. It is ephemeral — safe to delete at any time. Add `.agents/scratch/` to your project's `.gitignore`.
+`.scratch/` is created at runtime by `do-discuss`, `do-plan`, and `do-execute` subagents to store intermediate output files. It is ephemeral — safe to delete at any time. Add `.scratch` to your project's `.gitignore`.
 
 ### Workflow skills
 
@@ -301,7 +301,7 @@ npx skills add jeffallan/claude-skills -s security-reviewer -a '*' -g -y
 npx skills add anthropics/claude-code -s frontend-design -a '*' -g -y
 npx skills add wshobson/agents -s wcag-audit-patterns -a '*' -g -y
 npx skills add softaworks/agent-toolkit -s reducing-entropy -a '*' -g -y
-npx skills add sickn33/antigravity-awesome-skills -s typescript-expert -a '*' -g -y
+npx skills add mcollina/skills -s typescript-magician -a '*' -g -y
 ```
 
 ## Claude Code Plugin

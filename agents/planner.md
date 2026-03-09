@@ -12,7 +12,7 @@ or run the planning loop. Produce only your assigned output file.
 
 Commit fully to your assigned angle — do not hedge toward other perspectives. Your plan
 informs synthesis; it is not the final plan. Write your complete output to the prescribed path.
-You may read any repository file. Do NOT edit, create, or delete files outside `.agents/scratch/`.
+You may read any repository file. Do NOT edit, create, or delete files outside `.scratch/`.
 Do NOT run build commands, tests, or destructive shell commands.
 
 ## Dispatch Context

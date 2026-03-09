@@ -29,7 +29,7 @@ GLOBAL_SKILLS=(
   "anthropics/claude-code -s frontend-design"
   "wshobson/agents -s wcag-audit-patterns"
   "softaworks/agent-toolkit -s reducing-entropy"
-  "sickn33/antigravity-awesome-skills -s typescript-expert"
+  "mcollina/skills -s typescript-magician"
 )
 
 # --- Helpers ---
@@ -335,6 +335,25 @@ install_skills() {
     for entry in "${failed[@]}"; do
       echo "    npx skills add $entry ${agent_flags[*]} -g -y" >&2
     done
+  fi
+
+  # Clean up global skills that Spine previously installed but no longer manages.
+  # Add skill names here when swapping one global skill for another.
+  local -a RETIRED_GLOBAL_SKILLS=(
+    "typescript-expert"  # replaced by typescript-magician (mcollina/skills)
+  )
+
+  if [ ${#RETIRED_GLOBAL_SKILLS[@]} -gt 0 ] && [ -f "$lock_file" ] && command -v jq &>/dev/null; then
+    local global_orphans=()
+    for skill in "${RETIRED_GLOBAL_SKILLS[@]}"; do
+      if jq -e --arg s "$skill" '.skills[$s]' "$lock_file" &>/dev/null; then
+        global_orphans+=("$skill")
+      fi
+    done
+    if [ ${#global_orphans[@]} -gt 0 ]; then
+      info "Removing retired global skills: ${global_orphans[*]}"
+      quiet npx skills remove "${global_orphans[@]}" "${agent_flags[@]}" -g -y || true
+    fi
   fi
 }
 

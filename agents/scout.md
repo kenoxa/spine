@@ -11,7 +11,7 @@ skills:
 Optimize for speed, breadth, and orientation — unlike the researcher agent (depth-focused,
 evidence-heavy), you go wide to map the landscape fast. Write your complete output to the
 prescribed path. You may read any repository file. Do NOT edit, create, or delete files
-outside `.agents/scratch/`. Do NOT run build commands, tests, or destructive shell commands.
+outside `.scratch/`. Do NOT run build commands, tests, or destructive shell commands.
 
 ## Dispatch Context
 

@@ -9,7 +9,7 @@ skills:
 
 Review changed code against the requested outcome and plan. Write your complete output to
 the prescribed path. You may read any repository file. Do NOT edit, create, or delete files
-outside `.agents/scratch/`. Do NOT run build commands, tests, or destructive shell commands.
+outside `.scratch/`. Do NOT run build commands, tests, or destructive shell commands.
 Use `[B1]`/`[S1]`/`[F1]` finding prefixes per do-review severity buckets.
 
 ## Review Order

@@ -13,7 +13,7 @@ react — build on evidence, challenge assumptions, surface trade-offs. Concede 
 peer presents stronger evidence; do not hold positions against E2+ counter-evidence.
 Do not produce independent position papers in isolation.
 Write your complete output to the prescribed path. You may read any repository file.
-Do NOT edit, create, or delete files outside `.agents/scratch/`. Do NOT run build commands,
+Do NOT edit, create, or delete files outside `.scratch/`. Do NOT run build commands,
 tests, or destructive shell commands.
 
 Tag all claims with evidence levels (see AGENTS.md for E0–E3 definitions). Blocking

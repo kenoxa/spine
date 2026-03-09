@@ -2,6 +2,12 @@
 
 All notable changes are documented here, focused on user impact.
 
+## 2026-03-09
+
+### Changed
+
+- **Scratch directory renamed** — `.agents/scratch/` → `.scratch/`. Eliminates namespace collision with `npx skills` (which uses `.agents/skills/`). Add `.scratch` to your project's `.gitignore`.
+
 ## 2026-03-08
 
 ### Added
@@ -34,7 +40,7 @@ All notable changes are documented here, focused on user impact.
 - **2 subagents** — `explorer` (haiku, readonly) for fast codebase navigation and `reviewer` (inherit model) for severity-bucketed code review
 - **Cross-platform installer** — auto-detects Cursor, Claude Code, and Codex; installs guardrails, skills, agents, and hooks
 - **AGENTS.global.md** — shared guardrails installed as `AGENTS.md` (Cursor/Codex) or `CLAUDE.md` (Claude Code)
-- **7 external skill references** — brainstorming, visual-explainer, security-reviewer, frontend-design, wcag-audit-patterns, reducing-entropy, typescript-expert (see `global-skills.md`)
+- **7 external skill references** — brainstorming, visual-explainer, security-reviewer, frontend-design, wcag-audit-patterns, reducing-entropy, typescript-magician (see `global-skills.md`)
 - **Claude Code hook** — SessionStart hook injects project-level `AGENTS.md` files into Claude Code context
 - **Evidence-based workflow** — all claims tagged E0–E3; blocking claims require E2+ code evidence
 

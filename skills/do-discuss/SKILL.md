@@ -31,8 +31,8 @@ Investigate and explore are conditional — triggered by tier escalation, not al
 ## Phases
 
 **Subagent dispatch policy**: Each role uses its specialized agent type. Every dispatch prompt MUST include:
-- The exact output file path (`.agents/scratch/<session>/<prescribed-filename>.md`)
-- The constraint: "Write your complete output to that path. You may read any repository file. Do NOT edit, create, or delete files outside `.agents/scratch/<session>/`. Do NOT run build commands, tests, or destructive shell commands."
+- The exact output file path (`.scratch/<session>/<prescribed-filename>.md`)
+- The constraint: "Write your complete output to that path. You may read any repository file. Do NOT edit, create, or delete files outside `.scratch/<session>/`. Do NOT run build commands, tests, or destructive shell commands."
 
 | Phase | Agent type | Rationale |
 |-------|-----------|-----------|
@@ -76,8 +76,8 @@ Subagent dispatch for codebase evidence when user cannot resolve unknowns.
 
 | Agent | Use when | Output |
 |-------|----------|--------|
-| `@scout` | Orientation: "does X exist? where? what shape?" | `.agents/scratch/<session>/discuss-investigate-scout.md` |
-| `@researcher` | Depth: "how does X work? what are the side effects?" | `.agents/scratch/<session>/discuss-investigate-researcher.md` |
+| `@scout` | Orientation: "does X exist? where? what shape?" | `.scratch/<session>/discuss-investigate-scout.md` |
+| `@researcher` | Depth: "how does X work? what are the side effects?" | `.scratch/<session>/discuss-investigate-researcher.md` |
 
 **Dispatch context** (include in every investigate prompt):
 - The specific unknown(s) to resolve (from the `unknown` inventory)
@@ -99,9 +99,9 @@ Multi-perspective agent team when one-way-door decisions resist convergence.
 
 | Role | Output |
 |------|--------|
-| `stakeholder-advocate` | `.agents/scratch/<session>/discuss-explore-stakeholder-advocate.md` |
-| `systems-thinker` | `.agents/scratch/<session>/discuss-explore-systems-thinker.md` |
-| `skeptic` | `.agents/scratch/<session>/discuss-explore-skeptic.md` |
+| `stakeholder-advocate` | `.scratch/<session>/discuss-explore-stakeholder-advocate.md` |
+| `systems-thinker` | `.scratch/<session>/discuss-explore-systems-thinker.md` |
+| `skeptic` | `.scratch/<session>/discuss-explore-skeptic.md` |
 
 **Dispatch context** (include in every framer prompt):
 - Current `problem_frame` state (in-progress)
@@ -115,7 +115,7 @@ Multi-perspective agent team when one-way-door decisions resist convergence.
 
 Main thread only. Produce `problem_frame` artifact.
 
-Write structured artifact to `.agents/scratch/<session>/discuss-frame.md` using the template from [references/frame-template.md](references/frame-template.md).
+Write structured artifact to `.scratch/<session>/discuss-frame.md` using the template from [references/frame-template.md](references/frame-template.md).
 
 The frame must be self-sufficient: understandable without chat history, all terms defined, no conversation references.
 

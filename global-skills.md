@@ -11,7 +11,7 @@ npx skills add jeffallan/claude-skills -s security-reviewer -a '*' -g -y
 npx skills add anthropics/claude-code -s frontend-design -a '*' -g -y
 npx skills add wshobson/agents -s wcag-audit-patterns -a '*' -g -y
 npx skills add softaworks/agent-toolkit -s reducing-entropy -a '*' -g -y
-npx skills add sickn33/antigravity-awesome-skills -s typescript-expert -a '*' -g -y
+npx skills add mcollina/skills -s typescript-magician -a '*' -g -y
 ```
 
 ## Referenced by local skills
@@ -31,4 +31,4 @@ Useful across all coding tasks without needing a local skill reference.
 
 | Skill | Repo | Value |
 |-------|------|-------|
-| `typescript-expert` | `sickn33/antigravity-awesome-skills` | Advanced TS patterns: branded types, conditional types, project references, monorepo tooling |
+| `typescript-magician` | `mcollina/skills` | Advanced type-system mastery: 14 modular rule files covering generics, conditional types, branded types, inference patterns, error diagnosis |
