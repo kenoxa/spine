@@ -294,7 +294,7 @@ install_skills() {
   fi
 
   # Spine skills: install all, then remove any renamed/deleted orphans
-  if quiet npx skills add "$skills_src" -s '*' "${agent_flags[@]}" -g -y; then
+  if quiet npx --yes skills add "$skills_src" -s '*' "${agent_flags[@]}" -g -y; then
     done_msg "spine: all skills"
   else
     warn "Failed to install spine skills"
@@ -313,7 +313,7 @@ install_skills() {
     done < <(jq -r '.skills | to_entries[] | select(.value.source == "kenoxa/spine" or .value.source == "'"$skills_src"'") | .key' "$lock_file" 2>/dev/null)
 
     if [ ${#orphans[@]} -gt 0 ]; then
-      quiet npx skills remove "${orphans[@]}" "${agent_flags[@]}" -g -y || true
+      quiet npx --yes skills remove "${orphans[@]}" "${agent_flags[@]}" -g -y || true
     fi
   fi
 
@@ -322,7 +322,7 @@ install_skills() {
   for entry in "${GLOBAL_SKILLS[@]}"; do
     # entry is e.g. "obra/superpowers -s brainstorming"
     local skill_name="${entry##*-s }"
-    if quiet npx skills add $entry "${agent_flags[@]}" -g -y; then
+    if quiet npx --yes skills add $entry "${agent_flags[@]}" -g -y; then
       done_msg "global: $skill_name"
     else
       failed+=("$entry")
@@ -352,7 +352,7 @@ install_skills() {
     done
     if [ ${#global_orphans[@]} -gt 0 ]; then
       info "Removing retired global skills: ${global_orphans[*]}"
-      quiet npx skills remove "${global_orphans[@]}" "${agent_flags[@]}" -g -y || true
+      quiet npx --yes skills remove "${global_orphans[@]}" "${agent_flags[@]}" -g -y || true
     fi
   fi
 }
@@ -370,7 +370,7 @@ main() {
   # Step 2: Resolve source
   step "2/5" "Resolving source..."
   local src script_dir
-  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]:-/dev/stdin}")" && pwd)"
   if [ -f "$script_dir/AGENTS.global.md" ] && [ -d "$script_dir/skills" ]; then
     src="$script_dir"
     done_msg "Using local repo: $src"
