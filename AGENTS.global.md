@@ -16,6 +16,7 @@
 Use built-in search and file tools over shell equivalents when available. When shell is unavoidable:
 - Prefer `rg` over `grep`, `fd` over `find`, `jq` over grepping JSON
 - Include a short description (4–7 words) on every shell command
+- Detect package manager from lockfile before running commands (bun.lock → bun, pnpm-lock.yaml → pnpm, yarn.lock → yarn, package-lock.json → npm). Never assume npm.
 
 ## Workflow
 
