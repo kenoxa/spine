@@ -4,8 +4,20 @@ All notable changes are documented here, focused on user impact.
 
 ## 2026-03-09
 
+### Added
+
+- **`do-polish` skill** — standalone advisory code polish with three parallel lenses (conventions, complexity, efficiency). Also powers do-execute phase 3. Invoke with `/do-polish` or let do-execute use it automatically.
+- **`verifier` subagent** — adversarial verification for do-execute phase 5. Probes implementations using five categories (boundary, concurrency, idempotency, resource-lifecycle, error-propagation) and produces PASS/FAIL/PARTIAL verdicts.
+- **Security probe false-positive filtering** — 17 exclusion rules and 12 precedent patterns for high-risk security review. Suppresses common false positives (React auto-escaping, bcrypt, env vars, parameterized queries) so reviews surface real vulnerabilities.
+
 ### Changed
 
+- **Analyst now supports efficiency-advisor** — third advisory lens alongside conventions and complexity. Flags reuse gaps, N+1 patterns, missed concurrency, and hot-path bloat.
+- **Inspector applies scope discipline** — delegates to do-review noise filtering and adds "would the author fix this?" heuristic to reduce low-value findings.
+- **do-review gains noise filtering** — four-rule filter ensures findings are introduced by the change, discrete, actionable, and codebase-consistent. High-risk security findings use the new exclusion rules.
+- **do-execute dispatches verifier** — phase 5 now uses the `@verifier` agent type. Phase 3 dispatches three polish advisors instead of two.
+- **Agent teams updated** — exec-polish team includes efficiency-advisor as third teammate.
+- **Verifier accepts E2 fallback** — when execution is infeasible (no build system, hypothetical code), E2 code-trace reasoning is accepted with a PARTIAL verdict ceiling.
 - **Scratch directory renamed** — `.agents/scratch/` → `.scratch/`. Eliminates namespace collision with `npx skills` (which uses `.agents/skills/`). Add `.scratch` to your project's `.gitignore`.
 
 ## 2026-03-08

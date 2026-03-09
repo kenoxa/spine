@@ -68,8 +68,9 @@ Create one team. Lead copies each persona from do-execute's dispatch table and a
 |----------|---------------|
 | `conventions-advisor` | Share findings with peers so they can check for related implications. |
 | `complexity-advisor` | When the conventions advisor flags a pattern, check whether it also has complexity implications. |
+| `efficiency-advisor` | When peers flag a pattern deviation or bloat, check whether it also has performance or reuse implications. |
 
-Lead reads both teammate outputs + peer messages. Deduplicates, assigns E-levels.
+Lead reads all teammate outputs + peer messages. Deduplicates, assigns E-levels.
 
 ---
 

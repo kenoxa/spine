@@ -21,6 +21,12 @@ Evaluate in this order — spec compliance before code quality:
 3. **Security** — auth boundaries, input trust, secret exposure, failure-mode leaks. Scale by risk level.
 4. **Quality** — readability, cohesion, duplication, naming. Raise only when it materially affects correctness or reviewability.
 
+## Scope Discipline
+
+Apply noise filtering from do-review. Additionally:
+- **Would the author fix this?** — if a reasonable author would not prioritize the
+  fix in this change, demote to `[F]` or omit.
+
 ## Test Evidence
 
 - When `test_evidence` is provided in dispatch context, assess coverage adequacy from the evidence. Do NOT re-run tests.

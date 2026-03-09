@@ -221,8 +221,8 @@ Canonical entry: [`skills/do-debug/SKILL.md`](skills/do-debug/SKILL.md).
 
 ```
 AGENTS.global.md        Global guardrails (installed as AGENTS.md / CLAUDE.md)
-skills/                 12 skills (6 workflow + 3 domain + 3 tools)
-agents/                 7 subagents (scout, researcher, planner, debater, inspector, analyst, framer)
+skills/                 13 skills (7 workflow + 3 domain + 3 tools)
+agents/                 8 subagents (scout, researcher, planner, debater, inspector, analyst, framer, verifier)
 claude/                 Claude Code plugin (hooks + use-agent-teams skill)
 .claude-plugin/         Plugin marketplace configuration
 global-skills.md        External skills to install separately
@@ -242,6 +242,7 @@ Invoked explicitly via `/do-plan`, `/do-execute`, etc.
 | `do-execute` | Execute an approved plan through phased quality gates |
 | `do-review` | Severity-bucketed code review |
 | `do-debug` | 4-phase root-cause diagnosis and fix |
+| `do-polish` | Advisory code polish with conventions, complexity, and efficiency lenses |
 | `do-commit` | Scoped staging with conventional commits |
 
 ### Domain standards (`with-*`)
@@ -273,8 +274,9 @@ Invoked explicitly to produce artifacts or perform discovery.
 | `planner` | inherit | Angle-committed planning, preloads `do-plan` |
 | `debater` | inherit | Adversarial Socratic dialogue |
 | `inspector` | inherit | Verdict-focused code review, preloads `do-review` |
-| `analyst` | inherit | Advisory pattern analysis, preloads `do-review` |
+| `analyst` | inherit | Advisory pattern analysis, preloads `do-review` and `do-polish` |
 | `framer` | inherit | Perspective-committed problem framing |
+| `verifier` | inherit | Adversarial verification with E3 evidence, preloads `with-testing` |
 
 ### Skill prefix convention
 
@@ -286,7 +288,7 @@ Prefixes group skills in slash-autocomplete — type `do-`, `with-`, or `use-` t
 | `with-` | Domain standards | Applied passively when the task matches — UI, API, or test work |
 | `use-` | Active tools | Invoked explicitly to produce artifacts or perform discovery |
 
-**Why prefixes?** Without them, spine's 12 skills get lost among globally installed skills in slash-autocomplete. Typing the first few characters of a prefix immediately narrows the list to the relevant group.
+**Why prefixes?** Without them, spine's 13 skills get lost among globally installed skills in slash-autocomplete. Typing the first few characters of a prefix immediately narrows the list to the relevant group.
 
 External skills (installed via `npx skills add`) keep their upstream names and do not follow this convention — we don't own those names.
 

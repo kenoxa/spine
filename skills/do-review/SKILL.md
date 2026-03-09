@@ -45,9 +45,18 @@ When risk is high, explicitly check:
 - Secret/token exposure in logs, configs, or error surfaces
 - Failure-mode behavior that leaks data or bypasses controls
 
+For false-positive filtering and security precedents, see [references/security-probe.md](references/security-probe.md).
 For deeper security heuristics, use the `security-reviewer` skill.
 For visual diff explanations, use the `visual-explainer` skill.
 For net-complexity measurement (did this change reduce or increase bloat?), use the `reducing-entropy` skill.
+
+## Noise Filtering
+
+Before raising any finding, verify:
+- Issue is introduced or worsened by the reviewed change — pre-existing issues are out of scope
+- Finding is discrete and actionable — general codebase observations are not findings
+- Finding does not demand rigor absent from the rest of the codebase
+- For security findings at high risk: apply exclusion rules from [references/security-probe.md](references/security-probe.md)
 
 ## Output Format
 

@@ -47,6 +47,7 @@ At `focused` depth, main thread handles every phase inline — no subagent dispa
 | Implement | `general-purpose` | Read-write workers — no specialized agent spec needed |
 | Polish | `@analyst` | Advisory-only findings with `[S]`/`[F]` prefixes, no gate authority |
 | Review | `@inspector` | Verdict-focused review with `[B]`/`[S]`/`[F]` severity and spec compliance taxonomy |
+| Verify | `@verifier` | Adversarial verification — runs commands, read-only for project source |
 
 This is a prompt-level constraint, not a platform-enforced restriction. It is adequate for review workloads where agents have no operational reason to modify source files.
 
@@ -85,8 +86,11 @@ Two sub-steps:
    |------|---------|--------|
    | `conventions-advisor` | Checks naming against codebase norms; flags deviations from established patterns, not style preferences | `.scratch/<session>/execute-polish-conventions-advisor.md` |
    | `complexity-advisor` | Identifies defensive bloat on trusted paths (NEVER flag auth/authz/validation) and premature abstraction | `.scratch/<session>/execute-polish-complexity-advisor.md` |
+   | `efficiency-advisor` | Applies do-polish efficiency lens: reuse opportunities, N+1, missed concurrency, hot-path bloat | `.scratch/<session>/execute-polish-efficiency-advisor.md` |
 
-   **Synthesis**: main thread reads both output files, deduplicates findings, assigns E-levels. Every E2+ finding: action or explicit rejection with rationale. Silent drops prohibited.
+   The standalone `do-polish` skill provides the same advisory lenses for use outside do-execute.
+
+   **Synthesis**: main thread reads all output files, deduplicates findings, assigns E-levels. Every E2+ finding: action or explicit rejection with rationale. Silent drops prohibited.
 
 2. **Apply**: workers apply synthesis actions from the advisory pass. Apply sub-step skipped when no actions exist.
 
@@ -118,9 +122,9 @@ Output: `review_findings` with E-levels per finding.
 
 ### 5. Verify
 
-Single verifier instance (all depths). All verifier claims MUST be E3 (executed command + observed output). E2- claims are advisory only — never block completion on them.
+Dispatch `@verifier` type. Single verifier instance (all depths). The verifier receives `files_modified`, `review_findings`, and the plan excerpt. All verifier claims MUST be E3 (executed command + observed output). E2- claims are advisory only — never block completion on them.
 
-Output: `verification_result` — pass or fail with specifics.
+Output: `verification_result` — PASS, FAIL, or PARTIAL with specifics.
 
 ### 6. Finalize
 
