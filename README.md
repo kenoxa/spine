@@ -135,14 +135,13 @@ For straightforward tasks, start directly with `/do-execute` — it handles plan
 <details>
 <summary>What <code>/do-discuss</code> does</summary>
 
-Structured problem framing through tiered Socratic dialogue:
+Structured problem framing through tiered Socratic dialogue. Use when the problem is vague, ambiguous, or too broad for direct planning.
 
-1. **Intake** — classify the input: redirect plan-ready tasks to do-plan, bugs to do-debug, ideation to brainstorming. Proceed when the problem is vague or ambiguous.
-2. **Clarify** — Socratic dialogue (tier 1). Batch 2–4 questions per round, track known/unknown inventory, 3-round budget.
-3. **Investigate** — (tier 2, conditional) dispatch `@scout` or `@researcher` when codebase evidence is needed to resolve unknowns.
-4. **Explore** — (tier 3, conditional) multi-perspective agent team (`@framer` personas: stakeholder-advocate, systems-thinker, skeptic) for ambiguous scope with one-way-door decisions.
-5. **Frame** — produce a `problem_frame` artifact with goal, scope, constraints, key decisions, and unknowns. Self-sufficient without chat history.
-6. **Handoff** — confidence-gated recommendation: proceed to do-plan, explore further, or brainstorm first.
+- **Tier 1** — Socratic dialogue: batch questions, track known/unknown inventory, converge on the core problem.
+- **Tier 2** — (conditional) dispatch `@scout` or `@researcher` when codebase evidence is needed.
+- **Tier 3** — (conditional) multi-perspective `@framer` team (stakeholder-advocate, systems-thinker, skeptic) for ambiguous scope with one-way-door decisions.
+
+Produces a `problem_frame` artifact (goal, scope, constraints, key decisions, unknowns) and a confidence-gated handoff recommendation.
 
 Canonical entry: [`skills/do-discuss/SKILL.md`](skills/do-discuss/SKILL.md).
 
@@ -275,7 +274,7 @@ Invoked explicitly to produce artifacts or perform discovery.
 | `debater` | inherit | Adversarial Socratic dialogue |
 | `inspector` | inherit | Verdict-focused code review, preloads `do-review` |
 | `analyst` | inherit | Advisory pattern analysis, preloads `do-review` |
-| `framer` | inherit | Perspective-committed problem exploration |
+| `framer` | inherit | Perspective-committed problem framing |
 
 ### Skill prefix convention
 

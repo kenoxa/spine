@@ -14,9 +14,23 @@ files are silently ignored for team agents.
 
 **Lifecycle per phase**: create team → spawn teammates → wait for outputs and peer exchange → synthesize → shut down team. One team per phase; shut down before creating the next.
 
-**Spawn type**: Use the custom agent type matching the phase's dispatch table (`@planner`, `@debater`, `@analyst`, `@inspector`). If a custom agent type is unavailable, fall back to `general-purpose`. Team agents write output to `.agents/scratch/<session>/`.
+**Spawn type**: Use the custom agent type matching the phase's dispatch table (`@framer`, `@planner`, `@debater`, `@analyst`, `@inspector`). If a custom agent type is unavailable, fall back to `general-purpose`. Team agents write output to `.agents/scratch/<session>/`.
 
-Use `team_name` matching the phase: `plan-planning`, `plan-challenge`, `exec-polish`, `exec-review`, `discuss-explore`.
+Use `team_name` matching the phase: `discuss-explore`, `plan-planning`, `plan-challenge`, `exec-polish`, `exec-review`.
+
+## do-discuss Phase 4: Explore
+
+Create one team. Perspective-committed framers react to each other's outputs — advisory dialogue, not independent position papers.
+
+| Teammate | Peer directive |
+|----------|---------------|
+| `stakeholder-advocate` | Surface user needs and adoption friction. When peers raise technical concerns, assess user impact. |
+| `systems-thinker` | Map dependencies and second-order effects. When peers surface needs, assess feasibility and coupling. |
+| `skeptic` | Challenge assumptions and demand evidence. When peers agree, ask "what if that assumption is wrong?" |
+
+Lead reads all teammate outputs + peer messages. Irreconcilable positions become Key Decisions in the problem frame. Convergent findings become Known Facts.
+
+---
 
 ## do-plan Phase 3: Planning
 
@@ -70,20 +84,6 @@ Create one team:
 | `risk-reviewer` | React to correctness findings by assessing their risk severity. |
 
 Lead reads all teammate outputs + peer messages. Deduplicates, assigns final E-levels and severity buckets per do-review rules.
-
-## do-discuss Phase 4: Explore
-
-Create one team. Perspective-committed framers react to each other's outputs — advisory dialogue, not independent position papers.
-
-| Teammate | Peer directive |
-|----------|---------------|
-| `stakeholder-advocate` | Surface user needs and adoption friction. When peers raise technical concerns, assess user impact. |
-| `systems-thinker` | Map dependencies and second-order effects. When peers surface needs, assess feasibility and coupling. |
-| `skeptic` | Challenge assumptions and demand evidence. When peers agree, ask "what if that assumption is wrong?" |
-
-Lead reads all teammate outputs + peer messages. Irreconcilable positions become `key_decisions` in the problem frame. Convergent findings become `known_facts`.
-
----
 
 ## Excluded Phases
 
