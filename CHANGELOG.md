@@ -15,8 +15,9 @@ All notable changes are documented here, focused on user impact.
 
 ### Added
 
-- **`do-debrief` skill** — periodic cross-tool session analysis that mines Claude Code, Codex, and Cursor history to produce actionable recommendations. Identifies candidates for skills, plugins, agents, and CLAUDE.md rules. Requires Python 3.9+ (Claude Code only).
-- **`miner` subagent** — session data analysis and cross-session pattern extraction. Supports source-expert, synthesizer, and prior-session modes. Used by do-debrief for analytics analysis and available for do-plan prior-session mining.
+- **`do-history-insights` skill** — periodic cross-tool session analysis that mines Claude Code, Codex, and Cursor history to produce actionable workflow and setup improvement recommendations. Identifies candidates for skills, hooks, MCP servers, plugins, agents, and CLAUDE.md rules. Requires Python 3.9+ (Claude Code only).
+- **`do-history-recap` skill** — summarize work done across AI agent sessions for standups, timesheets, and activity reports. Shares session parsing infrastructure with `do-history-insights`. (Skeleton — implementation planned.)
+- **`miner` subagent** — session data analysis and cross-session pattern extraction. Supports source-expert, synthesizer, and prior-session modes. Used by do-history-insights for analytics analysis and available for do-plan prior-session mining.
 - **`do-polish` skill** — standalone advisory code polish with three parallel lenses (conventions, complexity, efficiency). Also powers do-execute phase 3. Invoke with `/do-polish` or let do-execute use it automatically.
 - **`verifier` subagent** — adversarial verification for do-execute phase 5. Probes implementations using five categories (boundary, concurrency, idempotency, resource-lifecycle, error-propagation) and produces PASS/FAIL/PARTIAL verdicts.
 - **Security probe false-positive filtering** — 17 exclusion rules and 12 precedent patterns for high-risk security review. Suppresses common false positives (React auto-escaping, bcrypt, env vars, parameterized queries) so reviews surface real vulnerabilities.

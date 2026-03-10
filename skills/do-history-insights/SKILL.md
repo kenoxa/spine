@@ -1,19 +1,21 @@
 ---
-name: do-debrief
+name: do-history-insights
 description: >
   Mine AI agent session history across Claude Code, Codex, and Cursor to produce
-  actionable automation recommendations. Use this skill whenever the user asks to
-  analyze sessions, review workflow patterns, compare tool usage, find automation
-  candidates, or understand where they waste time across AI coding tools. Trigger
-  phrases: "what should I automate", "what patterns keep repeating", "analyze my
-  sessions", "what should become a skill", "compare my tools", "where am I
-  inefficient", "debrief my sessions", "what anti-patterns do you see", "mine my
-  session data", "cross-tool comparison", "audit my AI usage". Also trigger when
-  the user asks to mine, audit, or retrospect on their AI assistant history, even
-  without naming specific tools. This is the only skill that can parse actual
-  session history files from disk and produce data-driven workflow analysis.
-  Do NOT use for single-session review (use do-review), work reporting (future
-  do-recap), or when the user asks to set up Claude Code (use claude-automation-recommender).
+  actionable workflow and setup improvement recommendations. Use this skill whenever
+  the user asks to analyze sessions, review workflow patterns, compare tool usage,
+  find automation candidates, or understand where they waste time across AI coding
+  tools. Trigger phrases: "what should I automate", "what patterns keep repeating",
+  "analyze my sessions", "what should become a skill", "compare my tools", "where am I
+  inefficient", "history insights", "what anti-patterns do you see", "mine my
+  session data", "cross-tool comparison", "audit my AI usage", "improve my workflow",
+  "improve my setup". Also trigger when the user asks to mine, audit, or retrospect
+  on their AI assistant history, even without naming specific tools. This is the only
+  skill that can parse actual session history files from disk and produce data-driven
+  workflow analysis.
+  Do NOT use for single-session review (use do-review), work reporting
+  (use do-history-recap), or when the user asks to set up Claude Code
+  (use claude-automation-recommender).
 argument-hint: "[--days N, default 14] [--project filter]"
 ---
 
@@ -27,7 +29,7 @@ Every subagent prompt MUST be self-contained — include all prior-phase context
 - The exact output file path (`.scratch/<session>/<prescribed-filename>.md`)
 - The constraint: "Write your complete output to that path. You may read any repository file. Do NOT edit, create, or delete files outside `.scratch/<session>/`. Do NOT run build commands, tests, or destructive shell commands."
 
-**Session ID**: generate once at phase entry using `{YYWW}-{slug}-{hash}` (e.g., `2610-debrief-weekly-a3f2`). `YYWW` is two-digit year + zero-padded ISO week. `slug` is 3–5 words derived from the initial user prompt (lowercase, hyphen-separated, alphanumeric only). `hash` is a 4-character random hex. Reuse the same session ID across all phases.
+**Session ID**: generate once at phase entry using `{YYWW}-{slug}-{hash}` (e.g., `2610-insights-weekly-a3f2`). `YYWW` is two-digit year + zero-padded ISO week. `slug` is 3–5 words derived from the initial user prompt (lowercase, hyphen-separated, alphanumeric only). `hash` is a 4-character random hex. Reuse the same session ID across all phases.
 
 ### 1. Collect
 
@@ -39,7 +41,7 @@ if [ -z "$PYTHON" ]; then echo "Error: Python 3.9+ required but not found"; exit
 
 SINCE=$(date -v-${DAYS:-14}d +%Y-%m-%d)
 SCRATCH=".scratch/<session>"
-SCRIPTS="$HOME/.agents/skills/do-debrief/scripts"
+SCRIPTS="$HOME/.agents/skills/do-history-insights/scripts"
 mkdir -p "$SCRATCH"
 
 PYTHONPATH="$SCRIPTS" "$PYTHON" "$SCRIPTS/parse_claude.py" --since "$SINCE" --output "$SCRATCH"
@@ -58,11 +60,11 @@ Dispatch 3 source-expert subagents in parallel. Each receives their provider's s
 
 | Role | Agent type | Input | Output |
 |------|-----------|-------|--------|
-| `claude-expert` | `@miner` | Claude sections of analytics + per_project Claude data + friction_patterns | `.scratch/<session>/debrief-analyze-claude-expert.md` |
-| `codex-expert` | `@miner` | Codex sections of analytics + per_project Codex data | `.scratch/<session>/debrief-analyze-codex-expert.md` |
-| `cursor-expert` | `@miner` | Cursor sections of analytics + per_project Cursor data + cross_tool | `.scratch/<session>/debrief-analyze-cursor-expert.md` |
+| `claude-expert` | `@miner` | Claude sections of analytics + per_project Claude data + friction_patterns | `.scratch/<session>/insights-analyze-claude-expert.md` |
+| `codex-expert` | `@miner` | Codex sections of analytics + per_project Codex data | `.scratch/<session>/insights-analyze-codex-expert.md` |
+| `cursor-expert` | `@miner` | Cursor sections of analytics + per_project Cursor data + cross_tool | `.scratch/<session>/insights-analyze-cursor-expert.md` |
 
-Use the prompt templates from `~/.agents/skills/do-debrief/references/analysis-prompts.md` — include the relevant analytics data inline. Skip providers with 0 sessions.
+Use the prompt templates from `~/.agents/skills/do-history-insights/references/analysis-prompts.md` — include the relevant analytics data inline. Skip providers with 0 sessions.
 
 ### 3. Synthesize
 
@@ -70,7 +72,7 @@ Dispatch 1 synthesizer subagent with all source-expert outputs.
 
 | Role | Agent type | Input | Output |
 |------|-----------|-------|--------|
-| `synthesizer` | `@miner` | All debrief-analyze-*.md files + cross_tool + sample_prompts sections | `.scratch/<session>/debrief-synthesize-synthesizer.md` |
+| `synthesizer` | `@miner` | All insights-analyze-*.md files + cross_tool + sample_prompts sections | `.scratch/<session>/insights-synthesize-synthesizer.md` |
 
 The synthesizer produces recommendations in 7 categories:
 

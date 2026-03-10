@@ -231,20 +231,20 @@ Canonical entry: [`skills/do-debug/SKILL.md`](skills/do-debug/SKILL.md).
 </details>
 
 <details>
-<summary>What <code>/do-debrief</code> does</summary>
+<summary>What <code>/do-history-insights</code> does</summary>
 
 Periodic cross-tool session analysis. Python scripts parse raw session data from Claude Code, Codex, and Cursor (~256 MB) into structured analytics (~100 KB), then subagents mine it for automation opportunities.
 
 1. **Collect** — run parser scripts to extract and normalize session data from all three tools into `analytics.json`.
 2. **Analyze** — dispatch source-expert `@miner` subagents in parallel (one per provider with sessions) to identify provider-specific patterns.
-3. **Synthesize** — a synthesizer `@miner` merges all expert outputs into recommendations across 5 categories: skills, plugins, agents, CLAUDE.md rules, and anti-patterns.
+3. **Synthesize** — a synthesizer `@miner` merges all expert outputs into recommendations across 7 categories: skills, hooks, MCP servers, plugins, agents, CLAUDE.md rules, and anti-patterns.
 4. **Present** — activity stats table and prioritized recommendations in the terminal. Optional HTML dashboard via `visual-explainer`.
 
 Every recommendation includes evidence (session counts, specific examples) and a concrete action. Cross-tool patterns — the same workflow repeated across multiple tools — are the highest-value findings.
 
 Requires Python 3.9+. Run weekly or bi-weekly.
 
-Canonical entry: [`skills/do-debrief/SKILL.md`](skills/do-debrief/SKILL.md).
+Canonical entry: [`skills/do-history-insights/SKILL.md`](skills/do-history-insights/SKILL.md).
 
 </details>
 
@@ -254,7 +254,7 @@ Canonical entry: [`skills/do-debrief/SKILL.md`](skills/do-debrief/SKILL.md).
 
 ```
 SPINE.md                Global guardrails (installed to ~/.config/spine/SPINE.md)
-skills/                 14 skills (8 workflow + 3 domain + 3 tools)
+skills/                 15 skills (9 workflow + 3 domain + 3 tools)
 agents/                 9 subagents (scout, researcher, planner, debater, inspector, analyst, framer, verifier, miner)
 claude/                 Claude Code plugin (hooks + use-agent-teams skill)
 .claude-plugin/         Plugin marketplace configuration
@@ -277,7 +277,8 @@ Invoked explicitly via `/do-plan`, `/do-execute`, etc.
 | `do-debug` | 4-phase root-cause diagnosis and fix |
 | `do-polish` | Advisory code polish with conventions, complexity, and efficiency lenses |
 | `do-commit` | Scoped staging with conventional commits |
-| `do-debrief` | Mine cross-tool session history for automation recommendations (Python 3.9+, Claude Code) |
+| `do-history-insights` | Mine cross-tool session history for workflow/setup improvement recommendations (Python 3.9+, Claude Code) |
+| `do-history-recap` | Summarize work done across AI agent sessions for standups, timesheets, and activity reports |
 
 ### Domain standards (`with-*`)
 

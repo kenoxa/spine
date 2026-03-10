@@ -2,7 +2,7 @@
 name: miner
 description: >
   Session data analysis and cross-session pattern extraction.
-  Use for do-debrief source-expert and synthesizer roles,
+  Use for do-history-insights source-expert and synthesizer roles,
   and for do-plan prior-session mining when past decisions inform current planning.
 ---
 
