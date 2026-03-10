@@ -185,7 +185,7 @@ Canonical entry: [`skills/do-plan/SKILL.md`](skills/do-plan/SKILL.md).
 Six phases with built-in quality gates:
 
 1. **Scope** — read the approved plan, classify depth (`focused`/`standard`/`deep`), partition work into independent and dependent groups.
-2. **Implement** — one worker per partition. Parallel for independent groups; sequential for dependent. No overlapping writes. Worker self-review before reporting.
+2. **Implement** — one `@worker` per partition. Parallel for independent groups; sequential for dependent. No overlapping writes. Worker self-review before reporting.
 3. **Polish** — advisory pass (read-only reviewers produce findings) → apply pass (workers fix). Every E2+ finding acknowledged or explicitly rejected.
 4. **Review** — two stages: tests & docs (skip when no behavior changes and docs_impact is `none`), then adversarial review with multiple lenses. Blocking findings re-enter polish.
 5. **Verify** — single verifier instance. All claims require E3 evidence (executed command + observed output).
@@ -255,7 +255,7 @@ Canonical entry: [`skills/do-history-insights/SKILL.md`](skills/do-history-insig
 ```
 SPINE.md                Global guardrails (installed to ~/.config/spine/SPINE.md)
 skills/                 16 skills (10 workflow + 3 domain + 3 tools)
-agents/                 9 subagents (scout, researcher, planner, debater, inspector, analyst, framer, verifier, miner)
+agents/                 10 subagents (scout, researcher, planner, debater, inspector, analyst, framer, verifier, miner, worker)
 claude/                 Claude Code plugin (hooks + use-agent-teams skill)
 .claude-plugin/         Plugin marketplace configuration
 global-skills.md        External skills to install separately
@@ -314,6 +314,7 @@ Invoked explicitly to produce artifacts or perform discovery.
 | `framer` | inherit | Perspective-committed problem framing |
 | `verifier` | inherit | Adversarial verification with E3 evidence, preloads `with-testing` |
 | `miner` | inherit | Session data analysis and cross-session pattern extraction |
+| `worker` | inherit | Read-write implementation for plan-driven code changes |
 
 ### Skill prefix convention
 

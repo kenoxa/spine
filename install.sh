@@ -179,7 +179,7 @@ setup_central_dir() {
     cp "$agent" "$spine_dir/agents/"
   done
 
-  # Remove stale agents no longer in source (broken symlinks cleaned per-tool in install_tool)
+  # Remove stale agents no longer in source
   for existing in "$spine_dir/agents/"*.md; do
     [ -f "$existing" ] || continue
     local name
@@ -243,11 +243,6 @@ install_tool() {
       backup_if_exists "$target/agents/$name"
     fi
     ln -sf "../../.config/spine/agents/$name" "$target/agents/$name"
-  done
-
-  # Clean up broken agent symlinks (stale source files removed in setup_central_dir)
-  for link in "$target/agents/"*.md; do
-    [ -L "$link" ] && [ ! -e "$link" ] && rm "$link"
   done
 
   done_msg "$tool: guardrails, agents"
@@ -427,6 +422,51 @@ install_skills() {
   fi
 }
 
+# --- Clean up stale files across provider directories ---
+
+cleanup_stale_files() {
+  local detected_tools=("$@")
+  local spine_targets=(".config/spine/" ".agents/skills/")
+  local cleaned=0
+
+  for tool in "${detected_tools[@]}"; do
+    local target="$HOME/.$tool"
+    for subdir in agents skills; do
+      local dir="$target/$subdir"
+      [ -d "$dir" ] || continue
+
+      # Remove broken symlinks pointing into spine-managed paths
+      for link in "$dir"/*; do
+        [ -L "$link" ] || continue
+        [ -e "$link" ] && continue
+        local dest
+        dest=$(readlink "$link")
+        local is_spine=false
+        for prefix in "${spine_targets[@]}"; do
+          case "$dest" in *"$prefix"*) is_spine=true; break ;; esac
+        done
+        if $is_spine; then
+          rm "$link"
+          cleaned=$((cleaned + 1))
+        fi
+      done
+
+      # Remove .bak files left by backup_if_exists
+      for bak in "$dir"/*.bak; do
+        [ -f "$bak" ] || continue
+        rm "$bak"
+        cleaned=$((cleaned + 1))
+      done
+    done
+  done
+
+  if [ "$cleaned" -gt 0 ]; then
+    done_msg "Removed $cleaned stale file(s)"
+  else
+    done_msg "No stale files found"
+  fi
+}
+
 # --- Main ---
 
 main() {
@@ -434,11 +474,11 @@ main() {
   info "Spine installer — AI coding setup"
 
   # Step 1: System dependencies
-  step "1/6" "Checking system dependencies..."
+  step "1/7" "Checking system dependencies..."
   ensure_system_deps
 
   # Step 2: Resolve source
-  step "2/6" "Resolving source..."
+  step "2/7" "Resolving source..."
   local src script_dir
   script_dir="$(cd "$(dirname "${BASH_SOURCE[0]:-/dev/stdin}")" && pwd)"
   if [ -f "$script_dir/SPINE.md" ] && [ -d "$script_dir/skills" ]; then
@@ -455,11 +495,11 @@ main() {
   fi
 
   # Step 3: Set up central directory
-  step "3/6" "Setting up central directory..."
+  step "3/7" "Setting up central directory..."
   setup_central_dir "$src"
 
   # Step 4: Detect tools
-  step "4/6" "Detecting installed tools..."
+  step "4/7" "Detecting installed tools..."
   local tools
   read -ra tools <<< "$(detect_tools)"
 
@@ -472,14 +512,18 @@ main() {
   done_msg "Found: ${tools[*]}"
 
   # Step 5: Install guardrails, agents, and plugin
-  step "5/6" "Installing guardrails, agents, and plugin..."
+  step "5/7" "Installing guardrails, agents, and plugin..."
   for tool in "${tools[@]}"; do
     install_tool "$tool" "$src"
   done
 
   # Step 6: Install skills
-  step "6/6" "Installing skills..."
+  step "6/7" "Installing skills..."
   install_skills "$src" "${tools[@]}"
+
+  # Step 7: Clean up stale files
+  step "7/7" "Cleaning up stale files..."
+  cleanup_stale_files "${tools[@]}"
 
   # Summary
   echo "" >&2

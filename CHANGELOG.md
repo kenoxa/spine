@@ -7,9 +7,12 @@ All notable changes are documented here, focused on user impact.
 ### Added
 
 - **`do-handoff` skill** — distill session context into a structured handoff prompt for a fresh session. Captures goal-directed context, file inventory, and current state as a self-contained artifact. Invoke with `/do-handoff [direction]`.
+- **`worker` subagent** — read-write implementation agent for do-execute implement, polish-apply, and review-fix phases. Replaces `general-purpose` dispatch with a spine-owned agent that enforces partition-scoped edits and mode-routed self-review.
 
 ### Changed
 
+- **Scout upgraded** — added thoroughness calibration (orient/trace/audit heuristics) and handoff contract for self-contained output.
+- **do-execute dispatches `@worker`** — implement, polish-apply, and review-fix phases now specify `@worker` agent type with explicit mode names instead of `general-purpose`.
 - **Central install directory** — Spine now installs guardrails and agents to `~/.config/spine/` as the single source of truth. Provider root files (`CLAUDE.md`, `AGENTS.md`) reference it via `@~/.config/spine/SPINE.md` instead of containing a full copy. Users can add their own instructions below the `@` line — re-running the installer preserves them.
 - **Agent symlinks** — agents in each provider's config directory are now symlinks to `~/.config/spine/agents/`, matching how skills already work. Re-running the installer updates the central copy; symlinks ensure all providers see the change immediately.
 - **Renamed `AGENTS.global.md` → `SPINE.md`** — the source guardrails file is now named `SPINE.md` in the repo and in `~/.config/spine/`. Provider root files reference it by this name.
