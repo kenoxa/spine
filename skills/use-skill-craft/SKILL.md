@@ -53,6 +53,8 @@ it to a directive in the main instructions instead.
 **Be concrete.** Vague directives fail the authoring test. See
 [references/examples.md](references/examples.md) for before/after pairs.
 
+**Telegraphic prose.** Sacrifice grammar for scannability — imperative fragments over full sentences. Skills are LLM-consumed, not prose. Compress grammar, not behavioral qualifiers — if a phrase constrains *what the model outputs* (not just how it processes), keep it even if it looks like cuttable prose.
+
 ### Size
 
 Keep under 500 lines. If examples push past the limit, extract to
@@ -69,23 +71,22 @@ general knowledge or from reading the target files?"* Cut any line that passes.
 Audit in order:
 
 1. **General knowledge** — definitions, motivation, framework lists → cut
-2. **Wisdom** — warnings with paragraph explanations → convert to one-line
-   anti-patterns or fold into a directive in the main instructions
-3. **Duplication** — content already in a canonical file → replace with a pointer
+2. **Wisdom** — paragraph warnings → one-line anti-patterns or fold into directives
+3. **Duplication** — content in a canonical file → replace with pointer
 
-**Delete a skill outright** if its sole purpose is to load or reference another skill.
+**Delete a skill outright** if it only loads or references another skill.
 
 Red flags:
-- More than two consecutive sentences of explanation with no directive
-- Any sentence starting with "It's important to..." or "Note that..."
+- 2+ explanation sentences without a directive
+- "It's important to..." / "Note that..." openers
 - Anti-patterns that take more than one line to state
+- Full sentences where imperative fragments suffice
 
 ---
 
 ## 3. Fixing a Bloated AGENTS.md
 
-**Step 1 — Find contradictions.** Identify conflicting instructions; ask the user
-which to keep before proceeding.
+**Step 1 — Find contradictions.** Surface conflicting instructions; ask user which to keep.
 
 **Step 2 — Identify root-level essentials.** Root AGENTS.md keeps only:
 - One-sentence project description
@@ -93,18 +94,14 @@ which to keep before proceeding.
 - Non-standard build, typecheck, or test commands
 - Instructions relevant to every single task
 
-**Step 3 — Group and extract.** Organize everything else into logical categories
-(TypeScript conventions, API design, testing patterns, git workflow). One file per
-category. Link from root using markdown links.
+**Step 3 — Group and extract.** Everything else → logical categories, one file each. Link from root.
 
-**Step 4 — Flag for deletion.** Present flagged items to the user before deleting.
-Mark instructions that are:
-- Redundant (agent already knows from general knowledge)
-- Too vague to be actionable ("write clean code")
+**Step 4 — Flag for deletion.** Present flagged items before deleting:
+- Redundant (agent knows from general knowledge)
+- Too vague to act on ("write clean code")
 - Overly obvious ("don't commit secrets")
 
-Root AGENTS.md is read on every invocation — keep it minimal. Reference files are
-loaded on demand.
+Root AGENTS.md is read every invocation — keep minimal. References load on demand.
 
 ---
 

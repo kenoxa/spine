@@ -7,8 +7,7 @@ description: >
 argument-hint: "[file, PR, or scope]"
 ---
 
-Review changed code against the requested outcome and accepted plan. Produce structured,
-severity-bucketed findings. Review is read-only — no file writes, no test execution.
+Review changed code against requested outcome and accepted plan. Structured, severity-bucketed findings. Read-only — no file writes, no test execution.
 
 ## Workflow
 
@@ -45,51 +44,42 @@ When risk is high, explicitly check:
 - Secret/token exposure in logs, configs, or error surfaces
 - Failure-mode behavior that leaks data or bypasses controls
 
-For false-positive filtering and security precedents, see [references/security-probe.md](references/security-probe.md).
-For deeper security heuristics, use the `security-reviewer` skill.
-For visual diff explanations, use the `visual-explainer` skill.
-For net-complexity measurement (did this change reduce or increase bloat?), use the `reducing-entropy` skill.
+See also: [references/security-probe.md](references/security-probe.md) (false-positive filtering), `security-reviewer` (deeper heuristics), `visual-explainer` (diff explanations), `reducing-entropy` (net-complexity measurement).
 
 ## Noise Filtering
 
 Before raising any finding, verify:
-- Issue is introduced or worsened by the reviewed change — pre-existing issues are out of scope
-- Finding is discrete and actionable — general codebase observations are not findings
-- Finding does not demand rigor absent from the rest of the codebase
-- For security findings at high risk: apply exclusion rules from [references/security-probe.md](references/security-probe.md)
+- Introduced or worsened by reviewed change — pre-existing issues out of scope
+- Discrete and actionable — not general codebase observations
+- Does not demand rigor absent from rest of codebase
+- Security findings at high risk: apply exclusion rules from [references/security-probe.md](references/security-probe.md)
 
 ## Output Format
 
 Per finding: severity bucket, target file(s), remediation path, evidence level.
 
-For directional findings: numbered issue ID with option set (A/B/C), recommendation first,
-include "do nothing" when reasonable. Tradeoff rationale for each option.
+Directional findings: numbered issue ID with options (A/B/C), recommendation first, include "do nothing" when reasonable. Tradeoff rationale per option.
 
 ## Bug-Fix Review
 
-Require root-cause evidence. Confirm the fix targets the source trigger, not symptom relief.
-Missing root-cause evidence → `blocking` finding.
+Require root-cause evidence — fix must target source trigger, not symptom. Missing root-cause → `blocking`.
 
 ## Documentation Review
 
 When reviewing docs, READMEs, or user-facing text:
-- Verify wording precision and actionability
-- Flag outdated or contradictory statements
-- Verify command, skill, and API names match current surface
-- Check doc claims against codebase evidence — unsupported claims → `should_fix`
+- Wording precision and actionability
+- Outdated or contradictory statements
+- Command/skill/API names match current surface
+- Claims backed by codebase evidence — unsupported → `should_fix`
 
 ## Deferral Policy
 
-- Any finding can be deferred with explicit user approval.
-- Deferred findings remain visible in output — never silently removed.
+- Any finding deferrable with explicit user approval. Deferred findings remain visible — never silently removed.
 - Deferral is an exception path, not the default.
 
 ## Completion Declaration
 
-When all findings are resolved or explicitly deferred:
-
-- `Review complete. No unresolved findings.`
-- `Review complete. Unresolved findings remain` — followed by the list.
+When all resolved or deferred: `Review complete. No unresolved findings.` or `Review complete. Unresolved findings remain` + list.
 
 ## Evidence Levels
 

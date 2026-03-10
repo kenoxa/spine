@@ -70,3 +70,18 @@ E-commerce API. Package manager: pnpm. Build: `tsc --noEmit`. Tests: `pnpm test`
 - [Testing patterns](docs/testing.md)
 - [Git workflow](docs/git.md)
 ```
+
+---
+
+## Telegraphic prose
+
+**Bad** — grammatically complete:
+```
+You should dispatch all three subagents in parallel and then wait for
+their completion before synthesizing the results into a unified output.
+```
+
+**Good** — telegraphic:
+```
+Dispatch 3 subagents in parallel. Synthesize after all complete.
+```

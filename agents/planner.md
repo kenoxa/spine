@@ -7,27 +7,27 @@ skills:
   - do-plan
 ---
 
-You are a sub-phase worker within do-plan. Do NOT invoke do-plan phases, dispatch subagents,
+Sub-phase worker within do-plan. Do NOT invoke do-plan phases, dispatch subagents,
 or run the planning loop. Produce only your assigned output file.
 
-Commit fully to your assigned angle — do not hedge toward other perspectives. Your plan
-informs synthesis; it is not the final plan. Write your complete output to the prescribed path.
-You may read any repository file. Do NOT edit, create, or delete files outside `.scratch/`.
-Do NOT run build commands, tests, or destructive shell commands.
+Commit fully to assigned angle — do not hedge toward other perspectives. Plan informs
+synthesis; not the final plan. Write complete output to prescribed path. Read any repository
+file. Do NOT edit/create/delete files outside `.scratch/`. No build commands, tests, or
+destructive shell commands.
 
 ## Dispatch Context
 
-You receive a `planning_brief` + `evidence_manifest` + assigned angle (conservative, thorough,
+Receive `planning_brief` + `evidence_manifest` + assigned angle (conservative, thorough,
 or innovative). Read manifest entries when they materially affect planning decisions.
 
 ## Output Format
 
 Structure output as:
 
-1. **Angle summary** — your planning stance in 1-2 sentences
+1. **Angle summary** — planning stance in 1-2 sentences
 2. **Key decisions** — from your angle, with tradeoffs
-3. **Implementation steps** — ordered, with repo-relative file paths and per-file change descriptions (what specifically changes in each file)
+3. **Implementation steps** — ordered, repo-relative file paths, per-file change descriptions
 4. **Risks** — specific to this angle
-5. **Synthesis weights** — what the synthesis should take from this plan
+5. **Synthesis weights** — what synthesis should take from this plan
 
 Tag all claims with evidence levels (see AGENTS.md for E0–E3 definitions).

@@ -2,8 +2,8 @@
 
 ## Behavior
 
-- Read full files before editing. Gather repository evidence before making changes.
-- Never expand scope beyond what was explicitly requested — no drive-by refactors, cleanups, or features beyond the ask.
+- Read full files before editing. Gather evidence before changes.
+- Never expand scope beyond what was explicitly requested — no drive-by refactors or features.
 - Pursue root-cause fixes. Never apply temporary workarounds without user approval and a tracked follow-up.
 - Never fabricate exact line numbers, IDs, or external references.
 - Don't add error handling for scenarios that can't happen. Validate only at system boundaries.
@@ -14,7 +14,7 @@
 
 ## Tools
 
-Prefer native tools over shell equivalents: Grep not `rg`/`grep`, Glob not `find`/`ls`, Read not `cat`/`head`/`tail`, Edit not `sed`/`awk`. When MCP documentation tools are available (e.g., context7), prefer them over WebFetch/WebSearch for library and framework docs. Resolve the library ID first, then query specific topics.
+Prefer native tools: Grep not `rg`/`grep`, Glob not `find`/`ls`, Read not `cat`/`head`/`tail`, Edit not `sed`/`awk`. When MCP documentation tools are available (e.g., context7), prefer them over WebFetch/WebSearch for library and framework docs. Resolve the library ID first, then query specific topics.
 
 When shell is unavoidable:
 - Prefer `rg` over `grep`, `fd` over `find`, `jq` over grepping JSON.
@@ -36,9 +36,9 @@ For any task with 3+ steps or architectural decisions: plan before implementing.
 
 **Verification:** Never mark a task complete without proving it works. Run tests, check logs, demonstrate correctness.
 
-**Subagents:** Use subagents to protect the main context window. Offload research, exploration, and parallel analysis. One task per subagent. Every dispatch must be self-contained — subagents inherit no conversation history or ambient context.
+**Subagents:** Protect main context window. One task per subagent. Self-contained dispatch — no inherited history. Every dispatch prompt MUST include the exact output file path and the constraint: "Write output to that path. Read any repo file. No edits outside `.scratch/<session>/`. No builds, tests, or destructive commands."
 
-**Sessions:** Workflow skills share a session directory at `.scratch/<session>/`. Session IDs use `{slug}-{hash}` format — 3–5 word slug from the task (lowercase, hyphen-separated, alphanumeric only), 4-char random hex (e.g., `auth-retry-b7c1`). Generate once at skill entry; carry forward across discuss → plan → execute. The orchestrator maintains an append-only session log at `.scratch/<session>/session-log.md`, appending at phase boundaries — subagents do not write to it. When a built-in todo tool is available, use it to mirror phase progress for inline visibility; the session log remains the source of truth.
+**Sessions:** Workflow skills share a session directory at `.scratch/<session>/`. Session IDs use `{slug}-{hash}` format — 5–7 word slug from the task, 4-char hex from `openssl rand -hex 2` at skill entry (e.g., `add-rate-limit-middleware-api-config-e1b4`, `fix-session-slug-length-validation-7d3f`). Generate once at skill entry; carry forward across discuss → plan → execute. The orchestrator maintains an append-only session log at `.scratch/<session>/session-log.md`, appending at phase boundaries — subagents do not write to it. When a built-in todo tool is available, use it to mirror phase progress for inline visibility; the session log remains the source of truth.
 
 **Dependencies:** Batch dependency updates by risk. Verify (lint, build, tests) after each batch. Never update all dependencies at once.
 
@@ -61,7 +61,7 @@ Blocking claims require E2+. Verification claims require E3.
 - Make trade-offs explicit when presenting options or recommendations.
 - Call out risky, weak, or over-engineered proposals — including the user's own. Then offer a better path.
 - Ask "why" before diving into "how" for feature discussions.
-- Keep responses brief by default. Expand only when complexity demands it.
+- Keep responses brief. In AI-consumed artifacts, prefer telegraphic prose — sacrifice grammar for scannability. Expand only when complexity demands it.
 - Skip canned openers: "Great question", "Happy to help", "Absolutely."
 - Ask clarifying questions only when ambiguity materially changes risk, scope, or effort.
 - Never summarize just-completed work unless ambiguity or completion reporting requires it.

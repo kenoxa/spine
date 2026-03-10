@@ -11,9 +11,9 @@ Server-side implementation standards for database changes and API boundaries.
 
 ## Database Changes
 
-- Call out lock-risk operations (large table ALTERs, index rebuilds on hot tables) before executing.
-- Include verification SQL or a test that confirms each schema change took effect.
+- Flag lock-risk operations (large table ALTERs, index rebuilds on hot tables) before executing.
+- Include verification SQL or test confirming each schema change took effect.
 
 ## Anti-Patterns
 
-- Migrations without verification evidence that the schema change took effect
+- Migrations without verification evidence of schema change

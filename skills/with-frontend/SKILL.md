@@ -7,16 +7,15 @@ description: >
 argument-hint: "[component or UI task]"
 ---
 
-UI implementation with explicit state coverage and accessibility as a first-class gate.
+UI implementation with explicit state coverage and accessibility as first-class gate.
 
 ## Propose Before Building
 
-When frontend scope is ambiguous: propose an ASCII sketch or block diagram showing layout,
-key interactions, and UI states before implementation. Ask one clarifying question if
-critical UX intent is unclear.
+Ambiguous frontend scope → propose ASCII sketch or block diagram showing layout,
+interactions, and UI states before implementation. Ask one clarifying question if
+critical UX intent unclear.
 
-For distinctive visual craft (typography, color, motion, composition), use the
-`frontend-design` skill.
+For visual craft (typography, color, motion, composition), use `frontend-design` skill.
 
 ## State Coverage
 
@@ -29,14 +28,14 @@ Every UI component MUST account for these states where applicable:
 
 ## Accessibility
 
-Accessibility gates completion — do not defer to a follow-up pass.
+Accessibility gates completion — never defer to follow-up pass.
 
 - Focus management on route changes and modal open/close — visible focus indicators required.
 
-For comprehensive audits, use the `wcag-audit-patterns` skill.
+For comprehensive audits, use `wcag-audit-patterns` skill.
 
 ## Anti-Patterns
 
-- Implementing without proposing layout when scope is ambiguous
+- Implementing without proposing layout when scope ambiguous
 - Missing loading, error, or empty states
-- Treating accessibility as a follow-up task
+- Treating accessibility as follow-up task

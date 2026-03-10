@@ -2,6 +2,16 @@
 
 All notable changes are documented here, focused on user impact.
 
+## 2026-03-11
+
+### Changed
+
+- **Skills and agents compressed to telegraphic prose** — 19 files rewritten: full sentences → imperative fragments, motivational clauses deleted, redundant encoding deduplicated. Net reduction: ~218 lines. Verified via 32 Sonnet evaluation runs (188 assertions, 1 regression found and fixed).
+- **Frontmatter standardized** — all skill descriptions now use `Use when:` / `Do NOT use` with trigger phrases for more accurate skill activation.
+- **Subagent dispatch centralized** — SPINE.md now contains the canonical subagent constraint string, removing 5 duplicate definitions from individual skills.
+- **do-polish advisory constraint strengthened** — intro now explicitly says "produces suggestions, not rewrites" and anti-pattern prohibits outputting complete rewritten files. Sonnet evaluation showed the compressed version produced full code rewrites without this framing.
+- **Skill-crafter gains compression safety rule** — "Compress grammar, not behavioral qualifiers" added to prevent future compression from dropping output-constraining phrases.
+
 ## 2026-03-10
 
 ### Added

@@ -16,38 +16,26 @@ Distill accumulated session context into a self-contained prompt a fresh session
 
 ## Workflow
 
-1. **Gather** — inventory the session: goal pursued, files read or modified, decisions
-   made, discoveries, current progress. Run `git branch --show-current` and
-   `git status --short` to capture branch and dirty state. If a session log exists
-   at `.scratch/<session>/session-log.md` (where `<session>` is the current session
-   ID from conversation context), read it as the primary source for the Current
-   State section. Prefer log entries over conversation-turn reconstruction. If the
-   session lacks sufficient context for a useful handoff, report this and ask what
-   to include rather than producing a hollow artifact.
-2. **Filter** — use the user's direction to select relevant context. The direction
-   shapes what gets extracted — this is goal-directed distillation, not a session
-   dump. When no direction is given, derive the goal from the session's overall
-   purpose.
+1. **Gather** — inventory goal, files, decisions, discoveries, progress. Run `git branch --show-current` and `git status --short`. If `.scratch/<session>/session-log.md` exists, read as primary source for Current State (prefer over conversation reconstruction). Insufficient context → ask what to include rather than producing hollow artifact.
+2. **Filter** — select relevant context using user's direction. Goal-directed distillation, not a session dump. No direction → derive goal from session's overall purpose.
 3. **Structure** — produce the handoff artifact using the sections below.
-4. **Write** — save to `.scratch/handoff-<slug>-<hash>.md` where `slug` is 2-4 words
-   from the direction and `hash` is 4 random hex chars (e.g., `handoff-auth-bug-a3f2.md`).
+4. **Write** — save to `.scratch/handoff-<slug>-<hash>.md` where `slug` is 5–7 words
+   from the direction and `hash` is 4 hex chars from `openssl rand -hex 2` (e.g., `handoff-fix-auth-token-refresh-retry-logic-3c8d.md`).
    Create the directory if needed. Display the full artifact inline.
 5. **Confirm** — present for user review. The user may adjust, approve, or discard.
 
 ## Artifact Format
 
-The artifact must be actionable without this session's history — no references to
-"what we discussed", no conversation-turn pointers. All paths repo-relative.
-Aim for under 80 lines — if longer, the Filter step was too loose.
+Actionable without session history — no "what we discussed", no conversation-turn pointers. All paths repo-relative. Under 80 lines — longer means Filter was too loose.
 
 | Section | Required | Content |
 |---------|----------|---------|
-| Goal | Always | One sentence: what the next session should accomplish. Derived from user's direction. |
-| Context | Always | Key decisions, approaches tried, discoveries. Tag material claims with evidence levels when they would change the receiving agent's approach. |
-| Files | When relevant | Repo-relative paths annotated: `modified`, `read`, `created`, or `planned` (not yet created). |
-| Current State | Always | What is done, in progress, blocked. Note uncommitted changes and current branch. |
-| Open Questions | When unresolved items exist | Blocking or advisory unknowns. Omit entirely if none. |
-| Suggested Approach | When agent has signal | Brief guidance on how to proceed or which skill to start with. Omit when clear from Goal + Context. |
+| Goal | Always | One sentence: next session's objective, from user's direction. |
+| Context | Always | Key decisions, approaches tried, discoveries. Tag material claims with E-levels. |
+| Files | When relevant | Repo-relative paths annotated: `modified`, `read`, `created`, `planned`. |
+| Current State | Always | Done, in progress, blocked. Note uncommitted changes and branch. |
+| Open Questions | When unresolved | Blocking or advisory unknowns. Omit if none. |
+| Suggested Approach | When signal exists | How to proceed or which skill to start. Omit when clear from Goal + Context. |
 
 ## Anti-Patterns
 

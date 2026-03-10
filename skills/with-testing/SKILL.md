@@ -7,18 +7,18 @@ description: >
 argument-hint: "[feature or area to test]"
 ---
 
-Risk-based test strategy with perspective tables, structured case design, and coverage evidence.
+Risk-based test strategy with perspective tables, structured case design, coverage evidence.
 
 ## Workflow
 
-1. **Classify risk** — low, medium, or high based on blast radius and failure cost.
+1. **Classify risk** — low / medium / high based on blast radius and failure cost.
 2. **Build perspective table** — define case IDs and expected behavior before writing tests
-   (required for medium/high risk; recommended for low).
+   (required medium/high; recommended low).
 3. **Choose test mix** — unit for logic branches, integration for boundary contracts,
-   E2E when user flow risk is high.
+   E2E when user-flow risk high.
 4. **Design cases** — equivalence classes, boundary values, failure-mode checks.
 5. **Implement and run** — execute relevant suites, collect coverage evidence.
-6. **Report** — summarize protected behavior, known gaps, commands run, coverage data.
+6. **Report** — protected behavior, known gaps, commands run, coverage data.
 
 ## Test Perspective Table
 
@@ -42,11 +42,11 @@ Minimum boundaries: `0`, min, max, `±1`, empty, null.
 ## Coverage Expectations
 
 - Minimum: 90% branch coverage for changed behavior.
-- Target: 100% for security code, complex business logic, and public APIs.
+- Target: 100% for security code, complex business logic, public APIs.
 - Always report execution command and coverage method.
 
 ## Anti-Patterns
 
 - Vacuous assertions (`>= 0`, `length >= 0`)
-- Claiming coverage improvements without execution evidence
-- Skipping the perspective table for medium/high risk changes
+- Claiming coverage without execution evidence
+- Skipping perspective table for medium/high risk changes
