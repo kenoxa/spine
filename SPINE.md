@@ -32,6 +32,7 @@ For any task with 3+ steps or architectural decisions: plan before implementing.
 - `debug` — diagnose and fix a failing system
 - `commit` — stage, message, and push
 - `review` — review code changes
+- `handoff` — distill session context for a fresh session to continue
 
 **Verification:** Never mark a task complete without proving it works. Run tests, check logs, demonstrate correctness.
 

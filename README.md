@@ -254,7 +254,7 @@ Canonical entry: [`skills/do-history-insights/SKILL.md`](skills/do-history-insig
 
 ```
 SPINE.md                Global guardrails (installed to ~/.config/spine/SPINE.md)
-skills/                 15 skills (9 workflow + 3 domain + 3 tools)
+skills/                 16 skills (10 workflow + 3 domain + 3 tools)
 agents/                 9 subagents (scout, researcher, planner, debater, inspector, analyst, framer, verifier, miner)
 claude/                 Claude Code plugin (hooks + use-agent-teams skill)
 .claude-plugin/         Plugin marketplace configuration
@@ -277,6 +277,7 @@ Invoked explicitly via `/do-plan`, `/do-execute`, etc.
 | `do-debug` | 4-phase root-cause diagnosis and fix |
 | `do-polish` | Advisory code polish with conventions, complexity, and efficiency lenses |
 | `do-commit` | Scoped staging with conventional commits |
+| `do-handoff` | Distill session context into a structured prompt for a fresh session |
 | `do-history-insights` | Mine cross-tool session history for workflow/setup improvement recommendations (Python 3.9+, Claude Code) |
 | `do-history-recap` | Summarize work done across AI agent sessions for standups, timesheets, and activity reports |
 

@@ -4,6 +4,10 @@ All notable changes are documented here, focused on user impact.
 
 ## 2026-03-10
 
+### Added
+
+- **`do-handoff` skill** — distill session context into a structured handoff prompt for a fresh session. Captures goal-directed context, file inventory, and current state as a self-contained artifact. Invoke with `/do-handoff [direction]`.
+
 ### Changed
 
 - **Central install directory** — Spine now installs guardrails and agents to `~/.config/spine/` as the single source of truth. Provider root files (`CLAUDE.md`, `AGENTS.md`) reference it via `@~/.config/spine/SPINE.md` instead of containing a full copy. Users can add their own instructions below the `@` line — re-running the installer preserves them.
