@@ -20,7 +20,7 @@ authority).
    - `complexity-advisor` — defensive bloat on trusted paths (NEVER flag auth/authz/validation), premature abstraction
    - `efficiency-advisor` — reuse opportunities, N+1 patterns, missed concurrency, hot-path bloat, resource leaks
 3. **Synthesis** — deduplicate findings across lenses, assign E-levels. Every E2+ finding: action or explicit rejection with rationale. Silent drops prohibited.
-4. **Apply** — workers apply synthesis actions. Skip when no actions exist.
+4. **Apply** — workers (`@worker` type, `polish-apply` mode) apply synthesis actions. Skip when no actions exist.
 
 Output: `polish_findings`, updated `files_modified`.
 

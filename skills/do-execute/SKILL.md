@@ -44,7 +44,7 @@ At `focused` depth, main thread handles every phase inline — no subagent dispa
 
 | Phase | Agent type | Rationale |
 |-------|-----------|-----------|
-| Implement | `general-purpose` | Read-write workers — no specialized agent spec needed |
+| Implement | `@worker` | Read-write implementation — edits project source files per partition |
 | Polish | `@analyst` | Advisory-only findings with `[S]`/`[F]` prefixes, no gate authority |
 | Review | `@inspector` | Verdict-focused review with `[B]`/`[S]`/`[F]` severity and spec compliance taxonomy |
 | Verify | `@verifier` | Adversarial verification — runs commands, read-only for project source |
@@ -68,7 +68,7 @@ Ask the user when blocking questions are non-empty. Never carry unresolved quest
 
 ### 2. Implement
 
-Dispatch implementation workers (`general-purpose` type, read-write): one per partition. Parallel for independent partitions; sequential for dependent. No overlapping writes to the same file.
+Dispatch implementation workers (`@worker` type, `implement` mode): one per partition. Parallel for independent partitions; sequential for dependent. No overlapping writes to the same file.
 
 Output: `files_modified` — repo-relative list of all changed files.
 
@@ -92,7 +92,7 @@ Two sub-steps:
 
    **Synthesis**: main thread reads all output files, deduplicates findings, assigns E-levels. Every E2+ finding: action or explicit rejection with rationale. Silent drops prohibited.
 
-2. **Apply**: workers apply synthesis actions from the advisory pass. Apply sub-step skipped when no actions exist.
+2. **Apply**: workers (`@worker` type, `polish-apply` mode) apply synthesis actions from the advisory pass. Apply sub-step skipped when no actions exist.
 
 Output: `polish_findings`, updated `files_modified`.
 
@@ -144,9 +144,9 @@ Scope → Implement → Polish → Review → Verify → Finalize
                       └──── verify semantic failure
 ```
 
-- **Blocking review findings** → re-enter polish (advisory re-runs, workers apply fixes).
+- **Blocking review findings** → re-enter polish (advisory re-runs, workers (`@worker` type, `review-fix` mode) apply fixes).
 - **Verify semantic failure** (behavior/spec) → re-enter polish → review → verify.
-- **Verify non-semantic failure** (lint, types, build) → workers fix → re-verify only. No full loop re-entry.
+- **Verify non-semantic failure** (lint, types, build) → workers (`@worker` type, `review-fix` mode) fix → re-verify only. No full loop re-entry.
 
 Each re-entry at polish counts as one iteration. Cap: **5 iterations**. On cap: freeze best state and ask the user for approval to continue.
 
