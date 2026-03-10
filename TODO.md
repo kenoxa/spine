@@ -1,8 +1,7 @@
 # TODO
 
-- implemnet do-history-recap
 - svelte skill with autofixer script like we have in nestor
-- auto-loading per glob like min description? 
+- auto-loading per glob like min description?
 - No built-in to-dos:
   Does not and will not support built-in to-dos. In my experience, to-do lists generally confuse models more than they help. They add state that the model has to track and update, which introduces more opportunities for things to go wrong.
 
@@ -10,7 +9,7 @@
 
 	```md
 	# TODO.md
-	
+
 	- [x] Implement user authentication
 	- [x] Add database migrations
 	- [ ] Write API documentation

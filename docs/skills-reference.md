@@ -107,7 +107,13 @@ Canonical entry: [`skills/do-handoff/SKILL.md`](../skills/do-handoff/SKILL.md).
 
 ### do-history-recap
 
-Summarize work done across AI agent sessions for standups, timesheets, and activity reports.
+Summarize work done across AI agent sessions for standups, timesheets, and activity reports. Three output formats:
+
+- **standup** — bullet points grouped by project with estimated durations
+- **timesheet** — billable hour blocks in a 9-17 window, copy-pasteable into time tracking tools
+- **recap** — narrative summary with per-project sections and metrics
+
+Reuses `do-history-insights/scripts/` for session collection. Dispatches a single `@miner` subagent to synthesize task descriptions and estimate durations from session metadata across Claude Code, Codex, and Cursor.
 
 Canonical entry: [`skills/do-history-recap/SKILL.md`](../skills/do-history-recap/SKILL.md).
 

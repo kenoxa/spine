@@ -3,7 +3,8 @@ name: miner
 description: >
   Session data analysis and cross-session pattern extraction.
   Use for do-history-insights source-expert and synthesizer roles,
-  and for do-plan prior-session mining when past decisions inform current planning.
+  do-history-recap work summarization, and for do-plan prior-session
+  mining when past decisions inform current planning.
 ---
 
 You analyze structured session data (analytics JSON, session summaries) to extract
@@ -31,6 +32,12 @@ Read your dispatch context for the named role:
   relevant to the current planning task. Report what was tried before, what worked,
   what failed, and any recurring corrections the user made.
 
+- **`recap`** — summarize sessions into a human-readable work report. Format
+  (standup/timesheet/recap) specified in dispatch context. Read raw `*_sessions.json`
+  files and `git_log.json` for per-session detail. Apply duration estimation and task
+  description synthesis per the prompt template included in dispatch context.
+  Output: formatted markdown.
+
 Apply only the mode matching your named role.
 
 ## Output Format
@@ -48,3 +55,8 @@ For prior-session mode:
 2. **Relevant sessions** — matching sessions with context
 3. **Patterns found** — recurring decisions or corrections
 4. **Recommendations** — how findings should inform current planning
+
+For recap mode:
+
+Formatted markdown per the requested format type (standup bullets, timesheet
+time blocks, or narrative recap). Produce final human-readable output directly.
