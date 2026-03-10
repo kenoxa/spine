@@ -1,5 +1,16 @@
 # Contributing
 
+## Repo Structure
+
+```
+SPINE.md                Global guardrails (installed to ~/.config/spine/SPINE.md)
+skills/                 16 skills (10 workflow + 3 domain + 3 tools)
+agents/                 10 subagents
+claude/                 Claude Code plugin (hooks + use-agent-teams skill)
+docs/                   Reference docs (skills, tips, external skills)
+.scratch/               Ephemeral subagent output (gitignored)
+```
+
 ## Adding a Skill
 
 Use `/use-skill-craft` — it covers the full authoring workflow. Key points:
@@ -26,7 +37,21 @@ Optional fields:
 
 ### Referencing External Skills
 
-If a skill benefits from an external skill (too complex to distill), add a reference line in the skill body and register it in `global-skills.md`.
+If a skill benefits from an external skill (too complex to distill), add a reference line in the skill body and register it in `[docs/global-skills.md](docs/global-skills.md)`.
+
+To install all referenced external skills manually:
+
+```sh
+npx skills add obra/superpowers -s brainstorming -a '*' -g -y
+npx skills add nicobailon/visual-explainer -s visual-explainer -a '*' -g -y
+npx skills add jeffallan/claude-skills -s security-reviewer -a '*' -g -y
+npx skills add anthropics/claude-code -s frontend-design -a '*' -g -y
+npx skills add wshobson/agents -s wcag-audit-patterns -a '*' -g -y
+npx skills add softaworks/agent-toolkit -s reducing-entropy -a '*' -g -y
+npx skills add mcollina/skills -s typescript-magician -a '*' -g -y
+```
+
+See [docs/global-skills.md](docs/global-skills.md) for which local skills reference each external skill.
 
 ## Editing SPINE.md
 
@@ -74,6 +99,11 @@ The install script downloads spine and sets up the central directory and provide
 
 **Testing**: Run with `HOME=$(mktemp -d) bash install.sh` to verify in an isolated environment.
 
+### Tips
+
+- **Re-run to update** — run `./install.sh` again after pulling new changes to sync skills, guardrails, and agents. Your `~/.config/spine/` directory is updated, and provider root files are left untouched if they already contain the `@` reference.
+- **Individual skills** — install just the skills you need via `npx skills add kenoxa/spine -s <skill-name> -a '*' -g -y`
+
 ## Review Checklist
 
 Before submitting changes:
@@ -81,5 +111,5 @@ Before submitting changes:
 - [ ] Every skill line passes the authoring test
 - [ ] No tool-specific references (k5-*, nestor, dotcursor)
 - [ ] Anti-patterns are one line each
-- [ ] Cross-references to global skills are registered in `global-skills.md`
+- [ ] Cross-references to global skills are registered in `docs/global-skills.md`
 - [ ] SPINE.md stays under ~65 lines

@@ -11,6 +11,7 @@ All notable changes are documented here, focused on user impact.
 
 ### Changed
 
+- **README restructured** — 4-step workflow (discuss, plan, execute, commit) is now the dominant visual; "Typical Flow" renamed to "Workflow" with simplified LR mermaid diagram. Detailed skill descriptions and tips extracted to `docs/`. Subagents and convention tables collapsed. Claude Code Plugin demoted to details. `global-skills.md` moved to `docs/`.
 - **Scout upgraded** — added thoroughness calibration (orient/trace/audit heuristics) and handoff contract for self-contained output.
 - **do-execute dispatches `@worker`** — implement, polish-apply, and review-fix phases now specify `@worker` agent type with explicit mode names instead of `general-purpose`.
 - **Central install directory** — Spine now installs guardrails and agents to `~/.config/spine/` as the single source of truth. Provider root files (`CLAUDE.md`, `AGENTS.md`) reference it via `@~/.config/spine/SPINE.md` instead of containing a full copy. Users can add their own instructions below the `@` line — re-running the installer preserves them.
@@ -71,7 +72,7 @@ All notable changes are documented here, focused on user impact.
 - **2 subagents** — `explorer` (haiku, readonly) for fast codebase navigation and `reviewer` (inherit model) for severity-bucketed code review
 - **Cross-platform installer** — auto-detects Cursor, Claude Code, and Codex; installs guardrails, skills, agents, and hooks
 - **AGENTS.global.md** — shared guardrails installed as `AGENTS.md` (Cursor/Codex) or `CLAUDE.md` (Claude Code)
-- **7 external skill references** — brainstorming, visual-explainer, security-reviewer, frontend-design, wcag-audit-patterns, reducing-entropy, typescript-magician (see `global-skills.md`)
+- **7 external skill references** — brainstorming, visual-explainer, security-reviewer, frontend-design, wcag-audit-patterns, reducing-entropy, typescript-magician (see `docs/global-skills.md`)
 - **Claude Code hook** — SessionStart hook injects project-level `AGENTS.md` files into Claude Code context
 - **Evidence-based workflow** — all claims tagged E0–E3; blocking claims require E2+ code evidence
 

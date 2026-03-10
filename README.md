@@ -7,9 +7,8 @@ AI coding setup for Cursor, Claude Code, and Codex. One set of skills, agents, a
 ## Contents
 
 - [Quick Start](#quick-start)
-- [Typical Flow](#typical-flow)
+- [Workflow](#workflow)
 - [Skills and Agents](#skills-and-agents)
-- [Claude Code Plugin](#claude-code-plugin)
 - [Tips](#tips)
 - [Design Principles](#design-principles)
 - [Further Reading](#further-reading)
@@ -116,18 +115,28 @@ Add to `~/.claude/settings.json`:
 
 </details>
 
-## Typical Flow
+## Workflow
 
 > **Measure twice, ship once.**
 
-Plan the change, execute it with quality gates, then commit.
+Four steps from idea to commit:
 
-1. **`/do-discuss`** *(optional)* — frame the problem when it's vague. Socratic dialogue before planning.
-2. **`/do-plan`** — always start here for non-trivial work. Draft and validate the plan.
-3. Refine the plan via messages until ready.
-4. **`/do-execute`** — runs phased implementation with built-in review and verification.
-5. Apply learnings, if any.
-6. **`/do-commit`** — stage scoped files and commit with a conventional message.
+1. **[Discuss](docs/skills-reference.md#do-discuss)** (`/do-discuss`) — frame the problem when it's vague or ambiguous
+2. **[Plan](docs/skills-reference.md#do-plan)** (`/do-plan`) — draft and validate an implementation plan
+3. **[Execute](docs/skills-reference.md#do-execute)** (`/do-execute`) — phased implementation with built-in review and verification
+4. **[Commit](docs/skills-reference.md#do-commit)** (`/do-commit`) — stage scoped files and commit with a conventional message
+
+Refine the plan via messages between steps 2 and 3. For straightforward tasks, start directly with `/do-execute` — it handles planning inline when no plan exists.
+
+Skills store intermediate output in `.scratch/` during planning and execution — add it to your `.gitignore`.
+
+```mermaid
+graph LR
+    A["/do-discuss"] --> B["/do-plan"] --> C["/do-execute"] --> D["/do-commit"]
+```
+
+<details>
+<summary>Detailed flow with loops</summary>
 
 ```mermaid
 graph TD
@@ -145,141 +154,28 @@ graph TD
     H -->|Yes| J[do-commit]
 ```
 
-For straightforward tasks, start directly with `/do-execute` — it handles planning inline when no plan exists.
-
-<details>
-<summary>What <code>/do-discuss</code> does</summary>
-
-Structured problem framing through tiered Socratic dialogue. Use when the problem is vague, ambiguous, or too broad for direct planning.
-
-- **Tier 1** — Socratic dialogue: batch questions, track known/unknown inventory, converge on the core problem.
-- **Tier 2** — (conditional) dispatch `@scout` or `@researcher` when codebase evidence is needed.
-- **Tier 3** — (conditional) multi-perspective `@framer` team (stakeholder-advocate, systems-thinker, skeptic) for ambiguous scope with one-way-door decisions.
-
-Produces a `problem_frame` artifact (goal, scope, constraints, key decisions, unknowns) and a confidence-gated handoff recommendation.
-
-Canonical entry: [`skills/do-discuss/SKILL.md`](skills/do-discuss/SKILL.md).
-
-</details>
-
-<details>
-<summary>What <code>/do-plan</code> runs under the hood</summary>
-
-Five phases produce a self-sufficient, executable implementation plan:
-
-1. **Discovery** — map the codebase: file scouting, docs exploration, external research. All claims tagged with evidence levels (E0–E3).
-2. **Framing** — distill discoveries into a planning brief: goal, scope, constraints, key decisions, evidence manifest, and docs impact classification.
-3. **Planning** — dispatch planners with distinct approach angles (conservative, thorough, innovative). Merge via consensus; rank by evidence level.
-4. **Challenge** — adversarial review exposing hidden assumptions, underestimated risks, and unnecessary abstraction. Blocking findings require E2+ evidence and a better alternative.
-5. **Synthesis** — assemble the final plan using the plan template. Validate self-sufficiency, test tasks, edge coverage, docs tasks, and completion criteria.
-
-Ask checkpoints after discovery and after challenge ensure ambiguity is resolved before proceeding.
-
-Canonical entry: [`skills/do-plan/SKILL.md`](skills/do-plan/SKILL.md).
-
-</details>
-
-<details>
-<summary>What <code>/do-execute</code> runs under the hood</summary>
-
-Six phases with built-in quality gates:
-
-1. **Scope** — read the approved plan, classify depth (`focused`/`standard`/`deep`), partition work into independent and dependent groups.
-2. **Implement** — one `@worker` per partition. Parallel for independent groups; sequential for dependent. No overlapping writes. Worker self-review before reporting.
-3. **Polish** — advisory pass (read-only reviewers produce findings) → apply pass (workers fix). Every E2+ finding acknowledged or explicitly rejected.
-4. **Review** — two stages: tests & docs (skip when no behavior changes and docs_impact is `none`), then adversarial review with multiple lenses. Blocking findings re-enter polish.
-5. **Verify** — single verifier instance. All claims require E3 evidence (executed command + observed output).
-6. **Finalize** — content gates check for test evidence, edge coverage, and docs. Learnings captured as proposals (never auto-applied).
-
-Re-entry loop: blocking review findings → polish → review → verify. Capped at 5 iterations.
-
-Canonical entry: [`skills/do-execute/SKILL.md`](skills/do-execute/SKILL.md).
-
-</details>
-
-<details>
-<summary>What <code>/do-review</code> does</summary>
-
-Structured code review with severity-bucketed findings:
-
-1. **Scope check** — confirm what was requested and what changed.
-2. **Evidence check** — validate claims against current code and requirements.
-3. **Spec compliance** — verify built behavior matches requested behavior.
-4. **Risk pass** — correctness, security, performance, maintainability (scaled by risk level: low → spec + quality; medium → + testing depth; high → + security probe).
-5. **Quality pass** — readability, cohesion, duplication, test adequacy, edge/failure coverage.
-
-Findings are bucketed as `blocking` (must fix, E2+ required), `should_fix` (recommended, blocks unless deferred), or `follow_up` (tracked debt). Review is read-only — no file writes.
-
-Canonical entry: [`skills/do-review/SKILL.md`](skills/do-review/SKILL.md).
-
-</details>
-
-<details>
-<summary>What <code>/do-debug</code> does</summary>
-
-Four-phase root-cause diagnosis:
-
-1. **Observe** — reproduce deterministically. Capture exact error, steps, environment, and variance.
-2. **Pattern** — compare failing path with known-good reference. Narrow to the smallest collision zone.
-3. **Hypothesis** — one hypothesis at a time. Change one variable per test. Failed hypothesis → return to observe, not forward.
-4. **Harden** — apply the smallest fix that resolves the confirmed root cause. Harden to make the bug class impossible. Verification requires E3 evidence.
-
-Escalation: after 3 failed hypotheses, escalate with concrete evidence. Architectural uncertainty → re-enter planning.
-
-Canonical entry: [`skills/do-debug/SKILL.md`](skills/do-debug/SKILL.md).
-
-</details>
-
-<details>
-<summary>What <code>/do-history-insights</code> does</summary>
-
-Periodic cross-tool session analysis. Python scripts parse raw session data from Claude Code, Codex, and Cursor (~256 MB) into structured analytics (~100 KB), then subagents mine it for automation opportunities.
-
-1. **Collect** — run parser scripts to extract and normalize session data from all three tools into `analytics.json`.
-2. **Analyze** — dispatch source-expert `@miner` subagents in parallel (one per provider with sessions) to identify provider-specific patterns.
-3. **Synthesize** — a synthesizer `@miner` merges all expert outputs into recommendations across 7 categories: skills, hooks, MCP servers, plugins, agents, CLAUDE.md rules, and anti-patterns.
-4. **Present** — activity stats table and prioritized recommendations in the terminal. Optional HTML dashboard via `visual-explainer`.
-
-Every recommendation includes evidence (session counts, specific examples) and a concrete action. Cross-tool patterns — the same workflow repeated across multiple tools — are the highest-value findings.
-
-Requires Python 3.9+. Run weekly or bi-weekly.
-
-Canonical entry: [`skills/do-history-insights/SKILL.md`](skills/do-history-insights/SKILL.md).
-
 </details>
 
 ## Skills and Agents
 
-> **Every change deserves a plan.**
+Skills use prefixes for quick discovery in slash-autocomplete: `do-` for workflow commands you invoke explicitly, `with-` for domain standards that activate automatically, and `use-` for tools that produce artifacts.
 
-```
-SPINE.md                Global guardrails (installed to ~/.config/spine/SPINE.md)
-skills/                 16 skills (10 workflow + 3 domain + 3 tools)
-agents/                 10 subagents (scout, researcher, planner, debater, inspector, analyst, framer, verifier, miner, worker)
-claude/                 Claude Code plugin (hooks + use-agent-teams skill)
-.claude-plugin/         Plugin marketplace configuration
-global-skills.md        External skills to install separately
-.scratch/               Ephemeral subagent output (gitignore this)
-```
+### Workflow skills (`do-*`)
 
-`.scratch/` is created at runtime by `do-discuss`, `do-plan`, and `do-execute` subagents to store intermediate output files. It is ephemeral — safe to delete at any time. Add `.scratch` to your project's `.gitignore`.
-
-### Workflow skills
-
-Invoked explicitly via `/do-plan`, `/do-execute`, etc.
+Invoked via slash commands — `/do-plan`, `/do-execute`, etc.
 
 | Skill | Purpose |
 |-------|---------|
-| `do-discuss` | Structured problem framing before planning |
-| `do-plan` | Structured planning before complex implementation |
-| `do-execute` | Execute an approved plan through phased quality gates |
-| `do-review` | Severity-bucketed code review |
-| `do-debug` | 4-phase root-cause diagnosis and fix |
-| `do-polish` | Advisory code polish with conventions, complexity, and efficiency lenses |
-| `do-commit` | Scoped staging with conventional commits |
-| `do-handoff` | Distill session context into a structured prompt for a fresh session |
-| `do-history-insights` | Mine cross-tool session history for workflow/setup improvement recommendations (Python 3.9+, Claude Code) |
-| `do-history-recap` | Summarize work done across AI agent sessions for standups, timesheets, and activity reports |
+| [`do-discuss`](docs/skills-reference.md#do-discuss) | Structured problem framing before planning |
+| [`do-plan`](docs/skills-reference.md#do-plan) | Structured planning before complex implementation |
+| [`do-execute`](docs/skills-reference.md#do-execute) | Execute an approved plan through phased quality gates |
+| [`do-review`](docs/skills-reference.md#do-review) | Severity-bucketed code review |
+| [`do-debug`](docs/skills-reference.md#do-debug) | 4-phase root-cause diagnosis and fix |
+| [`do-polish`](docs/skills-reference.md#do-polish) | Advisory code polish with conventions, complexity, and efficiency lenses |
+| [`do-commit`](docs/skills-reference.md#do-commit) | Scoped staging with conventional commits |
+| [`do-handoff`](docs/skills-reference.md#do-handoff) | Distill session context into a structured prompt for a fresh session |
+| [`do-history-insights`](docs/skills-reference.md#do-history-insights) | Mine cross-tool session history for workflow/setup improvement recommendations (Python 3.9+, Claude Code) |
+| [`do-history-recap`](docs/skills-reference.md#do-history-recap) | Summarize work done across AI agent sessions for standups, timesheets, and activity reports |
 
 ### Domain standards (`with-*`)
 
@@ -301,108 +197,24 @@ Invoked explicitly to produce artifacts or perform discovery.
 | `use-writing` | Docs, changelogs, ADRs, and prose quality |
 | `use-skill-craft` | Write, review, or fix skills and AGENTS.md files |
 
-### Subagents
+See also: [Subagents](docs/skills-reference.md#subagents) · [Prefix convention](docs/skills-reference.md#skill-prefix-convention) · [External skills](docs/global-skills.md)
 
-| Agent | Model | Purpose |
-|-------|-------|---------|
-| `scout` | haiku | Fast codebase reconnaissance, preloads `use-explore` |
-| `researcher` | inherit | Deep discovery and evidence gathering, preloads `use-explore` |
-| `planner` | inherit | Angle-committed planning, preloads `do-plan` |
-| `debater` | inherit | Adversarial Socratic dialogue |
-| `inspector` | inherit | Verdict-focused code review, preloads `do-review` |
-| `analyst` | inherit | Advisory pattern analysis, preloads `do-review` and `do-polish` |
-| `framer` | inherit | Perspective-committed problem framing |
-| `verifier` | inherit | Adversarial verification with E3 evidence, preloads `with-testing` |
-| `miner` | inherit | Session data analysis and cross-session pattern extraction |
-| `worker` | inherit | Read-write implementation for plan-driven code changes |
+<details>
+<summary>Claude Code plugin</summary>
 
-### Skill prefix convention
+### Claude Code Plugin
 
-Prefixes group skills in slash-autocomplete — type `do-`, `with-`, or `use-` to filter to the category you need.
+Spine ships a Claude Code plugin with a SessionStart hook (injects `AGENTS.md` into context) and the `use-agent-teams` skill. The [installer](#quick-start) handles setup automatically.
 
-| Prefix | Semantic | When to use |
-|--------|----------|-------------|
-| `do-` | Workflow commands | Multi-phase execution: planning, implementation, review, debugging, committing |
-| `with-` | Domain standards | Applied passively when the task matches — UI, API, or test work |
-| `use-` | Active tools | Invoked explicitly to produce artifacts or perform discovery |
+Manual install: `claude plugin marketplace add kenoxa/spine && claude plugin install spine@kenoxa`
 
-**Why prefixes?** Without them, spine's 14 skills get lost among globally installed skills in slash-autocomplete. Typing the first few characters of a prefix immediately narrows the list to the relevant group.
+See [`claude/README.md`](claude/README.md) for hook details and fallback installation.
 
-External skills (installed via `npx skills add`) keep their upstream names and do not follow this convention — we don't own those names.
-
-### External skills
-
-Some local skills reference external skills too complex to distill. These are optional — local skills work without them. See [`global-skills.md`](global-skills.md) for the full list and which local skills reference them.
-
-```sh
-npx skills add obra/superpowers -s brainstorming -a '*' -g -y
-npx skills add nicobailon/visual-explainer -s visual-explainer -a '*' -g -y
-npx skills add jeffallan/claude-skills -s security-reviewer -a '*' -g -y
-npx skills add anthropics/claude-code -s frontend-design -a '*' -g -y
-npx skills add wshobson/agents -s wcag-audit-patterns -a '*' -g -y
-npx skills add softaworks/agent-toolkit -s reducing-entropy -a '*' -g -y
-npx skills add mcollina/skills -s typescript-magician -a '*' -g -y
-```
-
-## Claude Code Plugin
-
-Spine ships a Claude Code plugin at `claude/` with Claude-specific extensions that don't apply to Cursor or Codex:
-
-- **SessionStart hook** — injects project-level `AGENTS.md` files into Claude Code context (Claude Code natively loads `CLAUDE.md` but not `AGENTS.md`)
-- **`use-agent-teams` skill** — upgrades subagent dispatch to Agent Teams for `do-discuss`, `do-plan`, and `do-execute` phases (requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`)
-
-The installer attempts plugin installation automatically. To install manually:
-
-```sh
-claude plugin marketplace add kenoxa/spine
-claude plugin install spine@kenoxa
-```
-
-See [`claude/README.md`](claude/README.md) for details.
+</details>
 
 ## Tips
 
-> **Plan every change. No exceptions.**
-
-### Slash command arguments
-
-Text after a slash command is the task scope. Examples:
-
-- `/do-discuss the auth flow feels broken on mobile`
-- `/do-plan add retry strategy for API calls`
-- `/do-review` — reviews current changes against the plan
-- `/do-debug failing auth test in CI`
-- `/use-explore auth module architecture`
-- `/do-execute` — starts execution of an approved plan (or plans inline if none exists)
-
-### Screenshot shortcuts (macOS)
-
-- **Screenshot → clipboard:** `Control-Shift-Command-3` (full screen) or `Control-Shift-Command-4` (selection); image goes to clipboard — paste directly into your tool's chat.
-- **Thumbnail drag:** `Shift-Command-4` (selection) shows a thumbnail in the corner; drag it into the chat before it fades.
-- **Ergonomic remap:** if `Control-Shift-Command` feels awkward, remap to an `Option-Command` combo in System Settings → Keyboard → Shortcuts → Screenshots.
-
-### Workflow tips
-
-- **Domain skills auto-load** — `with-frontend`, `with-backend`, and `with-testing` activate automatically when the task matches. No slash command needed.
-- **Refine before executing** — polish the plan via messages before running `/do-execute`. The plan drives all quality gates downstream.
-- **Fresh chat for execution** — after planning is ready, consider opening a fresh chat for `/do-execute` to reduce context carryover and keep the execution window clean.
-- **Use subagents for parallel work** — the `scout` agent handles fast codebase reconnaissance; the `researcher` agent performs deep discovery; the `inspector` and `analyst` agents run focused code review with different lenses.
-- **Evidence levels matter** — all claims in plans, reviews, and execution are tagged E0–E3. Blocking claims require code evidence (E2+). Verification requires executed output (E3).
-- **Skill-craft for meta-work** — use `/use-skill-craft` to write, review, or audit skills and AGENTS.md files. It enforces the authoring test: every skill line must address something an LLM handles worse without guidance.
-
-### Which model to use
-
-Use cost-effective defaults for orchestration, then escalate only when quality or risk requires it.
-
-- **Default orchestration:** use your tool's auto/default model for planning and coordination.
-- **Frontier reserve:** escalate to stronger models (Opus, Sonnet, Codex) for implementation-heavy work, ambiguous requirements, and debugging.
-- **Planning is the lever:** structured planning (`/do-plan`) improves output quality more than model choice alone. Strong model + planning > strong model without planning > weak model + planning.
-
-### Installer tips
-
-- **Re-run to update** — run `./install.sh` again after pulling new changes to sync skills, guardrails, and agents. Your `~/.config/spine/` directory is updated, and provider root files are left untouched if they already contain the `@` reference.
-- **Isolated test** — verify the installer in a sandbox: `HOME=$(mktemp -d) bash install.sh`
-- **Individual skills** — install just the skills you need via `npx skills add kenoxa/spine -s <skill-name> -a '*' -g -y`
+See [Tips](docs/tips.md) for slash command usage, workflow advice, model recommendations, and macOS screenshot shortcuts.
 
 ## Design Principles
 
@@ -414,7 +226,9 @@ Use cost-effective defaults for orchestration, then escalate only when quality o
 
 ## Further Reading
 
+- [Skills reference](docs/skills-reference.md) — detailed phase descriptions for each workflow skill
+- [Tips](docs/tips.md) — workflow tips, model selection, slash command usage
+- [External skills reference](docs/global-skills.md) — optional skills from other repos
 - [Contributing guide](CONTRIBUTING.md) — authoring skills, subagents, and installer changes
 - [Changelog](CHANGELOG.md) — version history and user-facing changes
-- [External skills reference](global-skills.md) — optional skills from other repos
 - [MIT License](LICENSE)
