@@ -29,7 +29,7 @@ Every subagent prompt MUST be self-contained — include all prior-phase context
 - The exact output file path (`.scratch/<session>/<prescribed-filename>.md`)
 - The constraint: "Write your complete output to that path. You may read any repository file. Do NOT edit, create, or delete files outside `.scratch/<session>/`. Do NOT run build commands, tests, or destructive shell commands."
 
-**Session ID**: generate once at phase entry using `{YYWW}-{slug}-{hash}` (e.g., `2610-insights-weekly-a3f2`). `YYWW` is two-digit year + zero-padded ISO week. `slug` is 3–5 words derived from the initial user prompt (lowercase, hyphen-separated, alphanumeric only). `hash` is a 4-character random hex. Reuse the same session ID across all phases.
+**Session ID**: Generate per SPINE.md Sessions convention. Reuse across all phases.
 
 ### 1. Collect
 

@@ -39,7 +39,7 @@ Investigate and explore are conditional — triggered by tier escalation, not al
 | Investigate | `@scout` / `@researcher` | Breadth-first orientation or deep evidence gathering |
 | Explore | `@framer` | Perspective-committed, advisory, peer-reactive |
 
-**Session ID**: generate once at phase entry using `{YYWW}-{slug}-{hash}` (e.g., `2610-auth-scope-b7c1`). `YYWW` is two-digit year + zero-padded ISO week. `slug` is 3-5 words derived from the initial user prompt (lowercase, hyphen-separated, alphanumeric only). `hash` is a 4-character random hex. Reuse across all phases — and carry forward into do-plan if user proceeds. All output paths below use `<session>` as placeholder.
+**Session ID**: Generate per SPINE.md Sessions convention. Carry forward into do-plan if user proceeds. Append to the session log at phase boundaries and tier escalations. All output paths below use `<session>` as placeholder.
 
 ### 1. Intake
 

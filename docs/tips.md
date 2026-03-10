@@ -28,6 +28,18 @@ Text after a slash command is the task scope. Examples:
 - **Evidence levels matter** — all claims in plans, reviews, and execution are tagged E0–E3. Blocking claims require code evidence (E2+). Verification requires executed output (E3).
 - **Skill-craft for meta-work** — use `/use-skill-craft` to write, review, or audit skills and AGENTS.md files. It enforces the authoring test: every skill line must address something an LLM handles worse without guidance.
 
+## Agent Mode
+
+Spine skills dispatch subagents that read, write, and run commands autonomously. Plan/ask modes interrupt this workflow with constant approval prompts.
+
+| Provider | Recommended mode | Avoid |
+|----------|-----------------|-------|
+| Cursor | Agent mode | Ask, Plan, Debug modes |
+| Claude Code | Auto accept edits | Plan mode |
+| Codex | Full auto mode | — |
+
+Skills technically work in other modes, but the experience degrades to manual approval on every file edit and command execution.
+
 ## Which Model to Use
 
 Use cost-effective defaults for orchestration, then escalate only when quality or risk requires it.

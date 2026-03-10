@@ -33,7 +33,7 @@ Every subagent prompt MUST be self-contained — include all prior-phase context
 
 This is a prompt-level constraint, not a platform-enforced restriction. It is adequate for planning workloads where agents have no operational reason to modify source files.
 
-**Session ID**: generate once at phase entry using `{YYWW}-{slug}-{hash}` (e.g., `2610-rename-session-ids-a3f2`). `YYWW` is two-digit year + zero-padded ISO week. `slug` is 3–5 words derived from the initial user prompt (lowercase, hyphen-separated, alphanumeric only). `hash` is a 4-character random hex. Reuse the same session ID across all phases of a single do-plan run — and carry it forward into do-execute. All output paths below use `<session>` as placeholder.
+**Session ID**: Generate per SPINE.md Sessions convention. Reuse across all phases of a single do-plan run. Carry forward into do-execute. Append to the session log at each phase boundary (discovery, framing, planning, challenge, synthesis). All output paths below use `<session>` as placeholder.
 
 ### 1. Discovery
 

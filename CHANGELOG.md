@@ -6,11 +6,15 @@ All notable changes are documented here, focused on user impact.
 
 ### Added
 
+- **Unified session handling in SPINE.md** — session ID format (`{YYWW}-{slug}-{hash}`), `.scratch/<session>/` directory, carry-forward chain (discuss → plan → execute), append-only session log at phase boundaries, and todo tool advisory. Defined once for all workflow skills.
+- **Agent mode guidance** — README Quick Start callout directing users to their tool's autonomous mode, and `docs/tips.md` provider mode table (Cursor agent, Claude Code auto-accept, Codex full auto).
 - **`do-handoff` skill** — distill session context into a structured handoff prompt for a fresh session. Captures goal-directed context, file inventory, and current state as a self-contained artifact. Invoke with `/do-handoff [direction]`.
 - **`worker` subagent** — read-write implementation agent for do-execute implement, polish-apply, and review-fix phases. Replaces `general-purpose` dispatch with a spine-owned agent that enforces partition-scoped edits and mode-routed self-review.
 
 ### Changed
 
+- **Session ID references consolidated** — do-plan, do-execute, do-discuss, and do-history-insights now reference SPINE.md Sessions convention instead of inline session ID format definitions (~12 lines of duplication removed).
+- **do-handoff reads session log** — Gather phase checks for `.scratch/<session>/session-log.md` as primary input for the Current State section when available, with graceful fallback.
 - **README restructured** — 4-step workflow (discuss, plan, execute, commit) is now the dominant visual; "Typical Flow" renamed to "Workflow" with simplified LR mermaid diagram. Detailed skill descriptions and tips extracted to `docs/`. Subagents and convention tables collapsed. Claude Code Plugin demoted to details. `global-skills.md` moved to `docs/`.
 - **Scout upgraded** — added thoroughness calibration (orient/trace/audit heuristics) and handoff contract for self-contained output.
 - **do-execute dispatches `@worker`** — implement, polish-apply, and review-fix phases now specify `@worker` agent type with explicit mode names instead of `general-purpose`.

@@ -115,6 +115,11 @@ Add to `~/.claude/settings.json`:
 
 </details>
 
+> **Use agent mode.** Spine expects your AI tool to run in its most autonomous
+> mode — Cursor agent mode, Claude Code with auto-accept, or Codex auto mode.
+> Spine's skills replace built-in plan modes. See [Tips](docs/tips.md#agent-mode)
+> for details.
+
 ## Workflow
 
 > **Measure twice, ship once.**
@@ -128,7 +133,7 @@ Four steps from idea to commit:
 
 Refine the plan via messages between steps 2 and 3. For straightforward tasks, start directly with `/do-execute` — it handles planning inline when no plan exists.
 
-Skills store intermediate output in `.scratch/` during planning and execution — add it to your `.gitignore`.
+Skills store intermediate output in `.scratch/` during planning and execution — ephemeral, safe to delete between sessions; during a session the log provides observability. Add `.scratch/` to your `.gitignore`.
 
 ```mermaid
 graph LR

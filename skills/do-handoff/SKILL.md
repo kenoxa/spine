@@ -18,9 +18,12 @@ Distill accumulated session context into a self-contained prompt a fresh session
 
 1. **Gather** — inventory the session: goal pursued, files read or modified, decisions
    made, discoveries, current progress. Run `git branch --show-current` and
-   `git status --short` to capture branch and dirty state. If the session lacks
-   sufficient context for a useful handoff, report this and ask what to include
-   rather than producing a hollow artifact.
+   `git status --short` to capture branch and dirty state. If a session log exists
+   at `.scratch/<session>/session-log.md` (where `<session>` is the current session
+   ID from conversation context), read it as the primary source for the Current
+   State section. Prefer log entries over conversation-turn reconstruction. If the
+   session lacks sufficient context for a useful handoff, report this and ask what
+   to include rather than producing a hollow artifact.
 2. **Filter** — use the user's direction to select relevant context. The direction
    shapes what gets extracted — this is goal-directed distillation, not a session
    dump. When no direction is given, derive the goal from the session's overall

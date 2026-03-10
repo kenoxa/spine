@@ -34,7 +34,7 @@ See AGENTS.md for E0–E3 definitions. Blocking claims MUST be E2+. Verify claim
 
 ## Phases
 
-**Session ID**: when executing an approved do-plan, reuse the plan's session ID and directory (e.g., `2610-rename-session-ids-a3f2`). When executing without a prior plan, generate a new session ID using `{YYWW}-{slug}-{hash}` — `YYWW` is two-digit year + zero-padded ISO week, `slug` is 3–5 words from the task (lowercase, hyphen-separated, alphanumeric only), `hash` is a 4-character random hex. Reuse across all phases. All output paths below use `<session>` as placeholder.
+**Session ID**: When executing an approved do-plan, reuse the plan's session ID and directory. Otherwise generate per SPINE.md Sessions convention. Append to the session log at each phase boundary (scope, implement, polish, review, verify, finalize) and on re-entry iterations. All output paths below use `<session>` as placeholder.
 
 At `focused` depth, main thread handles every phase inline — no subagent dispatch. The subagent roles below apply to `standard` and `deep` only. Every subagent prompt MUST be self-contained: include scope artifact, files modified, and plan excerpt. Subagents inherit no conversation history.
 
