@@ -28,9 +28,9 @@ Optional fields:
 
 If a skill benefits from an external skill (too complex to distill), add a reference line in the skill body and register it in `global-skills.md`.
 
-## Editing AGENTS.global.md
+## Editing SPINE.md
 
-This file is installed as the global `AGENTS.md` (or `CLAUDE.md` for Claude Code). It's read on every invocation — keep it minimal.
+This file is installed to `~/.config/spine/SPINE.md` and referenced via `@~/.config/spine/SPINE.md` from each provider's root file (CLAUDE.md, AGENTS.md). It's read on every invocation — keep it minimal.
 
 - Only add instructions relevant to **every single task**
 - Domain-specific content belongs in skills, not here
@@ -56,17 +56,19 @@ Keep subagent bodies focused — they should define constraints and output forma
 
 ## Installer (`install.sh`)
 
-The install script downloads spine and copies files to each detected tool's config directory. For Claude Code, it also installs the Spine plugin.
+The install script downloads spine and sets up the central directory and provider links. For Claude Code, it also installs the Spine plugin.
 
 **What it does**:
 1. Downloads the repo via `git clone --depth 1` (or `curl` tarball fallback)
-2. Detects tools by checking for `~/.cursor/`, `~/.claude/`, `~/.codex/`
-3. Copies guardrails, agents, and skills to each tool's directory
-4. For Claude Code: attempts `claude plugin marketplace add` + `claude plugin install`; falls back to manual hook installation if the CLI doesn't support plugins
+2. Sets up `~/.config/spine/` with `SPINE.md` and `agents/*.md` (user-owned copies)
+3. Detects tools by checking for `~/.cursor/`, `~/.claude/`, `~/.codex/`
+4. Writes `@~/.config/spine/SPINE.md` reference to each provider's root file (preserves user content)
+5. Symlinks each provider's `agents/<name>.md` to `~/.config/spine/agents/<name>.md`
+6. For Claude Code: attempts `claude plugin marketplace add` + `claude plugin install`; falls back to manual hook installation if the CLI doesn't support plugins
 
 **When to update**:
 - Adding a new supported tool → add detection in `detect_tools()` and install logic in `install_tool()`
-- Changing the guardrails filename → update the copy logic in `install_tool()`
+- Changing the guardrails filename → update `setup_central_dir()` and `install_tool()`
 - Changing plugin hooks → update `claude/hooks/hooks.json` and `claude/hooks/`
 - Changing plugin metadata → update `claude/.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`
 
@@ -80,4 +82,4 @@ Before submitting changes:
 - [ ] No tool-specific references (k5-*, nestor, dotcursor)
 - [ ] Anti-patterns are one line each
 - [ ] Cross-references to global skills are registered in `global-skills.md`
-- [ ] AGENTS.global.md stays under ~65 lines
+- [ ] SPINE.md stays under ~65 lines

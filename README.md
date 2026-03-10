@@ -65,13 +65,28 @@ npx skills add kenoxa/spine -s do-review -a '*' -g -y
 <details>
 <summary>Manual install</summary>
 
-Copy files to your tool's config directory:
+Set up the central directory and reference it from each tool:
 
-| Source | Cursor | Claude Code | Codex |
-|--------|--------|-------------|-------|
-| `AGENTS.global.md` | `~/.cursor/AGENTS.md` | `~/.claude/CLAUDE.md` | `~/.codex/AGENTS.md` |
-| `skills/` | `~/.cursor/skills/` | `~/.claude/skills/` | `~/.codex/skills/` |
-| `agents/` | `~/.cursor/agents/` | `~/.claude/agents/` | `~/.codex/agents/` |
+```sh
+# 1. Copy guardrails and agents to the central directory
+mkdir -p ~/.config/spine/agents
+cp SPINE.md ~/.config/spine/SPINE.md
+cp agents/*.md ~/.config/spine/agents/
+
+# 2. Reference from each tool's root file (add your own instructions below the @ line)
+echo '@~/.config/spine/SPINE.md' > ~/.cursor/AGENTS.md
+echo '@~/.config/spine/SPINE.md' > ~/.claude/CLAUDE.md
+echo '@~/.config/spine/SPINE.md' > ~/.codex/AGENTS.md
+
+# 3. Symlink agents (or copy with: cp ~/.config/spine/agents/*.md ~/.<tool>/agents/)
+for agent in ~/.config/spine/agents/*.md; do
+  ln -sf "../../.config/spine/agents/$(basename "$agent")" ~/.cursor/agents/
+  ln -sf "../../.config/spine/agents/$(basename "$agent")" ~/.claude/agents/
+  ln -sf "../../.config/spine/agents/$(basename "$agent")" ~/.codex/agents/
+done
+```
+
+Skills are installed separately via `npx skills add` (see above).
 
 **Claude Code plugin:** Install the Spine plugin for hooks and the `use-agent-teams` skill:
 
@@ -238,7 +253,7 @@ Canonical entry: [`skills/do-debrief/SKILL.md`](skills/do-debrief/SKILL.md).
 > **Every change deserves a plan.**
 
 ```
-AGENTS.global.md        Global guardrails (installed as AGENTS.md / CLAUDE.md)
+SPINE.md                Global guardrails (installed to ~/.config/spine/SPINE.md)
 skills/                 14 skills (8 workflow + 3 domain + 3 tools)
 agents/                 9 subagents (scout, researcher, planner, debater, inspector, analyst, framer, verifier, miner)
 claude/                 Claude Code plugin (hooks + use-agent-teams skill)
@@ -382,15 +397,15 @@ Use cost-effective defaults for orchestration, then escalate only when quality o
 
 ### Installer tips
 
-- **Re-run to update** — run `./install.sh` again after pulling new changes to sync skills and guardrails.
+- **Re-run to update** — run `./install.sh` again after pulling new changes to sync skills, guardrails, and agents. Your `~/.config/spine/` directory is updated, and provider root files are left untouched if they already contain the `@` reference.
 - **Isolated test** — verify the installer in a sandbox: `HOME=$(mktemp -d) bash install.sh`
 - **Individual skills** — install just the skills you need via `npx skills add kenoxa/spine -s <skill-name> -a '*' -g -y`
 
 ## Design Principles
 
 - **Authoring test**: Every skill must address a task an LLM demonstrably handles worse without explicit guidance. No skills for general knowledge.
-- **Cross-platform**: No tool-specific formats. Skills, agents, and AGENTS.md work in Cursor, Claude Code, and Codex without modification.
-- **Progressive disclosure**: AGENTS.md is minimal (~65 lines). Skills load on demand. Reference files extract detail from skill bodies.
+- **Cross-platform**: No tool-specific formats. Skills, agents, and SPINE.md work in Cursor, Claude Code, and Codex without modification.
+- **Progressive disclosure**: SPINE.md is minimal (~65 lines). Skills load on demand. Reference files extract detail from skill bodies.
 - **Evidence-based**: Claims in plans, reviews, and execution must be tagged E0–E3. Blocking claims require code evidence (E2+).
 - **Self-contained**: No external registry or manifest system. Skills are plain markdown. The installer is a single bash script.
 

@@ -161,24 +161,94 @@ detect_tools() {
   echo "${tools[@]}"
 }
 
+# --- Central directory setup ---
+
+setup_central_dir() {
+  local src="$1"
+  local spine_dir="$HOME/.config/spine"
+
+  mkdir -p "$spine_dir/agents"
+
+  # Copy guardrails
+  backup_if_exists "$spine_dir/SPINE.md"
+  cp "$src/SPINE.md" "$spine_dir/SPINE.md"
+
+  # Copy agents
+  for agent in "$src/agents/"*.md; do
+    [ -f "$agent" ] || continue
+    cp "$agent" "$spine_dir/agents/"
+  done
+
+  # Remove stale agents no longer in source (broken symlinks cleaned per-tool in install_tool)
+  for existing in "$spine_dir/agents/"*.md; do
+    [ -f "$existing" ] || continue
+    local name
+    name=$(basename "$existing")
+    if [ ! -f "$src/agents/$name" ]; then
+      backup_if_exists "$existing"
+      rm "$existing"
+    fi
+  done
+
+  done_msg "central directory: ~/.config/spine/"
+}
+
 # --- Install files for a single tool ---
 
 install_tool() {
   local tool="$1" src="$2"
   local target="$HOME/.$tool"
+  local spine_dir="$HOME/.config/spine"
+  local spine_ref='@~/.config/spine/SPINE.md'
 
-  # Guardrails: CLAUDE.md for Claude Code, AGENTS.md for others
+  mkdir -p "$target"
+
+  # Guardrails: write @reference to provider root file
+  local root_file
   if [ "$tool" = "claude" ]; then
-    backup_if_exists "$target/CLAUDE.md"
-    cp "$src/AGENTS.global.md" "$target/CLAUDE.md"
+    root_file="$target/CLAUDE.md"
   else
-    backup_if_exists "$target/AGENTS.md"
-    cp "$src/AGENTS.global.md" "$target/AGENTS.md"
+    root_file="$target/AGENTS.md"
   fi
 
-  # Agents
+  if [ ! -f "$root_file" ]; then
+    # Fresh install
+    echo "$spine_ref" > "$root_file"
+  elif head -1 "$root_file" | grep -q '^@.*SPINE\.md$'; then
+    # Already managed — preserve user content below
+    :
+  elif diff -q "$root_file" "$spine_dir/SPINE.md" >/dev/null 2>&1 || \
+       head -1 "$root_file" | grep -q '^# \(AGENTS\|SPINE\)\.md$'; then
+    # Spine-managed content (current or pre-rename) — safe to replace entirely
+    backup_if_exists "$root_file"
+    echo "$spine_ref" > "$root_file"
+  else
+    # User has custom content — prepend @reference, keep existing content
+    backup_if_exists "$root_file"
+    local tmp
+    tmp=$(mktemp)
+    printf '%s\n\n' "$spine_ref" > "$tmp"
+    cat "$root_file" >> "$tmp"
+    mv "$tmp" "$root_file"
+  fi
+
+  # Agents: per-file symlinks to central directory
   mkdir -p "$target/agents"
-  cp -r "$src/agents/"* "$target/agents/"
+  for agent in "$spine_dir/agents/"*.md; do
+    [ -f "$agent" ] || continue
+    local name
+    name=$(basename "$agent")
+    # Back up regular files (not symlinks) before replacing
+    if [ -f "$target/agents/$name" ] && [ ! -L "$target/agents/$name" ]; then
+      backup_if_exists "$target/agents/$name"
+    fi
+    ln -sf "../../.config/spine/agents/$name" "$target/agents/$name"
+  done
+
+  # Clean up broken agent symlinks (stale source files removed in setup_central_dir)
+  for link in "$target/agents/"*.md; do
+    [ -L "$link" ] && [ ! -e "$link" ] && rm "$link"
+  done
 
   done_msg "$tool: guardrails, agents"
 
@@ -261,8 +331,8 @@ install_claude_plugin() {
 
 backup_if_exists() {
   local file="$1"
-  if [ -f "$file" ]; then
-    cp "$file" "${file}.bak"
+  if [ -e "$file" ] || [ -L "$file" ]; then
+    cp -L "$file" "${file}.bak" 2>/dev/null || true
   fi
 }
 
@@ -364,14 +434,14 @@ main() {
   info "Spine installer — AI coding setup"
 
   # Step 1: System dependencies
-  step "1/5" "Checking system dependencies..."
+  step "1/6" "Checking system dependencies..."
   ensure_system_deps
 
   # Step 2: Resolve source
-  step "2/5" "Resolving source..."
+  step "2/6" "Resolving source..."
   local src script_dir
   script_dir="$(cd "$(dirname "${BASH_SOURCE[0]:-/dev/stdin}")" && pwd)"
-  if [ -f "$script_dir/AGENTS.global.md" ] && [ -d "$script_dir/skills" ]; then
+  if [ -f "$script_dir/SPINE.md" ] && [ -d "$script_dir/skills" ]; then
     src="$script_dir"
     done_msg "Using local repo: $src"
   elif [ -n "${SPINE_LOCAL_SRC:-}" ]; then
@@ -384,8 +454,12 @@ main() {
     done_msg "Downloaded $REPO"
   fi
 
-  # Step 3: Detect tools
-  step "3/5" "Detecting installed tools..."
+  # Step 3: Set up central directory
+  step "3/6" "Setting up central directory..."
+  setup_central_dir "$src"
+
+  # Step 4: Detect tools
+  step "4/6" "Detecting installed tools..."
   local tools
   read -ra tools <<< "$(detect_tools)"
 
@@ -397,14 +471,14 @@ main() {
 
   done_msg "Found: ${tools[*]}"
 
-  # Step 4: Install guardrails, agents, and plugin
-  step "4/5" "Installing guardrails, agents, and plugin..."
+  # Step 5: Install guardrails, agents, and plugin
+  step "5/6" "Installing guardrails, agents, and plugin..."
   for tool in "${tools[@]}"; do
     install_tool "$tool" "$src"
   done
 
-  # Step 5: Install skills
-  step "5/5" "Installing skills..."
+  # Step 6: Install skills
+  step "6/6" "Installing skills..."
   install_skills "$src" "${tools[@]}"
 
   # Summary

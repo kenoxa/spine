@@ -2,6 +2,15 @@
 
 All notable changes are documented here, focused on user impact.
 
+## 2026-03-10
+
+### Changed
+
+- **Central install directory** — Spine now installs guardrails and agents to `~/.config/spine/` as the single source of truth. Provider root files (`CLAUDE.md`, `AGENTS.md`) reference it via `@~/.config/spine/SPINE.md` instead of containing a full copy. Users can add their own instructions below the `@` line — re-running the installer preserves them.
+- **Agent symlinks** — agents in each provider's config directory are now symlinks to `~/.config/spine/agents/`, matching how skills already work. Re-running the installer updates the central copy; symlinks ensure all providers see the change immediately.
+- **Renamed `AGENTS.global.md` → `SPINE.md`** — the source guardrails file is now named `SPINE.md` in the repo and in `~/.config/spine/`. Provider root files reference it by this name.
+- **Migration is automatic** — re-running `install.sh` detects the old layout (full file copies, regular agent files) and migrates to the new layout. Backup `.bak` files are created for all replaced files.
+
 ## 2026-03-09
 
 ### Added

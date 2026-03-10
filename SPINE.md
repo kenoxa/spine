@@ -1,4 +1,4 @@
-# AGENTS.md
+# SPINE.md
 
 ## Behavior
 
