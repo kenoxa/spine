@@ -38,7 +38,7 @@ For any task with 3+ steps or architectural decisions: plan before implementing.
 
 **Subagents:** Use subagents to protect the main context window. Offload research, exploration, and parallel analysis. One task per subagent. Every dispatch must be self-contained — subagents inherit no conversation history or ambient context.
 
-**Sessions:** Workflow skills share a session directory at `.scratch/<session>/`. Session IDs use `{YYWW}-{slug}-{hash}` format — two-digit year + zero-padded ISO week, 3–5 word slug from the task, 4-char random hex (e.g., `2610-auth-retry-b7c1`). Generate once at skill entry; carry forward across discuss → plan → execute. The orchestrator maintains an append-only session log at `.scratch/<session>/session-log.md`, appending at phase boundaries — subagents do not write to it. When a built-in todo tool is available, use it to mirror phase progress for inline visibility; the session log remains the source of truth.
+**Sessions:** Workflow skills share a session directory at `.scratch/<session>/`. Session IDs use `{slug}-{hash}` format — 3–5 word slug from the task (lowercase, hyphen-separated, alphanumeric only), 4-char random hex (e.g., `auth-retry-b7c1`). Generate once at skill entry; carry forward across discuss → plan → execute. The orchestrator maintains an append-only session log at `.scratch/<session>/session-log.md`, appending at phase boundaries — subagents do not write to it. When a built-in todo tool is available, use it to mirror phase progress for inline visibility; the session log remains the source of truth.
 
 **Dependencies:** Batch dependency updates by risk. Verify (lint, build, tests) after each batch. Never update all dependencies at once.
 

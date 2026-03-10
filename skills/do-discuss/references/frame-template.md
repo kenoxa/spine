@@ -9,7 +9,7 @@ Terms are defined where first used. No references to prior conversation turns.
 
 ### Session
 
-Session ID in `{YYWW}-{slug}-{hash}` format. Carried forward into do-plan when user proceeds.
+Session ID in `{slug}-{hash}` format. Carried forward into do-plan when user proceeds.
 
 ### Confidence
 

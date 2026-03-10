@@ -13,6 +13,7 @@ All notable changes are documented here, focused on user impact.
 
 ### Changed
 
+- **Session ID format simplified** — changed from `{YYWW}-{slug}-{hash}` to `{slug}-{hash}`, dropping the year-week prefix. The ISO week number was frequently incorrect, making the intended chronological sorting unreliable. Filesystem timestamps serve the same purpose.
 - **Session ID references consolidated** — do-plan, do-execute, do-discuss, and do-history-insights now reference SPINE.md Sessions convention instead of inline session ID format definitions (~12 lines of duplication removed).
 - **do-handoff reads session log** — Gather phase checks for `.scratch/<session>/session-log.md` as primary input for the Current State section when available, with graceful fallback.
 - **README restructured** — 4-step workflow (discuss, plan, execute, commit) is now the dominant visual; "Typical Flow" renamed to "Workflow" with simplified LR mermaid diagram. Detailed skill descriptions and tips extracted to `docs/`. Subagents and convention tables collapsed. Claude Code Plugin demoted to details. `global-skills.md` moved to `docs/`.
