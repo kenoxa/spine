@@ -3,7 +3,7 @@
 ## Behavior
 
 - Read full files before editing. Gather evidence before changes.
-- Never expand scope beyond what was explicitly requested — no drive-by refactors or features.
+- Never expand scope beyond what was explicitly requested — no drive-by refactors or features. Flag adjacent breakage or risks, but don't fix without approval.
 - Pursue root-cause fixes. Never apply temporary workarounds without user approval and a tracked follow-up.
 - Never fabricate exact line numbers, IDs, or external references.
 - Don't add error handling for scenarios that can't happen. Validate only at system boundaries.
@@ -11,13 +11,24 @@
 - Never combine refactor and feature in the same change.
 - Never run destructive commands (drop, delete, force-push) without explicit user confirmation.
 - When working inside a project directory, never edit files outside it (global configs, home-directory dotfiles, other projects) unless explicitly instructed.
+- Never document, validate, or reference features that aren't implemented.
+- Justify every new dependency — each one is attack surface and maintenance burden.
+- When replacing an implementation, remove the old one entirely. No backward-compat shims, dual formats, or migration layers unless explicitly requested.
+
+## Code Quality
+
+- Functions: ≤100 lines, cyclomatic complexity ≤8, ≤5 positional parameters.
+- Fail fast with actionable messages. Never swallow exceptions. Include context: operation, input, suggested fix.
+- Test behavior, not implementation. Cover edges and error paths. Mock only at boundaries (network, filesystem, external services).
+- Fix all linter, type-checker, and compiler warnings in changed code. Suppress only with inline justification.
 
 ## Tools
 
 Prefer native tools: Grep not `rg`/`grep`, Glob not `find`/`ls`, Read not `cat`/`head`/`tail`, Edit not `sed`/`awk`. When MCP documentation tools are available (e.g., context7), prefer them over WebFetch/WebSearch for library and framework docs. Resolve the library ID first, then query specific topics.
 
 When shell is unavoidable:
-- Prefer `rg` over `grep`, `fd` over `find`, `jq` over grepping JSON.
+- Prefer `rg` over `grep`, `fd` over `find`, `jq` over grepping JSON, `ast-grep` over regex for structural code patterns.
+- Lint shell scripts with `shellcheck`; format with `shfmt`. Prefer `trash` over `rm` for file deletion.
 - Always quote glob and regex arguments to prevent shell expansion (`rg 'pattern'`, not `rg pattern`; `fd '*.ts'`, not `fd *.ts`).
 - Include a short description (4–7 words) on every shell command.
 - Detect package manager from lockfile before running commands (bun.lock → bun, pnpm-lock.yaml → pnpm, yarn.lock → yarn, package-lock.json → npm). Never assume npm.
@@ -40,7 +51,7 @@ For any task with 3+ steps or architectural decisions: plan before implementing.
 
 **Sessions:** Workflow skills share a session directory at `.scratch/<session>/`. Session IDs use `{slug}-{hash}` format — 5–7 word slug from the task, 4-char hex from `openssl rand -hex 2` at skill entry (e.g., `add-rate-limit-middleware-api-config-e1b4`, `fix-session-slug-length-validation-7d3f`). Generate once at skill entry; carry forward across discuss → plan → execute. The orchestrator maintains an append-only session log at `.scratch/<session>/session-log.md`, appending at phase boundaries — subagents do not write to it. When a built-in todo tool is available, use it to mirror phase progress for inline visibility; the session log remains the source of truth.
 
-**Dependencies:** Batch dependency updates by risk. Verify (lint, build, tests) after each batch. Never update all dependencies at once.
+**Dependencies:** Batch dependency updates by risk. Verify (lint, build, tests) after each batch. Never update all dependencies at once. Pin versions. Audit before deploying.
 
 **Bugs:** Point at logs, errors, and failing tests — then resolve them. Don't ask for hand-holding when the evidence is available.
 

@@ -52,6 +52,7 @@ step() { printf "\n${_C_BLUE}[%s]${_C_RESET} %s\n" "$1" "$2" >&2; }
 dep_present() {
   case "$1" in
     ripgrep)   command -v rg        >/dev/null 2>&1 ;;
+    ast-grep)  command -v ast-grep  >/dev/null 2>&1 || command -v sg >/dev/null 2>&1 ;;
     node)      command -v node      >/dev/null 2>&1 || command -v nodejs >/dev/null 2>&1 ;;
     coreutils) command -v gtimeout  >/dev/null 2>&1 || command -v timeout >/dev/null 2>&1 ;;
     *)         command -v "$1"      >/dev/null 2>&1 ;;
@@ -78,9 +79,9 @@ ensure_system_deps() {
   local os missing=()
   os="$(uname -s)"
 
-  # Deps spine uses — "formula:binary" when they differ, otherwise just "formula"
+  # Deps spine uses — sync with README.md CLI tools table when changing these
   local -a required=(git jq node)
-  local -a recommended=(bun coreutils fd ripgrep)
+  local -a recommended=(ast-grep bun coreutils fd ripgrep shellcheck shfmt)
 
   local use_brew=false
   if has_brew; then

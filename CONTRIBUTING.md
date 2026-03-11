@@ -112,4 +112,4 @@ Before submitting changes:
 - [ ] No tool-specific references (k5-*, nestor, dotcursor)
 - [ ] Anti-patterns are one line each
 - [ ] Cross-references to global skills are registered in `docs/global-skills.md`
-- [ ] SPINE.md stays under ~65 lines
+- [ ] SPINE.md stays under ~85 lines

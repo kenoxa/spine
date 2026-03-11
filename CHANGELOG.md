@@ -11,6 +11,9 @@ All notable changes are documented here, focused on user impact.
 - **Subagent dispatch centralized** — SPINE.md now contains the canonical subagent constraint string, removing 5 duplicate definitions from individual skills.
 - **do-polish advisory constraint strengthened** — intro now explicitly says "produces suggestions, not rewrites" and anti-pattern prohibits outputting complete rewritten files. Sonnet evaluation showed the compressed version produced full code rewrites without this framing.
 - **Skill-crafter gains compression safety rule** — "Compress grammar, not behavioral qualifiers" added to prevent future compression from dropping output-constraining phrases.
+- **SPINE.md strengthened with Trail of Bits principles** — new Code Quality section (function limits, error handling, test guidance, warning discipline), 3 Behavior bullets (no phantom features, justify deps, replace-don't-deprecate), scope bullet gains adjacent-risk flagging, tool preferences extended (`ast-grep`, `shellcheck`, `shfmt`, `trash`), dependency bullet gains pin+audit.
+- **Installer gains 3 recommended tools** — `ast-grep`, `shellcheck`, `shfmt` added to recommended deps array. `dep_present()` handles `ast-grep`→`sg` alias for cargo installs.
+- **README CLI tools table** — collapsible table documenting all 10 installer-managed tools (3 required, 7 recommended).
 
 ## 2026-03-10
 

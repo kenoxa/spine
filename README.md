@@ -115,6 +115,28 @@ Add to `~/.claude/settings.json`:
 
 </details>
 
+<details>
+<summary>CLI tools installed</summary>
+
+The installer checks for these tools and installs missing ones via Homebrew (macOS):
+
+| Tool | Category | Purpose |
+|------|----------|---------|
+| `git` | Required | Version control |
+| `jq` | Required | JSON processing |
+| `node` | Required | JavaScript runtime (for `npx skills`) |
+| `ast-grep` | Recommended | AST-based structural code search and refactoring |
+| `bun` | Recommended | Fast JavaScript runtime and package manager |
+| `coreutils` | Recommended | GNU core utilities (macOS) |
+| `fd` | Recommended | Fast file finder (alternative to `find`) |
+| `ripgrep` | Recommended | Fast text search (alternative to `grep`) |
+| `shellcheck` | Recommended | Shell script linter |
+| `shfmt` | Recommended | Shell script formatter |
+
+On Linux without Homebrew, the installer prints manual install hints.
+
+</details>
+
 > **Use agent mode.** Spine expects your AI tool to run in its most autonomous
 > mode — Cursor agent mode, Claude Code with auto-accept, or Codex auto mode.
 > Spine's skills replace built-in plan modes. See [Tips](docs/tips.md#agent-mode)
@@ -225,7 +247,7 @@ See [Tips](docs/tips.md) for slash command usage, workflow advice, model recomme
 
 - **Authoring test**: Every skill must address a task an LLM demonstrably handles worse without explicit guidance. No skills for general knowledge.
 - **Cross-platform**: No tool-specific formats. Skills, agents, and SPINE.md work in Cursor, Claude Code, and Codex without modification.
-- **Progressive disclosure**: SPINE.md is minimal (~65 lines). Skills load on demand. Reference files extract detail from skill bodies.
+- **Progressive disclosure**: SPINE.md is minimal (~85 lines). Skills load on demand. Reference files extract detail from skill bodies.
 - **Evidence-based**: Claims in plans, reviews, and execution must be tagged E0–E3. Blocking claims require code evidence (E2+).
 - **Self-contained**: No external registry or manifest system. Skills are plain markdown. The installer is a single bash script.
 
