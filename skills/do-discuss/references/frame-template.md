@@ -2,12 +2,11 @@
 
 ## Self-Sufficiency Contract
 
-Frames MUST be understandable without chat-history context. All claims cite evidence source.
-Terms are defined where first used. No references to prior conversation turns.
+Frames MUST be understandable without chat-history context. Claims cite evidence; terms defined at first use. No references to prior conversation turns.
+
+Target ~80 lines. Longer signals unresolved ambiguity or prose-table duplication.
 
 ## Required Sections
-
-**Planning brief mappings** — sections map to `planning_brief` fields as follows:
 
 | Section | `planning_brief.*` field |
 |---------|--------------------------|
@@ -27,21 +26,18 @@ One of: `low`, `medium`, `high`
 
 | Level | Meaning | Recommended next step |
 |-------|---------|----------------------|
-| `high` | Answered, no blocking unknowns | `do-plan` |
-| `medium` | Answered, open assumptions remain | `do-plan` (with caveats) |
+| `high` | No blocking unknowns | `do-plan` |
+| `medium` | Open assumptions remain | `do-plan` (with caveats) |
 | `low` | Not fully answerable | `brainstorming` or more discussion |
 
 ### Frame Question
-Single question whose answer unblocks planning. Specific (names affected system/behavior), answerable (finite options), scoped (enables planning directly).
+Question whose answer unblocks planning. Specific (names affected system/behavior), answerable (finite options), scoped (enables planning directly).
 
 ### Goal
 One-sentence problem restatement, disambiguated by discussion.
 
 ### Problem Statement
-2–4 sentences elaborating the problem and why-now. Must include:
-- What exists today (confirmed)
-- What is failing or missing (confirmed or labeled as assumed)
-- What the user wants instead
+2-4 sentences. Cover: what exists (confirmed), what fails/missing (confirmed or labeled assumed), what user wants.
 
 ### Scope
 | Dimension | In | Out |
@@ -49,14 +45,12 @@ One-sentence problem restatement, disambiguated by discussion.
 | [area] | [included] | [excluded] |
 
 ### Known Facts
-Confirmed claims with evidence level tags.
 
 | Fact | Evidence | Source |
 |------|----------|--------|
 | [claim] | E0/E1/E2/E3 | user-stated / file:path / doc:path |
 
 ### Key Decisions
-Decisions for do-plan to resolve. Not pre-decided.
 
 | ID | Question | Options | Door type |
 |----|----------|---------|-----------|
@@ -70,7 +64,6 @@ Decisions for do-plan to resolve. Not pre-decided.
 Blocking unknowns become do-plan discovery targets.
 
 ### Constraints
-Hard limits from discussion:
 - [constraint] — [evidence level] — [source]
 
 ### Recommended Next Step
@@ -78,7 +71,7 @@ One of: `do-plan`, `brainstorming`, `do-debug`, `more-discuss`. Note which field
 
 ## Conditionally Required Sections
 
-Include when condition met. Omission requires explicit skip rationale.
+Include when condition met. Omit only with skip rationale.
 
 ### Codebase Signals
 Required when tier-2 investigate phase triggered.
@@ -92,7 +85,7 @@ Required when tier-2 investigate phase triggered.
 Include when scope warrants. MUST-when-present rules apply.
 
 ### Discussion Learnings
-Proposals for skill/agent/workflow improvements from discussion. Never auto-applied — user must approve.
+Proposals — never auto-applied, user approves.
 
 ### Docs Impact
 Early classification: `customer-facing`, `internal`, `both`, or `none`. Advisory — do-plan reclassifies after discovery.

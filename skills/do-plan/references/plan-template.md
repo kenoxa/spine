@@ -2,16 +2,15 @@
 
 ## Self-Sufficiency Contract
 
-Plans MUST be executable without chat-history context. All paths are repo-relative.
-Terms are defined where first used. Rationale is included for material decisions.
-No references to prior conversation turns.
+Plans MUST be executable without chat-history context. Paths are repo-relative; terms defined at first use; rationale included for material decisions. No references to prior conversation turns.
+
+Target ~150 lines. Longer signals narrative Summary or prose-heavy Task descriptions.
 
 ## Required Sections
 
 ### Summary
 
 Problem or goal, solution approach, expected outcome. 2–4 sentences minimum.
-A reader unfamiliar with the conversation should understand purpose and approach from this section alone.
 
 ### Tasks
 
@@ -23,59 +22,48 @@ Ordered list of implementation tasks. Each task includes:
 | `description` | Always | What to do and why |
 | `dependencies` | Always | Task IDs this depends on (empty list if none) |
 | `files` | Always | Repo-relative paths to create or modify |
-| `changes` | Always | Per-file change description — what specifically changes and how (e.g., "add `validateToken()` method that checks JWT expiry and signature") |
+| `changes` | Always | Per-file change description — what specifically changes and how |
 
-Vague file references ("auth area", "somewhere in utils") are not acceptable — trace to concrete paths during planning. If a file doesn't exist yet, specify its intended path and purpose.
+No vague file refs — trace to concrete paths. New files: specify path + purpose.
 
 ### Parallelism Map
 
-Dependency graph: explicit edges (A → B when B depends on A), fanout groups safe to parallelize,
-blockers. Include a diagram when dependency structure is non-trivial (2+ parallel groups or 6+ tasks).
+Dependency graph with explicit edges (A → B when B depends on A), fanout groups safe to parallelize, blockers. Diagram required when 2+ parallel groups or 6+ tasks.
 
 ### Completion Criteria
 
-Testable acceptance conditions. Must be verifiable without running the plan author.
+Testable acceptance conditions. Verifiable without plan author.
 
 ### Execution Handoff
 
-Explicit statement that when the plan is approved, execution begins. Note any domain-specific skills
-or context required for execution subagents.
+State that execution begins on approval. Note required skills/context for subagents.
 
 ## Conditionally Required Sections
 
-Include when scope meets the stated condition. Omission requires explicit skip rationale.
+Include when condition met. Omit only with skip rationale.
 
 ### Documentation Tasks
 
-Required when scope has user-visible, API, or config changes (`docs_impact` ≠ `none`).
-Explicit doc updates with target files. When `docs_impact` is `customer-facing` or `both`,
-include changelog entries following the `use-writing` skill's changelog rules.
+Required when `docs_impact` ≠ `none`. Explicit doc updates with target files. When `docs_impact` is `customer-facing` or `both`, include changelog entries following the `use-writing` skill's changelog rules.
 
 ### Test Scenarios
 
-Required for behavior-changing work. Concrete cases with given/when/then expectations
-and expected inputs/outputs. Not abstract "add tests" tasks.
+Required for behavior-changing work. Concrete given/when/then — not abstract "add tests".
 
 ## Optional Sections
 
 Use when scope warrants. When present, each section's MUST-when-present rules apply.
 
-- **Context and Orientation** — Repo conventions, flow gaps, known constraints.
-- **Approach** — Key decisions and tradeoffs; written for human reader, not executor. Include a diagram
-  when non-trivial flow, sequencing, or component relationships warrant it. NEVER duplicate
-  Implementation Intent; the two sections serve different readers.
-- **Decisions** — Material decisions with options and rationale. NEVER include unresolved placeholders
-  (TBD, "to be decided"); all decisions must be resolved, defaulted, or explicitly user-deferred
-  with evidence before synthesis.
-- **Phased Plan** — Multi-phase sequencing when work spans distinct phases.
-- **Risks and Rollback** — Notable risks and rollback strategy.
-- **Implementation Intent** — Goal-level intent: `code_intent` (pattern-level what/how),
-  `acceptance_criteria` (testable per-task conditions). MAY include `reference_anchors`
-  (existing code to align with). Outcome-focused "what" over implementation "how".
-- **Code Anchors** — Repo-relative file paths and existing code to align with or modify.
-  When present, MUST list explicit paths.
-- **Draft Artifacts** — Pre-written text for docs, config, schema changes. Workers refine rather than
-  create from scratch. When present, MUST be non-placeholder.
+| Section | Content | MUST-when-present |
+|---------|---------|-------------------|
+| **Context and Orientation** | Repo conventions, flow gaps, known constraints | — |
+| **Approach** | Key decisions and tradeoffs; written for human reader, not executor. Diagram for non-trivial flows | NEVER duplicate Implementation Intent — different readers |
+| **Decisions** | Material decisions with options and rationale | NEVER include unresolved placeholders (TBD); all decisions resolved, defaulted, or user-deferred with evidence |
+| **Phased Plan** | Multi-phase sequencing for work spanning distinct phases | — |
+| **Risks and Rollback** | Notable risks and rollback strategy | — |
+| **Implementation Intent** | `code_intent` (pattern-level what/how), `acceptance_criteria` (testable per-task). MAY include `reference_anchors` | Outcome-focused "what" over "how" |
+| **Code Anchors** | Existing code to align with or modify | MUST list explicit paths |
+| **Draft Artifacts** | Pre-written text for docs, config, schema. Workers refine rather than create | MUST be non-placeholder |
 
 ## Evidence Expectations
 

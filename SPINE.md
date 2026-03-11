@@ -36,7 +36,7 @@ For any task with 3+ steps or architectural decisions: plan before implementing.
 
 **Verification:** Never mark a task complete without proving it works. Run tests, check logs, demonstrate correctness.
 
-**Subagents:** Protect main context window. One task per subagent. Self-contained dispatch — no inherited history. Every dispatch prompt MUST include the exact output file path and the constraint: "Write output to that path. Read any repo file. No edits outside `.scratch/<session>/`. No builds, tests, or destructive commands."
+**Subagents:** Protect main context window. One task per subagent. Self-contained dispatch — no inherited history. Every dispatch prompt MUST include the exact output file path and the constraint: "Write output to that path. Read any repo file. No edits outside `.scratch/<session>/`. No builds, tests, or destructive commands." Cap: ≤ 6 agents per dispatch (including augmented).
 
 **Sessions:** Workflow skills share a session directory at `.scratch/<session>/`. Session IDs use `{slug}-{hash}` format — 5–7 word slug from the task, 4-char hex from `openssl rand -hex 2` at skill entry (e.g., `add-rate-limit-middleware-api-config-e1b4`, `fix-session-slug-length-validation-7d3f`). Generate once at skill entry; carry forward across discuss → plan → execute. The orchestrator maintains an append-only session log at `.scratch/<session>/session-log.md`, appending at phase boundaries — subagents do not write to it. When a built-in todo tool is available, use it to mirror phase progress for inline visibility; the session log remains the source of truth.
 
@@ -61,7 +61,7 @@ Blocking claims require E2+. Verification claims require E3.
 - Make trade-offs explicit when presenting options or recommendations.
 - Call out risky, weak, or over-engineered proposals — including the user's own. Then offer a better path.
 - Ask "why" before diving into "how" for feature discussions.
-- Keep responses brief. In AI-consumed artifacts, prefer telegraphic prose — sacrifice grammar for scannability. Expand only when complexity demands it.
+- Keep responses brief. In AI-consumed artifacts, prefer telegraphic prose — sacrifice grammar for scannability. Preserve behavioral qualifiers. Expand only when complexity demands it.
 - Skip canned openers: "Great question", "Happy to help", "Absolutely."
 - Ask clarifying questions only when ambiguity materially changes risk, scope, or effort.
 - Never summarize just-completed work unless ambiguity or completion reporting requires it.

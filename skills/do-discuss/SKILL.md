@@ -69,7 +69,7 @@ Subagent dispatch for codebase evidence.
 
 Dispatch context: specific unknowns from inventory, current `known`/`unknown` state, why user could not answer (domain vs. codebase gap).
 
-Max 2 rounds, max 2 concurrent agents. Synthesize into `codebase_signals`, return to clarify.
+Before dispatch: select 1 lens from `do-plan/references/variance-lenses.md` — match `unknown` inventory against lens trigger column, log selection reasoning (2-3 sentences). Dispatch one augmented `@researcher` with the lens focus directive. Max 3 concurrent (1-2 base + 1 augmented). Max 2 rounds. Synthesize into `codebase_signals`, return to clarify.
 
 Escalation to tier 3: ambiguous scope AND `key_decisions` has 2+ one-way-door options after investigation.
 
@@ -86,6 +86,8 @@ Team `discuss-explore` — three `@framer` personas for one-way-door decisions r
 Dispatch context: current `problem_frame` (in-progress), full `known`/`unknown` inventory, assigned perspective, all three output paths.
 
 Dispatch all three in parallel → wait → re-invoke each to read peers and append `## Peer Reactions` → synthesize. Irreconcilable positions become `key_decisions`.
+
+Dispatch one additional `@framer` with the variance lens from investigate (or select lens per variance-lenses.md if investigate was skipped). Output: `.scratch/<session>/discuss-explore-augmented-{lens}.md`. Included in peer reaction round. Max 4 total framers.
 
 ### 5. Frame
 
@@ -114,8 +116,6 @@ do-discuss → brainstorming          (low confidence → ideation)
 do-debug → do-discuss               (root cause → architectural scope)
 ```
 
-do-discuss = convergent/diagnostic ("what is the problem?"); brainstorming = divergent/creative ("what should we build?").
-
 ## Ask Policy
 
 - During clarify: when user's answer reveals problem is substantially different from initial description
@@ -134,10 +134,6 @@ do-discuss = convergent/diagnostic ("what is the problem?"); brainstorming = div
 ## Anti-Patterns
 
 - Asking leading questions that embed solutions
-- Proposing implementations (framing, not planning)
 - Framing as solution choice ("should we use Redis?") instead of diagnostic ("is the bottleneck in storage or retrieval?")
 - Dispatching tier-2 agents for questions answerable by the user
 - Dispatching tier-3 team for simple problems with clear scope
-- Silently dropping blocking unknowns when user wants to proceed
-- Running discuss when input is already plan-ready
-- Frame artifact referencing conversation turns (violates self-sufficiency)

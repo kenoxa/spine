@@ -7,7 +7,7 @@ description: >
 argument-hint: "[plan reference or task]"
 ---
 
-Six phases: scope → implement → polish → review → verify → finalize.
+Seven phases: scope → implement → validate → polish → review → verify → finalize.
 
 ## Entry Gate
 
@@ -17,13 +17,13 @@ No approved plan → run do-plan first. Never begin with incomplete planning. Ne
 
 ## Depth
 
-Classify at entry. Controls fanout, not which phases run — all six always execute.
+Classify at entry. Controls fanout, not which phases run — all seven always execute.
 
 | Level | Behavior |
 |-------|----------|
 | `focused` | Main thread handles all phases inline — no subagent dispatch |
 | `standard` | Subagent dispatch per phase |
-| `deep` | Subagent dispatch per phase with expanded fanout |
+| `deep` | Subagent dispatch per phase with expanded fanout: up to 3 augmented agents per dispatch table from variance analysis |
 
 ## Evidence Levels
 
@@ -35,12 +35,13 @@ See AGENTS.md for E0–E3 definitions. Blocking claims MUST be E2+. Verify claim
 
 At `focused` depth, main thread handles all phases inline — no dispatch. Roles below apply to `standard` and `deep` only. Every subagent prompt MUST be self-contained: include scope artifact, files modified, plan excerpt.
 
-| Phase | Agent type | Rationale |
-|-------|-----------|-----------|
-| Implement | `@worker` | Read-write; edits source per partition |
-| Polish | `@analyst` | Advisory-only; `[S]`/`[F]` prefixes, no gate authority |
-| Review | `@inspector` | Verdict-focused; `[B]`/`[S]`/`[F]` severity, spec compliance |
-| Verify | `@verifier` | Adversarial; runs commands, read-only for source |
+| Phase | Agent type |
+|-------|-----------|
+| Implement | `@worker` |
+| Validate | `@inspector` |
+| Polish | `@analyst` |
+| Review | `@inspector` |
+| Verify | `@verifier` |
 
 ### 1. Scope
 
@@ -57,19 +58,23 @@ Output `scope_artifact`:
 
 Ask user when blocking questions non-empty. Never carry unresolved questions into implement.
 
+At `standard`/`deep` depth: inherit `variance_lenses` from approved plan when available. Otherwise, select from `do-plan/references/variance-lenses.md` based on `scope_artifact`: 1-2 at standard, 2-3 at deep. `focused` depth: skip.
+
 ### 2. Implement
 
 Dispatch `@worker` type (`implement` mode): one per partition. Parallel for independent; sequential for dependent. No overlapping file writes.
 
-Output: `files_modified` — repo-relative list of all changed files.
+Output: `files_modified` — repo-relative list of all changed files. One logical change per dispatch; unrelated issues → follow-up tasks.
 
-One logical change per dispatch. Unrelated issues → follow-up tasks, not inline fixes.
+### 3. Validate
 
-Worker self-review: completeness, naming clarity, YAGNI, tests verify behavior not mocks.
+Structural integrity check — do changed files parse, do imports resolve, do expected exports/functions exist per plan.
 
-### 3. Polish
+Dispatch: single `@inspector` (validate mode). Receives `files_modified`, `scope_artifact`, plan excerpt. Output: `.scratch/<session>/execute-validate.md`. At `focused` depth: inline pass by main thread.
 
-Two sub-steps:
+Output: `validation_result` — PASS (proceed to polish) or BLOCK with specific structural findings. BLOCK → re-enter implement with `validation_brief`. After 2 consecutive BLOCKs, escalate to user.
+
+### 4. Polish
 
 1. **Advisory pass**: dispatch analysts **in parallel** (`@analyst` type):
 
@@ -79,15 +84,15 @@ Two sub-steps:
    | `complexity-advisor` | Defensive bloat on trusted paths (NEVER flag auth/authz/validation); premature abstraction | `.scratch/<session>/execute-polish-complexity-advisor.md` |
    | `efficiency-advisor` | Reuse opportunities, N+1, missed concurrency, hot-path bloat | `.scratch/<session>/execute-polish-efficiency-advisor.md` |
 
+   Dispatch additional `@analyst` per variance lens. Output: `.scratch/<session>/execute-polish-augmented-{lens}.md`. Standard: 1-2. Deep: 2-3. Cap: 6 total.
+
    **Synthesis**: deduplicate findings, assign E-levels. Every E2+ finding → action or explicit rejection. Silent drops prohibited.
 
 2. **Apply**: workers (`@worker` type, `polish-apply` mode) apply synthesis actions from the advisory pass. Apply sub-step skipped when no actions exist.
 
 Output: `polish_findings`, updated `files_modified`.
 
-### 4. Review
-
-Two stages, sequential:
+### 5. Review
 
 1. **Tests & docs** (conditional): skip when no behavior-changing code AND `docs_impact` is `none`.
    Otherwise:
@@ -102,19 +107,21 @@ Two stages, sequential:
    | `correctness-reviewer` | Logic errors, edge cases, race conditions, failure paths; assumes adversarial inputs | `.scratch/<session>/execute-review-correctness-reviewer.md` |
    | `risk-reviewer` | Security boundaries, performance, scalability; depth scales by risk | `.scratch/<session>/execute-review-risk-reviewer.md` |
 
+   Dispatch additional `@inspector` per variance lens. Output: `.scratch/<session>/execute-review-augmented-{lens}.md`. Standard: 1-2. Deep: 2-3. Cap: 6 total.
+
    **Synthesis**: deduplicate findings across reviewers. Assign final E-levels and severity per `do-review` rules.
 
 Blocking (E2+) → `re_dispatch_brief` → re-enter polish. Advisory → record, proceed to verify.
 
 Output: `review_findings` with E-levels per finding.
 
-### 5. Verify
+### 6. Verify
 
 Dispatch `@verifier` type. Single instance (all depths). Receives `files_modified`, `review_findings`, plan excerpt. All claims MUST be E3. E2- claims are advisory — never block on them.
 
 Output: `verification_result` — PASS, FAIL, or PARTIAL with specifics.
 
-### 6. Finalize
+### 7. Finalize
 
 Main thread only. Sole completion authority.
 
@@ -125,18 +132,19 @@ Main thread only. Sole completion authority.
 ## Re-entry
 
 ```
-Scope → Implement → Polish → Review → Verify → Finalize
-                      ↑         |
-                      └─────────┘  blocking review findings
-                      ↑
-                      └──── verify semantic failure
+Scope → Implement → Validate → Polish → Review → Verify → Finalize
+              ↑          |        ↑         |
+              └──────────┘        └─────────┘  blocking review findings
+                                  ↑
+                                  └──── verify semantic failure
 ```
 
+- **Validate BLOCK** → re-enter implement with `validation_brief`
 - **Blocking review findings** → re-enter polish (advisory re-runs, `@worker` `review-fix` mode applies fixes)
 - **Verify semantic failure** (behavior/spec) → polish → review → verify
 - **Verify non-semantic failure** (lint, types, build) → `@worker` `review-fix` fix → re-verify only
 
-Each polish re-entry = one iteration. Cap: **5**. On cap: freeze best state, ask user to continue.
+Validate and polish re-entries share one iteration counter. Cap: **5**. On cap: freeze best state, ask user to continue.
 
 ## Content Gates
 
@@ -155,12 +163,7 @@ Exact phrases:
 
 ## Anti-Patterns
 
-- Skipping phases regardless of depth
-- Advisory analyst writing to codebase files during polish (scratch writes are expected)
-- Silently dropping E2+ polish findings without action or explicit rejection
-- Blocking completion on E2- verifier output
-- Making inline main-thread edits when not at focused depth
+- Advisory analyst writing to codebase files during polish (scratch only)
+- Blocking completion on E2- verifier output (advisory, not gate)
 - Overlapping concurrent writes to the same file
-- Auto-applying learnings in finalize
 - Skipping tests-and-docs stage without verifying `docs_impact` classification
-- Declaring completion without test evidence (E3) for behavior-changing code

@@ -15,13 +15,19 @@ Unclear requirements or wide-open solution space → run `brainstorming` first; 
 
 Every subagent prompt MUST be self-contained — include all prior-phase context.
 
-| Phase | Agent type | Rationale |
-|-------|-----------|-----------|
-| Discovery | `@researcher` | Deep evidence gathering with structured E-level output |
-| Planning | `@planner` | Angle-committed, no phase re-entry |
-| Challenge | `@debater` | Adversarial Socratic dialogue, peer-reactive |
+| Phase | Agent type |
+|-------|-----------|
+| Discovery | `@researcher` |
+| Planning | `@planner` |
+| Challenge | `@debater` |
 
 **Session ID**: Generate per SPINE.md convention. Reuse across phases; carry into do-execute. Append to session log at phase boundaries. Paths use `<session>` as placeholder.
+
+## Variance Analysis
+
+Run once at skill entry (before discovery). Match task description against [references/variance-lenses.md](references/variance-lenses.md) trigger keywords; select 1-2 lenses. Store as `variance_lenses`. Log selection (one sentence) in session log. Carry the same selection through all phases — do not re-select per phase.
+
+When no lens trigger matches the task, `variance_lenses` is empty (no augmented agents dispatched). Augmented agents use the lens focus directive as persona. Output paths: `.scratch/<session>/plan-{phase}-augmented-{lens}.md`.
 
 ### 1. Discovery
 
@@ -32,6 +38,8 @@ Map codebase before planning. Dispatch **in parallel** (`@researcher` type):
 | `file-scout` | Entry points, call graphs, config flags, change surface | `.scratch/<session>/plan-discovery-file-scout.md` | Always |
 | `docs-explorer` | Intended behavior, spec bullets, ambiguities | `.scratch/<session>/plan-discovery-docs-explorer.md` | Always |
 | `external-researcher` | Upstream breaking changes, API gotchas, version compat | `.scratch/<session>/plan-discovery-external-researcher.md` | When touching external deps |
+
+Dispatch additional `@researcher` per `variance_lenses` entry. Cap: base + augmented ≤ 5 total.
 
 **Synthesis**: merge into `discovery_findings`. Tag claims with E-level. Conflicts → prefer higher; same level → flag for framing.
 
@@ -69,15 +77,13 @@ Dispatch **in parallel** (`@planner` type). Each receives `planning_brief` + `ev
 | `thorough` | Enumerates every edge case and failure mode; missing coverage = gap | `.scratch/<session>/plan-planning-thorough.md` |
 | `innovative` | Proposes structural improvements; justifies each departure with concrete benefit | `.scratch/<session>/plan-planning-innovative.md` |
 
+Dispatch additional `@planner` per `variance_lenses` entry. Cap: base + augmented ≤ 5 total.
+
 **Synthesis**: merge into `canonical_plan`. Deduplicate by meaning; rank E3 > E2 > E1 > E0; conflicting E2+ → verification pass aiming for E3.
 
 ### 4. Challenge
 
-Adversarial review of `canonical_plan`. Blocking findings MUST be E2+; E0-only are advisory.
-
-Challenge methodology:
-- Expose hidden assumptions and risks; flag over/under-engineering, unnecessary abstraction
-- Never block without a better alternative (project-documented, industry-standard, or lower risk)
+Adversarial review of `canonical_plan`. Blocking findings MUST be E2+; E0-only are advisory. Never block without a better alternative (project-documented, industry-standard, or lower risk).
 
 Review lenses: `assumptions` (approach correctness), `nfr` (security, perf, scalability). Use `visual-explainer` for architecture diagrams.
 
@@ -88,6 +94,8 @@ Unresolved after asking → dispatch debate **in parallel** (`@debater` type). E
 | `thesis-champion` | Steelmans plan strengths; rebuts objections with evidence | `.scratch/<session>/plan-challenge-thesis-champion.md` |
 | `counterpoint-dissenter` | Attacks assumptions; surfaces risks; proposes alternatives | `.scratch/<session>/plan-challenge-counterpoint-dissenter.md` |
 | `tradeoff-analyst` | Weighs positions; quantifies costs, reversibility, irreversible commitments | `.scratch/<session>/plan-challenge-tradeoff-analyst.md` |
+
+Dispatch additional `@debater` per `variance_lenses` entry. Cap: base + augmented ≤ 5 total.
 
 **Synthesis**: incorporate surviving E2+ findings. Close resolved findings with rationale.
 
@@ -136,8 +144,5 @@ Synthesis cannot declare readiness unless plan includes:
 
 ## Anti-Patterns
 
-- Skipping challenge for complex scope
-- Carrying E0-only objections as blocking findings into synthesis
-- Declaring readiness when self-sufficiency contract is unmet
 - Silently carrying unresolved `key_decisions` past the ask checkpoint
-- Declaring readiness without `docs_impact` classification in the planning brief
+- Re-selecting variance lenses mid-plan instead of carrying entry selection

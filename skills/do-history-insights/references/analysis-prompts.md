@@ -2,18 +2,12 @@
 
 ## Common Output Format
 
-All prompts use this finding structure:
-- **Pattern name** — descriptive title
-- **Frequency** — sessions, projects
-- **Evidence** — session IDs or aggregated metrics
-- **Implication** — what automation would address this
+Finding structure: **Pattern name** (title) · **Frequency** (sessions, projects) · **Evidence** (session IDs or metrics) · **Implication** (automation target).
 
 ## Source-Expert Prompt Template
 
-Use for all three providers, substituting provider-specific focus areas below.
-
 ```
-Analyze {provider} session data from the last N days. Identify repeated workflows, friction points, and automation opportunities.
+Analyze {provider} session data from last N days. Find repeated workflows, friction points, automation opportunities.
 
 ## Data
 {analytics_data}
@@ -33,18 +27,16 @@ Analyze {provider} session data from the last N days. Identify repeated workflow
 Per finding: pattern name, frequency, evidence, implication. Write complete output to {output_path}.
 ```
 
-### Provider-specific focus areas
+### Provider focus areas
 
 **Claude Code:** Friction tags (causes, themes). Skill usage (frequent, underused, missing). Subagent dispatch patterns.
-
 **Codex:** exec_command sequences to script. Mode (full-auto vs interactive) correlation with success. Thread naming → task categories.
-
 **Cursor:** scored_commits AI attribution % by project. Model choice vs session type. Conversation summaries → dominant categories, tool preference.
 
 ## Synthesizer Prompt
 
 ```
-Synthesize cross-tool session analysis into actionable recommendations.
+Synthesize cross-tool session analysis into recommendations.
 
 ## Source Expert Analyses
 {all_expert_outputs}

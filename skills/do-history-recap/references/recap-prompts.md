@@ -2,7 +2,7 @@
 
 ## Shared Preamble
 
-Include at start of every miner dispatch, substituting `{variables}`, before format-specific template.
+Prepend to every miner dispatch. Substitute `{variables}` before format template.
 
 ### Provider Field Availability
 | Field | Claude | Codex | Cursor |
@@ -21,27 +21,23 @@ Include at start of every miner dispatch, substituting `{variables}`, before for
 2. Token-based: `(tokens.input + tokens.output) / 800` min — Claude only
 3. `len(user_prompts) * 5` min
 4. Default: 15 min
-5. Round to whole hours for timesheet (min 1h)
-6. Cap: 8h/session, 8h/day
-7. Prefix all estimates with `~`
+
+Post-process: round to whole hours (min 1h), cap 8h/session + 8h/day, prefix `~`.
 ### Task Description Derivation Priority
 `brief_summary` > `title` > `thread_name` > `summary` > first `user_prompt` (truncated 80 chars) > `files_touched` paths > `"unspecified task"`
 ### Edge Cases
 - `duration_minutes: 0` — treat as unknown, use estimation chain
 - No task description — use "unspecified task", note session ID
 - Empty `user_prompts` AND no summary — fall back to `files_touched`; if also empty, "unspecified task"
-- Git log supplements, never replaces session-derived descriptions
-- Git commits but no session description — use most relevant commit message
+- Git log supplements session data; if no session description, use most relevant commit message
 ### Session Data
-Read from scratch directory; skip missing files. Structure: `{"provider": "name", "sessions": [...]}`.
+Scratch dir; skip missing files. Structure: `{"provider": "name", "sessions": [...]}`.
 - `{scratch_dir}/claude_sessions.json`
 - `{scratch_dir}/codex_sessions.json`
 - `{scratch_dir}/cursor_sessions.json`
 - `{scratch_dir}/git_log.json` — commit log keyed by project (supplementary)
 ### Project Filter
-{project_filter}
-
-Match against each session's `project` field (e.g., `kenoxa/spine`).
+{project_filter} — match against each session's `project` field (e.g., `kenoxa/spine`).
 
 ## Standup Prompt Template
 ```
@@ -62,9 +58,6 @@ Example:
 - Implement history-recap skill (~3h, 2 sessions)
 - Fix parser edge case for empty prompts (~1h)
 
-## website
-- Update auth session handling (~2h)
-
 No sessions → "No AI sessions found in the last {date_range}."
 Filter matches nothing → "No sessions found for project matching '<filter>'." (raw filter value, not preamble instruction) + available project names.
 
@@ -78,11 +71,8 @@ Produce a billable timesheet from AI-assisted work sessions.
 {preamble}
 
 ## Duration & Time Rules
-- Map timestamps to nearest whole hour within 9:00–17:00
-- Outside 9–17: normalize into workday window
-- Round to whole hours (minimum 1h per entry)
-- Max 8h/day; if exceeded, compress proportionally
-- Consolidate sub-hour sessions on same project into one entry
+- Map to nearest whole hour within 9:00–17:00; outside 9-17: normalize into workday window
+- Round to whole hours (min 1h); max 8h/day (compress proportionally); consolidate sub-hour same-project sessions
 ## Output Format
 Group by date (most recent first):
 - `### YYYY-MM-DD (Weekday)`
@@ -90,11 +80,8 @@ Group by date (most recent first):
 - `**Total: Nh**` per day
 - Grand total at bottom
 ### Worked Example
-Input: Claude session at 14:32, estimated ~45 min, project "spine", brief_summary "Add recap skill"
-Output: `14-15 spine: Add recap skill`
-
-Input: Cursor session at 09:15, 3 user prompts (~15 min estimated, rounds to 1h), project "website", title "Fix auth"
-Output: `9-10 website: Fix auth`
+Input: Claude, 14:32, ~45 min, project "spine", brief_summary "Add recap skill" → `14-15 spine: Add recap skill`
+Input: Cursor, 09:15, 3 prompts (~15 min → 1h), project "website", title "Fix auth" → `9-10 website: Fix auth`
 ### Example Output
 ### 2026-03-10 (Tuesday)
 9-12  spine: Implement history-recap skill
@@ -117,7 +104,7 @@ Write complete output to {output_path}.
 
 ## Recap Prompt Template
 ```
-Produce a narrative work recap from AI-assisted work sessions.
+Produce narrative work recap from AI-assisted work sessions.
 
 {preamble}
 
@@ -131,7 +118,7 @@ Produce a narrative work recap from AI-assisted work sessions.
 4. If commit_stats available: lines added/deleted
 5. If multiple providers: note cross-tool usage patterns
 
-Professional, concise. Each project section should be 2-4 sentences.
+Concise. 2-4 sentences per project.
 
 No sessions → "No AI sessions found in the last {date_range}."
 

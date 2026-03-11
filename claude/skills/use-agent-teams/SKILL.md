@@ -18,9 +18,11 @@ files are silently ignored for team agents.
 
 Use `team_name` matching the phase: `discuss-explore`, `plan-planning`, `plan-challenge`, `exec-polish`, `exec-review`.
 
+**Augmented teammates**: When variance analysis adds augmented agents, spawn them as additional teammates. Derive inline persona from the lens focus directive (becomes the teammate's framing stance). Generate a peer directive that complements — never contradicts — base teammate directives. Augmented teammates participate in peer exchange on equal footing. All teammates (base + augmented) spawn before any peer exchange begins.
+
 ## do-discuss Phase 4: Explore
 
-Create one team. Perspective-committed framers react to each other's outputs — advisory dialogue, not independent position papers.
+Create one team.
 
 | Teammate | Peer directive |
 |----------|---------------|
@@ -48,7 +50,7 @@ Lead merges teammate outputs + peer message history into `canonical_plan`.
 
 ## do-plan Phase 4: Challenge Debate
 
-Create one team. Socratic dialogue, not independent position papers — debaters react to each other's arguments mid-flight.
+Create one team.
 
 | Teammate | Peer directive |
 |----------|---------------|
@@ -92,8 +94,5 @@ All other phases: use standard subagent dispatch from Spine skill files.
 
 ## Anti-Patterns
 
-- Creating teams for main-thread-only or single-subagent phases
 - Using delegate mode — always use default mode (delegate breaks tool access)
-- Spawning teams when env var is unset
-- Defining teammate personas only via .claude/agents/ files (silently ignored — inline only)
 - Forgetting to shut down a team before creating the next phase's team
