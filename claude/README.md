@@ -50,6 +50,20 @@ Upgrades Spine's parallel subagent dispatch to Claude Code Agent Teams for 4 pha
 
 Requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`. Without the env var, this skill has zero effect — Spine's built-in subagent dispatch applies unchanged.
 
+### `do-skill-eval` skill
+
+Optimizes and evaluates changed skill/agent/instruction files in any repo:
+
+| Phase | What happens |
+|-------|-------------|
+| Detect | Auto-discover changed evaluatable files via `git diff` + `git status` |
+| Optimize | Generate 1-3 improved variations per file using use-skill-craft criteria + model intelligence |
+| Evaluate | Run all variants (HEAD baseline, working copy, optimizations) through `claude -p` CLI |
+| Report | Present comparison via `visual-explainer` as interactive HTML |
+| Iterate | Refine variations based on user feedback until optimal |
+
+Works in any repo, not spine-specific. Requires the `skill-creator` plugin for grading and benchmarking.
+
 ## Structure
 
 ```
@@ -61,6 +75,8 @@ claude/
 │   ├── check-on-edit.sh     PostToolUse checker hook
 │   └── inject-agents-md.sh  SessionStart hook script
 └── skills/
+    ├── do-skill-eval/
+    │   └── SKILL.md          Skill optimization + evaluation loop
     └── use-agent-teams/
         └── SKILL.md          Agent Teams overlay skill
 ```
