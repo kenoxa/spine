@@ -73,6 +73,10 @@ Construct the dispatch prompt by combining:
 
 Read `.scratch/<session>/report-{format}.md`. Display directly as markdown. No post-processing — subagent output IS final output.
 
+### Visual recap
+
+Dispatch `@visualizer` if complexity warrants it or requested: work activity recap for <time-window>. Data: `.scratch/<session>/report-{format}.md`. Output: `.scratch/<session>/history-recap.html`. Otherwise suggest to user. Skip only if user has declined.
+
 ## Guidelines
 
 - **Data source**: Miner reads raw `*_sessions.json` for detail; `analytics.json` for summary stats only

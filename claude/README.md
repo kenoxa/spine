@@ -59,7 +59,7 @@ Optimizes and evaluates changed skill/agent/instruction files in any repo:
 | Detect | Auto-discover changed evaluatable files via `git diff` + `git status` |
 | Optimize | Generate 1-3 improved variations per file using use-skill-craft criteria + model intelligence |
 | Evaluate | Run all variants (HEAD baseline, working copy, optimizations) through `claude -p` CLI |
-| Report | Present comparison via `visual-explainer` as interactive HTML |
+| Report | Present comparison via `@visualizer` as interactive HTML |
 | Iterate | Refine variations based on user feedback until optimal |
 
 Works in any repo, not spine-specific. Requires the `skill-creator` plugin for grading and benchmarking.

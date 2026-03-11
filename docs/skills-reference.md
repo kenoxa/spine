@@ -79,7 +79,7 @@ Periodic cross-tool session analysis. Python scripts parse raw session data from
 1. **Collect** — run parser scripts to extract and normalize session data from all three tools into `analytics.json`.
 2. **Analyze** — dispatch source-expert `@miner` subagents in parallel (one per provider with sessions) to identify provider-specific patterns.
 3. **Synthesize** — a synthesizer `@miner` merges all expert outputs into recommendations across 7 categories: skills, hooks, MCP servers, plugins, agents, CLAUDE.md rules, and anti-patterns.
-4. **Present** — activity stats table and prioritized recommendations in the terminal. Optional HTML dashboard via `visual-explainer`.
+4. **Present** — activity stats table and prioritized recommendations in the terminal. HTML dashboard via `@visualizer`.
 
 Every recommendation includes evidence (session counts, specific examples) and a concrete action. Cross-tool patterns — the same workflow repeated across multiple tools — are the highest-value findings.
 
@@ -136,6 +136,7 @@ Canonical entry: [`skills/log-history-recap/SKILL.md`](../skills/log-history-rec
 | `framer` | inherit | Perspective-committed problem framing |
 | `verifier` | inherit | Adversarial verification with E3 evidence, preloads `with-testing` |
 | `miner` | inherit | Session data analysis and cross-session pattern extraction |
+| `visualizer` | inherit | HTML visualization via visual-explainer commands, preloads `visual-explainer` |
 | `worker` | inherit | Read-write implementation for plan-driven code changes |
 
 ## Skill Prefix Convention

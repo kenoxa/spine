@@ -85,7 +85,9 @@ Main thread reads synthesizer output.
 
 **Terminal summary** (always): activity stats table (sessions by provider, avg duration, top projects), then recommendations by category sorted by priority. Lead with highest-impact. Include only non-empty categories.
 
-**HTML dashboard** (on request): invoke `visual-explainer` skill for interactive page with activity heatmap, tool usage chart, cross-tool comparison table, recommendation cards.
+**HTML dashboard**: Guard: `.scratch/<session>/insights-synthesize-synthesizer.md` exists and non-empty. Inform user before dispatch.
+
+Dispatch `@visualizer`: activity dashboard — heatmap by day/project, tool usage chart, cross-tool comparison, recommendation cards. Data: `.scratch/<session>/insights-synthesize-synthesizer.md`, `.scratch/<session>/analytics.json`. Output: `.scratch/<session>/history-insights.html`.
 
 ## Anti-Patterns
 

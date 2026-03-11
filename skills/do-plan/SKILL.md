@@ -85,7 +85,9 @@ Dispatch additional `@planner` per `variance_lenses` entry. Cap: base + augmente
 
 Adversarial review of `canonical_plan`. Blocking findings MUST be E2+; E0-only are advisory. Never block without a better alternative (project-documented, industry-standard, or lower risk).
 
-Review lenses: `assumptions` (approach correctness), `nfr` (security, perf, scalability). Use `visual-explainer` for architecture diagrams.
+Review lenses: `assumptions` (approach correctness), `nfr` (security, perf, scalability).
+
+After challenge synthesis, dispatch `@visualizer`: architecture diagram — system topology, modules, data flows, dependencies from canonical plan. Read: `.scratch/<session>/plan-synthesis-planning.md`, `.scratch/<session>/plan-synthesis-challenge.md`. Output: `.scratch/<session>/plan-challenge-diagram.html`.
 
 Unresolved after asking → dispatch debate **in parallel** (`@debater` type). Each receives `canonical_plan`, unresolved findings, `evidence_manifest`.
 
@@ -104,6 +106,8 @@ Dispatch additional `@debater` per `variance_lenses` entry. Cap: base + augmente
 Main thread only. Sole readiness authority.
 
 1. Assemble final plan per [references/plan-template.md](references/plan-template.md). Write to `.scratch/<session>/plan.md`.
+
+**Visual plan review**: dispatch `@visualizer` if complexity warrants it or requested — plan review for `.scratch/<session>/plan.md`. Output: `.scratch/<session>/plan-review.html`. Otherwise suggest to user. Skip only if user has declined.
 2. Validate [Plan Requirements](#plan-requirements).
 3. Confirm blocking findings incorporated or rejected with rationale.
 4. Confirm no open ask-checkpoint decisions without user-deferred evidence.
@@ -146,3 +150,4 @@ Synthesis cannot declare readiness unless plan includes:
 
 - Silently carrying unresolved `key_decisions` past the ask checkpoint
 - Re-selecting variance lenses mid-plan instead of carrying entry selection
+- Same output filename for both `@visualizer` dispatches — use `plan-challenge-diagram.html` and `plan-review.html`

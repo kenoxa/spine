@@ -20,6 +20,7 @@ Bounded, read-only codebase exploration. No file writes, no implementation propo
 4. **Map flow** — trace control flow, data flow, cross-file dependencies.
 5. **Extract surface** — files to modify and expected side effects.
 6. **Handoff** — concise structured output (see below).
+7. **Visual recap** — dispatch `@visualizer` subagent if complexity warrants it or requested: project recap — explored architecture, key findings, module map. Exploration question: <from Step 1>. Key findings: <from Step 6>. Output: `.scratch/<session>/project-recap.html`. Otherwise suggest to user. Skip only if user has declined.
 
 Discover project-specific terminology and naming conventions in cycle 1. Use discovered
 terms in subsequent searches instead of generic names.

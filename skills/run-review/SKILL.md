@@ -60,7 +60,7 @@ After finding a security issue, search for similar patterns across the entire co
 5. Group results by root cause, not by symptom. One root cause may manifest as multiple vulnerability classes.
 6. Per match: note location, confidence (high/medium/low), and whether inputs are attacker-controllable.
 
-See also: [references/security-probe.md](references/security-probe.md) (false-positive filtering), `security-reviewer` (deeper heuristics), `visual-explainer` (diff explanations), `reducing-entropy` (net-complexity measurement), `differential-review` (security-focused PR review with blast radius detection), `fp-check` (systematic true/false positive verification).
+See also: [references/security-probe.md](references/security-probe.md) (false-positive filtering), `security-reviewer` (deeper heuristics), `@visualizer` (visual diff review — dispatched after findings), `reducing-entropy` (net-complexity measurement), `differential-review` (security-focused PR review with blast radius detection), `fp-check` (systematic true/false positive verification).
 
 ## Noise Filtering
 
@@ -75,6 +75,12 @@ Before raising any finding, verify:
 Per finding: severity bucket, target file(s), remediation path, evidence level.
 
 Directional findings: numbered issue ID with options (A/B/C), recommendation first, include "do nothing" when reasonable. Tradeoff rationale per option.
+
+### Visual diff report
+
+After findings, dispatch `@visualizer` subagent: diff review for <git-ref>. Findings: <key blocking/should_fix>. Output: `.scratch/<session>/diff-review.html` (standalone: `.scratch/<slug>-<hash>.html`).
+
+Non-blocking — if dispatch fails, log and continue; review findings are the primary deliverable.
 
 ## Bug-Fix Review
 
@@ -109,3 +115,4 @@ See AGENTS.md for E0–E3 definitions.
 - Silently dropping deferred findings from output
 - Skipping security probe on high-risk changes
 - Merging review with implementation unless user asked for immediate fixes
+- Blocking on `@visualizer` failure — review findings are the primary deliverable

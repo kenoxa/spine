@@ -2,7 +2,7 @@
 name: run-skill-eval
 description: >
   Generate variations, eval all variants (HEAD/working/optimized) via claude CLI,
-  report via visual-explainer. Iterate until optimal.
+  report via @visualizer. Iterate until optimal.
   Use when: /run-skill-eval, "optimize my skills", "evaluate changed skills",
   "find the best version", skill quality before committing.
   Do NOT use for creating new skills (skill-creator), code review (run-review),
@@ -10,7 +10,7 @@ description: >
 argument-hint: "[file paths...] [--model model-id] [--base git-ref]"
 ---
 
-**Optimize** (generate variations) → **Evaluate** (`claude -p`) → **Report** (visual-explainer HTML) → iterate.
+**Optimize** (generate variations) → **Evaluate** (`claude -p`) → **Report** (@visualizer HTML) → iterate.
 
 ## Step 0: Detection + Setup
 
@@ -133,15 +133,7 @@ When always-loaded files changed, isolate instruction impact:
 
 ## Step 3: Report + Iterate
 
-Dispatch a **report subagent** (`synthesizer` type). The dispatch prompt MUST include:
-- Literal resolved session path (not `<session>` placeholder)
-- Explicit enumerated list of all unit grading summary paths (e.g. `.scratch/<session>/optimize/<unit>/grading-summary.md`)
-- Output path: `.scratch/<session>/optimize-report.html`
-
-Minimal dispatch stub:
-> "Read grading summaries at: [list resolved paths]. Invoke the `visual-explainer` skill and write output to `.scratch/[resolved-session]/optimize-report.html`."
-
-Main thread opens `.scratch/<session>/optimize-report.html` in browser after subagent completes.
+Dispatch `@visualizer`: comparison dashboard — variant × unit pass rates, token delta vs baseline, winning variant highlighted, per-unit assertion breakdown, craft-review findings. Data: [grading-summary.md, benchmark.json paths]. Output: `.scratch/<session>/optimize-report.html` (iteration N: `iteration-<N>/optimize-report.html`).
 
 ### Report content
 
@@ -184,9 +176,10 @@ After user reviews the report:
 - Omitting `unset CLAUDECODE` in `claude -p` dispatch
 - Skipping optimization step — going straight to eval without generating variations
 - Stopping after one iteration when user feedback suggests further improvement
-- Writing markdown report instead of using visual-explainer
+- Writing markdown report instead of dispatching `@visualizer`
 - Using `declare -A` or other bash 4+ features — macOS ships bash 3.2; use `#!/bin/sh` and per-variant files
 - Dynamic code execution (`eval`, `python3 -c "...eval..."`) in generated scripts — triggers security hooks; use JSON files instead
-- Generating visual report on main thread — always dispatch a `synthesizer` report subagent
-- Reading grading summaries on main thread before report dispatch — subagent reads them directly
-- Passing `<session>` placeholder in report subagent dispatch — inject the literal resolved session path and enumerated unit paths
+- Generating visual report on main thread — always dispatch `@visualizer` subagent
+- Reading grading summaries on main thread before `@visualizer` dispatch — subagent reads them directly
+- Passing `<session>` placeholder in `@visualizer` dispatch — inject the literal resolved session path and enumerated unit paths
+- Dispatching `@visualizer` without scoping output_path to `iteration-<N>/` for iterated runs

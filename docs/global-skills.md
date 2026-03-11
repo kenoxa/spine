@@ -21,7 +21,7 @@ npx skills add trailofbits/skills -s fp-check -a '*' -g -y
 | Skill | Repo | Referenced by |
 |-------|------|---------------|
 | `brainstorming` | `obra/superpowers` | do-plan, do-discuss — divergent ideation when problem is known but solution space is open |
-| `visual-explainer` | `nicobailon/visual-explainer` | do-plan, run-review — visual architecture and diff explanations |
+| `visual-explainer` | `nicobailon/visual-explainer` | `@visualizer` agent — visual architecture and diff explanations |
 | `security-reviewer` | `jeffallan/claude-skills` | run-review — high-risk security probe heuristics |
 | `frontend-design` | `anthropics/claude-code` | with-frontend — distinctive visual craft (typography, color, motion, composition) |
 | `wcag-audit-patterns` | `wshobson/agents` | with-frontend — comprehensive WCAG 2.2 audit methodology |
