@@ -105,6 +105,8 @@ claude -p --model ${model:-sonnet} < prompt-with-variant.md > output.md
 - Always-loaded files: also prepend (cross-cutting isolation)
 - Capture timing data per run
 
+**Generated shell scripts** (e.g. `run-evals.sh`) MUST use `#!/bin/sh` — macOS ships bash 3.2 which lacks `declare -A`. Use per-variant output files or positional variables instead of associative arrays. Pass data via JSON files or arguments, not dynamic code execution.
+
 ### Grading
 
 Dispatch grader subagent per eval unit:
@@ -175,3 +177,5 @@ After user reviews the report:
 - Skipping optimization step — going straight to eval without generating variations
 - Stopping after one iteration when user feedback suggests further improvement
 - Writing markdown report instead of using visual-explainer
+- Using `declare -A` or other bash 4+ features — macOS ships bash 3.2; use `#!/bin/sh` and per-variant files
+- Dynamic code execution (`eval`, `python3 -c "...eval..."`) in generated scripts — triggers security hooks; use JSON files instead
