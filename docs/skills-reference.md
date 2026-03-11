@@ -50,12 +50,14 @@ Canonical entry: [`skills/do-execute/SKILL.md`](../skills/do-execute/SKILL.md).
 Structured code review with severity-bucketed findings:
 
 1. **Scope check** — confirm what was requested and what changed.
-2. **Evidence check** — validate claims against current code and requirements.
-3. **Spec compliance** — verify built behavior matches requested behavior.
-4. **Risk pass** — correctness, security, performance, maintainability (scaled by risk level: low → spec + quality; medium → + testing depth; high → + security probe).
-5. **Quality pass** — readability, cohesion, duplication, test adequacy, edge/failure coverage.
+2. **Context building** — build understanding before judging. Scale depth by risk.
+3. **Evidence check** — validate claims against current code and requirements.
+4. **Spec compliance** — verify built behavior matches requested behavior.
+5. **Risk pass** — correctness, security, performance, maintainability (scaled by risk level: low → spec + quality; medium → + testing depth; high → + security probe).
+6. **Quality pass** — readability, cohesion, duplication, test adequacy, edge/failure coverage.
+7. **Output** — return findings using severity buckets.
 
-Findings are bucketed as `blocking` (must fix, E2+ required), `should_fix` (recommended, blocks unless deferred), or `follow_up` (tracked debt). Review is read-only — no file writes.
+Findings are bucketed as `blocking` (must fix, E2+ required), `should_fix` (recommended, blocks unless deferred), or `follow_up` (tracked debt). At standard/deep depth, dispatches parallel @inspector agents (spec, correctness, risk lenses); all passes inline at focused depth. Review is read-only — no file writes.
 
 Canonical entry: [`skills/run-review/SKILL.md`](../skills/run-review/SKILL.md).
 
