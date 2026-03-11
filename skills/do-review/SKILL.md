@@ -12,11 +12,16 @@ Review changed code against requested outcome and accepted plan. Structured, sev
 ## Workflow
 
 1. **Scope check** — confirm what was requested and what changed.
-2. **Evidence check** — validate claims against current code and requirements.
-3. **Spec compliance** — verify built behavior matches requested behavior.
-4. **Risk pass** — correctness, security, performance, maintainability (scale by risk level).
-5. **Quality pass** — readability, cohesion, duplication, test adequacy, edge/failure coverage.
-6. **Output** — return findings using severity buckets below.
+2. **Context building** — build understanding before judging. Scale depth by risk.
+   - High risk: line-by-line analysis, not gist-level skimming.
+   - Track invariants and assumptions explicitly.
+   - Treat external calls as adversarial until proven otherwise.
+   - When evidence contradicts mental model, update the model — never reshape evidence to fit.
+3. **Evidence check** — validate claims against current code and requirements.
+4. **Spec compliance** — verify built behavior matches requested behavior.
+5. **Risk pass** — correctness, security, performance, maintainability (scale by risk level).
+6. **Quality pass** — readability, cohesion, duplication, test adequacy, edge/failure coverage.
+7. **Output** — return findings using severity buckets below.
 
 ## Severity Buckets
 
@@ -44,7 +49,18 @@ When risk is high, explicitly check:
 - Secret/token exposure in logs, configs, or error surfaces
 - Failure-mode behavior that leaks data or bypasses controls
 
-See also: [references/security-probe.md](references/security-probe.md) (false-positive filtering), `security-reviewer` (deeper heuristics), `visual-explainer` (diff explanations), `reducing-entropy` (net-complexity measurement).
+### Variant Hunting
+
+After finding a security issue, search for similar patterns across the entire codebase — not just the module where the issue was found.
+
+1. Start with exact match of the vulnerable pattern using Grep.
+2. Generalize one element at a time (function name → argument shape → call context).
+3. Review all new matches after each generalization. Stop when false-positive rate exceeds ~50%.
+4. Search everywhere — variants often appear in unrelated modules.
+5. Group results by root cause, not by symptom. One root cause may manifest as multiple vulnerability classes.
+6. Per match: note location, confidence (high/medium/low), and whether inputs are attacker-controllable.
+
+See also: [references/security-probe.md](references/security-probe.md) (false-positive filtering), `security-reviewer` (deeper heuristics), `visual-explainer` (diff explanations), `reducing-entropy` (net-complexity measurement), `differential-review` (security-focused PR review with blast radius detection), `fp-check` (systematic true/false positive verification).
 
 ## Noise Filtering
 

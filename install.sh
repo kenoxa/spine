@@ -30,6 +30,8 @@ GLOBAL_SKILLS=(
   "wshobson/agents -s wcag-audit-patterns"
   "softaworks/agent-toolkit -s reducing-entropy"
   "mcollina/skills -s typescript-magician"
+  "trailofbits/skills -s differential-review"
+  "trailofbits/skills -s fp-check"
 )
 
 # --- Helpers ---

@@ -7,8 +7,9 @@ description: >
   "analyze my sessions", "what should become a skill", "compare my tools",
   "where am I inefficient", "history insights", "what anti-patterns do you see",
   "mine my session data", "cross-tool comparison", "audit my AI usage",
-  "improve my workflow", "improve my setup", mine/audit/retrospect requests
-  on AI assistant history. Only skill that parses session history files.
+  "improve my workflow", "improve my setup", "extract skills from history",
+  mine/audit/retrospect requests on AI assistant history. Only skill that
+  parses session history files.
   Do NOT use for single-session review (do-review), work reporting
   (do-history-recap), Claude Code setup (claude-automation-recommender).
 argument-hint: "[--days N, default 14] [--project filter]"
@@ -66,6 +67,9 @@ Dispatch 1 synthesizer subagent with all source-expert outputs.
 Recommendations in 7 categories:
 
 1. **Skills** — Repeated stable-sequence workflows with varying inputs. Threshold: 3+ occurrences.
+   - When candidate identified, produce draft SKILL.md per `use-skill-craft` conventions.
+   - Quality gate: reusable (not one-off), non-trivial (required discovery), specific triggers (not vague).
+   - Present drafts as proposals — never auto-save to `~/.claude/skills/`.
 2. **Hooks** — Auto-actions on tool events (post-edit formatting, pre-edit guards, post-save validation).
 3. **MCP Servers** — External service integrations via repeated CLI/API calls (`gh`, `psql`, `curl`, `docker`). 3+ shell invocations of same tool triggers recommendation.
 4. **Plugins** — Capabilities requiring external tooling beyond native agent tools.
@@ -83,10 +87,10 @@ Main thread reads synthesizer output.
 
 **HTML dashboard** (on request): invoke `visual-explainer` skill for interactive page with activity heatmap, tool usage chart, cross-tool comparison table, recommendation cards.
 
-## Guidelines
+## Anti-Patterns
 
-- Every recommendation needs evidence: "seen in N sessions" or "e.g., session X on date Y"
-- Distinguish project-level from global patterns
-- If pattern already has a skill but isn't triggering, recommend description improvement — not a new skill
-- Cross-tool patterns are highest-value findings
-- All recommendations are proposals — never auto-apply
+- Recommendations without session evidence ("seen in N sessions" or "e.g., session X on date Y")
+- Conflating project-level and global patterns
+- Creating new skill when existing skill just needs better description triggers
+- Ignoring cross-tool patterns (highest-value findings)
+- Auto-applying recommendations instead of presenting as proposals

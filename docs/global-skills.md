@@ -12,6 +12,8 @@ npx skills add anthropics/claude-code -s frontend-design -a '*' -g -y
 npx skills add wshobson/agents -s wcag-audit-patterns -a '*' -g -y
 npx skills add softaworks/agent-toolkit -s reducing-entropy -a '*' -g -y
 npx skills add mcollina/skills -s typescript-magician -a '*' -g -y
+npx skills add trailofbits/skills -s differential-review -a '*' -g -y
+npx skills add trailofbits/skills -s fp-check -a '*' -g -y
 ```
 
 ## Referenced by local skills
@@ -24,6 +26,8 @@ npx skills add mcollina/skills -s typescript-magician -a '*' -g -y
 | `frontend-design` | `anthropics/claude-code` | with-frontend — distinctive visual craft (typography, color, motion, composition) |
 | `wcag-audit-patterns` | `wshobson/agents` | with-frontend — comprehensive WCAG 2.2 audit methodology |
 | `reducing-entropy` | `softaworks/agent-toolkit` | do-review — net-complexity measurement, counters code bloat |
+| `differential-review` | `trailofbits/skills` | do-review — security-focused PR review with blast radius and regression detection |
+| `fp-check` | `trailofbits/skills` | do-review — systematic true/false positive verification for security findings |
 
 ## Standalone
 

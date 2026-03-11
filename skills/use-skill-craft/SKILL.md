@@ -33,6 +33,7 @@ description: >
 ```
 
 Include a `name` field matching the directory name (with prefix).
+`description` is the sole trigger surface — the body loads only after activation. Every behavior mode and trigger phrase must appear in the description or the skill won't auto-invoke.
 Add `disable-model-invocation: true` only when the skill is a thin routing wrapper
 that immediately delegates to another skill.
 
@@ -41,7 +42,10 @@ that immediately delegates to another skill.
 `overview → core directives → anti-patterns` — no other sections unless the task
 requires prerequisites.
 
-Core directives must be domain-specific procedures the agent wouldn't know. Cut:
+Core directives must be domain-specific procedures the agent wouldn't know.
+For multi-phase workflow skills: see `references/workflow-patterns.md` — pattern selection, phase structure, anti-patterns.
+
+Cut:
 - Definitions ("A trace is the complete record of...")
 - Motivation ("This is important because...")
 - Framework lists ("You can use FastAPI, Flask, or...")

@@ -28,6 +28,38 @@ Downgrade to `follow_up` (do not drop):
 
 - Non-security input validation without proven security impact
 
+## Insecure Defaults Detection
+
+Detect fail-open defaults that let apps run insecurely when config is missing.
+
+### Categories
+
+- **Fallback secrets** — `SECRET = env.get(X) or 'default'`; app runs with known secret
+- **Default credentials** — hardcoded username/password pairs active in deployed config
+- **Weak crypto defaults** — MD5/SHA1/DES/RC4/ECB in auth, encryption, or token contexts
+- **Permissive access** — CORS `*`, permissions `0777`, public-by-default without override
+- **Debug in production** — stack traces, introspection, verbose errors enabled by default
+
+### Key Distinction
+
+- **Fail-open (CRITICAL)** — app runs insecurely with missing config; exploitable in production
+- **Fail-secure (SAFE)** — app crashes on missing config; correct behavior, not a finding
+
+### Verification
+
+Trace code path for each match:
+
+1. When executed — startup vs. runtime?
+2. What if config missing — runs with default or crashes?
+3. Does production provide the value — verify, don't assume
+
+### Skip
+
+- Test fixtures, example/template files (`.example`, `.sample`)
+- Dev-only tools (local Docker Compose, debug scripts)
+- Documentation examples in README/docs
+- Build-time config replaced at deploy
+
 ## Precedents
 
 | Pattern | Verdict | Rationale |
@@ -44,6 +76,10 @@ Downgrade to `follow_up` (do not drop):
 | Subtle web vulns (tabnabbing, XS-Leaks, prototype pollution, open redirects) | SKIP | Unless very high confidence with specific exploit path |
 | GraphQL with depth/complexity limits | SAFE | DoS mitigated by existing limits |
 | HTTPS-only cookies in production | SAFE | Do not flag missing Secure attribute in dev configs |
+| Hardcoded fallback secret in production code | FLAG | Fail-open — app runs with known secret |
+| Default CORS `*` in config template | CHECK | Flag if production config does not override |
+| Debug mode flag defaulting to true | FLAG | Fail-open — debug features exposed in production |
+| Dev database URL as fallback | SAFE if fail-secure | App crashes without DATABASE_URL = correct behavior |
 
 ## Anti-Patterns
 

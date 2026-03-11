@@ -49,6 +49,8 @@ npx skills add anthropics/claude-code -s frontend-design -a '*' -g -y
 npx skills add wshobson/agents -s wcag-audit-patterns -a '*' -g -y
 npx skills add softaworks/agent-toolkit -s reducing-entropy -a '*' -g -y
 npx skills add mcollina/skills -s typescript-magician -a '*' -g -y
+npx skills add trailofbits/skills -s differential-review -a '*' -g -y
+npx skills add trailofbits/skills -s fp-check -a '*' -g -y
 ```
 
 See [docs/global-skills.md](docs/global-skills.md) for which local skills reference each external skill.

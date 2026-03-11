@@ -5,8 +5,9 @@ description: >
   Use when: vague/ambiguous problems, symptom/feeling/situation descriptions,
   "I'm not sure what the actual problem is", "help me think through this",
   "what should I consider", "this keeps happening but I don't know why".
-  Also trigger on upstream handoffs: brainstorming selected direction,
-  do-debug root cause with architectural scope.
+  Also trigger on: "grill me", "challenge my assumptions", "poke holes",
+  plan/design for stress-testing, upstream handoffs (brainstorming selected
+  direction, do-debug root cause with architectural scope).
   Do NOT use when: requirements are plan-ready (do-plan), reproducible defect (do-debug),
   creative ideation without a problem (brainstorming).
 argument-hint: "[problem description, symptom, or situation]"
@@ -42,6 +43,7 @@ Accept raw input, classify, redirect if wrong tool.
 | Pure ideation without a problem | Redirect to `brainstorming` |
 | < 1 sentence of problem context | Ask grounding question: "What situation are you trying to change?" |
 | Vague, ambiguous, or symptom-based | Proceed to clarify |
+| Plan/design for stress-testing, "grill me", "challenge my assumptions", "poke holes" | Proceed to clarify with deep-interview mode |
 
 Detect upstream handoff: `brainstorming` (selected direction) or `do-debug` (root cause, scope exceeds fix). Seed known inventory from upstream.
 
@@ -55,6 +57,8 @@ Derive the **frame question** — single question whose answer unblocks planning
 - Batch 2-4 independent questions per round; sequential dependents one at a time
 - Track `known` / `unknown` inventory; 3-round budget
 - After each round: update inventory, check frame question answerability
+
+**Deep interview**: activate when user says "grill me", "challenge my assumptions", "poke holes", or provides a plan/design for stress-testing. Increase round budget from 3 to 5. Challenge stated requirements — push back on "obvious" answers. Actively probe for unstated assumptions and implicit constraints. Same output (frame artifact) — deeper interrogation path.
 
 Escalation to tier 2: codebase-dependent unknown blocks framing AND user cannot answer from domain knowledge ("check the code", "I don't know how it works").
 
