@@ -351,9 +351,13 @@ install_skills() {
 
   # Discover public skills (skills/ directory only — excludes internal claude/skills/)
   local skill_flags=()
+  local current_skills=()
+  local sname
   for skill_md in "$skills_src/skills/"*/SKILL.md; do
     [ -f "$skill_md" ] || continue
-    skill_flags+=(-s "$(basename "$(dirname "$skill_md")")")
+    sname="$(basename "$(dirname "$skill_md")")"
+    skill_flags+=(-s "$sname")
+    current_skills+=("$sname")
   done
 
   if ! command -v npx &>/dev/null; then
@@ -368,29 +372,53 @@ install_skills() {
     return 0
   fi
 
+  local spine_manifest="$HOME/.config/spine/spine-skills.txt"
+  cp "$spine_manifest" "${spine_manifest}.prev" 2>/dev/null || true
+
   # Spine skills: install public skills, then remove any renamed/deleted orphans
+  local install_ok=0
   if [ ${#skill_flags[@]} -eq 0 ]; then
     warn "No public skills found in $skills_src/skills/"
   elif quiet npx --yes skills add "$skills_src" "${skill_flags[@]}" "${agent_flags[@]}" -g -y; then
-    done_msg "spine: $((${#skill_flags[@]} / 2)) public skills"
+    done_msg "spine: ${#current_skills[@]} public skills"
+    install_ok=1
   else
     warn "Failed to install spine skills"
     echo "    npx skills add $skills_src ${skill_flags[*]} ${agent_flags[*]} -g -y" >&2
   fi
 
-  # Clean up orphaned spine skills (handles renames)
-  local lock_file="$HOME/.agents/.skill-lock.json"
-  if [ -f "$lock_file" ] && command -v jq &>/dev/null; then
-    local orphans=()
-    while IFS= read -r skill; do
-      [ -z "$skill" ] && continue
-      if [ ! -d "$skills_src/skills/$skill" ]; then
-        orphans+=("$skill")
-      fi
-    done < <(jq -r '.skills | to_entries[] | select(.value.source == "kenoxa/spine" or .value.source == "'"$skills_src"'") | .key' "$lock_file" 2>/dev/null)
+  if [ "$install_ok" -eq 1 ]; then
+    mkdir -p "$HOME/.config/spine"  # defensive; setup_central_dir runs first
 
-    if [ ${#orphans[@]} -gt 0 ]; then
-      quiet npx --yes skills remove "${orphans[@]}" "${agent_flags[@]}" -g -y || true
+    # Local skill orphans are detected via the manifest diff below.
+    # Do NOT add local skill names to RETIRED_GLOBAL_SKILLS — that mechanism
+    # is for lockfile-tracked external skills only.
+    local tmp_manifest lock_file
+    tmp_manifest="$(mktemp)"
+    lock_file="$HOME/.agents/.skill-lock.json"
+    printf '%s\n' "${current_skills[@]}" > "$tmp_manifest"
+    mv "$tmp_manifest" "$spine_manifest"
+
+    if [ -f "${spine_manifest}.prev" ]; then
+      local prev_skill
+      while IFS= read -r prev_skill; do
+        [ -z "$prev_skill" ] && continue
+        [[ "$prev_skill" =~ ^[a-zA-Z0-9_-]+$ ]] || continue          # path-traversal guard
+        # Condition 2: still in source?
+        [ -d "$skills_src/skills/$prev_skill" ] && continue
+        # Condition 3: physical dir exists?
+        [ -d "$HOME/.agents/skills/$prev_skill" ] || continue
+        # Condition 4: externally managed (in lockfile)? Skip.
+        if [ -f "$lock_file" ] && \
+           jq -e --arg s "$prev_skill" '.skills[$s]' "$lock_file" >/dev/null 2>&1; then
+          info "Skipping $prev_skill — externally managed (skill-lock.json)"
+          continue
+        fi
+        info "Removing orphaned spine skill: $prev_skill"
+        # cleanup_stale_files() (step 7) sweeps broken symlinks in ~/.{claude,cursor,codex}/skills/
+        # whose targets contain ".agents/skills/" — spine_targets. No change needed there.
+        rm -rf "$HOME/.agents/skills/$prev_skill" || warn "Failed to remove orphan: $prev_skill"
+      done < "${spine_manifest}.prev"
     fi
   fi
 

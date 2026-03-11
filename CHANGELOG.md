@@ -21,7 +21,7 @@ All notable changes are documented here, focused on user impact.
 
   `do-discuss`, `do-plan`, `do-execute`, `do-commit` are unchanged — the `do-` prefix now exclusively marks workflow chain steps.
 
-  **Migration**: if you installed skills individually (e.g. `npx skills add kenoxa/spine -s do-debug`), re-run with the new name. Full installer users (`install.sh`) get orphan cleanup automatically.
+  **Migration**: if you installed skills individually (e.g. `npx skills add kenoxa/spine -s do-debug`), re-run with the new name. Full installer users (`install.sh`) get orphan cleanup automatically via the manifest mechanism introduced in this release. If re-running after a previous release, manually remove any stale `~/.agents/skills/<old-name>` directories once.
 
 ## 2026-03-11
 

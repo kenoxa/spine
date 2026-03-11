@@ -106,6 +106,12 @@ The install script downloads spine and sets up the central directory and provide
 - **Re-run to update** — run `./install.sh` again after pulling new changes to sync skills, guardrails, and agents. Your `~/.config/spine/` directory is updated, and provider root files are left untouched if they already contain the `@` reference.
 - **Individual skills** — install just the skills you need via `npx skills add kenoxa/spine -s <skill-name> -a '*' -g -y`
 
+### Renaming or Removing a Skill
+
+- **Local skill (in `skills/`)**: delete or rename the skill directory, then re-run `install.sh`. The manifest diff detects the old name as an orphan and removes `~/.agents/skills/<old-name>` automatically. The resulting broken symlink in `~/.{claude,cursor,codex}/skills/` is swept by `cleanup_stale_files()`.
+- **Global/external skill (`GLOBAL_SKILLS[]`)**: update the array entry and add the old name to `RETIRED_GLOBAL_SKILLS` in `install_skills()`. The lockfile-based mechanism handles removal.
+- **Note**: do not use `npx skills remove` for local spine skills — it is a no-op for local-path installs.
+
 ## Review Checklist
 
 Before submitting changes:
