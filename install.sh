@@ -83,7 +83,7 @@ ensure_system_deps() {
 
   # Deps spine uses — sync with README.md CLI tools table when changing these
   local -a required=(git jq node)
-  local -a recommended=(ast-grep bun coreutils fd ripgrep shellcheck shfmt)
+  local -a recommended=(ast-grep bun coreutils fd ripgrep sd shellcheck shfmt)
 
   local use_brew=false
   if has_brew; then

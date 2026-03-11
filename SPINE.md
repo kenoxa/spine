@@ -30,7 +30,7 @@
 Prefer native tools: Grep not `rg`/`grep`, Glob not `find`/`ls`, Read not `cat`/`head`/`tail`, Edit not `sed`/`awk`. When MCP documentation tools are available (e.g., context7), prefer them over WebFetch/WebSearch for library and framework docs. Resolve the library ID first, then query specific topics.
 
 When shell is unavoidable:
-- Prefer `rg` over `grep`, `fd` over `find`, `jq` over grepping JSON, `ast-grep` over regex for structural code patterns.
+- Prefer `rg` over `grep`, `fd` over `find`, `jq` over grepping JSON, `sd` over `perl`/`sed` for in-place pattern replacement, `ast-grep` over regex for structural code patterns.
 - Lint shell scripts with `shellcheck`; format with `shfmt`. Prefer `trash` over `rm` for file deletion.
 - Always quote glob and regex arguments to prevent shell expansion (`rg 'pattern'`, not `rg pattern`; `fd '*.ts'`, not `fd *.ts`).
 - Include a short description (4–7 words) on every shell command.

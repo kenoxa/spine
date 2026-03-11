@@ -64,8 +64,8 @@ Canonical entry: [`skills/run-review/SKILL.md`](../skills/run-review/SKILL.md).
 Four-phase root-cause diagnosis:
 
 1. **Observe** — reproduce deterministically. Capture exact error, steps, environment, and variance.
-2. **Pattern** — compare failing path with known-good reference. Narrow to the smallest collision zone.
-3. **Hypothesis** — one hypothesis at a time. Change one variable per test. Failed hypothesis → return to observe, not forward.
+2. **Pattern** — generate 5–7 falsifiable hypotheses from distinct failure classes. Narrow to 1–2 on static evidence; deprioritize remaining candidates.
+3. **Hypothesis** — static analysis first; instrument only when insufficient. Broad instrumentation, one reproduction pass per cycle, eliminate in bulk. Remove all instrumentation before closing.
 4. **Harden** — apply the smallest fix that resolves the confirmed root cause. Harden to make the bug class impossible. Verification requires E3 evidence.
 
 Escalation: after 3 failed hypotheses, escalate with concrete evidence. Architectural uncertainty → re-enter planning.

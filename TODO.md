@@ -3,7 +3,6 @@
 - svelte skill with autofixer script like we have in nestor
 - auto-loading per glob like min description?
 - ensure we cleanup after renames/removals of skills
-- run-debug: pattern from cursor (hypothesises, add "write to file" lines, reproduce issue, analyze repeat, ...)
 - visual-explainer: write to session directory!
 - addtional core tools:
 	- agent-browser: https://github.com/vercel-labs/agent-browser

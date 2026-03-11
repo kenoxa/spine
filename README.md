@@ -130,6 +130,7 @@ The installer checks for these tools and installs missing ones via Homebrew (mac
 | `coreutils` | Recommended | GNU core utilities (macOS) |
 | `fd` | Recommended | Fast file finder (alternative to `find`) |
 | `ripgrep` | Recommended | Fast text search (alternative to `grep`) |
+| `sd` | Recommended | In-place pattern replacement — pairs with `ripgrep` for find+replace flows (Rust-native alternative to `perl -i`/`sed -i`) |
 | `shellcheck` | Recommended | Shell script linter |
 | `shfmt` | Recommended | Shell script formatter |
 
