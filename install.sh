@@ -347,11 +347,18 @@ install_skills() {
     esac
   done
 
+  # Discover public skills (skills/ directory only — excludes internal claude/skills/)
+  local skill_flags=()
+  for skill_md in "$skills_src/skills/"*/SKILL.md; do
+    [ -f "$skill_md" ] || continue
+    skill_flags+=(-s "$(basename "$(dirname "$skill_md")")")
+  done
+
   if ! command -v npx &>/dev/null; then
     warn "npx not found — cannot install skills automatically"
     echo "" >&2
     echo "  Install skills manually:" >&2
-    echo "    npx skills add $skills_src -s '*' ${agent_flags[*]} -g -y" >&2
+    echo "    npx skills add $skills_src ${skill_flags[*]} ${agent_flags[*]} -g -y" >&2
     for entry in "${GLOBAL_SKILLS[@]}"; do
       echo "    npx skills add $entry ${agent_flags[*]} -g -y" >&2
     done
@@ -359,12 +366,14 @@ install_skills() {
     return 0
   fi
 
-  # Spine skills: install all, then remove any renamed/deleted orphans
-  if quiet npx --yes skills add "$skills_src" -s '*' "${agent_flags[@]}" -g -y; then
-    done_msg "spine: all skills"
+  # Spine skills: install public skills, then remove any renamed/deleted orphans
+  if [ ${#skill_flags[@]} -eq 0 ]; then
+    warn "No public skills found in $skills_src/skills/"
+  elif quiet npx --yes skills add "$skills_src" "${skill_flags[@]}" "${agent_flags[@]}" -g -y; then
+    done_msg "spine: $((${#skill_flags[@]} / 2)) public skills"
   else
     warn "Failed to install spine skills"
-    echo "    npx skills add $skills_src -s '*' ${agent_flags[*]} -g -y" >&2
+    echo "    npx skills add $skills_src ${skill_flags[*]} ${agent_flags[*]} -g -y" >&2
   fi
 
   # Clean up orphaned spine skills (handles renames)
