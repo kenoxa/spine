@@ -44,7 +44,7 @@ Create one team. Lead copies each persona from do-plan's dispatch table and appe
 | `thorough` | When a peer raises a concern, verify whether your plan addresses it. |
 | `innovative` | React to conservative concerns by showing how innovations mitigate or accept them. |
 
-Lead merges teammate outputs + peer message history into `canonical_plan`.
+Lead dispatches `@synthesizer` with all teammate outputs + peer exchange. Reads synthesis output (`.scratch/<session>/plan-synthesis-planning.md`) for canonical_plan.
 
 ---
 
@@ -58,7 +58,7 @@ Create one team.
 | `counterpoint-dissenter` | Read the champion's defenses and escalate with stronger evidence or concede explicitly when rebutted. |
 | `tradeoff-analyst` | Track which arguments have been resolved vs remain contested. Quantify costs and reversibility for each open point. |
 
-Lead reads all teammate outputs + full peer exchange. Findings that survive (E2+ with no viable alternative) are incorporated.
+Lead dispatches `@synthesizer` with all teammate outputs + full peer exchange. Reads synthesis output (`.scratch/<session>/plan-synthesis-challenge.md`). Findings that survive (E2+ with no viable alternative) are incorporated.
 
 ---
 
@@ -72,7 +72,7 @@ Create one team. Lead copies each persona from do-execute's dispatch table and a
 | `complexity-advisor` | When the conventions advisor flags a pattern, check whether it also has complexity implications. |
 | `efficiency-advisor` | When peers flag a pattern deviation or bloat, check whether it also has performance or reuse implications. |
 
-Lead reads all teammate outputs + peer messages. Deduplicates, assigns E-levels.
+Lead dispatches `@synthesizer` with all teammate outputs + peer messages. Reads synthesis output (`.scratch/<session>/execute-synthesis-polish.md`).
 
 ---
 
@@ -86,7 +86,7 @@ Create one team:
 | `correctness-reviewer` | When the spec reviewer flags a gap, check whether it causes correctness issues. |
 | `risk-reviewer` | React to correctness findings by assessing their risk severity. |
 
-Lead reads all teammate outputs + peer messages. Deduplicates, assigns final E-levels and severity buckets per do-review rules.
+Lead dispatches `@synthesizer` with all teammate outputs + peer messages. Reads synthesis output (`.scratch/<session>/execute-synthesis-review.md`). Assigns final E-levels and severity buckets per do-review rules.
 
 ## Excluded Phases
 

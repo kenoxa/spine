@@ -41,7 +41,7 @@ Map codebase before planning. Dispatch **in parallel** (`@researcher` type):
 
 Dispatch additional `@researcher` per `variance_lenses` entry. Cap: base + augmented ≤ 5 total.
 
-**Synthesis**: merge into `discovery_findings`. Tag claims with E-level. Conflicts → prefer higher; same level → flag for framing.
+**Synthesis**: Dispatch `@synthesizer` with input paths: all discovery output files. Output: `.scratch/<session>/plan-synthesis-discovery.md`. Read synthesis output for framing. If output empty or missing, fall back to reading individual outputs.
 
 ### 2. Framing
 
@@ -79,7 +79,7 @@ Dispatch **in parallel** (`@planner` type). Each receives `planning_brief` + `ev
 
 Dispatch additional `@planner` per `variance_lenses` entry. Cap: base + augmented ≤ 5 total.
 
-**Synthesis**: merge into `canonical_plan`. Deduplicate by meaning; rank E3 > E2 > E1 > E0; conflicting E2+ → verification pass aiming for E3.
+**Synthesis**: Dispatch `@synthesizer` with input paths: all planning output files. Output: `.scratch/<session>/plan-synthesis-planning.md`. Read synthesis output for canonical_plan. If output empty or missing, fall back to reading individual outputs.
 
 ### 4. Challenge
 
@@ -97,7 +97,7 @@ Unresolved after asking → dispatch debate **in parallel** (`@debater` type). E
 
 Dispatch additional `@debater` per `variance_lenses` entry. Cap: base + augmented ≤ 5 total.
 
-**Synthesis**: incorporate surviving E2+ findings. Close resolved findings with rationale.
+**Synthesis**: Dispatch `@synthesizer` with input paths: all challenge output files. Output: `.scratch/<session>/plan-synthesis-challenge.md`. Read synthesis output. If output empty or missing, fall back to reading individual outputs. Incorporate surviving E2+ findings; close resolved findings with rationale.
 
 ### 5. Synthesis
 
