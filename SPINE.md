@@ -40,12 +40,12 @@ When shell is unavoidable:
 
 For any task with 3+ steps or architectural decisions: plan before implementing. If the approach stalls, stop and re-plan — don't keep pushing.
 
-**Skills** (load with `/do-<name>`):
-- `plan` — required before complex implementation. After emitting a readiness declaration, STOP and await explicit user approval before proceeding to execution. The readiness declaration is not approval.
-- `execute` — implement an approved plan
-- `debug` — diagnose and fix a failing system
-- `commit` — stage, message, and push
-- `review` — review code changes
+**Skills** (slash commands):
+- `do-plan` — required before complex implementation. After emitting a readiness declaration, STOP and await explicit user approval before proceeding to execution. The readiness declaration is not approval.
+- `do-execute` — implement an approved plan
+- `run-debug` — diagnose and fix a failing system
+- `do-commit` — stage, message, and push
+- `run-review` — review code changes
 - `handoff` — distill session context for a fresh session to continue
 - `catchup` — reconstruct session state after /clear or compaction
 
@@ -54,7 +54,7 @@ For any task with 3+ steps or architectural decisions: plan before implementing.
 **Subagents:** Protect main context window. One task per subagent. Self-contained dispatch — no inherited history. Every dispatch prompt MUST include the exact output file path and the constraint: "Write output to that path. Read any repo file. No edits outside `.scratch/<session>/`. No builds, tests, or destructive commands." Cap: ≤ 6 agents per dispatch (including augmented).
 
 **Sessions:** Workflow skills share a session directory at `.scratch/<session>/`. Session IDs: `{slug}-{hash}` — 5–7 word slug, 4-char hex from `openssl rand -hex 2`. Generate once at skill entry; carry forward across discuss → plan → execute. The orchestrator maintains an append-only session log at `.scratch/<session>/session-log.md`, appending at phase boundaries and after significant decisions — subagents do not write to it. Each entry: phase, decision, rationale (with rejected alternatives), current state, next step.
-**Context:** Context window is volatile; filesystem persists. At ~60% context, run do-handoff → /clear → do-catchup. After any /clear or compaction, re-read session-log and verify state before continuing. Prefer subagent synthesis over mainthread when merging multiple outputs.
+**Context:** Context window is volatile; filesystem persists. At ~60% context, run handoff → /clear → catchup. After any /clear or compaction, re-read session-log and verify state before continuing. Prefer subagent synthesis over mainthread when merging multiple outputs.
 
 **Dependencies:** Batch dependency updates by risk. Verify (lint, build, tests) after each batch. Never update all dependencies at once. Pin versions. Audit before deploying.
 

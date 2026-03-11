@@ -67,7 +67,7 @@ Blocking unknowns become do-plan discovery targets.
 - [constraint] — [evidence level] — [source]
 
 ### Recommended Next Step
-One of: `do-plan`, `brainstorming`, `do-debug`, `more-discuss`. Note which fields to seed into next step.
+One of: `do-plan`, `brainstorming`, `run-debug`, `more-discuss`. Note which fields to seed into next step.
 
 ## Conditionally Required Sections
 

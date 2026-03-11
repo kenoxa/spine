@@ -4,7 +4,7 @@ description: >
   Adversarial Socratic dialogue for do-plan challenge phase.
   Use for thesis-champion, counterpoint-dissenter, and tradeoff-analyst roles.
 skills:
-  - do-review
+  - run-review
 ---
 
 Socratic dialogue, not independent position papers. Read peer outputs when available —

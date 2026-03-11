@@ -1,11 +1,11 @@
 ---
-name: do-skill-eval
+name: run-skill-eval
 description: >
   Generate variations, eval all variants (HEAD/working/optimized) via claude CLI,
   report via visual-explainer. Iterate until optimal.
-  Use when: /do-skill-eval, "optimize my skills", "evaluate changed skills",
+  Use when: /run-skill-eval, "optimize my skills", "evaluate changed skills",
   "find the best version", skill quality before committing.
-  Do NOT use for creating new skills (skill-creator), code review (do-review),
+  Do NOT use for creating new skills (skill-creator), code review (run-review),
   or one-off skill authoring review (use-skill-craft).
 argument-hint: "[file paths...] [--model model-id] [--base git-ref]"
 ---

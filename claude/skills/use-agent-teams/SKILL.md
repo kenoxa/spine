@@ -86,7 +86,7 @@ Create one team:
 | `correctness-reviewer` | When the spec reviewer flags a gap, check whether it causes correctness issues. |
 | `risk-reviewer` | React to correctness findings by assessing their risk severity. |
 
-Lead dispatches `@synthesizer` with all teammate outputs + peer messages. Reads synthesis output (`.scratch/<session>/execute-synthesis-review.md`). Assigns final E-levels and severity buckets per do-review rules.
+Lead dispatches `@synthesizer` with all teammate outputs + peer messages. Reads synthesis output (`.scratch/<session>/execute-synthesis-review.md`). Assigns final E-levels and severity buckets per run-review rules.
 
 ## Excluded Phases
 

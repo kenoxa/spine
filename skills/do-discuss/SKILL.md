@@ -7,8 +7,8 @@ description: >
   "what should I consider", "this keeps happening but I don't know why".
   Also trigger on: "grill me", "challenge my assumptions", "poke holes",
   plan/design for stress-testing, upstream handoffs (brainstorming selected
-  direction, do-debug root cause with architectural scope).
-  Do NOT use when: requirements are plan-ready (do-plan), reproducible defect (do-debug),
+  direction, run-debug root cause with architectural scope).
+  Do NOT use when: requirements are plan-ready (do-plan), reproducible defect (run-debug),
   creative ideation without a problem (brainstorming).
 argument-hint: "[problem description, symptom, or situation]"
 ---
@@ -39,13 +39,13 @@ Accept raw input, classify, redirect if wrong tool.
 | Input shape | Action |
 |-------------|--------|
 | Has tasks, criteria, scope → plan-ready | Redirect to `do-plan` |
-| Reproducible defect with steps | Redirect to `do-debug` |
+| Reproducible defect with steps | Redirect to `run-debug` |
 | Pure ideation without a problem | Redirect to `brainstorming` |
 | < 1 sentence of problem context | Ask grounding question: "What situation are you trying to change?" |
 | Vague, ambiguous, or symptom-based | Proceed to clarify |
 | Plan/design for stress-testing, "grill me", "challenge my assumptions", "poke holes" | Proceed to clarify with deep-interview mode |
 
-Detect upstream handoff: `brainstorming` (selected direction) or `do-debug` (root cause, scope exceeds fix). Seed known inventory from upstream.
+Detect upstream handoff: `brainstorming` (selected direction) or `run-debug` (root cause, scope exceeds fix). Seed known inventory from upstream.
 
 ### 2. Clarify
 
@@ -117,7 +117,7 @@ Emit `discussion_learnings` proposals (never auto-applied). STOP. User decides n
 do-discuss → do-plan → do-execute  (frame → plan → build)
 brainstorming → do-plan             (ideate → plan)
 do-discuss → brainstorming          (low confidence → ideation)
-do-debug → do-discuss               (root cause → architectural scope)
+run-debug → do-discuss               (root cause → architectural scope)
 ```
 
 ## Ask Policy

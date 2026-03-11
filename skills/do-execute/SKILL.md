@@ -109,7 +109,7 @@ Output: `polish_findings`, updated `files_modified`.
 
    Dispatch additional `@inspector` per variance lens. Output: `.scratch/<session>/execute-review-augmented-{lens}.md`. Standard: 1-2. Deep: 2-3. Cap: 6 total.
 
-   **Synthesis**: Dispatch `@synthesizer` with input paths: all review output files. Output: `.scratch/<session>/execute-synthesis-review.md`. Read synthesis output for review_findings. If output empty or missing, fall back to reading individual outputs. Assign final E-levels and severity per `do-review` rules.
+   **Synthesis**: Dispatch `@synthesizer` with input paths: all review output files. Output: `.scratch/<session>/execute-synthesis-review.md`. Read synthesis output for review_findings. If output empty or missing, fall back to reading individual outputs. Assign final E-levels and severity per `run-review` rules.
 
 Blocking (E2+) → `re_dispatch_brief` → re-enter polish. Advisory → record, proceed to verify.
 

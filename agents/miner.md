@@ -2,8 +2,8 @@
 name: miner
 description: >
   Session data analysis and cross-session pattern extraction.
-  Use for do-history-insights source-expert and synthesizer roles,
-  do-history-recap work summarization, and for do-plan prior-session
+  Use for log-history-insights source-expert and synthesizer roles,
+  log-history-recap work summarization, and for do-plan prior-session
   mining when past decisions inform current planning.
 ---
 

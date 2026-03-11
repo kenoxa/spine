@@ -1,5 +1,5 @@
 ---
-name: do-polish
+name: run-polish
 description: >
   Advisory code polish with parallel lenses: conventions, complexity, efficiency.
   Use after implementation or for standalone cleanup on recently modified code.

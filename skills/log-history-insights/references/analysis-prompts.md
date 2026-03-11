@@ -48,7 +48,7 @@ Synthesize cross-tool session analysis into recommendations.
 ## Recommendation Categories
 
 ### 1. Skills to Create
-Repeated multi-step workflows (stable sequence, varying inputs). Threshold: 3+. Cross-tool → priority boost. Include: purpose, prefix (do-/use-/with-), rough structure.
+Repeated multi-step workflows (stable sequence, varying inputs). Threshold: 3+. Cross-tool → priority boost. Include: purpose, prefix (do-/run-/log-/use-/with-), rough structure.
 ### 2. Hooks to Configure
 Signal: manual post-edit formatting/linting, protective checks (.env, lock files), post-save validation. Include: hook type (PreToolUse/PostToolUse), trigger, command, settings.json snippet.
 ### 3. MCP Servers to Install

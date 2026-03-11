@@ -45,7 +45,7 @@ Re-entry loop: blocking review findings → polish → review → verify. Capped
 
 Canonical entry: [`skills/do-execute/SKILL.md`](../skills/do-execute/SKILL.md).
 
-### do-review
+### run-review
 
 Structured code review with severity-bucketed findings:
 
@@ -57,9 +57,9 @@ Structured code review with severity-bucketed findings:
 
 Findings are bucketed as `blocking` (must fix, E2+ required), `should_fix` (recommended, blocks unless deferred), or `follow_up` (tracked debt). Review is read-only — no file writes.
 
-Canonical entry: [`skills/do-review/SKILL.md`](../skills/do-review/SKILL.md).
+Canonical entry: [`skills/run-review/SKILL.md`](../skills/run-review/SKILL.md).
 
-### do-debug
+### run-debug
 
 Four-phase root-cause diagnosis:
 
@@ -70,9 +70,9 @@ Four-phase root-cause diagnosis:
 
 Escalation: after 3 failed hypotheses, escalate with concrete evidence. Architectural uncertainty → re-enter planning.
 
-Canonical entry: [`skills/do-debug/SKILL.md`](../skills/do-debug/SKILL.md).
+Canonical entry: [`skills/run-debug/SKILL.md`](../skills/run-debug/SKILL.md).
 
-### do-history-insights
+### log-history-insights
 
 Periodic cross-tool session analysis. Python scripts parse raw session data from Claude Code, Codex, and Cursor (~256 MB) into structured analytics (~100 KB), then subagents mine it for automation opportunities.
 
@@ -85,13 +85,13 @@ Every recommendation includes evidence (session counts, specific examples) and a
 
 Requires Python 3.9+. Run weekly or bi-weekly.
 
-Canonical entry: [`skills/do-history-insights/SKILL.md`](../skills/do-history-insights/SKILL.md).
+Canonical entry: [`skills/log-history-insights/SKILL.md`](../skills/log-history-insights/SKILL.md).
 
-### do-polish
+### run-polish
 
 Advisory code polish with conventions, complexity, and efficiency lenses.
 
-Canonical entry: [`skills/do-polish/SKILL.md`](../skills/do-polish/SKILL.md).
+Canonical entry: [`skills/run-polish/SKILL.md`](../skills/run-polish/SKILL.md).
 
 ### do-commit
 
@@ -99,13 +99,19 @@ Scoped staging with conventional commits.
 
 Canonical entry: [`skills/do-commit/SKILL.md`](../skills/do-commit/SKILL.md).
 
-### do-handoff
+### handoff
 
 Distill session context into a structured prompt for a fresh session.
 
-Canonical entry: [`skills/do-handoff/SKILL.md`](../skills/do-handoff/SKILL.md).
+Canonical entry: [`skills/handoff/SKILL.md`](../skills/handoff/SKILL.md).
 
-### do-history-recap
+### catchup
+
+Reconstruct working state from persisted session artifacts after `/clear` or auto-compaction. Reads `.scratch/<session>/session-log.md`, `handoff-*.md`, and `plan.md` to rebuild the state inventory.
+
+Canonical entry: [`skills/catchup/SKILL.md`](../skills/catchup/SKILL.md).
+
+### log-history-recap
 
 Summarize work done across AI agent sessions for standups, timesheets, and activity reports. Three output formats:
 
@@ -113,9 +119,9 @@ Summarize work done across AI agent sessions for standups, timesheets, and activ
 - **timesheet** — billable hour blocks in a 9-17 window, copy-pasteable into time tracking tools
 - **recap** — narrative summary with per-project sections and metrics
 
-Reuses `do-history-insights/scripts/` for session collection. Dispatches a single `@miner` subagent to synthesize task descriptions and estimate durations from session metadata across Claude Code, Codex, and Cursor.
+Reuses `log-history-insights/scripts/` for session collection. Dispatches a single `@miner` subagent to synthesize task descriptions and estimate durations from session metadata across Claude Code, Codex, and Cursor.
 
-Canonical entry: [`skills/do-history-recap/SKILL.md`](../skills/do-history-recap/SKILL.md).
+Canonical entry: [`skills/log-history-recap/SKILL.md`](../skills/log-history-recap/SKILL.md).
 
 ## Subagents
 
@@ -125,8 +131,8 @@ Canonical entry: [`skills/do-history-recap/SKILL.md`](../skills/do-history-recap
 | `researcher` | inherit | Deep discovery and evidence gathering, preloads `use-explore` |
 | `planner` | inherit | Angle-committed planning, preloads `do-plan` |
 | `debater` | inherit | Adversarial Socratic dialogue |
-| `inspector` | inherit | Verdict-focused code review, preloads `do-review` |
-| `analyst` | inherit | Advisory pattern analysis, preloads `do-review` and `do-polish` |
+| `inspector` | inherit | Verdict-focused code review, preloads `run-review` |
+| `analyst` | inherit | Advisory pattern analysis, preloads `run-review` and `run-polish` |
 | `framer` | inherit | Perspective-committed problem framing |
 | `verifier` | inherit | Adversarial verification with E3 evidence, preloads `with-testing` |
 | `miner` | inherit | Session data analysis and cross-session pattern extraction |
@@ -134,14 +140,18 @@ Canonical entry: [`skills/do-history-recap/SKILL.md`](../skills/do-history-recap
 
 ## Skill Prefix Convention
 
-Prefixes group skills in slash-autocomplete — type `do-`, `with-`, or `use-` to filter to the category you need.
+Prefixes group skills in slash-autocomplete — type `do-`, `run-`, `log-`, `with-`, or `use-` to filter to the category you need.
 
 | Prefix | Semantic | When to use |
 |--------|----------|-------------|
-| `do-` | Workflow commands | Multi-phase execution: planning, implementation, review, debugging, committing |
+| `do-` | Workflow commands | Multi-phase execution: planning, implementation, committing |
+| `run-` | Standalone actions | One-off operations: debug, review, polish, skill-eval |
+| `log-` | History analytics | Session history mining and reporting |
 | `with-` | Domain standards | Applied passively when the task matches — UI, API, or test work |
 | `use-` | Active tools | Invoked explicitly to produce artifacts or perform discovery |
 
-**Why prefixes?** Without them, spine's 14 skills get lost among globally installed skills in slash-autocomplete. Typing the first few characters of a prefix immediately narrows the list to the relevant group.
+**Plain names** (`handoff`, `catchup`): follow the external-skills pattern — no prefix because they are workflow primitives invoked by name, not discovered by category.
+
+**Why prefixes?** Without them, spine's skills get lost among globally installed skills in slash-autocomplete. Typing the first few characters of a prefix immediately narrows the list to the relevant group.
 
 External skills (installed via `npx skills add`) keep their upstream names and do not follow this convention — we don't own those names.

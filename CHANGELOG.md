@@ -2,6 +2,27 @@
 
 All notable changes are documented here, focused on user impact.
 
+## 2026-03-12
+
+### Changed
+
+- **Skill prefix taxonomy** — split the overloaded `do-*` prefix (11 skills) into 5 groups for cleaner slash-autocomplete. Typing a prefix letter now returns 2–4 entries instead of 11.
+
+  | Old name | New name | Group |
+  |----------|----------|-------|
+  | `do-debug` | `run-debug` | `run-` standalone actions |
+  | `do-review` | `run-review` | `run-` standalone actions |
+  | `do-polish` | `run-polish` | `run-` standalone actions |
+  | `do-skill-eval` | `run-skill-eval` | `run-` standalone actions |
+  | `do-history-insights` | `log-history-insights` | `log-` history analytics |
+  | `do-history-recap` | `log-history-recap` | `log-` history analytics |
+  | `do-handoff` | `handoff` | plain (no prefix) |
+  | `do-catchup` | `catchup` | plain (no prefix) |
+
+  `do-discuss`, `do-plan`, `do-execute`, `do-commit` are unchanged — the `do-` prefix now exclusively marks workflow chain steps.
+
+  **Migration**: if you installed skills individually (e.g. `npx skills add kenoxa/spine -s do-debug`), re-run with the new name. Full installer users (`install.sh`) get orphan cleanup automatically.
+
 ## 2026-03-11
 
 ### Changed

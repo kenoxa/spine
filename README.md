@@ -56,7 +56,7 @@ Install specific skills without the full setup:
 
 ```sh
 npx skills add kenoxa/spine -s do-plan -a '*' -g -y
-npx skills add kenoxa/spine -s do-review -a '*' -g -y
+npx skills add kenoxa/spine -s run-review -a '*' -g -y
 ```
 
 </details>
@@ -185,24 +185,24 @@ graph TD
 
 ## Skills and Agents
 
-Skills use prefixes for quick discovery in slash-autocomplete: `do-` for workflow commands you invoke explicitly, `with-` for domain standards that activate automatically, and `use-` for tools that produce artifacts.
+Skills use prefixes for quick discovery in slash-autocomplete: `do-` for core workflow commands, `run-` for standalone actions, `log-` for history analytics, `with-` for domain standards that activate automatically, and `use-` for tools that produce artifacts.
 
-### Workflow skills (`do-*`)
+### Workflow skills (`do-*`, `run-*`, `log-*`, and plain names)
 
-Invoked via slash commands — `/do-plan`, `/do-execute`, etc.
+Invoked via slash commands — `/do-plan`, `/do-execute`, `/run-debug`, `/handoff`, etc.
 
 | Skill | Purpose |
 |-------|---------|
 | [`do-discuss`](docs/skills-reference.md#do-discuss) | Structured problem framing before planning |
 | [`do-plan`](docs/skills-reference.md#do-plan) | Structured planning before complex implementation |
 | [`do-execute`](docs/skills-reference.md#do-execute) | Execute an approved plan through phased quality gates |
-| [`do-review`](docs/skills-reference.md#do-review) | Severity-bucketed code review |
-| [`do-debug`](docs/skills-reference.md#do-debug) | 4-phase root-cause diagnosis and fix |
-| [`do-polish`](docs/skills-reference.md#do-polish) | Advisory code polish with conventions, complexity, and efficiency lenses |
+| [`run-review`](docs/skills-reference.md#run-review) | Severity-bucketed code review |
+| [`run-debug`](docs/skills-reference.md#run-debug) | 4-phase root-cause diagnosis and fix |
+| [`run-polish`](docs/skills-reference.md#run-polish) | Advisory code polish with conventions, complexity, and efficiency lenses |
 | [`do-commit`](docs/skills-reference.md#do-commit) | Scoped staging with conventional commits |
-| [`do-handoff`](docs/skills-reference.md#do-handoff) | Distill session context into a structured prompt for a fresh session |
-| [`do-history-insights`](docs/skills-reference.md#do-history-insights) | Mine cross-tool session history for workflow/setup improvement recommendations (Python 3.9+, Claude Code) |
-| [`do-history-recap`](docs/skills-reference.md#do-history-recap) | Summarize work done across AI agent sessions for standups, timesheets, and activity reports |
+| [`handoff`](docs/skills-reference.md#handoff) | Distill session context into a structured prompt for a fresh session |
+| [`log-history-insights`](docs/skills-reference.md#log-history-insights) | Mine cross-tool session history for workflow/setup improvement recommendations (Python 3.9+, Claude Code) |
+| [`log-history-recap`](docs/skills-reference.md#log-history-recap) | Summarize work done across AI agent sessions for standups, timesheets, and activity reports |
 
 ### Domain standards (`with-*`)
 

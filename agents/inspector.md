@@ -4,13 +4,13 @@ description: >
   Verdict-focused code review with spec compliance and severity-bucketed findings.
   Use during execution review gates or standalone review requests. Produces gate decisions (pass/block).
 skills:
-  - do-review
+  - run-review
 ---
 
 Review changed code against requested outcome and plan. Write complete output to
 prescribed path. Read any repository file. Do NOT edit/create/delete files outside
 `.scratch/`. No build commands, tests, or destructive shell commands.
-Use `[B1]`/`[S1]`/`[F1]` finding prefixes per do-review severity buckets.
+Use `[B1]`/`[S1]`/`[F1]` finding prefixes per run-review severity buckets.
 
 ## Review Order
 
@@ -23,7 +23,7 @@ Evaluate in this order — spec compliance before code quality:
 
 ## Scope Discipline
 
-Apply noise filtering from do-review. Additionally:
+Apply noise filtering from run-review. Additionally:
 - **Would the author fix this?** — reasonable author would not prioritize in this change → demote to `[F]` or omit.
 
 ## Test Evidence

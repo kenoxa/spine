@@ -21,13 +21,13 @@ npx skills add trailofbits/skills -s fp-check -a '*' -g -y
 | Skill | Repo | Referenced by |
 |-------|------|---------------|
 | `brainstorming` | `obra/superpowers` | do-plan, do-discuss — divergent ideation when problem is known but solution space is open |
-| `visual-explainer` | `nicobailon/visual-explainer` | do-plan, do-review — visual architecture and diff explanations |
-| `security-reviewer` | `jeffallan/claude-skills` | do-review — high-risk security probe heuristics |
+| `visual-explainer` | `nicobailon/visual-explainer` | do-plan, run-review — visual architecture and diff explanations |
+| `security-reviewer` | `jeffallan/claude-skills` | run-review — high-risk security probe heuristics |
 | `frontend-design` | `anthropics/claude-code` | with-frontend — distinctive visual craft (typography, color, motion, composition) |
 | `wcag-audit-patterns` | `wshobson/agents` | with-frontend — comprehensive WCAG 2.2 audit methodology |
-| `reducing-entropy` | `softaworks/agent-toolkit` | do-review — net-complexity measurement, counters code bloat |
-| `differential-review` | `trailofbits/skills` | do-review — security-focused PR review with blast radius and regression detection |
-| `fp-check` | `trailofbits/skills` | do-review — systematic true/false positive verification for security findings |
+| `reducing-entropy` | `softaworks/agent-toolkit` | run-review — net-complexity measurement, counters code bloat |
+| `differential-review` | `trailofbits/skills` | run-review — security-focused PR review with blast radius and regression detection |
+| `fp-check` | `trailofbits/skills` | run-review — systematic true/false positive verification for security findings |
 
 ## Standalone
 
