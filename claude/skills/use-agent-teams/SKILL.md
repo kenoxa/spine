@@ -20,7 +20,7 @@ Use `team_name` matching the phase: `discuss-explore`, `plan-planning`, `plan-ch
 
 **Augmented teammates**: When variance analysis adds augmented agents, spawn them as additional teammates. Derive inline persona from the lens focus directive (becomes the teammate's framing stance). Generate a peer directive that complements — never contradicts — base teammate directives. Augmented teammates participate in peer exchange on equal footing. All teammates (base + augmented) spawn before any peer exchange begins.
 
-## do-discuss Phase 4: Explore
+## do-discuss Phase 5: Explore
 
 Create one team.
 

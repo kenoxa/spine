@@ -74,7 +74,9 @@ One of: `do-plan`, `brainstorming`, `run-debug`, `more-discuss`. Note which fiel
 Include when condition met. Omit only with skip rationale.
 
 ### Codebase Signals
-Required when tier-2 investigate phase triggered.
+Required when orient phase ran (codebase-adjacent input) OR tier-2 investigate phase triggered.
+
+When orient ran but investigate did not: populate from `.scratch/<session>/discuss-orient.md`. Mark evidence as E2 (@scout file read). Note which findings came from orient vs. investigate when both ran.
 
 | Finding | File / Symbol | Evidence | Relevance |
 |---------|--------------|----------|-----------|
