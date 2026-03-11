@@ -52,13 +52,12 @@ Grep changed ref filenames across all `SKILL.md`; add transitive consumers to ev
 
 ## Step 1: Optimize — Generate Variations
 
-### Craft review (conditional)
+### Craft review
 
-If `use-skill-craft` available (check repo for `skills/use-skill-craft/SKILL.md` or installed plugin):
-- Dispatch subagent per eval unit applying use-skill-craft criteria:
-  - Authoring test per line
-  - Red-flag scan (explanation without directive, verbose openers, multi-line anti-patterns)
-  - Size check, frontmatter validation
+Dispatch subagent per eval unit applying `use-skill-craft` and `skill-creator` skills criterias:
+- Authoring test per line
+- Red-flag scan (explanation without directive, verbose openers, multi-line anti-patterns)
+- Size check, frontmatter validation
 - Output: `.scratch/<session>/optimize/<unit>/craft-findings.md`
 
 ### Variation generation
@@ -66,7 +65,7 @@ If `use-skill-craft` available (check repo for `skills/use-skill-craft/SKILL.md`
 Per eval unit, dispatch 1-2 optimization subagents. Each subagent prompt MUST include these files:
 1. Working copy: `<path>` (the file being optimized)
 2. HEAD baseline: `.scratch/<session>/baselines/<path>` (omit for create-mode files)
-3. Craft findings: `.scratch/<session>/optimize/<unit>/craft-findings.md` (if craft review ran)
+3. Craft findings: `.scratch/<session>/optimize/<unit>/craft-findings.md`
 
 Each produces a variant with a distinct optimization angle:
 
@@ -138,7 +137,7 @@ Invoke `visual-explainer` skill → interactive HTML.
 
 - Per-unit comparison table: variant | pass rate | assertions passed/total | tokens | timing | delta vs baseline
 - Winning variant highlighted per unit
-- Craft-review findings (if Step 1 ran craft review)
+- Craft-review findings
 - Cross-cutting results (if applicable)
 - Per-assertion detail: which assertions each variant passed/failed
 - Recommendation: adopt winning variant or iterate further
