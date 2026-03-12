@@ -2,7 +2,8 @@
 name: researcher
 description: >
   Deep discovery and evidence gathering for planning phases.
-  Use for file-scout, docs-explorer, and external-researcher roles in do-plan discovery.
+  Use for file-scout and docs-explorer roles in do-plan discovery.
+  For external research (library docs, API changes, version compat), use navigator.
 skills:
   - use-explore
 ---

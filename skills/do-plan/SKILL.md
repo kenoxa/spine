@@ -31,13 +31,13 @@ When no lens trigger matches the task, `variance_lenses` is empty (no augmented 
 
 ### 1. Discovery
 
-Map codebase before planning. Dispatch **in parallel** (`@researcher` type):
+Map codebase before planning. Dispatch **in parallel** (`@researcher` and `@navigator` types):
 
 | Role | Persona | Output | When |
 |------|---------|--------|------|
 | `file-scout` | Entry points, call graphs, config flags, change surface | `.scratch/<session>/plan-discovery-file-scout.md` | Always |
 | `docs-explorer` | Intended behavior, spec bullets, ambiguities | `.scratch/<session>/plan-discovery-docs-explorer.md` | Always |
-| `external-researcher` | Upstream breaking changes, API gotchas, version compat | `.scratch/<session>/plan-discovery-external-researcher.md` | When touching external deps |
+| `navigator` | Upstream breaking changes, API gotchas, version compat, ecosystem alternatives | `.scratch/<session>/plan-discovery-navigator.md` | Always |
 
 Dispatch additional `@researcher` per `variance_lenses` entry. Cap: base + augmented ≤ 5 total.
 

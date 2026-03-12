@@ -19,17 +19,17 @@ Frame the actual problem through tiered Socratic dialogue: intake → orient →
 
 | Tier | Mode | Trigger | Agents |
 |------|------|---------|--------|
-| 1 | Orient (pre-tier, conditional) + Socratic dialogue with between-round @scout assists | Always starts here | `@scout` (orient + clarify-assist) |
-| 2 | Codebase-assisted | Codebase-dependent unknown blocks framing AND user cannot answer | `@scout` or `@researcher` |
+| 1 | Orient (pre-tier, conditional) + Socratic dialogue with between-round @scout assists | Always starts here | `@scout` (orient + clarify-assist) + `@navigator` |
+| 2 | Codebase-assisted | Codebase-dependent unknown blocks framing AND user cannot answer | `@scout`, `@researcher`, or `@navigator` |
 | 3 | Multi-perspective exploration | Ambiguous scope + 2+ one-way-door decisions after clarify + investigate | `@framer` team |
 
 ## Phases
 
 | Phase | Agent type |
 |-------|-----------|
-| Orient | `@scout` (haiku, orient mode) |
-| Investigate | `@scout` / `@researcher` |
-| Explore | `@framer` |
+| Orient | `@scout` (haiku, orient mode) + `@navigator` |
+| Investigate | `@scout` / `@researcher` / `@navigator` |
+| Explore | `@framer` + `@navigator` |
 | Frame | `@synthesizer` |
 
 **Session ID**: Per SPINE.md convention. Carry into do-plan. Append to session log at phase boundaries and tier escalations. `<session>` placeholder below.
@@ -68,22 +68,37 @@ Pre-tier phase — runs before the tier model activates. Dispatches `@scout` (ha
 
 **When codebase-adjacent**:
 1. Dispatch `@scout` with orient-mode query: intake signals (named components, upstream handoff context, inline code) as the seed. Output: `.scratch/<session>/discuss-orient.md`.
+1b. Dispatch `@navigator` in parallel with `@scout`. Extract `seed_terms` from intake signals (named components, library references, inline code). `research_question`: "What upstream or external knowledge about [seed_terms] is relevant to [problem_description]?" `mode`: `synthesis`. Output: `.scratch/<session>/discuss-orient-external.md`.
 2. `@scout` orient mode: entry points, module boundaries, naming, layout — skip internals unless surprising. 1-2 cycles.
 3. If the upstream handoff originates from a prior do-discuss session that produced a `discuss-orient.md` output file (path present in handoff context), treat that file as pre-populated — skip dispatch. Handoffs from run-debug or other sessions without a prior discuss-orient output trigger fresh dispatch unconditionally.
-4. Orient output (`.scratch/<session>/discuss-orient.md`) must contain:
+4. Orient artifacts must contain:
    - **Answer** — what the codebase contains relevant to the problem
    - **File map** — paths with key line ranges
    - **Gaps** — what could not be determined; note potential lens signals if observed (e.g., "async queue found — potential concurrency lens signal")
+   - **External signals** — `external_signals` table from `.scratch/<session>/discuss-orient-external.md` (empty if navigator found nothing). Parallel to codebase signals.
 5. Append to session log: phase boundary, `@scout` dispatched, 1-sentence orient summary.
-6. Carry `codebase_signals` (structured summary of findings) into clarify as pre-populated context.
+6. Carry `codebase_signals` (from scout) and `external_signals` (from navigator) into clarify as pre-populated context.
 
 **When NOT codebase-adjacent** (orient skipped):
 - Proceed directly to clarify.
 - No session log entry required (phase not entered).
 - `codebase_signals` is empty.
+- `external_signals` is empty unless the external research override below triggers.
+
+**External research override** (when orient skipped but library names present):
+
+| Signal | Action |
+|--------|--------|
+| Input names a library, framework, package, or SDK | Dispatch `@navigator` standalone |
+| Input references version constraint, API, or "upstream" | Dispatch `@navigator` (soft signal) |
+| No library/framework names in input | Skip — `external_signals = []` |
+| Ambiguous | Dispatch `@navigator` — handles no-library gracefully |
+
+When triggered: dispatch `@navigator` with `seed_terms` from input, `codebase_signals = []`, `mode`: `synthesis`, output: `.scratch/<session>/discuss-orient-external.md`. Carry `external_signals` into clarify. Append to session log.
 
 **Failure handling**:
 - `@scout` finds no relevant files: write "No relevant files found" to orient output. Set `codebase_signals = []`. Proceed to clarify without user-facing message.
+- Navigator output empty or missing: `external_signals = []`. Proceed to clarify; do not block; do not surface empty output to user.
 - Orient findings irrelevant to the problem: note mismatch in Gaps. Proceed without forcing signals into clarify.
 - Grounding question was asked at intake (< 1 sentence or diagnostic-only): re-run adjacency classification after user responds before dispatching orient.
 
@@ -97,11 +112,13 @@ Pre-tier phase — runs before the tier model activates. Dispatches `@scout` (ha
 
 Socratic dialogue. Main thread only — this is the user interaction loop. Subagent dispatches happen between rounds, not during them.
 
-When `codebase_signals` is non-empty (orient ran): seed `known` inventory before first round. Do not re-ask questions orient already answered.
+When `codebase_signals` is non-empty (orient ran): seed `known` inventory before first round. Do not re-ask questions orient already answered. Also seed `external_signals` from navigator if non-empty. Do not re-ask questions navigator already answered.
 
 **Between rounds** (after each user response, before formulating next questions): if the user's answer introduces a named codebase reference (file, module, function, service) not already covered by orient or a prior clarify-assist dispatch → dispatch `@scout` (haiku, orient mode) with the named reference as query. Output: `.scratch/<session>/discuss-clarify-assist-<round>.md`. Incorporate findings into the next question batch. Track dispatched references to avoid re-dispatch.
 
-Round budget adjustment: if orient's **Answer** section is non-empty, reduce budget by 1 (minimum 2 rounds normal / 4 rounds deep-interview). Hard minimum 2 rounds.
+**Between-round navigator assists** (after each user response): if the user's answer introduces a library, framework, or external dependency not already covered by orient's navigator dispatch or a prior clarify-nav dispatch → dispatch `@navigator` with the new reference as `seed_terms`, `mode`: `synthesis`, output: `.scratch/<session>/discuss-clarify-nav-<round>.md`. Incorporate findings into the next question batch as additional `external_signals`. Track dispatched references to avoid re-dispatch.
+
+Round budget adjustment: if orient's **Answer** section is non-empty, reduce budget by 1. If `external_signals` is non-empty, reduce budget by 1. Minimum 2 rounds normal / 4 rounds deep-interview. Hard minimum 2 rounds.
 
 Derive the **frame question** — single question whose answer unblocks planning. Specific (names affected system/behavior), answerable (finite answers), scoped (enables planning). Example: "Is the auth retry failure a client-side timeout or a server-side rate limit?"
 
@@ -122,12 +139,15 @@ Subagent dispatch for codebase evidence.
 |-------|----------|--------|
 | `@scout` | Orientation: "does X exist? where? what shape?" | `.scratch/<session>/discuss-investigate-scout.md` |
 | `@researcher` | Depth: "how does X work? what are the side effects?" | `.scratch/<session>/discuss-investigate-researcher.md` |
+| `@navigator` | External: "what does the ecosystem say about X?" | `.scratch/<session>/discuss-investigate-navigator.md` |
 
 Dispatch context: specific unknowns from inventory, current `known`/`unknown` state, why user could not answer (domain vs. codebase gap).
 
+Dispatch `@navigator` when the blocking unknown involves external library behavior, API compatibility, or ecosystem alternatives — not codebase depth. Navigator at investigate runs targeted queries, not the broad orient sweep.
+
 Duplication prevention: before dispatching, check orient output (`.scratch/<session>/discuss-orient.md`) and any clarify-assist outputs (`.scratch/<session>/discuss-clarify-assist-*.md`). For each blocking unknown: if the relevant file appears in a prior File map, dispatch @scout with a depth-specific question (e.g., "how does the retry backoff work in queue.js, specifically the retry section") rather than general orientation. Only if a prior Answer section explicitly resolves the unknown may escalation be omitted — file presence alone is not sufficient. Prior findings narrow the dispatch query; they never suppress it.
 
-Before dispatch: select 1 lens from `do-plan/references/variance-lenses.md` — match `unknown` inventory against lens trigger column, log selection reasoning (2-3 sentences). Dispatch one augmented `@researcher` with the lens focus directive. Max 3 concurrent (1-2 base + 1 augmented). Max 2 rounds. Synthesize into `codebase_signals`, return to clarify.
+Before dispatch: select 1 lens from `do-plan/references/variance-lenses.md` — match `unknown` inventory against lens trigger column, log selection reasoning (2-3 sentences). Dispatch one augmented `@researcher` with the lens focus directive. Max 3 concurrent (1-2 base + 1 augmented). Max 2 rounds. Synthesize into `codebase_signals`, return to clarify. Merge navigator findings into `external_signals` (append to orient's external_signals; do not overwrite).
 
 Escalation to tier 3: ambiguous scope AND `key_decisions` has 2+ one-way-door options after investigation.
 
@@ -143,9 +163,11 @@ Team `discuss-explore` — three `@framer` personas for one-way-door decisions r
 
 Dispatch context: current `problem_frame` (in-progress), full `known`/`unknown` inventory, assigned perspective, all three output paths.
 
-Dispatch all three in parallel → wait → re-invoke each to read peers and append `## Peer Reactions` → synthesize. Irreconcilable positions become `key_decisions`.
+Dispatch `@navigator` in parallel with the framer team. Use `mode`: `alternatives`. Output: `.scratch/<session>/discuss-explore-navigator.md`.
 
-Dispatch one additional `@framer` with the variance lens from investigate (or select lens per variance-lenses.md if investigate was skipped). Output: `.scratch/<session>/discuss-explore-augmented-{lens}.md`. Included in peer reaction round. Max 4 total framers.
+Dispatch all three in parallel → wait → re-invoke each to read peers and append `## Peer Reactions` → synthesize. Include navigator in the peer-reaction round when dispatched. Irreconcilable positions become `key_decisions`.
+
+Dispatch one additional `@framer` with the variance lens from investigate (or select lens per variance-lenses.md if investigate was skipped). Output: `.scratch/<session>/discuss-explore-augmented-{lens}.md`. Included in peer reaction round. Max 4 total framers plus 1 navigator.
 
 ### 6. Frame
 
@@ -154,8 +176,9 @@ Dispatch `@synthesizer` with accumulated session state. Output: `.scratch/<sessi
 Dispatch context must include:
 - `known` / `unknown` inventory (final state after clarify)
 - `codebase_signals` from orient and/or investigate
+- `external_signals` from orient, clarify assists, investigate, and/or explore
 - `key_decisions` with door-type classifications
-- Evidence manifest (paths to orient and investigate artifacts)
+- Evidence manifest (paths to orient, investigate, and explore artifacts)
 - Session ID
 
 `@synthesizer` writes the frame artifact. Main thread reads the output and validates the self-sufficiency contract: understandable without chat history, all terms defined, no conversation references, evidence levels present. If self-sufficiency fails, re-dispatch with the gap list appended to context.
@@ -202,8 +225,11 @@ run-debug → do-discuss               (root cause → architectural scope)
 - Framing as solution choice ("should we use Redis?") instead of diagnostic ("is the bottleneck in storage or retrieval?")
 - Dispatching tier-2 agents for questions answerable by the user
 - Dispatching tier-3 team for simple problems with clear scope
-- Dispatching agents during clarify (user dialogue loop must stay on main thread; between-round @scout assists are the only exception)
-- Dispatching a full `@researcher` or multi-agent team at orient — orient uses `@scout` haiku only (breadth, not depth)
+- Dispatching agents during clarify (user dialogue loop must stay on main thread; between-round `@scout` and `@navigator` assists are the only exceptions)
+- Dispatching a full `@researcher` or multi-agent team at orient — orient uses `@scout` plus `@navigator` for breadth only, not depth
 - Escalating to tier-2 investigate for unknowns already answered by orient (orient's Answer section must explicitly resolve the unknown — file presence in File map alone is not sufficient)
 - Asking the user about codebase facts orient could have answered proactively
 - Running orient on pure-domain problems with no codebase component (unnecessary context noise; delays Socratic questions)
+- Fire-and-forward navigator usage with no `external_signals` handoff into later phases
+- Using navigator for codebase-depth questions that belong to `@researcher`
+- Re-dispatching navigator for a library or dependency already covered in the session

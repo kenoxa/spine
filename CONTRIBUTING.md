@@ -5,7 +5,7 @@
 ```
 SPINE.md                Global guardrails (installed to ~/.config/spine/SPINE.md)
 skills/                 17 skills (11 workflow + 3 domain + 3 tools)
-agents/                 11 subagents
+agents/                 13 subagents
 claude/                 Claude Code plugin (hooks + use-agent-teams skill)
 docs/                   Reference docs (skills, tips, external skills)
 .scratch/               Ephemeral subagent output (gitignored)
