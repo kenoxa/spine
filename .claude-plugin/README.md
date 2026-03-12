@@ -21,7 +21,7 @@ claude plugin install spine@kenoxa
 - **SessionStart hook** — injects project-level `AGENTS.md` files into Claude Code context
 - **`use-agent-teams` skill** — upgrades subagent dispatch to Agent Teams for `do-plan` and `do-execute` phases
 
-The plugin source lives at [`../claude/`](../claude/). Cross-platform skills, agents, and guardrails are installed separately via `install.sh` or `npx skills add`.
+The plugin source lives at [`../claude/`](../claude/). Cross-platform skills, agents, and guardrails are installed separately via `install.sh`; public manual skill examples use `npx skills add` to match [`skills.sh`](https://skills.sh/), while the installer may bootstrap the same CLI through another launcher.
 
 ## Files
 

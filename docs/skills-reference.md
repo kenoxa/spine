@@ -156,4 +156,4 @@ Prefixes group skills in slash-autocomplete — type `do-`, `run-`, `with-`, or 
 
 **Why prefixes?** Without them, spine's skills get lost among globally installed skills in slash-autocomplete. Typing the first few characters of a prefix immediately narrows the list to the relevant group.
 
-External skills (installed via `npx skills add`) keep their upstream names and do not follow this convention — we don't own those names.
+External skills keep their upstream names and do not follow this convention — we don't own those names. Public install examples intentionally use `npx skills add` to match [`skills.sh`](https://skills.sh/); the installer may bootstrap the same CLI through another launcher.

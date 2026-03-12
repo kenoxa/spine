@@ -10,6 +10,8 @@ argument-hint: "[package operation or JS/TS task]"
 
 Use `ni` for all package operations — never hardcode npm, pnpm, yarn, or bun commands.
 
+Exception: public `skills` install docs intentionally use `npx skills add/remove ...` to match [`skills.sh`](https://skills.sh/), and Spine's installer bootstrap may fall back to other launchers when invoking the same CLI. This exception is only for `skills` bootstrap/install flows; normal JS/TS project tooling still uses `ni`/`nlx`.
+
 ## Package Management (`ni`)
 
 `ni` auto-detects the package manager from lockfile. One command set for all JS projects.
@@ -57,7 +59,7 @@ Run tests via `ni` commands — never hardcode the test runner binary.
 ## Anti-Patterns
 
 - Hardcoding `npm install`, `pnpm add`, `yarn add`, `bun add` — use `ni <pkg>`
-- Using `npx` or `bunx` directly — use `nlx <cmd>`
+- Using `npx` or `bunx` directly for normal JS/TS tooling — use `nlx <cmd>`
 - Running `npm audit` or `pnpm audit` — use `na audit`
 - Detecting package manager from lockfile in code — `ni` handles it
 - Specifying package manager in AGENTS.md — omit it, `ni` is universal

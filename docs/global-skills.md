@@ -2,6 +2,8 @@
 
 External skills that spine workflows reference or that provide standalone value.
 
+Public install examples intentionally use `npx skills add` to match [`skills.sh`](https://skills.sh/). The installer may bootstrap the same CLI through another launcher.
+
 ## Install All
 
 ```sh

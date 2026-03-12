@@ -86,7 +86,7 @@ for agent in ~/.config/spine/agents/*.md; do
 done
 ```
 
-Skills are installed separately via `npx skills add` (see above).
+Skills are installed separately via the `skills` CLI. Public manual examples use `npx skills add` to match [`skills.sh`](https://skills.sh/) (see above); the installer may bootstrap the same CLI through another launcher.
 
 **Claude Code plugin:** Install the Spine plugin for hooks and the `use-agent-teams` skill:
 
@@ -150,7 +150,7 @@ The installer checks for these tools and installs missing ones via Homebrew (mac
 |------|----------|---------|
 | `git` | Required | Version control |
 | `jq` | Required | JSON processing |
-| `node` | Required | JavaScript runtime (for `npx skills`) |
+| `node` | Required | JavaScript runtime for `skills` tooling and public `npx skills` commands |
 | `ast-grep` | Recommended | AST-based structural code search and refactoring |
 | `bun` | Recommended | Fast JavaScript runtime and package manager |
 | `coreutils` | Recommended | GNU core utilities (macOS) |

@@ -53,6 +53,8 @@ npx skills add trailofbits/skills -s differential-review -a '*' -g -y
 npx skills add trailofbits/skills -s fp-check -a '*' -g -y
 ```
 
+Public manual examples intentionally use `npx skills add` to match [`skills.sh`](https://skills.sh/). The installer may bootstrap the same CLI through another launcher.
+
 See [docs/global-skills.md](docs/global-skills.md) for which local skills reference each external skill.
 
 ## Editing SPINE.md
@@ -92,7 +94,7 @@ The install script downloads spine and sets up the central directory, provider l
 4. Detects tools by checking for `~/.cursor/`, `~/.claude/`, `~/.codex/`
 5. Writes `@~/.config/spine/SPINE.md` and `@~/.config/spine/AGENTS.md` references to each provider's root file (preserves user content), symlinks agents, and for Claude Code installs the Spine plugin
 6. Configures Context7 + Exa MCP servers (`install_mcp_servers()`) — CLI commands for Claude Code/Codex, jq patch for Cursor
-7. Installs skills via `npx skills add` (local spine skills + global external skills)
+7. Installs skills via the `skills` CLI with its own launcher fallback (local spine skills + global external skills)
 8. Cleans up stale symlinks and backup files
 
 **When to update**:
@@ -113,7 +115,7 @@ The install script downloads spine and sets up the central directory, provider l
 
 - **Local skill (in `skills/`)**: delete or rename the skill directory, then re-run `install.sh`. The manifest diff detects the old name as an orphan and removes `~/.agents/skills/<old-name>` automatically. The resulting broken symlink in `~/.{claude,cursor,codex}/skills/` is swept by `cleanup_stale_files()`.
 - **Global/external skill (`GLOBAL_SKILLS[]`)**: update the array entry and add the old name to `RETIRED_GLOBAL_SKILLS` in `install_skills()`. The lockfile-based mechanism handles removal.
-- **Note**: do not use `npx skills remove` for local spine skills — it is a no-op for local-path installs.
+- **Note**: public docs use `npx skills remove`, but do not use it for local spine skills — it is a no-op for local-path installs.
 
 ## Review Checklist
 

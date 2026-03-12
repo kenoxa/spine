@@ -10,6 +10,8 @@ All notable changes are documented here, focused on user impact.
 
   **Migration**: re-run `install.sh` or `npx skills add kenoxa/spine -s run-insights -s run-recap -a '*' -g -y`. Remove stale `~/.agents/skills/log-history-*` directories.
 
+- **Skills installer command split documented** — public docs continue to show `npx skills add/remove ...` to match `skills.sh`, while `install.sh` can bootstrap the same CLI through another launcher when updating Spine-managed skills.
+
 ## 2026-03-11
 
 ### Changed

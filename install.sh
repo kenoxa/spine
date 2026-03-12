@@ -501,13 +501,89 @@ backup_if_exists() {
   fi
 }
 
-# --- Install skills via npx ---
+# --- Install skills via runtime launcher ---
+
+SKILLS_RUNTIME_PACKAGE="skills@latest"
+SKILLS_RUNTIME_CHOICES=()
+SKILLS_RUNTIME_CMD=()
+SKILLS_RUNTIME_DISPLAY=()
+
+print_command() {
+  local arg
+  printf '    ' >&2
+  for arg in "$@"; do
+    printf '%q ' "$arg" >&2
+  done
+  printf '\n' >&2
+}
+
+set_skills_runtime_launcher() {
+  SKILLS_RUNTIME_CMD=()
+  SKILLS_RUNTIME_DISPLAY=()
+
+  case "$1" in
+    nlx)
+      SKILLS_RUNTIME_CMD=(nlx "$SKILLS_RUNTIME_PACKAGE")
+      ;;
+    bunx)
+      SKILLS_RUNTIME_CMD=(bunx "$SKILLS_RUNTIME_PACKAGE")
+      ;;
+    bun)
+      SKILLS_RUNTIME_CMD=(bun x "$SKILLS_RUNTIME_PACKAGE")
+      ;;
+    npx)
+      SKILLS_RUNTIME_CMD=(npx --yes "$SKILLS_RUNTIME_PACKAGE")
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+
+  SKILLS_RUNTIME_DISPLAY=("${SKILLS_RUNTIME_CMD[@]}")
+}
+
+resolve_skills_runtime() {
+  SKILLS_RUNTIME_CHOICES=()
+  if command -v nlx >/dev/null 2>&1; then
+    SKILLS_RUNTIME_CHOICES+=(nlx)
+  fi
+  if command -v bunx >/dev/null 2>&1; then
+    SKILLS_RUNTIME_CHOICES+=(bunx)
+  fi
+  if command -v bun >/dev/null 2>&1; then
+    SKILLS_RUNTIME_CHOICES+=(bun)
+  fi
+  if command -v npx >/dev/null 2>&1; then
+    SKILLS_RUNTIME_CHOICES+=(npx)
+  fi
+  [ ${#SKILLS_RUNTIME_CHOICES[@]} -gt 0 ] || return 1
+  set_skills_runtime_launcher "${SKILLS_RUNTIME_CHOICES[0]}"
+}
+
+run_skills_command() {
+  local launcher
+  for launcher in "${SKILLS_RUNTIME_CHOICES[@]}"; do
+    set_skills_runtime_launcher "$launcher"
+    if quiet "${SKILLS_RUNTIME_CMD[@]}" "$@"; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+print_skills_commands() {
+  local launcher
+  for launcher in "${SKILLS_RUNTIME_CHOICES[@]}"; do
+    set_skills_runtime_launcher "$launcher"
+    print_command "${SKILLS_RUNTIME_DISPLAY[@]}" "$@"
+  done
+}
 
 install_skills() {
   local skills_src="$1"; shift
   local detected_tools=("$@")
 
-  # Build -a flags from detected tools, mapping to npx skills agent names
+  # Build -a flags from detected tools, mapping to skills agent names
   local agent_flags=()
   for tool in "${detected_tools[@]}"; do
     case "$tool" in
@@ -527,14 +603,14 @@ install_skills() {
     current_skills+=("$sname")
   done
 
-  if ! command -v npx &>/dev/null; then
-    warn "npx not found — cannot install skills automatically"
+  if ! resolve_skills_runtime; then
+    warn "No supported launcher found for bootstrapping $SKILLS_RUNTIME_PACKAGE"
     echo "" >&2
-    echo "  Install skills manually:" >&2
-    echo "    npx skills add $skills_src ${skill_flags[*]} ${agent_flags[*]} -g -y" >&2
-    for entry in "${GLOBAL_SKILLS[@]}"; do
-      echo "    npx skills add $entry ${agent_flags[*]} -g -y" >&2
-    done
+    echo "  Install one of these launchers, then re-run this installer:" >&2
+    echo "    nlx" >&2
+    echo "    bunx" >&2
+    echo "    bun  # for 'bun x'" >&2
+    echo "    npx" >&2
     echo "" >&2
     return 0
   fi
@@ -544,14 +620,15 @@ install_skills() {
 
   # Spine skills: install public skills, then remove any renamed/deleted orphans
   local install_ok=0
+  local lock_file="$HOME/.agents/.skill-lock.json"
   if [ ${#skill_flags[@]} -eq 0 ]; then
     warn "No public skills found in $skills_src/skills/"
-  elif quiet npx --yes skills add "$skills_src" "${skill_flags[@]}" "${agent_flags[@]}" -g -y; then
+  elif run_skills_command add "$skills_src" "${skill_flags[@]}" "${agent_flags[@]}" -g -y; then
     done_msg "spine: ${#current_skills[@]} public skills"
     install_ok=1
   else
     warn "Failed to install spine skills"
-    echo "    npx skills add $skills_src ${skill_flags[*]} ${agent_flags[*]} -g -y" >&2
+    print_skills_commands add "$skills_src" "${skill_flags[@]}" "${agent_flags[@]}" -g -y
   fi
 
   if [ "$install_ok" -eq 1 ]; then
@@ -560,9 +637,8 @@ install_skills() {
     # Local skill orphans are detected via the manifest diff below.
     # Do NOT add local skill names to RETIRED_GLOBAL_SKILLS — that mechanism
     # is for lockfile-tracked external skills only.
-    local tmp_manifest lock_file
+    local tmp_manifest
     tmp_manifest="$(mktemp)"
-    lock_file="$HOME/.agents/.skill-lock.json"
     printf '%s\n' "${current_skills[@]}" > "$tmp_manifest"
     mv "$tmp_manifest" "$spine_manifest"
 
@@ -594,8 +670,9 @@ install_skills() {
   for entry in "${GLOBAL_SKILLS[@]}"; do
     # entry is e.g. "obra/superpowers -s brainstorming"
     local skill_name="${entry##*-s }"
-    # shellcheck disable=SC2086  # intentional: $entry must word-split into repo + flags
-    if quiet npx --yes skills add $entry "${agent_flags[@]}" -g -y; then
+    local entry_tokens=()
+    read -r -a entry_tokens <<< "$entry"
+    if run_skills_command add "${entry_tokens[@]}" "${agent_flags[@]}" -g -y; then
       done_msg "global: $skill_name"
     else
       failed+=("$entry")
@@ -606,7 +683,9 @@ install_skills() {
   if [ ${#failed[@]} -gt 0 ]; then
     warn "Some global skills failed. Install manually:"
     for entry in "${failed[@]}"; do
-      echo "    npx skills add $entry ${agent_flags[*]} -g -y" >&2
+      local entry_tokens=()
+      read -r -a entry_tokens <<< "$entry"
+      print_skills_commands add "${entry_tokens[@]}" "${agent_flags[@]}" -g -y
     done
   fi
 
@@ -625,7 +704,7 @@ install_skills() {
     done
     if [ ${#global_orphans[@]} -gt 0 ]; then
       info "Removing retired global skills: ${global_orphans[*]}"
-      quiet npx --yes skills remove "${global_orphans[@]}" "${agent_flags[@]}" -g -y || true
+      run_skills_command remove "${global_orphans[@]}" "${agent_flags[@]}" -g -y || true
     fi
   fi
 }
