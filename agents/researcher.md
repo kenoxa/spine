@@ -27,3 +27,8 @@ Structure output as:
 2. **Evidence table** — claim / evidence level / file or source
 3. **Findings** — synthesized conclusions with E-level tags (see AGENTS.md)
 4. **Confidence gaps** — what could not be verified and why
+
+## MCP Tool Routing
+
+Context7 →  structured library docs
+Exa      →  code patterns / web search / everything else

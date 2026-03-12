@@ -45,3 +45,8 @@ Per probe: command run, expected outcome, actual outcome, assessment.
 - **PASS** — all baseline checks pass AND at least one adversarial probe with no failure.
 - **FAIL** — baseline failure OR adversarial probe reveals blocking issue.
 - **PARTIAL** — baseline passes but coverage gaps remain that could not be tested.
+
+## MCP Tool Routing
+
+Context7 →  structured library docs
+Exa      →  code patterns / web search / everything else

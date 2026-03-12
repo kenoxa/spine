@@ -83,21 +83,24 @@ Keep subagent bodies focused — they should define constraints and output forma
 
 ## Installer (`install.sh`)
 
-The install script downloads spine and sets up the central directory and provider links. For Claude Code, it also installs the Spine plugin.
+The install script downloads spine and sets up the central directory, provider links, MCP servers, and skills. For Claude Code, it also installs the Spine plugin.
 
-**What it does**:
-1. Downloads the repo via `git clone --depth 1` (or `curl` tarball fallback)
-2. Sets up `~/.config/spine/` with `SPINE.md` and `agents/*.md` (user-owned copies)
-3. Detects tools by checking for `~/.cursor/`, `~/.claude/`, `~/.codex/`
-4. Writes `@~/.config/spine/SPINE.md` reference to each provider's root file (preserves user content)
-5. Symlinks each provider's `agents/<name>.md` to `~/.config/spine/agents/<name>.md`
-6. For Claude Code: attempts `claude plugin marketplace add` + `claude plugin install`; falls back to manual hook installation if the CLI doesn't support plugins
+**What it does** (8 steps):
+1. Checks system dependencies — installs missing tools via Homebrew on macOS
+2. Downloads the repo via `git clone --depth 1` (or `curl` tarball fallback)
+3. Sets up `~/.config/spine/` with `SPINE.md` and `agents/*.md` (user-owned copies)
+4. Detects tools by checking for `~/.cursor/`, `~/.claude/`, `~/.codex/`
+5. Writes `@~/.config/spine/SPINE.md` reference to each provider's root file (preserves user content), symlinks agents, and for Claude Code installs the Spine plugin
+6. Configures Context7 + Exa MCP servers (`install_mcp_servers()`) — CLI commands for Claude Code/Codex, jq patch for Cursor
+7. Installs skills via `npx skills add` (local spine skills + global external skills)
+8. Cleans up stale symlinks and backup files
 
 **When to update**:
 - Adding a new supported tool → add detection in `detect_tools()` and install logic in `install_tool()`
 - Changing the guardrails filename → update `setup_central_dir()` and `install_tool()`
 - Changing plugin hooks → update `claude/hooks/hooks.json` and `claude/hooks/`
 - Changing plugin metadata → update `claude/.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`
+- Adding/removing MCP servers → update `install_mcp_servers()` and `RETIRED_MCP_SERVERS`
 
 **Testing**: Run with `HOME=$(mktemp -d) bash install.sh` to verify in an isolated environment.
 

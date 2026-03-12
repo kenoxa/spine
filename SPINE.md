@@ -27,7 +27,20 @@
 
 ## Tools
 
-Use native tools: Grep not `rg`/`grep`, Glob not `find`/`ls`, Read not `cat`/`head`/`tail`, Edit not `sed`/`awk`. When MCP documentation tools are available (e.g., context7), use them instead of WebFetch/WebSearch for library and framework docs. Resolve the library ID first, then query specific topics.
+Use native tools: Grep not `rg`/`grep`, Glob not `find`/`ls`, Read not `cat`/`head`/`tail`, Edit not `sed`/`awk`.
+
+Prefer MCP tools over WebFetch/WebSearch. One search tool per question.
+
+**Context7** — library/framework docs, version-specific API references
+- Resolve library ID first, then query specific topics
+- Prefer over Exa for any question about a specific library
+
+**Exa** — code patterns, implementation examples, general web search, dev research
+- `get_code_context_exa` for code pattern searches; `web_search_exa` for general web lookups
+- Include language + framework + version in queries to reduce noise (e.g., "Next.js 14 app router caching")
+- Prefer subagent dispatch — Exa results are verbose; keep main context clean
+
+Context7 → Exa → built-in web tools. If Context7 returns no results, fall back to Exa without asking.
 
 When shell is unavoidable:
 - Use `trash`, never `rm`, for file deletion.

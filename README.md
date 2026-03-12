@@ -17,7 +17,7 @@ AI coding setup for Cursor, Claude Code, and Codex. One set of skills, agents, a
 
 > **If it's worth changing, it's worth planning.**
 
-Installs guardrails, skills, agents, and hooks for all detected tools (Cursor, Claude Code, Codex):
+Installs guardrails, skills, agents, hooks, and MCP servers for all detected tools (Cursor, Claude Code, Codex):
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/kenoxa/spine/main/install.sh | bash
@@ -113,6 +113,31 @@ Add to `~/.claude/settings.json`:
 }
 ```
 
+**MCP servers:** Configure Context7 and Exa for each tool:
+
+```sh
+# Claude Code
+claude mcp add --transport http --scope user context7 https://mcp.context7.com/mcp
+claude mcp add --transport http --scope user exa "https://mcp.exa.ai/mcp?tools=get_code_context_exa,web_search_exa"
+
+# Codex
+codex mcp add context7 --url https://mcp.context7.com/mcp
+codex mcp add exa --url "https://mcp.exa.ai/mcp?tools=get_code_context_exa,web_search_exa"
+```
+
+For Cursor, add to `~/.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "context7": { "url": "https://mcp.context7.com/mcp" },
+    "exa": { "url": "https://mcp.exa.ai/mcp?tools=get_code_context_exa,web_search_exa" }
+  }
+}
+```
+
+For optional API key auth, see the installer source or set `CONTEXT7_API_KEY` / `EXA_API_KEY` in `~/.config/spine/.env`.
+
 </details>
 
 <details>
@@ -136,6 +161,27 @@ The installer checks for these tools and installs missing ones via Homebrew (mac
 | `shfmt` | Recommended | Shell script formatter |
 
 On Linux without Homebrew, the installer prints manual install hints.
+
+</details>
+
+<details>
+<summary>MCP servers installed</summary>
+
+The installer registers these MCP servers for all detected tools:
+
+| Server | Tools Provided | URL |
+|--------|---------------|-----|
+| Context7 | `resolve-library-id`, `query-docs` | `https://mcp.context7.com/mcp` |
+| Exa | `web_search_exa`, `get_code_context_exa` | `https://mcp.exa.ai/mcp?tools=get_code_context_exa,web_search_exa` |
+
+Both servers work keyless by default. For higher rate limits, set API keys in `~/.config/spine/.env`:
+
+```sh
+CONTEXT7_API_KEY=your-key-here
+EXA_API_KEY=your-key-here
+```
+
+The installer reads this file and configures auth headers automatically when keys are present.
 
 </details>
 

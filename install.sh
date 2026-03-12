@@ -34,6 +34,10 @@ GLOBAL_SKILLS=(
   "trailofbits/skills -s fp-check"
 )
 
+# MCP servers previously installed by Spine — removed on next run.
+# Add server names here when replacing or dropping an MCP server.
+RETIRED_MCP_SERVERS=()
+
 # --- Helpers ---
 
 info()     { printf "${_C_BLUE}==>${_C_RESET} %s\n" "$*" >&2; }
@@ -44,7 +48,7 @@ done_msg() { printf "  ${_C_GREEN}✓${_C_RESET} %s\n" "$*" >&2; }
 # Run a command silently; on failure show captured output then return 1.
 quiet() { local out; out=$("$@" 2>&1) || { echo "$out" >&2; return 1; }; }
 
-# Step progress: step "1/5" "Checking dependencies"
+# Step progress: step "1/8" "Checking dependencies"
 step() { printf "\n${_C_BLUE}[%s]${_C_RESET} %s\n" "$1" "$2" >&2; }
 
 # --- Dependency detection ---
@@ -325,6 +329,158 @@ install_claude_plugin() {
   fi
 }
 
+# --- MCP server helpers ---
+
+source_spine_env() {
+  local env_file="$HOME/.config/spine/.env"
+  [ -f "$env_file" ] || return 0
+
+  # shellcheck disable=SC1090
+  . "$env_file" 2>/dev/null || { warn "Failed to source $env_file — using keyless mode"; return 0; }
+
+  # Ensure env vars are available in future shells (Codex reads at runtime)
+  if command -v zsh &>/dev/null; then
+    local zshenv="$HOME/.zshenv"
+    if ! grep -qF '/.config/spine/.env' "$zshenv" 2>/dev/null; then
+      # shellcheck disable=SC2016  # intentional: $HOME expands at shell startup, not install time
+      echo '[ -f "$HOME/.config/spine/.env" ] && source "$HOME/.config/spine/.env"' >> "$zshenv"
+      done_msg "Added spine env to ~/.zshenv"
+    fi
+  fi
+}
+
+mcp_add_claude() {
+  local name="$1" url="$2"; shift 2
+  # Remove first for idempotency — claude mcp add fails if entry already exists
+  quiet claude mcp remove "$name" --scope user 2>/dev/null || true
+  if quiet claude mcp add --transport http --scope user "$name" "$url" "$@"; then
+    done_msg "claude: MCP server $name"
+  else
+    warn "Failed to add MCP server $name to claude"
+    echo "  Run manually: claude mcp add --transport http --scope user $name $url $*" >&2
+  fi
+}
+
+mcp_add_codex() {
+  local name="$1" url="$2"; shift 2
+  if quiet codex mcp add "$name" --url "$url" "$@"; then
+    done_msg "codex: MCP server $name"
+  else
+    warn "Failed to add MCP server $name to codex"
+    echo "  Run manually: codex mcp add $name --url $url $*" >&2
+  fi
+}
+
+mcp_add_cursor() {
+  local c7_url="$1" c7_key="$2" exa_url="$3" exa_key="$4"
+  local mcp_file="$HOME/.cursor/mcp.json"
+
+  if ! command -v jq &>/dev/null; then
+    warn "jq not found — cannot configure Cursor MCP servers"
+    return 0
+  fi
+
+  if [ -f "$mcp_file" ] && ! jq empty "$mcp_file" 2>/dev/null; then
+    warn "Invalid JSON in $mcp_file — skipping Cursor MCP configuration"
+    return 0
+  fi
+
+  [ -f "$mcp_file" ] || echo '{}' > "$mcp_file"
+
+  local tmp
+  tmp=$(mktemp)
+  # Cursor supports ${env:NAME} interpolation in headers — use runtime references, not baked values
+  jq --arg c7url "$c7_url" --arg c7key "$c7_key" \
+     --arg exaurl "$exa_url" --arg exakey "$exa_key" '
+    .mcpServers //= {} |
+    .mcpServers.context7 = (
+      {url: $c7url} + if $c7key != "" then {headers: {"Authorization": "Bearer ${env:CONTEXT7_API_KEY}"}} else {} end
+    ) |
+    .mcpServers.exa = (
+      {url: $exaurl} + if $exakey != "" then {headers: {"Authorization": "Bearer ${env:EXA_API_KEY}"}} else {} end
+    )
+  ' "$mcp_file" > "$tmp"
+
+  if jq empty "$tmp" 2>/dev/null; then
+    mv "$tmp" "$mcp_file"
+    done_msg "cursor: MCP servers (context7, exa)"
+  else
+    warn "Generated invalid JSON — $mcp_file left unchanged"
+    rm -f "$tmp"
+    return 0
+  fi
+}
+
+install_mcp_servers() {
+  local detected_tools=("$@")
+
+  source_spine_env
+
+  local c7_url="https://mcp.context7.com/mcp"
+  local exa_url="https://mcp.exa.ai/mcp?tools=get_code_context_exa,web_search_exa"
+
+  # Build auth args conditionally — only add header references when keys are configured
+  local c7_claude_auth=() exa_claude_auth=()
+  local c7_codex_auth=() exa_codex_auth=()
+  if [ -n "${CONTEXT7_API_KEY:-}" ]; then
+    # shellcheck disable=SC2016  # intentional: env var resolves at runtime, not install time
+    c7_claude_auth=(--header 'Authorization: Bearer ${CONTEXT7_API_KEY}')
+    c7_codex_auth=(--bearer-token-env-var CONTEXT7_API_KEY)
+  fi
+  if [ -n "${EXA_API_KEY:-}" ]; then
+    # shellcheck disable=SC2016
+    exa_claude_auth=(--header 'Authorization: Bearer ${EXA_API_KEY}')
+    exa_codex_auth=(--bearer-token-env-var EXA_API_KEY)
+  fi
+
+  for tool in "${detected_tools[@]}"; do
+    case "$tool" in
+      claude)
+        mcp_add_claude "context7" "$c7_url" "${c7_claude_auth[@]}"
+        mcp_add_claude "exa" "$exa_url" "${exa_claude_auth[@]}"
+        ;;
+      codex)
+        mcp_add_codex "context7" "$c7_url" "${c7_codex_auth[@]}"
+        mcp_add_codex "exa" "$exa_url" "${exa_codex_auth[@]}"
+        ;;
+      cursor)
+        mcp_add_cursor "$c7_url" "${CONTEXT7_API_KEY:-}" "$exa_url" "${EXA_API_KEY:-}"
+        # Auto-approve via Cursor agent CLI if available
+        if command -v agent &>/dev/null; then
+          quiet agent mcp enable context7 2>/dev/null || true
+          quiet agent mcp enable exa 2>/dev/null || true
+          done_msg "cursor: MCP servers approved via agent CLI"
+        fi
+        ;;
+    esac
+  done
+
+  # Remove retired MCP servers
+  if [ ${#RETIRED_MCP_SERVERS[@]} -gt 0 ]; then
+    for name in "${RETIRED_MCP_SERVERS[@]}"; do
+      for tool in "${detected_tools[@]}"; do
+        case "$tool" in
+          claude) quiet claude mcp remove "$name" --scope user 2>/dev/null || true ;;
+          codex)  quiet codex mcp remove "$name" 2>/dev/null || true ;;
+          cursor)
+            if [ -f "$HOME/.cursor/mcp.json" ] && command -v jq &>/dev/null; then
+              local tmp
+              tmp=$(mktemp)
+              if jq --arg n "$name" 'del(.mcpServers[$n])' "$HOME/.cursor/mcp.json" > "$tmp"; then
+                mv "$tmp" "$HOME/.cursor/mcp.json"
+              else
+                rm -f "$tmp"
+              fi
+            fi
+            command -v agent &>/dev/null && quiet agent mcp disable "$name" 2>/dev/null || true
+            ;;
+        esac
+      done
+      done_msg "Removed retired MCP server: $name"
+    done
+  fi
+}
+
 # --- Backup helper ---
 
 backup_if_exists() {
@@ -415,7 +571,7 @@ install_skills() {
           continue
         fi
         info "Removing orphaned spine skill: $prev_skill"
-        # cleanup_stale_files() (step 7) sweeps broken symlinks in ~/.{claude,cursor,codex}/skills/
+        # cleanup_stale_files() (step 8) sweeps broken symlinks in ~/.{claude,cursor,codex}/skills/
         # whose targets contain ".agents/skills/" — spine_targets. No change needed there.
         rm -rf "$HOME/.agents/skills/$prev_skill" || warn "Failed to remove orphan: $prev_skill"
       done < "${spine_manifest}.prev"
@@ -427,6 +583,7 @@ install_skills() {
   for entry in "${GLOBAL_SKILLS[@]}"; do
     # entry is e.g. "obra/superpowers -s brainstorming"
     local skill_name="${entry##*-s }"
+    # shellcheck disable=SC2086  # intentional: $entry must word-split into repo + flags
     if quiet npx --yes skills add $entry "${agent_flags[@]}" -g -y; then
       done_msg "global: $skill_name"
     else
@@ -514,11 +671,11 @@ main() {
   info "Spine installer — AI coding setup"
 
   # Step 1: System dependencies
-  step "1/7" "Checking system dependencies..."
+  step "1/8" "Checking system dependencies..."
   ensure_system_deps
 
   # Step 2: Resolve source
-  step "2/7" "Resolving source..."
+  step "2/8" "Resolving source..."
   local src script_dir
   script_dir="$(cd "$(dirname "${BASH_SOURCE[0]:-/dev/stdin}")" && pwd)"
   if [ -f "$script_dir/SPINE.md" ] && [ -d "$script_dir/skills" ]; then
@@ -535,11 +692,11 @@ main() {
   fi
 
   # Step 3: Set up central directory
-  step "3/7" "Setting up central directory..."
+  step "3/8" "Setting up central directory..."
   setup_central_dir "$src"
 
   # Step 4: Detect tools
-  step "4/7" "Detecting installed tools..."
+  step "4/8" "Detecting installed tools..."
   local tools
   read -ra tools <<< "$(detect_tools)"
 
@@ -552,17 +709,21 @@ main() {
   done_msg "Found: ${tools[*]}"
 
   # Step 5: Install guardrails, agents, and plugin
-  step "5/7" "Installing guardrails, agents, and plugin..."
+  step "5/8" "Installing guardrails, agents, and plugin..."
   for tool in "${tools[@]}"; do
     install_tool "$tool" "$src"
   done
 
-  # Step 6: Install skills
-  step "6/7" "Installing skills..."
+  # Step 6: Configure MCP servers
+  step "6/8" "Configuring MCP servers..."
+  install_mcp_servers "${tools[@]}"
+
+  # Step 7: Install skills
+  step "7/8" "Installing skills..."
   install_skills "$src" "${tools[@]}"
 
-  # Step 7: Clean up stale files
-  step "7/7" "Cleaning up stale files..."
+  # Step 8: Clean up stale files
+  step "8/8" "Cleaning up stale files..."
   cleanup_stale_files "${tools[@]}"
 
   # Summary

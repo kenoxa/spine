@@ -35,3 +35,8 @@ Apply noise filtering from run-review. Additionally:
 ## Partial Evidence
 
 Description/summary instead of actual code → still review, but constrain evidence ceiling to E1. Flag findings that would be blocking with code access but can only be `should_fix` without it — state what code evidence would promote them.
+
+## MCP Tool Routing
+
+Context7 →  structured library docs
+Exa      →  code patterns / web search / everything else

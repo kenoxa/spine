@@ -50,3 +50,8 @@ Before reporting completion, verify:
 2. **Session ID** — echo the session ID received in the dispatch context
 3. **Summary** — brief description of what was done per item
 4. **Follow-ups** (optional) — unrelated issues discovered, captured as future work
+
+## MCP Tool Routing
+
+Context7 →  structured library docs
+Exa      →  code patterns / web search / everything else

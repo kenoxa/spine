@@ -46,3 +46,8 @@ Always include these sections (reader decides based solely on your output):
 2. **File map** — paths with line ranges for key findings
 3. **Start here** — which file to look at first and why
 4. **Gaps** — what you could not verify and why
+
+## MCP Tool Routing
+
+Context7 →  structured library docs
+Exa      →  code patterns / web search / everything else
