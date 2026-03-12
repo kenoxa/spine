@@ -3,7 +3,7 @@
 # Claude Code PostToolUse hook: run project-appropriate checkers after file edits.
 # Triggered by Edit|Write|MultiEdit tools via hooks.json matcher.
 # Returns JSON on stdout with optional systemMessage.
-# ALWAYS exits 0 — errors are reported via systemMessage, never by exit code.
+# ALWAYS exits 0 — errors and missing-tooling notices are reported via systemMessage, never by exit code.
 
 # Guarantee valid JSON output on any unexpected failure
 trap 'echo "{}"; exit 0' ERR
@@ -41,33 +41,21 @@ if [ "$project_dir" = "/" ]; then
 fi
 
 # --- Detect package manager exec command ---
-# Prefer nlx (github.com/antfu-collective/ni) — auto-detects PM from lockfile.
-# Falls back to manual lockfile detection, walking up to repo root for monorepos.
+# Use nlx (ni's execute command). Fallback: bun x.
+# Skip entirely for non-JS projects (no package.json → no checkers would match).
+if [ ! -f "$project_dir/package.json" ]; then
+  echo '{}'
+  exit 0
+fi
+
 if command -v nlx &>/dev/null; then
   pm_exec="nlx"
+elif command -v bun &>/dev/null; then
+  pm_exec="bun x"
 else
-  # Walk up from project_dir to find lockfile (may be at monorepo root)
-  lock_dir="$project_dir"
-  while [ "$lock_dir" != "/" ]; do
-    if [ -f "$lock_dir/bun.lock" ] || [ -f "$lock_dir/bun.lockb" ]; then
-      pm_exec="bun x"; break
-    elif [ -f "$lock_dir/pnpm-lock.yaml" ]; then
-      pm_exec="pnpm exec"; break
-    elif [ -f "$lock_dir/yarn.lock" ]; then
-      pm_exec="yarn run"; break
-    elif [ -f "$lock_dir/package-lock.json" ]; then
-      pm_exec="npx"; break
-    elif [ -d "$lock_dir/.git" ]; then
-      # Reached repo root with no lockfile — stop searching
-      break
-    fi
-    lock_dir=$(dirname "$lock_dir")
-  done
-
-  if [ -z "$pm_exec" ]; then
-    echo '{}'
-    exit 0
-  fi
+  jq -n --arg msg "Post-edit checkers require \`ni\` (universal pm wrapper). Install: brew install ni" \
+    '{ "systemMessage": $msg }' || true
+  exit 0
 fi
 
 # --- Checker registry ---

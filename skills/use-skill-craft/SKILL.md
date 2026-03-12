@@ -94,7 +94,7 @@ Red flags:
 
 **Step 2 — Identify root-level essentials.** Root AGENTS.md keeps only:
 - One-sentence project description
-- Package manager (omit if npm — it's the default)
+- Package manager (omit — `ni` is universal; see `with-js` skill)
 - Non-standard build, typecheck, or test commands
 - Instructions relevant to every single task
 

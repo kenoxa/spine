@@ -35,7 +35,7 @@ When shell is unavoidable:
 - Always quote glob and regex arguments to prevent shell expansion (`rg 'pattern'`, not `rg pattern`; `fd '*.ts'`, not `fd *.ts`).
 - Lint shell scripts with `shellcheck`; format with `shfmt`
 - Include a short description (4–7 words) on every shell command.
-- Detect package manager from lockfile before running commands (bun.lock → bun, pnpm-lock.yaml → pnpm, yarn.lock → yarn, package-lock.json → npm). Never assume npm.
+- Use `ni` for JS/Node package management — never detect or hardcode package manager. See `with-js` skill for command reference.
 
 ## Workflow
 

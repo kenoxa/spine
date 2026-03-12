@@ -129,6 +129,7 @@ The installer checks for these tools and installs missing ones via Homebrew (mac
 | `bun` | Recommended | Fast JavaScript runtime and package manager |
 | `coreutils` | Recommended | GNU core utilities (macOS) |
 | `fd` | Recommended | Fast file finder (alternative to `find`) |
+| `ni` | Recommended | Universal JS package manager wrapper (auto-detects pm from lockfile) |
 | `ripgrep` | Recommended | Fast text search (alternative to `grep`) |
 | `sd` | Recommended | In-place pattern replacement — pairs with `ripgrep` for find+replace flows (Rust-native alternative to `perl -i`/`sed -i`) |
 | `shellcheck` | Recommended | Shell script linter |
@@ -219,6 +220,7 @@ Loaded automatically when the task matches their description — no slash comman
 |-------|---------|
 | `with-frontend` | UI development with state coverage and accessibility gates |
 | `with-backend` | APIs, migrations, and security boundaries |
+| `with-js` | JS/TS tooling conventions with ni package management |
 | `with-testing` | Risk-based test design with perspective tables |
 
 ### Active tools (`use-*`)

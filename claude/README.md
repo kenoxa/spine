@@ -31,7 +31,7 @@ Runs project-appropriate checkers after file edits (Edit, Write, MultiEdit). Use
 | Svelte | `svelte.config.*` + `.svelte/.ts/.js` file | `svelte-check` |
 | Biome | `biome.json` or `biome.jsonc` | `biome check <file>` |
 
-Automatically detects the project's package manager from lockfiles. Always exits 0 — errors are reported via `systemMessage`, never by exit code. Output is truncated to 20 lines per checker.
+Uses `nlx` (from ni) to execute project checkers — no lockfile detection needed. Always exits 0 — errors and missing-tooling notices are reported via `systemMessage`, never by exit code. Output is truncated to 20 lines per checker.
 
 To add a new checker, define `detect_<name>` and `run_<name>` functions and append to the `CHECKERS` array.
 

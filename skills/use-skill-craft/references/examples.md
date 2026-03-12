@@ -55,7 +55,7 @@ fails to capture semantic meaning or task-specific quality.
 Use TypeScript strict mode. Prefer named exports over default exports.
 Use Zod for all external input validation. Never use `any`. Run `tsc --noEmit`
 before committing. Use Vitest for unit tests. Co-locate test files with source.
-Run `pnpm test` to execute. API routes live in `src/routes/`. Follow REST
+Run `nr test` to execute. API routes live in `src/routes/`. Follow REST
 conventions. Use 400 for validation errors, 401 for auth, 404 for not found.
 Commit messages follow Conventional Commits. Use `feat:`, `fix:`, `chore:`.
 ```
@@ -63,7 +63,7 @@ Commit messages follow Conventional Commits. Use `feat:`, `fix:`, `chore:`.
 **After** (minimal root + references):
 ```markdown
 # AGENTS.md
-E-commerce API. Package manager: pnpm. Build: `tsc --noEmit`. Tests: `pnpm test`.
+E-commerce API. Build: `tsc --noEmit`. Tests: `nr test`.
 
 - [TypeScript conventions](docs/typescript.md)
 - [API design](docs/api.md)
