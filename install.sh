@@ -180,6 +180,9 @@ setup_central_dir() {
   backup_if_exists "$spine_dir/SPINE.md"
   cp "$src/SPINE.md" "$spine_dir/SPINE.md"
 
+  # Create empty AGENTS.md for user customizations (never overwritten)
+  [ -f "$spine_dir/AGENTS.md" ] || touch "$spine_dir/AGENTS.md"
+
   # Copy agents
   for agent in "$src/agents/"*.md; do
     [ -f "$agent" ] || continue
@@ -207,6 +210,7 @@ install_tool() {
   local target="$HOME/.$tool"
   local spine_dir="$HOME/.config/spine"
   local spine_ref='@~/.config/spine/SPINE.md'
+  local custom_ref='@~/.config/spine/AGENTS.md'
 
   mkdir -p "$target"
 
@@ -220,21 +224,28 @@ install_tool() {
 
   if [ ! -f "$root_file" ]; then
     # Fresh install
-    echo "$spine_ref" > "$root_file"
+    printf '%s\n' "$spine_ref" "$custom_ref" > "$root_file"
   elif head -1 "$root_file" | grep -q '^@.*SPINE\.md$'; then
-    # Already managed — preserve user content below
-    :
+    # Already managed — ensure AGENTS.md ref present (upgrade path)
+    if ! grep -q "$custom_ref" "$root_file"; then
+      backup_if_exists "$root_file"
+      local tmp; tmp=$(mktemp)
+      head -1 "$root_file" > "$tmp"
+      echo "$custom_ref" >> "$tmp"
+      tail -n +2 "$root_file" >> "$tmp"
+      mv "$tmp" "$root_file"
+    fi
   elif diff -q "$root_file" "$spine_dir/SPINE.md" >/dev/null 2>&1 || \
        head -1 "$root_file" | grep -q '^# \(AGENTS\|SPINE\)\.md$'; then
     # Spine-managed content (current or pre-rename) — safe to replace entirely
     backup_if_exists "$root_file"
-    echo "$spine_ref" > "$root_file"
+    printf '%s\n' "$spine_ref" "$custom_ref" > "$root_file"
   else
     # User has custom content — prepend @reference, keep existing content
     backup_if_exists "$root_file"
     local tmp
     tmp=$(mktemp)
-    printf '%s\n\n' "$spine_ref" > "$tmp"
+    printf '%s\n%s\n\n' "$spine_ref" "$custom_ref" > "$tmp"
     cat "$root_file" >> "$tmp"
     mv "$tmp" "$root_file"
   fi

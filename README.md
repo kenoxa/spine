@@ -70,12 +70,13 @@ Set up the central directory and reference it from each tool:
 # 1. Copy guardrails and agents to the central directory
 mkdir -p ~/.config/spine/agents
 cp SPINE.md ~/.config/spine/SPINE.md
+touch ~/.config/spine/AGENTS.md   # user customizations (never overwritten)
 cp agents/*.md ~/.config/spine/agents/
 
-# 2. Reference from each tool's root file (add your own instructions below the @ line)
-echo '@~/.config/spine/SPINE.md' > ~/.cursor/AGENTS.md
-echo '@~/.config/spine/SPINE.md' > ~/.claude/CLAUDE.md
-echo '@~/.config/spine/SPINE.md' > ~/.codex/AGENTS.md
+# 2. Reference from each tool's root file (add your own instructions below the @ lines)
+printf '%s\n' '@~/.config/spine/SPINE.md' '@~/.config/spine/AGENTS.md' > ~/.cursor/AGENTS.md
+printf '%s\n' '@~/.config/spine/SPINE.md' '@~/.config/spine/AGENTS.md' > ~/.claude/CLAUDE.md
+printf '%s\n' '@~/.config/spine/SPINE.md' '@~/.config/spine/AGENTS.md' > ~/.codex/AGENTS.md
 
 # 3. Symlink agents (or copy with: cp ~/.config/spine/agents/*.md ~/.<tool>/agents/)
 for agent in ~/.config/spine/agents/*.md; do
@@ -177,8 +178,8 @@ The installer registers these MCP servers for all detected tools:
 Both servers work keyless by default. For higher rate limits, set API keys in `~/.config/spine/.env`:
 
 ```sh
-CONTEXT7_API_KEY=your-key-here
-EXA_API_KEY=your-key-here
+export CONTEXT7_API_KEY=your-key-here
+export EXA_API_KEY=your-key-here
 ```
 
 The installer reads this file and configures auth headers automatically when keys are present.

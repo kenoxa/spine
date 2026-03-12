@@ -90,7 +90,7 @@ The install script downloads spine and sets up the central directory, provider l
 2. Downloads the repo via `git clone --depth 1` (or `curl` tarball fallback)
 3. Sets up `~/.config/spine/` with `SPINE.md` and `agents/*.md` (user-owned copies)
 4. Detects tools by checking for `~/.cursor/`, `~/.claude/`, `~/.codex/`
-5. Writes `@~/.config/spine/SPINE.md` reference to each provider's root file (preserves user content), symlinks agents, and for Claude Code installs the Spine plugin
+5. Writes `@~/.config/spine/SPINE.md` and `@~/.config/spine/AGENTS.md` references to each provider's root file (preserves user content), symlinks agents, and for Claude Code installs the Spine plugin
 6. Configures Context7 + Exa MCP servers (`install_mcp_servers()`) — CLI commands for Claude Code/Codex, jq patch for Cursor
 7. Installs skills via `npx skills add` (local spine skills + global external skills)
 8. Cleans up stale symlinks and backup files
