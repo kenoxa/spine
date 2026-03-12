@@ -1,9 +1,5 @@
 # TODO
 
-- force external research via new `navigator` subagent using discuss, planning, maybe others as well; the idea would be get retrieve more context (Find code examples, documentation, and programming solutions; additional topics and get clean, ready-to-use content)
-
-- run-skill-eval: with-js
-	- https://docs.tessl.io/evaluate/optimize-a-skill-using-best-practices
 - install python3 as recommended tool?
 - do we really need to distinguish betwen requried and recommend tools?
 - additional core tools:

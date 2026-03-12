@@ -2,15 +2,14 @@
 name: with-js
 description: >
   JavaScript/TypeScript tooling conventions using ni (universal package manager wrapper).
-  Use when managing JS/TS dependencies, running scripts, testing with vitest/jest,
+  Use when managing JS/TS dependencies, installing packages, adding dev dependencies,
+  running npm scripts, executing build or test commands, upgrading or removing packages,
   working with package.json, or using npm/pnpm/yarn/bun/Node.js/Deno tooling.
   Do NOT use for non-JavaScript languages.
 argument-hint: "[package operation or JS/TS task]"
 ---
 
 Use `ni` for all package operations — never hardcode npm, pnpm, yarn, or bun commands.
-
-Exception: public `skills` install docs intentionally use `npx skills add/remove ...` to match [`skills.sh`](https://skills.sh/), and Spine's installer bootstrap may fall back to other launchers when invoking the same CLI. This exception is only for `skills` bootstrap/install flows; normal JS/TS project tooling still uses `ni`/`nlx`.
 
 ## Package Management (`ni`)
 
