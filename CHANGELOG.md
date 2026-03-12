@@ -6,6 +6,8 @@ All notable changes are documented here, focused on user impact.
 
 ### Changed
 
+- **`worker` agent renamed to `implementer`** — avoids collision with Codex built-in `worker` role. All skill dispatch tables and docs updated. Re-run `install.sh` to migrate.
+- **Codex agent install uses TOML role configs** — replaces markdown symlinks with generated `~/.codex/agents/*.toml` files and `~/.codex/config.toml` registrations. Markdown remains canonical source; TOML is generated output. Other providers (Cursor, Claude Code) continue using markdown symlinks.
 - **README onboarding clarified** — the landing page now separates provider prerequisites, Spine installation, config layout, workflow, advanced setup, and troubleshooting. It also documents that Cursor can be used editor-only while Claude Code and Codex require their CLIs on `PATH` for Spine to configure them.
 - **Prefix taxonomy clarified** — eliminated the `log-` prefix (only 2 members) and consolidated into `run-*` utilities: `log-history-insights` → `run-insights`, `log-history-recap` → `run-recap`. Four prefixes remain: `do-` (primary flow), `run-` (utilities), `with-` (domain standards), `use-` (active tools).
 

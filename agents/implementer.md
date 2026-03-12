@@ -1,5 +1,5 @@
 ---
-name: worker
+name: implementer
 description: >
   Read-write implementation for do-execute phases.
   Use for implement, polish-apply, and review-fix dispatch.

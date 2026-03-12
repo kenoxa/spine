@@ -38,6 +38,10 @@ GLOBAL_SKILLS=(
 # Add server names here when replacing or dropping an MCP server.
 RETIRED_MCP_SERVERS=()
 
+# Agent names previously used by Spine — cleaned up on next run.
+# Add names here when renaming an agent to ensure cross-provider cleanup.
+RETIRED_AGENT_NAMES=("worker")
+
 # --- Helpers ---
 
 info()     { printf "${_C_BLUE}==>${_C_RESET} %s\n" "$*" >&2; }
@@ -250,18 +254,34 @@ install_tool() {
     mv "$tmp" "$root_file"
   fi
 
-  # Agents: per-file symlinks to central directory
+  # Agents: Codex uses generated TOML; Claude/Cursor use symlinks
   mkdir -p "$target/agents"
-  for agent in "$spine_dir/agents/"*.md; do
-    [ -f "$agent" ] || continue
-    local name
-    name=$(basename "$agent")
-    # Back up regular files (not symlinks) before replacing
-    if [ -f "$target/agents/$name" ] && [ ! -L "$target/agents/$name" ]; then
-      backup_if_exists "$target/agents/$name"
-    fi
-    ln -sf "../../.config/spine/agents/$name" "$target/agents/$name"
-  done
+  if [ "$tool" = "codex" ]; then
+    # Remove old .md symlinks (spine-managed only)
+    for md in "$target/agents/"*.md; do
+      [ -L "$md" ] || continue
+      local dest
+      dest=$(readlink "$md")
+      [[ "$dest" == *".config/spine/"* ]] && rm "$md"
+    done
+    # Generate TOML role configs
+    for agent in "$spine_dir/agents/"*.md; do
+      [ -f "$agent" ] || continue
+      generate_codex_agent_toml "$agent" "$target/agents"
+    done
+    # Patch config.toml with agent registrations
+    patch_codex_config "$target" "$spine_dir/agents"
+  else
+    for agent in "$spine_dir/agents/"*.md; do
+      [ -f "$agent" ] || continue
+      local name
+      name=$(basename "$agent")
+      if [ -f "$target/agents/$name" ] && [ ! -L "$target/agents/$name" ]; then
+        backup_if_exists "$target/agents/$name"
+      fi
+      ln -sf "../../.config/spine/agents/$name" "$target/agents/$name"
+    done
+  fi
 
   done_msg "$tool: guardrails, agents"
 
@@ -499,6 +519,157 @@ backup_if_exists() {
   if [ -e "$file" ] || [ -L "$file" ]; then
     cp -L "$file" "${file}.bak" 2>/dev/null || true
   fi
+}
+
+# --- Codex TOML agent generation ---
+
+# Parse YAML frontmatter from an agent markdown file.
+# Sets: _agent_name, _agent_description, _agent_model, _agent_readonly,
+#       _agent_skills (comma-separated), _agent_body (everything after closing ---)
+parse_agent_frontmatter() {
+  local md_file="$1"
+  _agent_name="" _agent_description="" _agent_model="" _agent_readonly=""
+  _agent_skills="" _agent_body=""
+  local in_fm=false fm_done=false in_desc=false in_skills=false
+
+  while IFS= read -r line || [ -n "$line" ]; do
+    if ! $fm_done; then
+      if [ "$line" = "---" ]; then
+        if $in_fm; then fm_done=true; else in_fm=true; fi
+        continue
+      fi
+      $in_fm || continue
+      # Continuation lines (indented)
+      if [[ "$line" =~ ^[[:space:]] ]]; then
+        if $in_desc; then
+          local trimmed="${line#"${line%%[![:space:]]*}"}"
+          _agent_description="${_agent_description:+$_agent_description }$trimmed"
+        elif $in_skills && [[ "$line" =~ ^[[:space:]]+-[[:space:]]+(.+) ]]; then
+          _agent_skills="${_agent_skills:+$_agent_skills, }${BASH_REMATCH[1]}"
+        fi
+        continue
+      fi
+      in_desc=false; in_skills=false
+      case "$line" in
+        name:*)       _agent_name="${line#name:}"; _agent_name="${_agent_name# }" ;;
+        description:*)
+          local val="${line#description:}"; val="${val# }"
+          case "$val" in ">"|">-") in_desc=true ;; *) _agent_description="$val" ;; esac ;;
+        model:*)      _agent_model="${line#model:}"; _agent_model="${_agent_model# }" ;;
+        readonly:*)   _agent_readonly="${line#readonly:}"; _agent_readonly="${_agent_readonly# }" ;;
+        skills:*)     in_skills=true ;;
+      esac
+    else
+      _agent_body="${_agent_body:+$_agent_body
+}$line"
+    fi
+  done < "$md_file"
+
+  [ -n "$_agent_name" ] || _agent_name="$(basename "$md_file" .md)"
+}
+
+# Generate a Codex TOML role config from an agent markdown file.
+# Usage: generate_codex_agent_toml <agent.md> <output-dir>
+generate_codex_agent_toml() {
+  local md_file="$1" out_dir="$2"
+  parse_agent_frontmatter "$md_file"
+
+  if [ -z "$_agent_body" ]; then
+    warn "No body in $(basename "$md_file") — skipping TOML generation"
+    return 0
+  fi
+
+  # Build developer_instructions with optional skills preamble
+  local instructions="$_agent_body"
+  if [ -n "$_agent_skills" ]; then
+    instructions="Load the following skill(s): $_agent_skills
+
+$_agent_body"
+  fi
+
+  local tmp out_file="$out_dir/$_agent_name.toml"
+  tmp=$(mktemp "$out_dir/spine-tmp.XXXXXX")
+
+  {
+    echo "# spine:managed -- do not edit"
+    case "$_agent_model" in
+      haiku) echo 'model = "gpt-5.1-codex-mini"' ;;
+      inherit|"") ;;
+      *) warn "Unknown model '$_agent_model' for $_agent_name — omitting" ;;
+    esac
+    [ "$_agent_readonly" = "true" ] && echo 'sandbox_mode = "read-only"'
+    if [[ "$instructions" == *"'''"* ]]; then
+      echo 'developer_instructions = """'
+      printf '%s\n' "$instructions"
+      echo '"""'
+    else
+      echo "developer_instructions = '''"
+      printf '%s\n' "$instructions"
+      echo "'''"
+    fi
+  } > "$tmp"
+
+  mv "$tmp" "$out_file"
+}
+
+# Patch ~/.codex/config.toml with spine-managed agent registrations.
+# Strip-and-append: remove existing spine blocks, append fresh ones.
+# Usage: patch_codex_config <codex-dir> <agents-source-dir>
+patch_codex_config() {
+  local target="$1" agents_src="$2"
+  local config="$target/config.toml"
+
+  mkdir -p "$target"
+  backup_if_exists "$config"
+
+  local tmp
+  tmp=$(mktemp "$target/spine-config-tmp.XXXXXX")
+
+  # Strip existing spine-managed blocks (from marker to next blank line)
+  if [ -f "$config" ] && [ -s "$config" ]; then
+    local skip=false
+    while IFS= read -r line || [ -n "$line" ]; do
+      if [ "$line" = "# spine:managed" ]; then
+        skip=true; continue
+      fi
+      if $skip; then
+        [ -z "$line" ] && { skip=false; continue; }
+        continue
+      fi
+      printf '%s\n' "$line"
+    done < "$config" > "$tmp"
+    # Trim trailing blank lines from preserved content
+    if [ -s "$tmp" ]; then
+      local preserved
+      preserved=$(<"$tmp")
+      if [ -n "$preserved" ]; then
+        printf '%s\n' "$preserved" > "$tmp"
+      else
+        : > "$tmp"
+      fi
+    fi
+  fi
+
+  # Append spine-managed agent entries
+  for md in "$agents_src/"*.md; do
+    [ -f "$md" ] || continue
+    parse_agent_frontmatter "$md"
+    [ -n "$_agent_name" ] || continue
+    local desc="${_agent_description//\\/\\\\}"
+    desc="${desc//\"/\\\"}"
+    # Blank line separator: before each entry if file has content
+    [ -s "$tmp" ] && printf '\n' >> "$tmp"
+    printf '# spine:managed\n[agents.%s]\ndescription = "%s"\nconfig_file = "agents/%s.toml"\n' \
+      "$_agent_name" "$desc" "$_agent_name" >> "$tmp"
+  done
+
+  if [ ! -s "$tmp" ]; then
+    warn "Generated empty config.toml — leaving original unchanged"
+    rm -f "$tmp"
+    return 0
+  fi
+
+  mv "$tmp" "$config"
 }
 
 # --- Install skills via runtime launcher ---
@@ -745,7 +916,39 @@ cleanup_stale_files() {
         cleaned=$((cleaned + 1))
       done
     done
+
+    # Codex: remove stale spine-managed .toml agent files
+    if [ "$tool" = "codex" ] && [ -d "$target/agents" ]; then
+      for toml in "$target/agents/"*.toml; do
+        [ -f "$toml" ] || continue
+        head -1 "$toml" | grep -q '^# spine:managed' || continue
+        local agent_name
+        agent_name=$(basename "$toml" .toml)
+        if [ ! -f "$HOME/.config/spine/agents/$agent_name.md" ]; then
+          rm "$toml"
+          cleaned=$((cleaned + 1))
+        fi
+      done
+    fi
   done
+
+  # Remove retired agent names across all providers
+  if [ ${#RETIRED_AGENT_NAMES[@]} -gt 0 ]; then
+    for tool in "${detected_tools[@]}"; do
+      local target="$HOME/.$tool"
+      for retired in "${RETIRED_AGENT_NAMES[@]}"; do
+        if [ -e "$target/agents/$retired.md" ] || [ -L "$target/agents/$retired.md" ]; then
+          rm "$target/agents/$retired.md"
+          cleaned=$((cleaned + 1))
+        fi
+        if [ -f "$target/agents/$retired.toml" ] && \
+           head -1 "$target/agents/$retired.toml" | grep -q '^# spine:managed'; then
+          rm "$target/agents/$retired.toml"
+          cleaned=$((cleaned + 1))
+        fi
+      done
+    done
+  fi
 
   if [ "$cleaned" -gt 0 ]; then
     done_msg "Removed $cleaned stale file(s)"

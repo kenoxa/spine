@@ -83,6 +83,15 @@ skills:
 
 Keep subagent bodies focused — they should define constraints and output format, not duplicate the skill content they preload.
 
+For Codex, the installer generates TOML role configs from markdown source automatically — no manual TOML authoring needed.
+
+### Renaming an Agent
+
+1. `git mv agents/old.md agents/new.md` and update `name:` in frontmatter
+2. Update all `@old` dispatch refs in skills and docs
+3. Add `"old"` to `RETIRED_AGENT_NAMES` in `install.sh` (mirrors `RETIRED_MCP_SERVERS`)
+4. Re-run `install.sh` — cleanup removes stale files across all providers
+
 ## Installer (`install.sh`)
 
 The install script downloads spine and sets up the central directory, provider links, MCP servers, and skills. For Claude Code, it also installs the Spine plugin.
@@ -92,7 +101,7 @@ The install script downloads spine and sets up the central directory, provider l
 2. Downloads the repo via `git clone --depth 1` (or `curl` tarball fallback)
 3. Sets up `~/.config/spine/` with `SPINE.md` and `agents/*.md` (user-owned copies)
 4. Detects tools by checking for `~/.cursor/`, `~/.claude/`, `~/.codex/`
-5. Writes `@~/.config/spine/SPINE.md` and `@~/.config/spine/AGENTS.md` references to each provider's root file (preserves user content), symlinks agents, and for Claude Code installs the Spine plugin
+5. Writes `@~/.config/spine/SPINE.md` and `@~/.config/spine/AGENTS.md` references to each provider's root file (preserves user content), symlinks agents (Claude/Cursor) or generates TOML role configs (Codex), and for Claude Code installs the Spine plugin
 6. Configures Context7 + Exa MCP servers (`install_mcp_servers()`) — CLI commands for Claude Code/Codex, jq patch for Cursor
 7. Installs skills via the `skills` CLI with its own launcher fallback (local spine skills + global external skills)
 8. Cleans up stale symlinks and backup files

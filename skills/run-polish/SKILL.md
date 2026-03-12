@@ -17,7 +17,7 @@ Advisory-only — produces suggestions, not rewrites. Read-only — no file writ
    - `complexity-advisor` — defensive bloat on trusted paths (NEVER flag auth/authz/validation), premature abstraction
    - `efficiency-advisor` — reuse opportunities, N+1, missed concurrency, hot-path bloat, resource leaks
 3. **Synthesis** — deduplicate across lenses, assign E-levels. E2+ findings: action or explicit rejection with rationale. No silent drops.
-4. **Apply** — workers (`@worker` type, `polish-apply` mode) apply synthesis actions. Skip when none exist.
+4. **Apply** — implementers (`@implementer` type, `polish-apply` mode) apply synthesis actions. Skip when none exist.
 
 Output: `polish_findings`, updated `files_modified`.
 

@@ -39,7 +39,7 @@ Dispatch roles below apply at `standard` and `deep` depth; at `focused` depth, r
 
 | Phase | Agent type |
 |-------|-----------|
-| Implement | `@worker` |
+| Implement | `@implementer` |
 | Validate | `@inspector` |
 | Polish | `@analyst` |
 | Review | `@inspector` |
@@ -56,7 +56,7 @@ Output `scope_artifact`:
 | `target_files` | Repo-relative paths for all files in scope |
 | `partitions` | Independent vs dependent groupings; colocated files stay together |
 | `blocking_questions` | Must be empty before dispatching implement |
-| `plan_excerpt` | Compact plan extract for worker consumption |
+| `plan_excerpt` | Compact plan extract for implementer consumption |
 
 Ask user when blocking questions non-empty. Never carry unresolved questions into implement.
 
@@ -64,7 +64,7 @@ At `standard`/`deep` depth: inherit `variance_lenses` from approved plan when av
 
 ### 2. Implement
 
-Dispatch `@worker` type (`implement` mode): one per partition. Parallel for independent; sequential for dependent. No overlapping file writes.
+Dispatch `@implementer` type (`implement` mode): one per partition. Parallel for independent; sequential for dependent. No overlapping file writes.
 
 Output: `files_modified` — repo-relative list of all changed files. One logical change per dispatch; unrelated issues → follow-up tasks.
 
@@ -90,7 +90,7 @@ Output: `validation_result` — PASS (proceed to polish) or BLOCK with specific 
 
    **Synthesis**: Dispatch `@synthesizer` with input paths: all polish advisory output files. Output: `.scratch/<session>/execute-synthesis-polish.md`. Read synthesis output for apply step. If output empty or missing, fall back to reading individual outputs. Every E2+ finding → action or explicit rejection. Silent drops prohibited.
 
-2. **Apply**: workers (`@worker` type, `polish-apply` mode) apply synthesis actions from the advisory pass. Apply sub-step skipped when no actions exist.
+2. **Apply**: implementers (`@implementer` type, `polish-apply` mode) apply synthesis actions from the advisory pass. Apply sub-step skipped when no actions exist.
 
 Output: `polish_findings`, updated `files_modified`.
 
@@ -142,9 +142,9 @@ Scope → Implement → Validate → Polish → Review → Verify → Finalize
 ```
 
 - **Validate BLOCK** → re-enter implement with `validation_brief`
-- **Blocking review findings** → re-enter polish (advisory re-runs, `@worker` `review-fix` mode applies fixes)
+- **Blocking review findings** → re-enter polish (advisory re-runs, `@implementer` `review-fix` mode applies fixes)
 - **Verify semantic failure** (behavior/spec) → polish → review → verify
-- **Verify non-semantic failure** (lint, types, build) → `@worker` `review-fix` fix → re-verify only
+- **Verify non-semantic failure** (lint, types, build) → `@implementer` `review-fix` fix → re-verify only
 
 Validate and polish re-entries share one iteration counter. Cap: **5**. On cap: freeze best state, ask user to continue.
 
