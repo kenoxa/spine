@@ -7,7 +7,7 @@ description: >
   when the user says "hand this off", "create a handoff", "package this for
   a new session", or "continue in a new chat".
   Do NOT use for session summaries without a continuation goal (use
-  log-history-recap) or for cross-skill phase transitions (built into
+  run-recap) or for cross-skill phase transitions (built into
   do-discuss and do-execute).
 argument-hint: "[direction or goal for the next session]"
 ---

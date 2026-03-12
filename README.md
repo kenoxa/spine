@@ -186,24 +186,30 @@ graph TD
 
 ## Skills and Agents
 
-Skills use prefixes for quick discovery in slash-autocomplete: `do-` for core workflow commands, `run-` for standalone actions, `log-` for history analytics, `with-` for domain standards that activate automatically, and `use-` for tools that produce artifacts.
+Skills use prefixes for quick discovery in slash-autocomplete. Type the prefix to filter to the category you need.
 
-### Workflow skills (`do-*`, `run-*`, `log-*`, and plain names)
+### Primary flow (`do-*`)
 
-Invoked via slash commands — `/do-plan`, `/do-execute`, `/run-debug`, `/handoff`, etc.
+The core workflow chain — discuss, plan, execute, commit. Each step feeds into the next.
 
 | Skill | Purpose |
 |-------|---------|
 | [`do-discuss`](docs/skills-reference.md#do-discuss) | Structured problem framing before planning |
 | [`do-plan`](docs/skills-reference.md#do-plan) | Structured planning before complex implementation |
 | [`do-execute`](docs/skills-reference.md#do-execute) | Execute an approved plan through phased quality gates |
+| [`do-commit`](docs/skills-reference.md#do-commit) | Scoped staging with conventional commits |
+
+### Utilities (`run-*`)
+
+Standalone actions you invoke any time — not part of the primary flow.
+
+| Skill | Purpose |
+|-------|---------|
 | [`run-review`](docs/skills-reference.md#run-review) | Severity-bucketed code review |
 | [`run-debug`](docs/skills-reference.md#run-debug) | 4-phase root-cause diagnosis and fix |
 | [`run-polish`](docs/skills-reference.md#run-polish) | Advisory code polish with conventions, complexity, and efficiency lenses |
-| [`do-commit`](docs/skills-reference.md#do-commit) | Scoped staging with conventional commits |
-| [`handoff`](docs/skills-reference.md#handoff) | Distill session context into a structured prompt for a fresh session |
-| [`log-history-insights`](docs/skills-reference.md#log-history-insights) | Mine cross-tool session history for workflow/setup improvement recommendations (Python 3.9+, Claude Code) |
-| [`log-history-recap`](docs/skills-reference.md#log-history-recap) | Summarize work done across AI agent sessions for standups, timesheets, and activity reports |
+| [`run-insights`](docs/skills-reference.md#run-insights) | Mine cross-tool session history for workflow/setup improvement recommendations (Python 3.9+) |
+| [`run-recap`](docs/skills-reference.md#run-recap) | Summarize work done across AI agent sessions for standups, timesheets, and activity reports |
 
 ### Domain standards (`with-*`)
 
@@ -224,6 +230,15 @@ Invoked explicitly to produce artifacts or perform discovery.
 | `use-explore` | Bounded codebase navigation and architecture mapping |
 | `use-writing` | Docs, changelogs, ADRs, and prose quality |
 | `use-skill-craft` | Write, review, or fix skills and AGENTS.md files |
+
+### Session primitives
+
+Workflow helpers invoked by name — no prefix because they're used directly, not discovered by category.
+
+| Skill | Purpose |
+|-------|---------|
+| [`handoff`](docs/skills-reference.md#handoff) | Distill session context into a structured prompt for a fresh session |
+| [`catchup`](docs/skills-reference.md#catchup) | Reconstruct working state after `/clear` or compaction |
 
 See also: [Subagents](docs/skills-reference.md#subagents) · [Prefix convention](docs/skills-reference.md#skill-prefix-convention) · [External skills](docs/global-skills.md)
 

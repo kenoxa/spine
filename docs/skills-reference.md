@@ -74,7 +74,7 @@ Escalation: after 3 failed hypotheses, escalate with concrete evidence. Architec
 
 Canonical entry: [`skills/run-debug/SKILL.md`](../skills/run-debug/SKILL.md).
 
-### log-history-insights
+### run-insights
 
 Periodic cross-tool session analysis. Python scripts parse raw session data from Claude Code, Codex, and Cursor (~256 MB) into structured analytics (~100 KB), then subagents mine it for automation opportunities.
 
@@ -87,7 +87,7 @@ Every recommendation includes evidence (session counts, specific examples) and a
 
 Requires Python 3.9+. Run weekly or bi-weekly.
 
-Canonical entry: [`skills/log-history-insights/SKILL.md`](../skills/log-history-insights/SKILL.md).
+Canonical entry: [`skills/run-insights/SKILL.md`](../skills/run-insights/SKILL.md).
 
 ### run-polish
 
@@ -113,7 +113,7 @@ Reconstruct working state from persisted session artifacts after `/clear` or aut
 
 Canonical entry: [`skills/catchup/SKILL.md`](../skills/catchup/SKILL.md).
 
-### log-history-recap
+### run-recap
 
 Summarize work done across AI agent sessions for standups, timesheets, and activity reports. Three output formats:
 
@@ -121,9 +121,9 @@ Summarize work done across AI agent sessions for standups, timesheets, and activ
 - **timesheet** — billable hour blocks in a 9-17 window, copy-pasteable into time tracking tools
 - **recap** — narrative summary with per-project sections and metrics
 
-Reuses `log-history-insights/scripts/` for session collection. Dispatches a single `@miner` subagent to synthesize task descriptions and estimate durations from session metadata across Claude Code, Codex, and Cursor.
+Reuses `run-insights/scripts/` for session collection. Dispatches a single `@miner` subagent to synthesize task descriptions and estimate durations from session metadata across Claude Code, Codex, and Cursor.
 
-Canonical entry: [`skills/log-history-recap/SKILL.md`](../skills/log-history-recap/SKILL.md).
+Canonical entry: [`skills/run-recap/SKILL.md`](../skills/run-recap/SKILL.md).
 
 ## Subagents
 
@@ -143,17 +143,16 @@ Canonical entry: [`skills/log-history-recap/SKILL.md`](../skills/log-history-rec
 
 ## Skill Prefix Convention
 
-Prefixes group skills in slash-autocomplete — type `do-`, `run-`, `log-`, `with-`, or `use-` to filter to the category you need.
+Prefixes group skills in slash-autocomplete — type `do-`, `run-`, `with-`, or `use-` to filter to the category you need.
 
 | Prefix | Semantic | When to use |
 |--------|----------|-------------|
-| `do-` | Workflow commands | Multi-phase execution: planning, implementation, committing |
-| `run-` | Standalone actions | One-off operations: debug, review, polish, skill-eval |
-| `log-` | History analytics | Session history mining and reporting |
+| `do-` | Primary flow | The workflow chain: discuss → plan → execute → commit |
+| `run-` | Utilities | Standalone actions invoked any time: debug, review, polish, insights, recap |
 | `with-` | Domain standards | Applied passively when the task matches — UI, API, or test work |
 | `use-` | Active tools | Invoked explicitly to produce artifacts or perform discovery |
 
-**Plain names** (`handoff`, `catchup`): follow the external-skills pattern — no prefix because they are workflow primitives invoked by name, not discovered by category.
+**Plain names** (`handoff`, `catchup`): session primitives invoked by name — no prefix because they're used directly, not discovered by category.
 
 **Why prefixes?** Without them, spine's skills get lost among globally installed skills in slash-autocomplete. Typing the first few characters of a prefix immediately narrows the list to the relevant group.
 

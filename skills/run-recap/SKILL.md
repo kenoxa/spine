@@ -1,5 +1,5 @@
 ---
-name: log-history-recap
+name: run-recap
 description: >
   Work reports from AI session history — standup bullets, billable timesheets, narrative recaps.
   Parses Claude Code, Codex, Cursor into project-grouped summaries with estimated hours.
@@ -9,11 +9,11 @@ description: >
   "work report", "invoice my time", "quarterly review", "client report",
   or any query about work over a time period.
   Do NOT use for workflow/automation recommendations, session pattern analysis,
-  cross-tool comparison (log-history-insights), single-session code review (run-review).
+  cross-tool comparison (run-insights), single-session code review (run-review).
 argument-hint: "[--days N, default 7] [--format standup|timesheet|recap] [--project filter]"
 ---
 
-Cross-tool AI session history reporting. Reuses `log-history-insights/scripts/` for Claude Code, Codex, Cursor data; dispatches single `@miner` subagent for standup bullets, billable timesheets, or narrative recaps.
+Cross-tool AI session history reporting. Reuses `run-insights/scripts/` for Claude Code, Codex, Cursor data; dispatches single `@miner` subagent for standup bullets, billable timesheets, or narrative recaps.
 
 ## Phases
 
@@ -37,7 +37,7 @@ PYTHON=$(command -v python3 || command -v python)
 if [ -z "$PYTHON" ]; then echo "Error: Python 3.9+ required but not found"; exit 1; fi
 SINCE=$(date -v-${DAYS:-7}d +%Y-%m-%d)
 SCRATCH=".scratch/<session>"
-SCRIPTS="$HOME/.agents/skills/log-history-insights/scripts"
+SCRIPTS="$HOME/.agents/skills/run-insights/scripts"
 mkdir -p "$SCRATCH"
 PYTHONPATH="$SCRIPTS" "$PYTHON" "$SCRIPTS/parse_claude.py" --since "$SINCE" --output "$SCRATCH"
 PYTHONPATH="$SCRIPTS" "$PYTHON" "$SCRIPTS/parse_codex.py" --since "$SINCE" --output "$SCRATCH"
@@ -89,4 +89,4 @@ Dispatch `@visualizer` if complexity warrants it or requested: work activity rec
 - Processing/formatting in main thread — dispatch to `@miner`
 - Inventing task descriptions — use "unspecified task" with files list
 - Multiple subagent dispatches — single `@miner` per invocation
-- Modifying scripts in `log-history-insights/scripts/`
+- Modifying scripts in `run-insights/scripts/`

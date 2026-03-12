@@ -6,22 +6,9 @@ All notable changes are documented here, focused on user impact.
 
 ### Changed
 
-- **Skill prefix taxonomy** — split the overloaded `do-*` prefix (11 skills) into 5 groups for cleaner slash-autocomplete. Typing a prefix letter now returns 2–4 entries instead of 11.
+- **Prefix taxonomy clarified** — eliminated the `log-` prefix (only 2 members) and consolidated into `run-*` utilities: `log-history-insights` → `run-insights`, `log-history-recap` → `run-recap`. Four prefixes remain: `do-` (primary flow), `run-` (utilities), `with-` (domain standards), `use-` (active tools).
 
-  | Old name | New name | Group |
-  |----------|----------|-------|
-  | `do-debug` | `run-debug` | `run-` standalone actions |
-  | `do-review` | `run-review` | `run-` standalone actions |
-  | `do-polish` | `run-polish` | `run-` standalone actions |
-  | `do-skill-eval` | `run-skill-eval` | `run-` standalone actions |
-  | `do-history-insights` | `log-history-insights` | `log-` history analytics |
-  | `do-history-recap` | `log-history-recap` | `log-` history analytics |
-  | `do-handoff` | `handoff` | plain (no prefix) |
-  | `do-catchup` | `catchup` | plain (no prefix) |
-
-  `do-discuss`, `do-plan`, `do-execute`, `do-commit` are unchanged — the `do-` prefix now exclusively marks workflow chain steps.
-
-  **Migration**: if you installed skills individually (e.g. `npx skills add kenoxa/spine -s do-debug`), re-run with the new name. Full installer users (`install.sh`) get orphan cleanup automatically via the manifest mechanism introduced in this release. If re-running after a previous release, manually remove any stale `~/.agents/skills/<old-name>` directories once.
+  **Migration**: re-run `install.sh` or `npx skills add kenoxa/spine -s run-insights -s run-recap -a '*' -g -y`. Remove stale `~/.agents/skills/log-history-*` directories.
 
 ## 2026-03-11
 

@@ -1,5 +1,5 @@
 ---
-name: log-history-insights
+name: run-insights
 description: >
   Mine AI agent session history across Claude Code, Codex, and Cursor for
   workflow/setup improvement recommendations.
@@ -11,7 +11,7 @@ description: >
   mine/audit/retrospect requests on AI assistant history. Only skill that
   parses session history files.
   Do NOT use for single-session review (run-review), work reporting
-  (log-history-recap), Claude Code setup (claude-automation-recommender).
+  (run-recap), Claude Code setup (claude-automation-recommender).
 argument-hint: "[--days N, default 14] [--project filter]"
 ---
 
@@ -32,7 +32,7 @@ PYTHON=$(command -v python3 || command -v python)
 if [ -z "$PYTHON" ]; then echo "Error: Python 3.9+ required but not found"; exit 1; fi
 SINCE=$(date -v-${DAYS:-14}d +%Y-%m-%d)
 SCRATCH=".scratch/<session>"
-SCRIPTS="$HOME/.agents/skills/log-history-insights/scripts"
+SCRIPTS="$HOME/.agents/skills/run-insights/scripts"
 mkdir -p "$SCRATCH"
 PYTHONPATH="$SCRIPTS" "$PYTHON" "$SCRIPTS/parse_claude.py" --since "$SINCE" --output "$SCRATCH"
 PYTHONPATH="$SCRIPTS" "$PYTHON" "$SCRIPTS/parse_codex.py" --since "$SINCE" --output "$SCRATCH"
@@ -54,7 +54,7 @@ Dispatch 3 source-expert subagents in parallel. Each receives their provider's s
 | `codex-expert` | `@miner` | Codex sections of analytics + per_project Codex data | `.scratch/<session>/insights-analyze-codex-expert.md` |
 | `cursor-expert` | `@miner` | Cursor sections of analytics + per_project Cursor data + cross_tool | `.scratch/<session>/insights-analyze-cursor-expert.md` |
 
-Use prompt templates from `~/.agents/skills/log-history-insights/references/analysis-prompts.md` — include relevant analytics data inline. Skip providers with 0 sessions.
+Use prompt templates from `~/.agents/skills/run-insights/references/analysis-prompts.md` — include relevant analytics data inline. Skip providers with 0 sessions.
 
 ### 3. Synthesize
 
