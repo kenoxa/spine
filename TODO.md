@@ -1,13 +1,19 @@
 # TODO
 
-- install python3 as recommended tool?
-- do we really need to distinguish betwen requried and recommend tools?
+- run insights on planning sessions: goal reduce planning time while preserving quality
+	- how often did planner complement each other or found real different stratgeties/tactics/solutions
+	- same for other planning phases
+- run insights on execution sessions:
+	- inspector
+- create shared shell script:
+	- @skills/run-recap/SKILL.md:33:1-46:3
+	- @skills/run-insights/SKILL.md:28:1-41:3
 - additional core tools:
 	- agent-browser: https://github.com/vercel-labs/agent-browser
 		- `/plugin marketplace add vercel-labs/agent-browser`
 		- `/plugin install agent-browser@agent-browser`
 - svelte skill with autofixer script like we have in nestor
-- second option (codex, gemini, cursor agent): https://github.com/trailofbits/skills/tree/main/plugins/second-opinion
+- second opinion (codex, gemini, cursor agent): https://github.com/trailofbits/skills/tree/main/plugins/second-opinion
 - auto-loading per glob like min description?
 - https://github.com/SocketDev/sfw-free
 - merge/resolve merge conflict

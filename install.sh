@@ -57,10 +57,24 @@ step() { printf "\n${_C_BLUE}[%s]${_C_RESET} %s\n" "$1" "$2" >&2; }
 
 # --- Dependency detection ---
 
+# Check whether a python command reports Python >= 3.9.
+python39_plus() {
+  local python_cmd="$1"
+  local version major minor
+
+  command -v "$python_cmd" >/dev/null 2>&1 || return 1
+  version=$("$python_cmd" -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")' 2>/dev/null) || return 1
+  major=${version%%.*}
+  minor=${version#*.}
+
+  [ "$major" -gt 3 ] || { [ "$major" -eq 3 ] && [ "$minor" -ge 9 ]; }
+}
+
 # Check if a tool binary is on PATH.
 # Handles formula-to-binary name differences (e.g., ripgrep → rg).
 dep_present() {
   case "$1" in
+    python3)   python39_plus python3 || python39_plus python ;;
     ripgrep)   command -v rg        >/dev/null 2>&1 ;;
     ast-grep)  command -v ast-grep  >/dev/null 2>&1 || command -v sg >/dev/null 2>&1 ;;
     node)      command -v node      >/dev/null 2>&1 || command -v nodejs >/dev/null 2>&1 ;;
@@ -71,12 +85,21 @@ dep_present() {
 
 has_brew() { command -v brew >/dev/null 2>&1; }
 
+brew_formula_name() {
+  [ "$1" = "python3" ] && { echo "python"; return 0; }
+  echo "$1"
+}
+
 # Install a Homebrew formula if not already on PATH or installed via brew.
 brew_install_if_missing() {
   local formula="$1"
+  local brew_formula
+
+  brew_formula=$(brew_formula_name "$formula")
+
   dep_present "$formula" && return 0
-  brew list --formula "$formula" >/dev/null 2>&1 && return 0
-  if quiet brew install "$formula" </dev/null; then
+  brew list --formula "$brew_formula" >/dev/null 2>&1 && return 0
+  if quiet brew install "$brew_formula" </dev/null; then
     done_msg "Installed $formula via Homebrew"
   else
     warn "Failed to install $formula via Homebrew"
@@ -89,9 +112,23 @@ ensure_system_deps() {
   local os missing=()
   os="$(uname -s)"
 
-  # Deps spine uses — sync with README.md CLI tools table when changing these
-  local -a required=(git jq node)
-  local -a recommended=(ast-grep bun coreutils fd ni ripgrep sd shellcheck shfmt)
+  # Installed tools Spine manages — keep machine-keyed and sync docs when changing these.
+  local -a installed_tools=(
+    git
+    jq
+    node
+    python3
+    uv
+    ast-grep
+    bun
+    coreutils
+    fd
+    ni
+    ripgrep
+    sd
+    shellcheck
+    shfmt
+  )
 
   local use_brew=false
   if has_brew; then
@@ -101,7 +138,7 @@ ensure_system_deps() {
   fi
 
   # Collect missing deps
-  for dep in "${required[@]}" "${recommended[@]}"; do
+  for dep in "${installed_tools[@]}"; do
     dep_present "$dep" || missing+=("$dep")
   done
 
@@ -118,8 +155,12 @@ ensure_system_deps() {
   else
     warn "Missing tools: ${missing[*]}"
     if [ "$os" = "Darwin" ]; then
+      local brew_missing=()
+      for dep in "${missing[@]}"; do
+        brew_missing+=("$(brew_formula_name "$dep")")
+      done
       echo "  After installing Homebrew, run:" >&2
-      echo "    brew install ${missing[*]}" >&2
+      echo "    brew install ${brew_missing[*]}" >&2
     else
       echo "  Install via your package manager, e.g.:" >&2
       echo "    sudo apt install ${missing[*]}  # Debian/Ubuntu (fd→fd-find, node→nodejs, coreutils is preinstalled)" >&2
@@ -1022,7 +1063,7 @@ main() {
   # Summary
   echo "" >&2
   echo "---" >&2
-  printf "${_C_GREEN}✓ Spine installed for: ${tools[*]}${_C_RESET}\n" >&2
+  printf "%b\n" "${_C_GREEN}✓ Spine installed for: ${tools[*]}${_C_RESET}" >&2
   echo "" >&2
 }
 

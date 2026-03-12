@@ -14,6 +14,7 @@ All notable changes are documented here, focused on user impact.
   **Migration**: re-run `install.sh` or `npx skills add kenoxa/spine -s run-insights -s run-recap -a '*' -g -y`. Remove stale `~/.agents/skills/log-history-*` directories.
 
 - **Skills installer command split documented** — public docs continue to show `npx skills add/remove ...` to match `skills.sh`, while `install.sh` can bootstrap the same CLI through another launcher when updating Spine-managed skills.
+- **Installer tool semantics simplified** — the installer docs now describe one managed tools list instead of required/recommended categories. Python 3 and `uv` are part of that managed set, and `pip` is documented as coming from Python 3 (`pip3` / `python3 -m pip`) rather than as a separate install target.
 
 ## 2026-03-11
 

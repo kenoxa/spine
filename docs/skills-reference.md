@@ -85,7 +85,7 @@ Periodic cross-tool session analysis. Python scripts parse raw session data from
 
 Every recommendation includes evidence (session counts, specific examples) and a concrete action. Cross-tool patterns — the same workflow repeated across multiple tools — are the highest-value findings.
 
-Requires Python 3.9+. Run weekly or bi-weekly.
+Requires Python 3.9+ on `PATH`. On supported Homebrew setups, Spine can install Python 3 as part of its installer-managed host CLI tools. Otherwise, provide a compatible interpreter yourself. Run weekly or bi-weekly.
 
 Canonical entry: [`skills/run-insights/SKILL.md`](../skills/run-insights/SKILL.md).
 
@@ -122,6 +122,8 @@ Summarize work done across AI agent sessions for standups, timesheets, and activ
 - **recap** — narrative summary with per-project sections and metrics
 
 Reuses `run-insights/scripts/` for session collection. Dispatches a single `@miner` subagent to synthesize task descriptions and estimate durations from session metadata across Claude Code, Codex, and Cursor.
+
+Requires Python 3.9+ on `PATH`. On supported Homebrew setups, Spine can install Python 3 as part of its installer-managed host CLI tools. Otherwise, provide a compatible interpreter yourself.
 
 Canonical entry: [`skills/run-recap/SKILL.md`](../skills/run-recap/SKILL.md).
 

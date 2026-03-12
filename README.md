@@ -198,26 +198,32 @@ If a provider root file already exists, add the two `@~/.config/spine/...` lines
 </details>
 
 <details>
-<summary>CLI tools installed by the installer</summary>
+<summary>Installer-managed host CLI tools</summary>
 
-The installer checks for these tools and installs missing ones via Homebrew on macOS:
+The installer manages one list of CLI tools. On macOS, it uses Homebrew to install missing tools when formulae are available.
 
-| Tool | Category | Purpose |
-|------|----------|---------|
-| `git` | Required | Version control |
-| `jq` | Required | JSON processing |
-| `node` | Required | JavaScript runtime for `skills` tooling and public `npx skills` commands |
-| `ast-grep` | Recommended | AST-based structural code search and refactoring |
-| `bun` | Recommended | Fast JavaScript runtime and package manager |
-| `coreutils` | Recommended | GNU core utilities on macOS |
-| `fd` | Recommended | Fast file finder |
-| `ni` | Recommended | Universal JavaScript package manager wrapper |
-| `ripgrep` | Recommended | Fast text search |
-| `sd` | Recommended | In-place pattern replacement |
-| `shellcheck` | Recommended | Shell script linter |
-| `shfmt` | Recommended | Shell script formatter |
+| Tool | Purpose |
+|------|---------|
+| `git` | Version control |
+| `jq` | JSON processing |
+| `node` | JavaScript runtime for `skills` tooling and public `npx skills` commands |
+| `python3` | Python 3.9+ runtime in Spine's managed Python toolchain; needed on `PATH` for session-history and reporting skills such as `run-insights` and `run-recap` |
+| `uv` | Python package and project manager in Spine's managed Python toolchain; not a direct runtime requirement of `run-insights` or `run-recap` today |
+| `ast-grep` | AST-based structural code search and refactoring |
+| `bun` | Fast JavaScript runtime and package manager |
+| `coreutils` | GNU core utilities on macOS |
+| `fd` | Fast file finder |
+| `ni` | Universal JavaScript package manager wrapper |
+| `ripgrep` | Fast text search |
+| `sd` | In-place pattern replacement |
+| `shellcheck` | Shell script linter |
+| `shfmt` | Shell script formatter |
 
-On Linux without Homebrew, the installer prints manual install hints.
+`pip` is not installed as a separate tool. It comes from Python 3 as `pip3` or `python3 -m pip`.
+
+If your environment exposes only `python`, Spine treats it as satisfying the managed `python3` requirement only when it is Python 3.9 or newer.
+
+On Linux without Homebrew, the installer prints example manual install hints instead of auto-installing packages.
 
 </details>
 
