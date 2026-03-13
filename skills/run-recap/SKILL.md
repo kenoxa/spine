@@ -30,24 +30,16 @@ Parse arguments, run parser scripts, collect git log.
 - `--format standup|timesheet|recap` (default standup) — output format
 - `--project filter` (optional) — case-insensitive substring match on project name
 
-Generate session ID. Run parser scripts via Bash:
+Generate session ID. Run parser scripts via `sh`:
 
-```bash
-PYTHON=$(command -v python3 || command -v python)
-if [ -z "$PYTHON" ]; then echo "Error: Python 3.9+ required but not found"; exit 1; fi
-SINCE=$(date -v-${DAYS:-7}d +%Y-%m-%d)
-SCRATCH=".scratch/<session>"
-SCRIPTS="$HOME/.agents/skills/run-insights/scripts"
-mkdir -p "$SCRATCH"
-PYTHONPATH="$SCRIPTS" "$PYTHON" "$SCRIPTS/parse_claude.py" --since "$SINCE" --output "$SCRATCH"
-PYTHONPATH="$SCRIPTS" "$PYTHON" "$SCRIPTS/parse_codex.py" --since "$SINCE" --output "$SCRATCH"
-PYTHONPATH="$SCRIPTS" "$PYTHON" "$SCRIPTS/parse_cursor.py" --since "$SINCE" --output "$SCRATCH"
-PYTHONPATH="$SCRIPTS" "$PYTHON" "$SCRIPTS/aggregate.py" --input "$SCRATCH" --output "$SCRATCH/analytics.json"
+```sh
+COLLECT="$HOME/.agents/skills/run-insights/scripts/collect_sessions.sh"
+"$COLLECT" --days "${DAYS:-7}" --session "<session>"
 ```
 
 Verify `analytics.json` exists and has sessions. If `summary.total_sessions == 0`, report "No AI sessions found in the last N days. Try increasing --days." and stop.
 
-**Git log collection**: Extract unique `project` values from `*_sessions.json`. Resolve each to filesystem path via `~/Projects/{project}` or cwd. For each git repo, run `git log --since=$SINCE --oneline --no-merges`. Write to `.scratch/<session>/git_log.json` as `{project: [commit_lines]}`. Skip unresolvable projects, non-repos, or empty ranges. Best-effort.
+**Git log collection**: Extract unique `project` values from `*_sessions.json`. Resolve each to filesystem path via `~/Projects/{project}` or cwd. Read `SINCE` from `.scratch/<session>/collect.env` inside the same shell invocation that runs git log, for example: `. ".scratch/<session>/collect.env" && git log --since="$SINCE" --oneline --no-merges`. Write to `.scratch/<session>/git_log.json` as `{project: [commit_lines]}`. Skip unresolvable projects, non-repos, or empty ranges. Best-effort.
 
 ### 2. Dispatch
 

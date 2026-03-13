@@ -25,24 +25,16 @@ Cross-tool session analysis. Python scripts compress ~256MB raw data into ~100KB
 
 ### 1. Collect
 
-Run parser scripts via Bash. Generate session ID first.
+Run parser scripts via `sh`. Generate session ID first.
 
-```bash
-PYTHON=$(command -v python3 || command -v python)
-if [ -z "$PYTHON" ]; then echo "Error: Python 3.9+ required but not found"; exit 1; fi
-SINCE=$(date -v-${DAYS:-14}d +%Y-%m-%d)
-SCRATCH=".scratch/<session>"
-SCRIPTS="$HOME/.agents/skills/run-insights/scripts"
-mkdir -p "$SCRATCH"
-PYTHONPATH="$SCRIPTS" "$PYTHON" "$SCRIPTS/parse_claude.py" --since "$SINCE" --output "$SCRATCH"
-PYTHONPATH="$SCRIPTS" "$PYTHON" "$SCRIPTS/parse_codex.py" --since "$SINCE" --output "$SCRATCH"
-PYTHONPATH="$SCRIPTS" "$PYTHON" "$SCRIPTS/parse_cursor.py" --since "$SINCE" --output "$SCRATCH"
-PYTHONPATH="$SCRIPTS" "$PYTHON" "$SCRIPTS/aggregate.py" --input "$SCRATCH" --output "$SCRATCH/analytics.json"
+```sh
+COLLECT="$HOME/.agents/skills/run-insights/scripts/collect_sessions.sh"
+"$COLLECT" --days "${DAYS:-14}" --session "<session>"
 ```
 
 Verify `analytics.json` exists with sessions. If `summary.total_sessions == 0`, report "no sessions found", suggest expanding time window.
 
-Read `analytics.json`. Produce brief collection summary (sessions per provider, date range, top projects).
+Read `.scratch/<session>/analytics.json`. Produce brief collection summary (sessions per provider, date range, top projects).
 
 ### 2. Analyze
 

@@ -77,7 +77,7 @@ Dispatch **in parallel** (`@planner` type). Each receives `planning_brief` + `ev
 | `thorough` | Enumerates every edge case and failure mode; missing coverage = gap | `.scratch/<session>/plan-planning-thorough.md` |
 | `innovative` | Proposes structural improvements; justifies each departure with concrete benefit | `.scratch/<session>/plan-planning-innovative.md` |
 
-Dispatch additional `@planner` per `variance_lenses` entry. Cap: base + augmented ≤ 5 total.
+Dispatch additional `@planner` per `variance_lenses` entry. Cap: base + augmented ≤ 6 total.
 
 **Synthesis**: Dispatch `@synthesizer` with input paths: all planning output files. Output: `.scratch/<session>/plan-synthesis-planning.md`. Read synthesis output for canonical_plan. If output empty or missing, fall back to reading individual outputs.
 
