@@ -37,19 +37,6 @@ To add a new checker, define `detect_<name>` and `run_<name>` functions and appe
 
 Configured in [`hooks/hooks.json`](hooks/hooks.json) (30s timeout). Script: [`hooks/check-on-edit.sh`](hooks/check-on-edit.sh).
 
-### `use-agent-teams` skill
-
-Upgrades Spine's parallel subagent dispatch to Claude Code Agent Teams for 4 phases:
-
-| Phase | Why teams over subagents |
-|-------|------------------------|
-| do-plan Phase 3 (Planning) | Planners share partial findings, build on each other's insights |
-| do-plan Phase 4 (Challenge) | Socratic debate with real-time rebuttals |
-| do-execute Phase 3 (Polish) | Advisors avoid duplicate findings by seeing each other's output |
-| do-execute Phase 4 (Review) | Reviewers coordinate coverage, probe each other's findings |
-
-Requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`. Without the env var, this skill has zero effect — Spine's built-in subagent dispatch applies unchanged.
-
 ### `run-skill-eval` skill
 
 Optimizes and evaluates changed skill/agent/instruction files in any repo:
@@ -75,8 +62,6 @@ claude/
 │   ├── check-on-edit.sh     PostToolUse checker hook
 │   └── inject-agents-md.sh  SessionStart hook script
 └── skills/
-    ├── run-skill-eval/
-    │   └── SKILL.md          Skill optimization + evaluation loop
-    └── use-agent-teams/
-        └── SKILL.md          Agent Teams overlay skill
+    └── run-skill-eval/
+        └── SKILL.md          Skill optimization + evaluation loop
 ```

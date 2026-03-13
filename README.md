@@ -94,7 +94,7 @@ For straightforward work, start directly with `/do-execute`.
 - Shared guardrails through `SPINE.md` and your own global overrides through `AGENTS.md`
 - Shared subagents in `agents/`
 - Context7 and Exa MCP server setup
-- Claude Code plugin support for hooks and `use-agent-teams`
+- Claude Code plugin support for hooks and skills
 
 See [docs/skills-reference.md](docs/skills-reference.md) for the full skill and subagent catalog.
 
@@ -249,7 +249,7 @@ export EXA_API_KEY=your-key-here
 <details>
 <summary>Claude Code plugin</summary>
 
-Spine ships a Claude Code plugin with hooks and the `use-agent-teams` skill. The installer attempts this automatically for Claude Code users.
+Spine ships a Claude Code plugin with hooks and skills. The installer attempts this automatically for Claude Code users.
 
 Manual install:
 

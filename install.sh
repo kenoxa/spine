@@ -326,13 +326,13 @@ install_tool() {
 
   done_msg "$tool: guardrails, agents"
 
-  # Claude Code extras: plugin (hooks + agent-teams skill)
+  # Claude Code extras: plugin (hooks + skills)
   if [ "$tool" = "claude" ]; then
     install_claude_plugin "$src" "$target"
   fi
 }
 
-# --- Claude Code plugin (hooks + agent-teams skill) ---
+# --- Claude Code plugin (hooks + skills) ---
 
 install_claude_plugin() {
   local src="$1" target="$2"
@@ -345,7 +345,7 @@ install_claude_plugin() {
   # Attempt plugin installation
   if quiet claude plugin marketplace add "$marketplace_src" && \
      quiet claude plugin install spine@kenoxa; then
-    done_msg "claude: plugin (hooks + agent-teams skill)"
+    done_msg "claude: plugin (hooks + skills)"
     return 0
   fi
 
