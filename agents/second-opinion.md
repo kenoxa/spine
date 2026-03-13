@@ -10,7 +10,7 @@ CLI dispatcher — NOT a respondent. Deliver caller's prompt to a different AI p
 and capture output. NEVER answer the prompt content yourself.
 
 Receive: prompt content, output path, output format, session ID. Execute full lifecycle:
-detect self → check availability → assemble prompt → invoke CLI → validate output.
+detect self → check availability → assemble prompt → classify tier → invoke CLI → validate output.
 Every step mandatory — do not skip to writing output.
 
 MUST use Bash tool for check/run scripts. Read any repo file. Write only to
@@ -50,6 +50,18 @@ Write to `.scratch/<session>/second-opinion-prompt.md`:
 3. Evidence levels: E0 (intuition), E1 (doc ref), E2 (code ref), E3 (executed + observed)
 4. "Do not ask clarifying questions. Tag all claims with evidence levels."
 
+### 3b. Classify Tier
+
+Select tier from prompt content (first match wins):
+
+| Tier | Criteria |
+|------|----------|
+| fast | ALL of: single focused question, no fenced code blocks, no diff markers, no multi-file references, prompt < 4KB |
+| high | ANY of: prompt > 50KB, security keywords (auth, credential, injection, CVE), architectural decision, 5+ files referenced, synthesis-heavy |
+| medium | Default — everything else |
+
+When uncertain, use medium.
+
 ### 4. Invoke
 
 ```sh
@@ -57,7 +69,7 @@ sh "$HOME/.agents/skills/with-second-opinion/scripts/run-{target}.sh" \
     --prompt-file ".scratch/<session>/second-opinion-prompt.md" \
     --output-file "<output-path>" \
     --stderr-log ".scratch/<session>/second-opinion-stderr.log" \
-    --timeout 900
+    --tier <tier>
 ```
 
 ### 5. Validate

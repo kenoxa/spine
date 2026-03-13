@@ -22,6 +22,8 @@ Provide to `@second-opinion`:
 | Output path | `.scratch/<session>/`-prefixed file path |
 | Session ID | Current session identifier |
 
+Tier classification is automatic — the agent evaluates prompt complexity and selects fast/medium/high. Callers do not pass tier.
+
 Pre-dispatch: if assembled prompt >100KB, truncate large sections and summarize. Still over → skip with advisory.
 
 ## Synthesis
