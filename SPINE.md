@@ -29,6 +29,8 @@
 
 Use native tools: Grep not `rg`/`grep`, Glob not `find`/`ls`, Read not `cat`/`head`/`tail`, Edit not `sed`/`awk`.
 
+**GitHub file URLs** — rewrite `github.com/.../blob/...` to `raw.githubusercontent.com` before fetching. Only applies to `/blob/` paths (single files).
+
 Prefer MCP tools over WebFetch/WebSearch. One search tool per question.
 
 **Context7** — library/framework docs, version-specific API references
