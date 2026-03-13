@@ -80,9 +80,8 @@ timeout --kill-after=10 "$timeout_secs" env -i \
         --no-session-persistence \
         --model opus \
         --fallback-model sonnet \
-        --max-turns 5 \
         --dangerously-skip-permissions \
-        --file "$prompt_file" \
+        < "$prompt_file" \
         > "$output_file" 2>"$stderr_log" \
     || _rc=$?
 

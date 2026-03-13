@@ -75,10 +75,10 @@ timeout --kill-after=10 "$timeout_secs" env -i \
     CODEX_HOME="${CODEX_HOME:-$HOME/.codex}" \
     codex exec \
         -m gpt-5.4 \
-        --last-message-file "$output_file" \
+        --output-last-message "$output_file" \
         --ephemeral \
         --skip-git-repo-check \
-        --yolo \
+        --full-auto \
         - < "$prompt_file" \
         >/dev/null 2>"$stderr_log" \
     || _rc=$?

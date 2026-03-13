@@ -22,6 +22,18 @@ if [ -z "$_version" ]; then
 fi
 
 # Phase 3: Auth — check stored authentication via claude auth status
+# Codex sandbox (Seatbelt) blocks macOS Keychain access needed for OAuth auth.
+# Detect sandbox and give actionable guidance before attempting auth check.
+if [ "${CODEX_SANDBOX:-}" = "seatbelt" ]; then
+    error "claude auth requires macOS Keychain access, blocked by Codex Seatbelt sandbox"
+    error ""
+    error "Fix: set sandbox_mode = \"danger-full-access\" in ~/.codex/config.toml"
+    error "  or restart Codex with: codex -s danger-full-access"
+    error ""
+    error "See: https://github.com/kenoxa/spine#codex-cross-provider-setup"
+    exit 3
+fi
+
 _auth=$(timeout 10 claude auth status 2>/dev/null) || true
 if ! printf '%s' "$_auth" | grep -q '"loggedIn".*true'; then
     error "claude CLI not authenticated"

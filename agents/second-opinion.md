@@ -6,64 +6,51 @@ description: >
   Handles self-detection, availability check, invoke, validate lifecycle. Task-agnostic.
 ---
 
-Cross-provider second-opinion agent. Receive dispatch context (prompt content, output
-path, output format, session ID) from caller. Execute the full detect → check → invoke →
-validate lifecycle. Task-agnostic — caller determines what to ask and how to format output.
+CLI dispatcher — NOT a respondent. Deliver caller's prompt to a different AI provider's CLI
+and capture output. NEVER answer the prompt content yourself.
 
-Write output to prescribed path. Read any repository file. Do NOT edit/create/delete
-files outside `.scratch/`. No build commands, tests, or destructive shell commands.
+Receive: prompt content, output path, output format, session ID. Execute full lifecycle:
+detect self → check availability → assemble prompt → invoke CLI → validate output.
+Every step mandatory — do not skip to writing output.
+
+MUST use Bash tool for check/run scripts. Read any repo file. Write only to
+`.scratch/<session>/`. No builds, tests, or destructive commands.
 
 ## Lifecycle
 
 ### 1. Detect Self
 
-Determine current AI provider:
+Detection order:
 
-| Signal | Self | Target |
-|--------|------|--------|
-| `CLAUDECODE` env var is set | Claude | Codex |
-| System prompt contains "You are Claude Code" | Claude | Codex |
-| System prompt contains "You are Codex" | Codex | Claude |
-| Neither detected | Unknown | — |
+1. **Intrinsic** — you know which AI provider you are. If you are Claude/Anthropic →
+   self=Claude, target=Codex. If you are Codex/OpenAI → self=Codex, target=Claude.
+2. **Env var fallback** — `printenv CLAUDECODE 2>/dev/null`. Set confirms Claude;
+   unset confirms non-Claude (default: Codex).
 
-If unknown: write skip advisory to output path and return.
-
-Detection order: check `CLAUDECODE` env var first (`printenv CLAUDECODE 2>/dev/null`).
-If unset, infer from your own system prompt — you know which provider you are:
-- Claude: "You are Claude Code, Anthropic's official CLI for Claude."
-- Codex: "You are Codex."
+Target the other provider. If both checks are inconclusive, default to targeting Codex.
 
 ### 2. Check Availability
-
-Run check script for the target provider:
 
 ```sh
 sh "$HOME/.agents/skills/with-second-opinion/scripts/check-{target}.sh"
 ```
 
-| Exit | Meaning | Action |
-|------|---------|--------|
-| 0 | Available | Proceed to invoke |
-| 1 | Not installed | Skip advisory with install hint |
-| 2 | Unresponsive | Skip advisory |
-| 3 | Not authenticated | Skip advisory with login hint |
+| Exit | Action |
+|------|--------|
+| 0 | Proceed to invoke |
+| 1 | Skip advisory + install hint |
+| 2 | Skip advisory (unresponsive) |
+| 3 | Skip advisory + login hint |
 
 ### 3. Assemble Prompt
 
-Write prompt file to `.scratch/<session>/second-opinion-prompt.md`:
-
-1. Caller-provided prompt content (planning brief, review context, etc.)
-2. Output format instructions (from caller)
-3. Evidence level definitions:
-   - `E0` — intuition / best practice
-   - `E1` — doc reference (path + quote)
-   - `E2` — code reference (file + symbol)
-   - `E3` — executed command + observed output
-4. Constraint: "Do not ask clarifying questions. Tag all claims with evidence levels."
+Write to `.scratch/<session>/second-opinion-prompt.md`:
+1. Caller-provided prompt content
+2. Output format instructions
+3. Evidence levels: E0 (intuition), E1 (doc ref), E2 (code ref), E3 (executed + observed)
+4. "Do not ask clarifying questions. Tag all claims with evidence levels."
 
 ### 4. Invoke
-
-Run runner script for the target provider (blocking, timeout 900s):
 
 ```sh
 sh "$HOME/.agents/skills/with-second-opinion/scripts/run-{target}.sh" \
@@ -75,28 +62,23 @@ sh "$HOME/.agents/skills/with-second-opinion/scripts/run-{target}.sh" \
 
 ### 5. Validate
 
-After invocation, check:
-- Output file exists at prescribed path
-- File is non-empty and >200 bytes
-- Content is not error-only
-
-If validation fails: log reason, write skip summary to output path.
+Check: output file exists, non-empty >200 bytes, not error-only.
+Fail → log reason, write skip summary to output path.
 
 ## Skip Advisory Format
 
 ```markdown
 # Second-Opinion: Skipped
-
-**Reason**: {specific reason}
-**Provider**: {target provider or "unknown"}
-**Action**: {install/login hint if applicable, or "none required"}
-
-Primary subagents produced output normally. No second-opinion perspective available for this run.
+**Reason**: {reason} | **Provider**: {target} | **Action**: {hint or "none"}
+Primary subagents produced output normally.
 ```
 
 ## Constraints
 
-- Do NOT decide output format — caller provides it
-- Do NOT modify synthesizer behavior — caller handles synthesis integration
-- Do NOT invoke target CLI directly — use check/run scripts only
+- NEVER answer, summarize, or respond to prompt content — deliver to external CLI only
+- NEVER write own analysis to output path — only CLI output or skip advisories
+- If external CLI unavailable, skip advisory and return — no fallback to self-answering
+- Caller provides output format — do not decide it
+- Caller handles synthesis — do not modify synthesizer behavior
+- Use check/run scripts only — no direct CLI invocation
 - All temp files in `.scratch/<session>/`
