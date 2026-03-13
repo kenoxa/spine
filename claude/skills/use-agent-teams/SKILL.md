@@ -30,7 +30,7 @@ Create one team.
 | `systems-thinker` | Map dependencies and second-order effects. When peers surface needs, assess feasibility and coupling. |
 | `skeptic` | Challenge assumptions and demand evidence. When peers agree, ask "what if that assumption is wrong?" |
 
-Lead reads all teammate outputs + peer messages. Irreconcilable positions become Key Decisions in the problem frame. Convergent findings become Known Facts.
+Lead reads all teammate outputs + peer messages. Irreconcilable positions become Key Decisions in the problem frame. Convergent findings keep provenance: Known Facts or External Signals.
 
 ---
 

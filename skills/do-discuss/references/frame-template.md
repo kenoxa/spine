@@ -73,6 +73,17 @@ One of: `do-plan`, `brainstorming`, `run-debug`, `more-discuss`. Note which fiel
 
 Include when condition met. Omit only with skip rationale.
 
+### External Signals
+Required when `external_signals` is non-empty or when the frame must preserve upstream evidence
+for `do-plan`.
+
+Keep provenance explicit. Use lane names such as `navigator-external`; do not fold external
+evidence into `Known Facts`. When present, map these entries into `planning_brief.evidence_manifest`.
+
+| Finding | Source / Artifact | Evidence | Relevance |
+|---------|-------------------|----------|-----------|
+| [finding] | doc:path / artifact | E1+ | [why it matters] |
+
 ### Codebase Signals
 Required when orient phase ran (codebase-adjacent input) OR tier-2 investigate phase triggered.
 

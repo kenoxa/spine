@@ -41,6 +41,10 @@ Map codebase before planning. Dispatch **in parallel** (`@researcher` and `@navi
 
 Dispatch additional `@researcher` per `variance_lenses` entry. Cap: base + augmented ≤ 5 total.
 
+`@researcher`: local-depth first. Upstream only for concrete, plan-local questions with a
+small named source set. `@navigator`: broad, ambiguous, comparative, current, or conflicting
+external work.
+
 **Synthesis**: Dispatch `@synthesizer` with input paths: all discovery output files. Output: `.scratch/<session>/plan-synthesis-discovery.md`. Read synthesis output for framing. If output empty or missing, fall back to reading individual outputs.
 
 ### 2. Framing
@@ -54,7 +58,7 @@ Distill `discovery_findings` into a shared `planning_brief`. Fields:
 | `constraints` | Hard limits (performance, security, backwards compat, API surface) |
 | `key_decisions` | Numbered IDs, A/B/C options, explicit tradeoffs |
 | `planner_focus_cues` | E2 pointers to entry points, patterns, tests — no narrative |
-| `evidence_manifest` | Artifact paths with why-relevant; planners lazy-load from here |
+| `evidence_manifest` | Artifact paths with provenance (`local-code`, `local-doc`, `researcher-upstream`, `navigator-external`), why-relevant, and conflict status; planners lazy-load from here |
 | `docs_impact` | Classification: `customer-facing`, `internal`, `both`, or `none` — with skip rationale when `none` |
 
 Classify `docs_impact` for every plan. `none` → record skip rationale. `customer-facing`/`both` → changelog in scope; load `use-writing`. No raw dumps — distilled signals only.
@@ -65,11 +69,14 @@ Two-Way Door test per `key_decision`:
 - Evaluate on: correctness risk, operational complexity, team familiarity, migration cost, blast radius
 - Limit to 2–3 options; never 4+ without narrowing first
 
-Ask before dispatching planners if `key_decisions` materially change scope or risk. Present context + options; prompt with structured questions.
+Ask before dispatching planners when `key_decisions` change scope/risk, upstream evidence is
+missing, or external conflicts remain unresolved. Present context + options.
 
 ### 3. Planning
 
-Dispatch **in parallel** (`@planner` type). Each receives `planning_brief` + `evidence_manifest`; independent plan from distinct angle:
+Dispatch **in parallel** (`@planner` type). Each receives `planning_brief` + `evidence_manifest`.
+Independent plan from distinct angle. Planners read manifest entries touching cited key
+decisions. Preserve provenance. Surface unresolved external conflicts; never flatten them:
 
 | Role | Persona | Output |
 |------|---------|--------|

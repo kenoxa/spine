@@ -2,6 +2,12 @@
 
 All notable changes are documented here, focused on user impact.
 
+## 2026-03-13
+
+### Changed
+
+- **Planning evidence boundary clarified** — `researcher` is now local-depth first with bounded, plan-specific upstream lookup, while `navigator` stays the external-first specialist for broad, ambiguous, comparative, current, or conflicting external work. `do-plan` and `do-discuss` handoffs now preserve evidence provenance so planners can distinguish codebase facts from upstream signals.
+
 ## 2026-03-12
 
 ### Changed

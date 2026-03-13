@@ -9,10 +9,10 @@
 Structured problem framing through tiered Socratic dialogue. Use when the problem is vague, ambiguous, or too broad for direct planning.
 
 - **Tier 1** — Socratic dialogue: batch questions, track known/unknown inventory, converge on the core problem.
-- **Tier 2** — (conditional) dispatch `@scout` or `@researcher` when codebase evidence is needed.
+- **Tier 2** — (conditional) dispatch `@scout` or `@researcher` when codebase evidence is needed; route external unknowns to `@navigator`.
 - **Tier 3** — (conditional) multi-perspective `@framer` team (stakeholder-advocate, systems-thinker, skeptic) for ambiguous scope with one-way-door decisions.
 
-Produces a `problem_frame` artifact (goal, scope, constraints, key decisions, unknowns) and a confidence-gated handoff recommendation.
+Produces a `problem_frame` artifact (goal, scope, constraints, key decisions, unknowns) and a confidence-gated handoff recommendation. Discuss preserves `external_signals` for planning handoff; the bounded `researcher` upstream-lookup exception lives in `do-plan`, not discuss routing.
 
 Canonical entry: [`skills/do-discuss/SKILL.md`](../skills/do-discuss/SKILL.md).
 
@@ -20,8 +20,8 @@ Canonical entry: [`skills/do-discuss/SKILL.md`](../skills/do-discuss/SKILL.md).
 
 Five phases produce a self-sufficient, executable implementation plan:
 
-1. **Discovery** — map the codebase: file scouting, docs exploration, external research. All claims tagged with evidence levels (E0–E3).
-2. **Framing** — distill discoveries into a planning brief: goal, scope, constraints, key decisions, evidence manifest, and docs impact classification.
+1. **Discovery** — map the codebase: file scouting, docs exploration, bounded upstream lookup inside `researcher`, and external-first research through `navigator`. All claims tagged with evidence levels (E0–E3).
+2. **Framing** — distill discoveries into a planning brief: goal, scope, constraints, key decisions, provenance-tagged evidence manifest, and docs impact classification.
 3. **Planning** — dispatch planners with distinct approach angles (conservative, thorough, innovative). Merge via consensus; rank by evidence level.
 4. **Challenge** — adversarial review exposing hidden assumptions, underestimated risks, and unnecessary abstraction. Blocking findings require E2+ evidence and a better alternative.
 5. **Synthesis** — assemble the final plan using the plan template. Validate self-sufficiency, test tasks, edge coverage, docs tasks, and completion criteria.
@@ -132,7 +132,8 @@ Canonical entry: [`skills/run-recap/SKILL.md`](../skills/run-recap/SKILL.md).
 | Agent | Model | Purpose |
 |-------|-------|---------|
 | `scout` | haiku | Fast codebase reconnaissance, preloads `use-explore` |
-| `researcher` | inherit | Deep discovery and evidence gathering, preloads `use-explore` |
+| `researcher` | inherit | Deep discovery and evidence gathering; local-depth first, may do bounded plan-specific upstream lookup, preloads `use-explore` |
+| `navigator` | inherit | External-first research specialist for broad, ambiguous, comparative, or current external work |
 | `planner` | inherit | Angle-committed planning, preloads `do-plan` |
 | `debater` | inherit | Adversarial Socratic dialogue |
 | `inspector` | inherit | Verdict-focused code review, preloads `run-review` |

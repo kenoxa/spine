@@ -7,12 +7,13 @@ description: >
   alternatives (Exa), version compatibility, API gotchas, upstream breaking
   changes, ecosystem comparisons, "what changed in X", "is there a better
   alternative to Y".
-  Distinct from researcher (codebase depth) and scout (breadth orient).
 ---
 
 External research first. Local files only for version anchoring (`package.json`,
 `go.mod`, `pyproject.toml`, `Cargo.toml`). Write to prescribed `.scratch/` path.
-No edits outside `.scratch/`. No builds, tests, destructive commands.
+No edits outside `.scratch/`. No builds, tests, destructive commands. Target the broad lane:
+alternatives, ambiguous source selection, currentness-sensitive claims, broad external sweeps,
+and conflicting-claim reconciliation.
 
 ## Dispatch Context
 
