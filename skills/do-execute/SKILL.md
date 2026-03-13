@@ -33,7 +33,9 @@ See AGENTS.md for E0–E3 definitions. Blocking claims MUST be E2+. Verify claim
 
 ## Phases
 
-**Session ID**: Reuse plan's session ID when executing an approved do-plan; otherwise generate per SPINE.md convention. Append to session log at each phase boundary and on re-entry. All output paths use `<session>` as placeholder.
+**Session ID**: Reuse plan's session ID when executing an approved do-plan; otherwise generate per SPINE.md convention. All output paths use `<session>` as placeholder.
+
+**Session log** (`.scratch/<session>/session-log.md`): Append at every phase boundary and on re-entry. Entry format: `## {Phase} — {timestamp}` followed by: decision, rationale, current state, next step. One entry per phase transition — not per subagent dispatch.
 
 Dispatch roles below apply at `standard` and `deep` depth; at `focused` depth, run phases inline. Every subagent prompt MUST be self-contained: include scope artifact, files modified, plan excerpt.
 
@@ -60,6 +62,8 @@ Output `scope_artifact`:
 
 Ask user when blocking questions non-empty. Never carry unresolved questions into implement.
 
+Append to session log: depth classification, partition count, variance lenses inherited/selected, blocking questions status.
+
 At `standard`/`deep` depth: inherit `variance_lenses` from approved plan when available. Otherwise, select from `do-plan/references/variance-lenses.md` based on `scope_artifact`: 1-2 at standard, 2-3 at deep. `focused` depth: skip.
 
 ### 2. Implement
@@ -68,6 +72,8 @@ Dispatch `@implementer` type (`implement` mode): one per partition. Parallel for
 
 Output: `files_modified` — repo-relative list of all changed files. One logical change per dispatch; unrelated issues → follow-up tasks.
 
+Append to session log: partitions dispatched (count + names), `files_modified` list.
+
 ### 3. Validate
 
 Structural integrity check — do changed files parse, do imports resolve, do expected exports/functions exist per plan.
@@ -75,6 +81,8 @@ Structural integrity check — do changed files parse, do imports resolve, do ex
 Dispatch: single `@inspector` (validate mode). Receives `files_modified`, `scope_artifact`, plan excerpt. Output: `.scratch/<session>/execute-validate.md`. At `focused` depth: typically inline pass.
 
 Output: `validation_result` — PASS (proceed to polish) or BLOCK with specific structural findings. BLOCK → re-enter implement with `validation_brief`. After 2 consecutive BLOCKs, escalate to user.
+
+Append to session log: `validation_result` (PASS/BLOCK), structural findings summary if BLOCK.
 
 ### 4. Polish
 
@@ -93,6 +101,8 @@ Output: `validation_result` — PASS (proceed to polish) or BLOCK with specific 
 2. **Apply**: implementers (`@implementer` type, `polish-apply` mode) apply synthesis actions from the advisory pass. Apply sub-step skipped when no actions exist.
 
 Output: `polish_findings`, updated `files_modified`.
+
+Append to session log: advisory finding count per lens, actions applied count, files touched.
 
 ### 5. Review
 
@@ -117,11 +127,15 @@ Blocking (E2+) → `re_dispatch_brief` → re-enter polish. Advisory → record,
 
 Output: `review_findings` with E-levels per finding.
 
+Append to session log: blocking/advisory finding counts, re-dispatch target if blocking.
+
 ### 6. Verify
 
 Dispatch `@verifier` type. Single instance (all depths). Receives `files_modified`, `review_findings`, plan excerpt. All claims MUST be E3. E2- claims are advisory — never block on them.
 
 Output: `verification_result` — PASS, FAIL, or PARTIAL with specifics.
+
+Append to session log: `verification_result`, E3 evidence summary.
 
 ### 7. Finalize
 
@@ -130,6 +144,7 @@ Main thread only. Sole completion authority.
 1. Check content gates (see [Content Gates](#content-gates)).
 2. Learnings as proposals only — never auto-apply. User must approve any rule/skill/memory update.
 3. Declare completion.
+4. Append to session log: completion declaration, final `files_modified`, open items if any.
 
 ## Re-entry
 
@@ -147,6 +162,8 @@ Scope → Implement → Validate → Polish → Review → Verify → Finalize
 - **Verify non-semantic failure** (lint, types, build) → `@implementer` `review-fix` fix → re-verify only
 
 Validate and polish re-entries share one iteration counter. Cap: **5**. On cap: freeze best state, ask user to continue.
+
+Append to session log on every re-entry: reason, source → target phase, iteration count.
 
 ## Content Gates
 
