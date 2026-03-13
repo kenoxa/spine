@@ -17,9 +17,9 @@ Stage only in-scope files, draft Conventional Commits message, confirm with user
    - User-specified files (highest)
    - Files attributable to current task/session
    - Best-guess from dirty files — include proposed list in confirmation step
-3. **Draft message** — `<type>[optional scope][!]: <description>` (imperative, specific, ≤72 chars).
-   For multi-file changes, add concise body (1–3 bullets) explaining why, constraints, impact.
-   Do not restate the diff.
+3. **Draft message** — `<type>[optional scope][!]: <description>` (imperative, specific, concise, no trailing punctuation; prefer ≤72 chars total).
+   Add body only when it adds non-obvious context. Omit if subject fully captures the change.
+   Body: blank line after subject; explain why, constraints, or impact; do not restate subject or diff; wrap at 72 chars.
 4. **Confirm** — display proposed message as fenced code block + staged file paths.
    Ask one concise question. Never commit without explicit user approval.
 5. **Commit** — stage only confirmed paths. If committed paths differ from staged
@@ -36,7 +36,9 @@ paths. Pre-commit hooks may modify content during commit — expected.
 Conventional Commits. Types: `feat`, `fix`, `refactor`, `chore`, `docs`, `test`, `perf`, `ci`, `build`.
 
 - Subject: imperative, specific, no vague summaries (`update stuff`, `fix things`)
+- Subject: lowercase Conventional Commit prefix; do not force capitalization
 - Body: explains *why*, not *what* — diff shows what changed
+- Body: omit unless useful; no repetition from subject
 - Breaking changes: `!` suffix on type or `BREAKING CHANGE:` footer
 
 ## Constraints
