@@ -1,7 +1,6 @@
 # TODO
 
 - use ask question tool in mainthread
-- eval: with-second-opinion, new agent, and skills it is used in
 - run insights on planning sessions: goal reduce planning time while preserving quality
 	- how often did planner complement each other or found real different stratgeties/tactics/solutions
 	- same for other planning phases
