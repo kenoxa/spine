@@ -8,6 +8,15 @@
 						"command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/inject-agents-md.sh"
 					}
 				]
+			},
+			{
+				"matcher": "compact",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/inject-compact-essentials.sh"
+					}
+				]
 			}
 		],
 		"PreToolUse": [

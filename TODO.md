@@ -1,13 +1,5 @@
 # TODO
 
-- compacting instructions adjusted for what we need to capture
-	```
-	When compacting, always preserve:
-	
-	- Current file paths being edited
-	- Test failure messages
-	- Architecture decisions made this session
-	```
 - run insights on planning sessions: goal reduce planning time while preserving quality
 	- how often did planner complement each other or found real different stratgeties/tactics/solutions
 	- same for other planning phases
@@ -22,6 +14,10 @@
 - https://github.com/SocketDev/sfw-free
 - merge/resolve merge conflict
 - https://github.com/cocoindex-io/cocoindex-code
+
+## Second Opinion for Planning [IMPLEMENTED]
+
+Implemented via `skills/with-second-opinion/` (composable skill + 4 shell scripts) and `agents/second-opinion.md`. Base planners consolidated from 3-tier (conservative/thorough/innovative) to 2-tier (rigorous/creative).
 
 ## Second Opinion for reviewing code
 

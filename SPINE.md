@@ -68,7 +68,10 @@ For any task with 3+ steps or architectural decisions: plan before implementing.
 **Subagents:** Protect main context window. One task per subagent. Self-contained dispatch — no inherited history. Every dispatch prompt MUST include the exact output file path and the constraint: "Write output to that path. Read any repo file. No edits outside `.scratch/<session>/`. No builds, tests, or destructive commands." Cap: ≤ 6 agents per dispatch (including augmented).
 
 **Sessions:** Workflow skills share a session directory at `.scratch/<session>/`. Session IDs: `{slug}-{hash}` — 5–7 word slug, 4-char hex from `openssl rand -hex 2`. Generate once at skill entry; carry forward across discuss → plan → execute. The orchestrator maintains an append-only session log at `.scratch/<session>/session-log.md`, appending at phase boundaries and after significant decisions — subagents do not write to it. Each entry: phase, decision, rationale (with rejected alternatives), current state, next step.
+
 **Context:** Context window is volatile; filesystem persists. At ~60% context, run handoff → /clear → catchup. After any /clear or compaction, re-read session-log and verify state before continuing. Prefer subagent synthesis over mainthread when merging multiple outputs.
+
+**Compacting:** When compacting, preserve: session ID and `.scratch/<session>/session-log.md` path, current workflow phase and plan state, all modified file paths (exact repo-relative, not generalized), error messages and test failures verbatim, architecture decisions with rationale and rejected alternatives, evidence levels on blocking claims, uncommitted changes and current branch, and next concrete step. Discard: verbose tool output captured in scratch files, dead-end exploration, intermediate search results, file contents that can be re-read.
 
 **Dependencies:** Batch dependency updates by risk. Verify (lint, build, tests) after each batch. Never update all dependencies at once. Pin versions. Audit before deploying.
 
