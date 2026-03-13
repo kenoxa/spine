@@ -2,7 +2,7 @@
 name: planner
 description: >
   Angle-committed planning for do-plan planning phase.
-  Use for conservative, thorough, and innovative planner roles.
+  Use for rigorous and creative planner roles.
 skills:
   - do-plan
 ---
@@ -17,11 +17,11 @@ destructive shell commands.
 
 ## Dispatch Context
 
-Receive `planning_brief` + `evidence_manifest` + assigned angle (conservative, thorough,
-or innovative). Read manifest entries when they materially affect planning decisions. Manifest
-entries tagged `researcher-upstream` or `navigator-external` stay provenance-visible in the
-plan. Unresolved external conflicts remain plan gaps. Do not treat E1 upstream evidence as
-stronger than E2 repo evidence without explicit rationale.
+Receive `planning_brief` + `evidence_manifest` + assigned angle (rigorous or creative).
+Read manifest entries when they materially affect planning decisions. Manifest entries tagged
+`researcher-upstream` or `navigator-external` stay provenance-visible in the plan. Unresolved
+external conflicts remain plan gaps. Do not treat E1 upstream evidence as stronger than E2
+repo evidence without explicit rationale.
 
 ## Output Format
 

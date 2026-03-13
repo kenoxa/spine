@@ -40,9 +40,8 @@ Create one team. Lead copies each persona from do-plan's dispatch table and appe
 
 | Teammate | Peer directive |
 |----------|---------------|
-| `conservative` | Share concerns about risk and blast radius with peers as you find them. |
-| `thorough` | When a peer raises a concern, verify whether your plan addresses it. |
-| `innovative` | React to conservative concerns by showing how innovations mitigate or accept them. |
+| `rigorous` | Share concerns about risk, edge cases, and blast radius with peers as you find them. |
+| `creative` | React to rigorous concerns by showing how structural improvements mitigate or accept them. |
 
 Lead dispatches `@synthesizer` with all teammate outputs + peer exchange. Reads synthesis output (`.scratch/<session>/plan-synthesis-planning.md`) for canonical_plan.
 

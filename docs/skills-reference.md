@@ -22,7 +22,7 @@ Five phases produce a self-sufficient, executable implementation plan:
 
 1. **Discovery** — map the codebase: file scouting, docs exploration, bounded upstream lookup inside `researcher`, and external-first research through `navigator`. All claims tagged with evidence levels (E0–E3).
 2. **Framing** — distill discoveries into a planning brief: goal, scope, constraints, key decisions, provenance-tagged evidence manifest, and docs impact classification.
-3. **Planning** — dispatch planners with distinct approach angles (conservative, thorough, innovative). Merge via consensus; rank by evidence level.
+3. **Planning** — dispatch planners with distinct approach angles (rigorous, creative) plus an optional cross-provider second-opinion. Merge via consensus; rank by evidence level.
 4. **Challenge** — adversarial review exposing hidden assumptions, underestimated risks, and unnecessary abstraction. Blocking findings require E2+ evidence and a better alternative.
 5. **Synthesis** — assemble the final plan using the plan template. Validate self-sufficiency, test tasks, edge coverage, docs tasks, and completion criteria.
 
@@ -143,6 +143,7 @@ Canonical entry: [`skills/run-recap/SKILL.md`](../skills/run-recap/SKILL.md).
 | `miner` | inherit | Session data analysis and cross-session pattern extraction |
 | `visualizer` | inherit | HTML visualization via visual-explainer commands, preloads `visual-explainer` |
 | `implementer` | inherit | Read-write implementation for plan-driven code changes |
+| `second-opinion` | inherit | Cross-provider CLI invocation for independent perspectives |
 
 ## Skill Prefix Convention
 

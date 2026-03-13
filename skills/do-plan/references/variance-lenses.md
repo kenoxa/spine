@@ -24,8 +24,8 @@ Drop a lens when its domain is fully covered by a default persona. Partial overl
 
 | Default persona | Overlapping lens |
 |-----------------|-----------------|
-| `thorough` planner | `concurrency` (when race conditions are the sole concern) |
-| `conservative` planner | `migration` (when backward compat is the sole concern) |
+| `rigorous` planner | `concurrency` (when race conditions are the sole concern) |
+| `rigorous` planner | `migration` (when backward compat is the sole concern) |
 | `counterpoint-dissenter` | `dependency` (when blast radius is the sole concern) |
 
 ## Dedup: do-execute
