@@ -17,14 +17,10 @@ Provide to `@second-opinion`:
 
 | Field | Content |
 |-------|---------|
-| Prompt content | Task-specific context (self-contained — no local path references) |
+| Prompt content | Task-specific context. Reference files by repo-relative path; do not inline file contents. External agents have filesystem access. |
 | Output format | Expected structure (caller-defined) |
 | Output path | `.scratch/<session>/`-prefixed file path |
 | Session ID | Current session identifier |
-
-Tier classification is automatic — the agent evaluates prompt complexity and selects fast/medium/high. Callers do not pass tier.
-
-Pre-dispatch: if assembled prompt >100KB, truncate large sections and summarize. Still over → skip with advisory.
 
 ## Synthesis
 
