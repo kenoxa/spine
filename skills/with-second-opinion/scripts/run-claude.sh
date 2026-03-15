@@ -36,10 +36,12 @@ done
 [ -f "$prompt_file" ]  || { error "Prompt file not found: $prompt_file"; exit 1; }
 [ -s "$prompt_file" ]  || { error "Prompt file is empty: $prompt_file"; exit 1; }
 
-# --- Model (fixed: second-opinion is high-stakes only) ---
+# --- Model (configurable via SPINE_SECOND_OPINION_CLAUDE=model[:effort]) ---
 
-model=opus
-effort=high
+_so_val="${SPINE_SECOND_OPINION_CLAUDE:-opus:high}"
+model="${_so_val%%:*}"
+effort="${_so_val#*:}"
+[ "$effort" = "$model" ] && effort=high
 timeout_secs="${timeout_secs:-900}"
 
 # --- Pre-flight ---

@@ -37,13 +37,12 @@ done
 [ -f "$prompt_file" ]  || { error "Prompt file not found: $prompt_file"; exit 1; }
 [ -s "$prompt_file" ]  || { error "Prompt file is empty: $prompt_file"; exit 1; }
 
-# --- Model (fixed: second-opinion is high-stakes only) ---
-# If adding 4th+ provider, consider --model override passed by caller.
+# --- Model (configurable via SPINE_SECOND_OPINION_{CLAUDE,CODEX}_CURSOR_FALLBACK) ---
 
 case "$fallback_for" in
-    claude) model="sonnet-4.6-thinking" ;;
-    codex)  model="gpt-5.4-high" ;;
-    *)      model="sonnet-4.6-thinking" ;;
+    claude) model="${SPINE_SECOND_OPINION_CLAUDE_CURSOR_FALLBACK:-sonnet-4.6-thinking}" ;;
+    codex)  model="${SPINE_SECOND_OPINION_CODEX_CURSOR_FALLBACK:-gpt-5.4-high}" ;;
+    *)      model="${SPINE_SECOND_OPINION_CLAUDE_CURSOR_FALLBACK:-sonnet-4.6-thinking}" ;;
 esac
 timeout_secs="${timeout_secs:-900}"
 

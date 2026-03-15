@@ -228,6 +228,15 @@ setup_central_dir() {
   # Create empty AGENTS.md for user customizations (never overwritten)
   [ -f "$spine_dir/AGENTS.md" ] || touch "$spine_dir/AGENTS.md"
 
+  # Always sync .env.example; seed .env from it if absent
+  if [ -f "$src/env.example" ]; then
+    cp "$src/env.example" "$spine_dir/.env.example"
+    if [ ! -f "$spine_dir/.env" ]; then
+      cp "$spine_dir/.env.example" "$spine_dir/.env"
+      done_msg "Created .env from template (edit ~/.config/spine/.env to configure)"
+    fi
+  fi
+
   # Copy agents
   for agent in "$src/agents/"*.md; do
     [ -f "$agent" ] || continue

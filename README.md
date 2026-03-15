@@ -136,7 +136,7 @@ Spine uses `~/.config/spine/` as the central source of truth.
 | `~/.config/spine/SPINE.md` | Shared guardrails synced from this repo |
 | `~/.config/spine/AGENTS.md` | Your global customizations; created once and left alone |
 | `~/.config/spine/agents/` | Canonical agent files used across providers |
-| `~/.config/spine/.env` | Optional API keys for MCP auth |
+| `~/.config/spine/.env` | API keys and model overrides (seeded from `.env.example` on first install) |
 | `~/.cursor/AGENTS.md` | References `SPINE.md` and `AGENTS.md` |
 | `~/.claude/CLAUDE.md` | References `SPINE.md` and `AGENTS.md` |
 | `~/.codex/AGENTS.md` | References `SPINE.md` and `AGENTS.md` |
@@ -272,6 +272,25 @@ Both work keyless by default. For higher rate limits, set API keys in `~/.config
 export CONTEXT7_API_KEY=your-key-here
 export EXA_API_KEY=your-key-here
 ```
+
+</details>
+
+<details>
+<summary>Second-opinion model overrides</summary>
+
+The second-opinion skill defaults to high-capability models per provider. Override via `~/.config/spine/.env`:
+
+```sh
+# Format: model[:effort]  (effort defaults to "high" if omitted)
+export SPINE_SECOND_OPINION_CLAUDE=opus:high
+export SPINE_SECOND_OPINION_CODEX=gpt-5.4:high
+
+# Cursor-agent fallback models (used when primary provider is unavailable)
+export SPINE_SECOND_OPINION_CLAUDE_CURSOR_FALLBACK=sonnet-4.6-thinking
+export SPINE_SECOND_OPINION_CODEX_CURSOR_FALLBACK=gpt-5.4-high
+```
+
+See [`env.example`](env.example) for the full template.
 
 </details>
 

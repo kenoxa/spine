@@ -30,6 +30,19 @@ If second-opinion output exists and is not a skip advisory:
 
 Skip advisory → do not include in synthesis (informational only).
 
+## Configuration
+
+Override default models via env vars in `~/.config/spine/.env`:
+
+| Var | Default | Description |
+|-----|---------|-------------|
+| `SPINE_SECOND_OPINION_CLAUDE` | `opus:high` | Model and effort for Claude Code CLI (`model[:effort]`) |
+| `SPINE_SECOND_OPINION_CODEX` | `gpt-5.4:high` | Model and effort for Codex CLI (`model[:effort]`) |
+| `SPINE_SECOND_OPINION_CLAUDE_CURSOR_FALLBACK` | `sonnet-4.6-thinking` | Cursor-agent model when falling back for Claude |
+| `SPINE_SECOND_OPINION_CODEX_CURSOR_FALLBACK` | `gpt-5.4-high` | Cursor-agent model when falling back for Codex |
+
+Effort is optional — omit the `:effort` suffix to default to `high`.
+
 ## Cap Accounting
 
 ```
