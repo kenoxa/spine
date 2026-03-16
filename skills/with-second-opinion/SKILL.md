@@ -24,7 +24,7 @@ Provide to `@second-opinion`:
 |-------|---------|
 | Prompt content | Task-specific context. Reference files by repo-relative path; do not inline file contents. External agents have filesystem access. |
 | Output format | Expected structure (caller-defined) |
-| Output path | `.scratch/<session>/`-prefixed file path |
+| Output path | `.scratch/<session>/{skill}-{phase}-second-opinion.md` |
 | Variant | `standard`, `debater`, or `advisory-only` — determines corroboration clause (see §Corroboration Variants) |
 
 Callers must NOT inline: corroboration clauses, "Agent handles all detection..." boilerplate, cap priority rules ("reduce augmented first"), or pre-dispatch size checks. These are owned by `with-second-opinion`.

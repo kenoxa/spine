@@ -86,7 +86,7 @@ Variant hunting scope: `standard` → constrained to reviewed change surface onl
 Load `with-second-opinion`. Dispatch `@second-opinion` concurrently with @inspector agents:
 - Prompt content: `review_brief` contents + diff/file list + severity bucket definitions + noise filtering rules (all self-contained — no local path references)
 - Output format: severity-bucketed findings with `[B]`/`[S]`/`[F]` prefixes, evidence levels, per-finding file path and line range, correctness assessment (`correct` or `issues found`) with categorical confidence (high/med/low)
-- Output path: `.scratch/<session>/review-second-opinion.md`
+- Output path: `.scratch/<session>/review-inspect-second-opinion.md`
 - Variant: `standard`
 
 Cap: base (3) + second-opinion (1) + augmented <= 6.
@@ -106,7 +106,7 @@ Do NOT pass empty/absent paths to @synthesizer.
 
 ### Synthesis (standard/deep only)
 
-Dispatch `@synthesizer` with all non-empty inspector output paths. Include `.scratch/<session>/review-second-opinion.md` if it exists and is not a skip advisory. Output: `.scratch/<session>/review-synthesis.md`.
+Dispatch `@synthesizer` with all non-empty inspector output paths. Include `.scratch/<session>/review-inspect-second-opinion.md` if it exists and is not a skip advisory. Output: `.scratch/<session>/review-synthesis.md`.
 
 Synthesizer: with-second-opinion `standard` variant. Tail: "After merging findings, include a correctness assessment (`correct` or `issues found`) with categorical confidence (high/med/low) and 1-2 sentence justification. When second-opinion assessment exists, note agreement or disagreement."
 
