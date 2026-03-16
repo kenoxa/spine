@@ -10,11 +10,17 @@
 	- agent-browser: https://github.com/vercel-labs/agent-browser
 		- `/plugin marketplace add vercel-labs/agent-browser`
 		- `/plugin install agent-browser@agent-browser`
+		- https://github.com/pasky/chrome-cdp-skill
+		- https://developer.chrome.com/blog/chrome-devtools-mcp-debug-your-browser-session?hl=en
 - svelte skill with autofixer script like we have in nestor
 - auto-loading per glob like min description?
 - https://github.com/SocketDev/sfw-free
 - merge/resolve merge conflict
-- https://github.com/cocoindex-io/cocoindex-code
+- Sematic Search
+	- https://github.com/tobi/qmd
+	- https://github.com/cocoindex-io/cocoindex-code, https://github.com/cocoindex-io/cocoindex-code/issues/20
+	- https://github.com/tirth8205/code-review-graph
+	- https://github.com/thedotmack/claude-mem
 
 ## Provide Shared System Setup for MacOS dotfiles
 
