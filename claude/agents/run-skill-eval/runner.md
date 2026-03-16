@@ -1,5 +1,5 @@
 ---
-name: eval-runner
+name: runner
 description: >
   Runs calibration + eval execution + metrics extraction for run-skill-eval.
   Dispatched per eval unit. Outputs structured metrics, not raw stream-json.

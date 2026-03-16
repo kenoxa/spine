@@ -2,7 +2,7 @@
 name: grader
 description: >
   Grades eval variant outputs for run-skill-eval.
-  Reads metrics.json from @spine:eval-runner, evaluates assertions, writes grading.json.
+  Reads metrics.json from @spine:run-skill-eval:runner, evaluates assertions, writes grading.json.
 skills:
   - use-skill-craft
   - skill-creator
