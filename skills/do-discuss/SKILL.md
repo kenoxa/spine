@@ -60,7 +60,7 @@ Detect upstream handoff: `brainstorming` (selected direction) or `run-debug` (ro
 
 ### 2. Orient (conditional — codebase-adjacent input only)
 
-Pre-tier phase — runs before the tier model activates. Dispatches `@scout` (haiku, orient mode) to gather breadth-first codebase context before Socratic dialogue begins. The tier-1 "no subagents" constraint (§3 Clarify) does not apply here.
+Dispatches `@scout` (haiku, orient mode) + `@navigator` to gather breadth-first codebase context before Socratic dialogue begins. Tier-1 "no subagents" constraint (§3 Clarify) does not apply here.
 
 **Codebase-adjacency classification** (run at end of intake, after redirect check):
 
@@ -78,15 +78,13 @@ Pre-tier phase — runs before the tier model activates. Dispatches `@scout` (ha
 **When codebase-adjacent**:
 1. Dispatch `@scout` with orient-mode query: intake signals (named components, upstream handoff context, inline code) as the seed. Output: `.scratch/<session>/discuss-orient.md`.
 1b. Dispatch `@navigator` in parallel with `@scout`. Extract `seed_terms` from intake signals (named components, library references, inline code). `research_question`: "What upstream or external knowledge about [seed_terms] is relevant to [problem_description]?" `mode`: `synthesis`. Output: `.scratch/<session>/discuss-orient-external.md`.
-2. `@scout` orient mode: entry points, module boundaries, naming, layout — skip internals unless surprising. 1-2 cycles.
-3. If the upstream handoff originates from a prior do-discuss session that produced a `discuss-orient.md` output file (path present in handoff context), treat that file as pre-populated — skip dispatch. Handoffs from run-debug or other sessions without a prior discuss-orient output trigger fresh dispatch unconditionally.
-4. Orient artifacts must contain:
+2. Orient artifacts must contain:
    - **Answer** — what the codebase contains relevant to the problem
    - **File map** — paths with key line ranges
    - **Gaps** — what could not be determined; note potential lens signals if observed (e.g., "async queue found — potential concurrency lens signal")
    - **External signals** — `external_signals` table from `.scratch/<session>/discuss-orient-external.md` (empty if navigator found nothing). Parallel to codebase signals.
-5. Append to session log: phase boundary, `@scout` dispatched, 1-sentence orient summary.
-6. Carry `codebase_signals` (from scout) and `external_signals` (from navigator) into clarify as pre-populated context.
+3. Append to session log: phase boundary, `@scout` dispatched, 1-sentence orient summary.
+4. Carry `codebase_signals` (from scout) and `external_signals` (from navigator) into clarify as pre-populated context.
 
 **When NOT codebase-adjacent** (orient skipped):
 - Proceed directly to clarify.
@@ -106,16 +104,10 @@ Pre-tier phase — runs before the tier model activates. Dispatches `@scout` (ha
 When triggered: dispatch `@navigator` with `seed_terms` from input, `codebase_signals = []`, `mode`: `synthesis`, output: `.scratch/<session>/discuss-orient-external.md`. Carry `external_signals` into clarify. Append to session log.
 
 **Failure handling**:
-- `@scout` finds no relevant files: write "No relevant files found" to orient output. Set `codebase_signals = []`. Proceed to clarify without user-facing message.
-- Navigator output empty or missing: `external_signals = []`. Proceed to clarify; do not block; do not surface empty output to user.
-- Orient findings irrelevant to the problem: note mismatch in Gaps. Proceed without forcing signals into clarify.
+- `@scout` or `@navigator` returns empty/irrelevant: set corresponding signals to `[]`, note in Gaps if applicable, proceed to clarify without blocking or surfacing empty output.
 - Grounding question was asked at intake (< 1 sentence or diagnostic-only): re-run adjacency classification after user responds before dispatching orient.
 
-**What orient does NOT do**:
-- Does not select a variance lens (reserved for tier-2 investigate, §4).
-- Does not ask the user questions.
-- Does not block proceed to clarify on finding something.
-- Does not run when intake classified input as deep-interview mode (user submitted a plan or design for stress-testing — "grill me", "challenge my assumptions"). Deep-interview mode starts from clarify without orient.
+Orient does NOT: select variance lenses (tier-2 §4), ask user questions, block clarify, or run in deep-interview mode ("grill me" / stress-testing — starts from clarify without orient).
 
 ### 3. Clarify
 
@@ -199,8 +191,6 @@ Load `with-second-opinion`. Dispatch `@second-opinion` BEFORE synthesizer (seque
 - Output format: 4-section advisory structure (frame assessment, missing considerations, weight adjustments, confidence factors)
 - Output path: `.scratch/<session>/discuss-frame-second-opinion.md`
 - Variant: `advisory-only`
-
-Latency note: sequential dispatch adds wall-clock time. Operational cost, not correctness concern.
 
 Cap: second-opinion (1) + synthesizer (1) ≤ 2.
 

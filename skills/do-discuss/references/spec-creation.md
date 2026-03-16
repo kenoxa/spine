@@ -9,13 +9,11 @@ Two triggers:
 - **Intake routing**: scope exceeds single session (2-of-3: multiple phases, cross-cutting concerns [3+ unrelated modules], multi-day signals) AND no `@`-reference present.
 - **Mid-clarify escalation**: user's answer reveals scope-growth signals meeting the same 2-of-3 threshold. Between-round check.
 
-Guard: present evidence to user ("I'm seeing multi-phase scope signals: [list]. This looks like multi-session work. Switch to spec-creation mode?"). Get confirmation before activating.
+Guard: present scope-signal evidence to user, get confirmation before activating.
 
 Guard: NOT when `@`-reference present — that's [spec-mode.md](spec-mode.md), not spec-creation.
 
 **Mid-clarify state transfer**: round budget does not carry forward. Resume from first unanswered interview step. Pre-populate answered steps from clarify state. Carry `known`/`unknown` inventory, `codebase_signals`, `external_signals`, session log.
-
-No `@scout` or clarify-assist dispatch during spec-creation interview steps — structured form, not Socratic dialogue.
 
 ## 2. Interview
 
@@ -23,7 +21,7 @@ Sequential. Do not skip or reorder steps.
 
 ### 2a. Problem
 
-What situation needs to change? Extract from user input or ask directly. One paragraph — no solutions, no implementation details. If user leads with a solution ("add a cache"), ask what problem the cache solves. May be pre-populated from clarify state.
+What situation needs to change? Extract from user input or ask directly. One paragraph — no solutions, no implementation details. May be pre-populated from clarify state.
 
 ### 2b. Users & Context
 
@@ -34,12 +32,7 @@ Who is affected? What is the current state? Identify:
 
 ### 2c. Constraints
 
-Mandatory — agents hallucinate scope without explicit boundaries. Elicit:
-- What is explicitly out of scope
-- Hard limits (performance, compatibility, security)
-- Non-goals (things that look related but are not part of this work)
-
-If user says "no constraints": push back. Every feature has boundaries. Ask: "What would you reject if someone added it to this work?"
+Elicit: out-of-scope items, hard limits (perf/compat/security), non-goals. Push back on "no constraints" — ask: "What would you reject if someone added it to this work?"
 
 ### 2d. Phases
 
@@ -103,7 +96,6 @@ Skip: proceed without if provider unavailable. Do NOT block on SO failure.
    ```
    Date format: `YYYY-MM-DD` (ISO 8601).
 3. All phases initialize as `[ ] pending` in the Status table
-4. Terminal branch — emits spec.md + progress.md only, never brief.md
 
 **Slug**: derive from feature name. Lowercase, hyphens, no special chars. Prefix with `{YY}{WW}` — execute `date +%g%V` to get 2-digit ISO year + ISO week (do not fabricate). Use `%g` not `%y` — `%y` causes year-boundary bugs at week 52/53 crossover. Example: "Auth Retry System" → `2612-auth-retry-system`.
 
