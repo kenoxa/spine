@@ -48,34 +48,23 @@ git show ${base:-HEAD}:<path> > .scratch/<session>/baselines/<path>
 
 Grep changed ref filenames across all `SKILL.md`; add transitive consumers to eval set.
 
+### Eval mode classification
+
+Classify each unit: `tool-dependent` (body references Agent, @-agent, Read, Write, Grep, Glob, Bash, or dispatch) vs `text-only` (no tool/agent references). Grep skill body excluding anti-patterns section. Classification determines whether calibration runs in Step 2.
+
 ---
 
 ## Step 1: Optimize — Generate Variations
 
 ### Craft review
 
-Dispatch subagent per eval unit applying `use-skill-craft` and `skill-creator` skills criterias:
-- Authoring test per line
-- Red-flag scan (explanation without directive, verbose openers, multi-line anti-patterns)
-- Size check, frontmatter validation
-- Output: `.scratch/<session>/optimize/<unit>/craft-findings.md`
+Dispatch `@spine:run-skill-eval:reviewer` per eval unit. Output: `.scratch/<session>/optimize/<unit>/craft-findings.md`.
 
 ### Variation generation
 
-Per eval unit, dispatch 1-2 optimization subagents. Each subagent prompt MUST include these files:
-1. Working copy: `<path>` (the file being optimized)
-2. HEAD baseline: `.scratch/<session>/baselines/<path>` (omit for create-mode files)
-3. Craft findings: `.scratch/<session>/optimize/<unit>/craft-findings.md`
+Dispatch `@spine:run-skill-eval:optimizer` 1-2 times per unit (one per strategy: `compress`, `restructure`, or custom based on craft findings). Each receives working copy, baseline, and craft findings.
 
-Each produces a variant with a distinct optimization angle:
-
-| Variant | Strategy |
-|---------|----------|
-| `variation-compress` | Minimize token footprint; preserve all behavioral directives |
-| `variation-restructure` | Improve clarity; reorder for progressive disclosure |
-| Additional | Orchestrator's discretion based on craft findings |
-
-- Write variants to `.scratch/<session>/optimize/<unit>/variation-<name>.md`
+- Output: `.scratch/<session>/optimize/<unit>/variation-<strategy>.md`
 - Cap: 1-3 variations per unit (diminishing returns beyond 3)
 
 ### Result per eval unit
@@ -93,26 +82,44 @@ Auto-generate 2-3 test prompts per eval unit from:
 - Changed sections (what was modified)
 - Cross-references (how consumers use this unit)
 
-### Eval execution
+### Test fixture setup
 
-Per (variant x prompt) combination:
+Skills that dispatch subagents need **real file context** — a model won't dispatch @inspector agents against a diff embedded in text. For skills with dispatch, codebase interaction, or file I/O:
+
+1. Create a test fixture directory: `.scratch/<session>/eval-fixtures/<prompt-name>/`
+2. Write actual source files matching the test scenario (both "before" and "after" states)
+3. Initialize as a git repo with the "before" state committed and "after" state as uncommitted changes
+4. The eval prompt references files by path (not inline diff) — e.g., "Review the uncommitted changes in this repository"
+
 ```sh
-unset CLAUDECODE                    # macOS nested session fix — ALWAYS include
-claude -p --model ${model:-sonnet} < prompt-with-variant.md > output.md
+FIXTURE_DIR=".scratch/<session>/eval-fixtures/<prompt-name>"
+mkdir -p "$FIXTURE_DIR"
+# Write test source files, init git repo, create test diff
+cd "$FIXTURE_DIR" && git init && git add -A && git commit -m "baseline"
+# Apply test changes (uncommitted) so the model sees a real diff
 ```
 
-- Prepend variant content to test prompt
-- Always-loaded files: also prepend (cross-cutting isolation)
-- Capture timing data per run
+For skills that are purely text-processing (no file dispatch): inline prompt with prepended variant content is sufficient — skip fixture setup.
 
-**Generated shell scripts** (e.g. `run-evals.sh`) MUST use `#!/bin/sh` — macOS ships bash 3.2 which lacks `declare -A`. Use per-variant output files or positional variables instead of associative arrays. Pass data via JSON files or arguments, not dynamic code execution.
+### Eval dispatch
+
+Dispatch `@spine:run-skill-eval:runner` per eval unit. Each subagent receives:
+- Variant files + eval prompts for this unit
+- Fixture directory path
+- Eval mode classification (tool-dependent / text-only)
+- Output path: `.scratch/<session>/eval/<unit>/`
+
+`@spine:run-skill-eval:runner` handles calibration (tool-dependent units), eval execution, and metrics extraction. Main thread reads `calibration-result.json` (pass/fail gate) and `metrics.json` per run — never raw stream-json.
+
+- Always-loaded files: include via `--append-system-prompt` (cross-cutting isolation)
 
 ### Grading
 
-Dispatch grader subagent per eval unit:
-- Reads skill-creator's `agents/grader.md` for grading protocol
-- Grades each variant's outputs against assertions
-- Writes `grading.json` per variant: `text/passed/evidence` fields
+Dispatch `@spine:run-skill-eval:grader` per eval unit:
+- Receives expectations + eval output dir from `@spine:run-skill-eval:runner`
+- Checks calibration gate before grading (tool-dependent units)
+- Grades each variant against expectations using both text output and `metrics.json`
+- Writes `grading.json` per variant + `grading-summary.md` per unit
 - Orchestrator reads **summaries only** — never full grading.json (context management)
 
 ### Aggregation + comparison
@@ -173,13 +180,14 @@ After user reviews the report:
 - Reading full `grading.json` in orchestrator — summaries only (context management)
 - Evaluating always-loaded file changes in same config as skill changes — isolate
 - Generating trivially simple eval prompts that won't trigger skill invocation
-- Omitting `unset CLAUDECODE` in `claude -p` dispatch
+- Embedding diffs as inline text instead of creating fixture repos — model won't dispatch subagents against text-only context
+- Prepending skill content to user message instead of system prompt — model treats it as informational context, not directives
 - Skipping optimization step — going straight to eval without generating variations
 - Stopping after one iteration when user feedback suggests further improvement
 - Writing markdown report instead of dispatching `@visualizer`
 - Using `declare -A` or other bash 4+ features — macOS ships bash 3.2; use `#!/bin/sh` and per-variant files
-- Dynamic code execution (`eval`, `python3 -c "...eval..."`) in generated scripts — triggers security hooks; use JSON files instead
 - Generating visual report on main thread — always dispatch `@visualizer` subagent
 - Reading grading summaries on main thread before `@visualizer` dispatch — subagent reads them directly
 - Passing `<session>` placeholder in `@visualizer` dispatch — inject the literal resolved session path and enumerated unit paths
 - Dispatching `@visualizer` without scoping output_path to `iteration-<N>/` for iterated runs
+- Reading raw stream-json on main thread — dispatch `@spine:run-skill-eval:runner`, read `metrics.json` summaries only
