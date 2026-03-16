@@ -1,7 +1,5 @@
 # Spec Template
 
-Single source of truth for spec format. All spec-related skills reference this file.
-
 ## Detection Markers
 
 How skills detect a spec document:
@@ -64,8 +62,6 @@ Status table format:
 ```
 
 ## EARS Pattern Reference
-
-Five requirement patterns.
 
 | Pattern | Template |
 |---------|----------|

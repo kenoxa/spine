@@ -10,7 +10,7 @@ description: >
 argument-hint: "[feature description]"
 ---
 
-Interactive interview to create `docs/specs/{YY}{WW}-<slug>/spec.md`. Produces requirements, not implementation tasks. Not a planning tool — do-plan consumes spec phases, not the other way around.
+Produces requirements, not implementation tasks. Not a planning tool — do-plan consumes spec phases, not the other way around.
 
 See [references/spec-template.md](references/spec-template.md) for EARS patterns and spec skeleton.
 
@@ -63,7 +63,7 @@ After phases are drafted:
    ```
 4. **Cycle warning**: if the graph contains cycles, flag them as advisory. Cycles indicate phase boundaries need adjustment.
 
-User must confirm the dependency graph before output.
+User must confirm the dependency graph before output. If rejected → revise phases/dependencies, re-present.
 
 ## Output
 
@@ -78,10 +78,9 @@ User must confirm the dependency graph before output.
    ```
    Date format: `YYYY-MM-DD` (ISO 8601).
 3. All phases initialize as `[ ] pending` in the Status table
-4. Populate the Status table from the phase list
-5. Do NOT auto-trigger do-plan
+4. Do NOT auto-trigger do-plan
 
-**Slug**: derive from feature name. Lowercase, hyphens, no special chars. Prefixed with `{YY}{WW}` using `date +%G%V` (ISO year + ISO week, zero-padded). `%G` not `%y` — `%y` causes year-boundary bugs at week 52/53 crossover. Example: "Auth Retry System" → `2612-auth-retry-system`.
+**Slug**: derive from feature name. Lowercase, hyphens, no special chars. Prefix with `{YY}{WW}` — execute `date +%g%V` to get 2-digit ISO year + ISO week (do not fabricate). Use `%g` not `%y` — `%y` causes year-boundary bugs at week 52/53 crossover. Example: "Auth Retry System" → `2612-auth-retry-system`.
 
 **Capability section**: what the system will do after all phases complete. Present tense, outcome-focused. 2-4 sentences — not a phase, the aggregate capability.
 
@@ -107,3 +106,4 @@ When an `@`-referenced spec.md already exists:
 - Omitting Constraints & Non-Goals section
 - Abstract scope descriptions without file/function names
 - Skipping user confirmation of dependency graph
+- Fabricating `{YY}{WW}` prefix instead of executing `date +%g%V`
