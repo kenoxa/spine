@@ -37,6 +37,12 @@ done
 [ -f "$prompt_file" ]  || { error "Prompt file not found: $prompt_file"; exit 1; }
 [ -s "$prompt_file" ]  || { error "Prompt file is empty: $prompt_file"; exit 1; }
 
+# --- Shared functions ---
+
+_script_dir=$(cd "$(dirname "$0")" && pwd)
+# shellcheck source=_common.sh
+. "$_script_dir/_common.sh"
+
 # --- Model (configurable via SPINE_SECOND_OPINION_{CLAUDE,CODEX}_CURSOR_FALLBACK) ---
 
 case "$fallback_for" in
@@ -58,14 +64,9 @@ else
     exit 1
 fi
 
-# --- Pre-flight ---
+# --- Pre-flight + cleanup ---
 
-chmod 600 "$prompt_file"
-
-# Warn-only secret scan
-if grep -qE '(API_KEY|SECRET|TOKEN|PASSWORD)=|AKIA[A-Z0-9]{16}|ghp_[A-Za-z0-9]{36}|github_pat_' "$prompt_file" 2>/dev/null; then
-    printf 'Warning: prompt file may contain secrets\n' >&2
-fi
+preflight_check
 
 # ARG_MAX guard: cursor-agent takes prompt as positional arg, not stdin.
 # Truncate to 128KB if needed (positional args share ARG_MAX with env).
@@ -76,20 +77,7 @@ if [ "$_prompt_size" -gt 131072 ]; then
     printf 'Warning: prompt truncated from %s to 131072 bytes (ARG_MAX guard)\n' "$_prompt_size" >&2
 fi
 
-# --- Cleanup (called via trap + explicitly after invoke) ---
-
-_sanitize_tmp=""
-_cleanup() {
-    if [ -n "$_sanitize_tmp" ]; then
-        rm -f "$_sanitize_tmp" "${_sanitize_tmp}.2" "${_sanitize_tmp}.cap"
-    fi
-    if [ -f "$stderr_log" ]; then
-        sed -E 's/(sk-|key-|AKIA|ghp_|gho_|xai-|ant-|github_pat_|ghu_|ghs_|ghr_|eyJ|xoxb-|xoxp-|glpat-|npm_|pypi-)[A-Za-z0-9_-]{16,}/[REDACTED]/g' \
-            "$stderr_log" > "${stderr_log}.tmp" && mv "${stderr_log}.tmp" "$stderr_log"
-        chmod 600 "$stderr_log"
-    fi
-}
-trap _cleanup EXIT INT TERM
+init_cleanup
 
 # --- Invoke (coreutils timeout handles process group kill + SIGKILL escalation) ---
 # --force: consistency with --dangerously-skip-permissions (Claude) and --full-auto (Codex)
@@ -112,36 +100,12 @@ timeout --kill-after=10 "$timeout_secs" env -i \
     || _rc=$?
 
 _cleanup
+handle_exit_code "cursor-agent CLI"
 
-if [ "$_rc" -eq 124 ] || [ "$_rc" -eq 137 ]; then
-    error "cursor-agent CLI timed out after ${timeout_secs}s"
-    exit 2
-fi
-if [ "$_rc" -ne 0 ]; then
-    error "cursor-agent CLI invocation failed (exit $_rc)"
-    exit 1
-fi
+# --- Validate + sanitize + trust-boundary marker ---
 
-# --- Output validation ---
+validate_output
 
-if [ ! -f "$output_file" ]; then
-    error "Output file not created"
-    exit 3
-fi
-_output_size=$(wc -c < "$output_file" | tr -d ' ')
-if [ "$_output_size" -lt 200 ]; then
-    error "Output too small (${_output_size} bytes, minimum 200)"
-    exit 3
-fi
-
-# --- Output sanitization ---
-
-_sanitize_tmp="${output_file}.sanitize"
-_script_dir=$(cd "$(dirname "$0")" && pwd)
-# shellcheck source=sanitize.sh
-. "$_script_dir/sanitize.sh"
-
-# Prepend trust-boundary marker
 _provider_label="Cursor-Agent"
 _fallback_note=""
 case "$fallback_for" in
@@ -165,11 +129,10 @@ esac
     if [ -n "$_fallback_note" ]; then
         printf '%s\n\n' "$_fallback_note"
     fi
+    # shellcheck disable=SC2154  # set by validate_output() in _common.sh
     cat "$_sanitize_tmp"
     echo ""
     echo "> END EXTERNAL PROVIDER OUTPUT"
 } > "$output_file"
-rm -f "$_sanitize_tmp"
 
-chmod 600 "$output_file"
-printf '%s\n' "$output_file"
+finalize_output
