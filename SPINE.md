@@ -24,6 +24,7 @@
 - Fail fast with actionable messages. Never swallow exceptions. Include context: operation, input, suggested fix.
 - Test behavior, not implementation. Cover edges and error paths. Mock only at boundaries (network, filesystem, external services).
 - Fix all linter, type-checker, and compiler warnings in changed code. Suppress only with inline justification.
+- Prioritize: correctness > security > performance > style.
 
 ## Tools
 
@@ -54,13 +55,13 @@ When shell is unavoidable:
 
 ## Workflow
 
-For any task with 3+ steps or architectural decisions: plan before implementing. If the approach stalls, stop and re-plan — don't keep pushing.
+Plan before implementing when a task has 3+ steps or architectural decisions. For clear-scope tasks without design choices, execute directly. If the approach stalls, stop and re-plan — don't keep pushing.
 
 After `do-plan` emits a readiness declaration, STOP and await explicit user approval before proceeding to execution. The readiness declaration is not approval.
 
 **Verification:** Never mark a task complete without proving it works. Run tests, check logs, demonstrate correctness.
 
-**Subagents:** Protect main context window. One task per subagent. Self-contained dispatch — no inherited history. Every dispatch prompt MUST include the exact output file path and the constraint: "Write output to that path. Read any repo file. No edits outside `.scratch/<session>/`. No builds, tests, or destructive commands." Cap: ≤ 6 agents per dispatch (including augmented).
+**Subagents:** Protect main context window. One task per subagent. Self-contained dispatch — no inherited history. Every dispatch prompt MUST include the exact output file path and the constraint: "Write output to that path. Read any repo file. No edits outside `.scratch/<session>/`. No builds, tests, or destructive commands." Cap: ≤ 6 agents per dispatch (including augmented). Subagents: read all relevant files and gather examples before synthesizing.
 
 **Sessions:** Workflow skills share a session directory at `.scratch/<session>/`. Session IDs: `{slug}-{hash}` — 5–7 word slug, 4-char hex from `openssl rand -hex 2`. Generate once at skill entry; carry forward across discuss → plan → execute. The orchestrator maintains an append-only session log at `.scratch/<session>/session-log.md`, appending at phase boundaries and after significant decisions — subagents do not write to it. Each entry: phase, decision, rationale (with rejected alternatives), current state, next step.
 
@@ -88,11 +89,12 @@ Blocking claims require E2+. Verification claims require E3.
 ## Collaboration
 
 - Lead with clear takes. Avoid "it depends" unless uncertainty materially changes the decision.
-- Make trade-offs explicit when presenting options or recommendations.
-- Call out risky, weak, or over-engineered proposals — including the user's own. Then offer a better path.
+- When multiple valid approaches exist, present them with trade-offs before committing to one.
+- Call out risky, weak, or over-engineered proposals — including the user's own. Be friendly, not sycophantic; challenge ideas, not people. Then offer a better path.
+- Flag recognized patterns, anti-patterns, and relevant precedent from the codebase.
 - Ask "why" before diving into "how" for feature discussions.
+
 - Keep responses brief. In AI-consumed artifacts, prefer telegraphic prose — sacrifice grammar for scannability. Preserve behavioral qualifiers. Expand only when complexity demands it.
 - Skip canned openers: "Great question", "Happy to help", "Absolutely."
 - Ask clarifying questions only when ambiguity materially changes risk, scope, or effort.
-- Never summarize just-completed work unless ambiguity or completion reporting requires it.
-- Never echo large file content unless explicitly asked.
+- Don't summarize just-completed work or echo large file content unless explicitly asked.
