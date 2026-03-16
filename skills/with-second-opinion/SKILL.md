@@ -30,6 +30,12 @@ If second-opinion output exists and is not a skip advisory:
 
 Skip advisory → do not include in synthesis (informational only).
 
+## Output Behavior
+
+On exit 0, each provider script emits a single line to stdout: the absolute path to the sanitized output file. This enables `run_in_background` consumers to read the filepath directly from task output instead of polling. No stdout is produced on error exits (1/2/3).
+
+The dispatcher (`run.sh`) passes stdout through transparently.
+
 ## Configuration
 
 Override default models via env vars in `~/.config/spine/.env`:

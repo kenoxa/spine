@@ -172,3 +172,4 @@ esac
 rm -f "$_sanitize_tmp"
 
 chmod 600 "$output_file"
+printf '%s\n' "$output_file"

@@ -82,12 +82,11 @@ timeout --kill-after=10 "$timeout_secs" env -i \
     codex exec \
         -m "$model" \
         -c "model_reasoning_effort=$effort" \
-        --output-last-message "$output_file" \
         --ephemeral \
         --skip-git-repo-check \
         --full-auto \
         - < "$prompt_file" \
-        >/dev/null 2>"$stderr_log" \
+        > "$output_file" 2>"$stderr_log" \
     || _rc=$?
 
 _cleanup
@@ -135,3 +134,4 @@ _script_dir=$(cd "$(dirname "$0")" && pwd)
 rm -f "$_sanitize_tmp"
 
 chmod 600 "$output_file"
+printf '%s\n' "$output_file"

@@ -136,3 +136,4 @@ _script_dir=$(cd "$(dirname "$0")" && pwd)
 rm -f "$_sanitize_tmp"
 
 chmod 600 "$output_file"
+printf '%s\n' "$output_file"
