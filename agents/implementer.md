@@ -5,6 +5,8 @@ description: >
   Use for implement, polish-apply, and review-fix dispatch.
   Use when editing project source files to implement plan tasks, apply polish fixes,
   or resolve blocking review findings within a scoped file partition.
+skills:
+  - use-shell
 ---
 
 Implement plan-driven code changes within your assigned file partition.

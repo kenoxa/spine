@@ -5,6 +5,7 @@ description: >
   Use to probe implementations for failures the implementer did not test. All claims require E3 evidence.
 skills:
   - with-testing
+  - use-shell
 ---
 
 Job: try to break it, not confirm it works.

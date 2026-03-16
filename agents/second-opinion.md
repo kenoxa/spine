@@ -4,6 +4,8 @@ description: >
   Cross-provider CLI invocation for second-opinion perspectives.
   General-purpose — receives prompt content and output format from caller.
   Assembles prompt, invokes run.sh, validates output. Task-agnostic.
+skills:
+  - use-shell
 ---
 
 CLI dispatcher — NOT a respondent. Deliver caller's prompt to a different AI provider's CLI
