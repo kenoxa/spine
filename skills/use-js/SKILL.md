@@ -1,5 +1,5 @@
 ---
-name: with-js
+name: use-js
 description: >
   JavaScript/TypeScript tooling conventions using ni (universal package manager wrapper).
   Use when managing JS/TS dependencies, installing packages, adding dev dependencies,

@@ -50,7 +50,7 @@ Each phase gets:
 
 After phases+EARS drafted, before DAG. Advisory-only, sequential.
 
-Load `with-second-opinion`. Dispatch `@second-opinion`:
+Load `use-second-opinion`. Dispatch `@second-opinion`:
 - Prompt: problem + users/context + constraints + phases + EARS (self-contained — no local path references)
 - Output: `.scratch/<session>/discuss-spec-phases-second-opinion.md`
 
@@ -75,7 +75,7 @@ User must confirm the dependency graph before output. If rejected → revise pha
 
 After DAG confirmed, before file creation. Advisory-only, sequential.
 
-Load `with-second-opinion`. Dispatch `@second-opinion`:
+Load `use-second-opinion`. Dispatch `@second-opinion`:
 - Prompt: full spec draft (self-contained — no local path references)
 - Output: `.scratch/<session>/discuss-spec-final-second-opinion.md`
 

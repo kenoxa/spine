@@ -174,7 +174,7 @@ Dispatch one additional `@framer` with the variance lens from investigate (or se
 
 #### Second-Opinion
 
-Load `with-second-opinion`. Dispatch `@second-opinion` concurrently with base framers. Excluded from peer-reaction round — SO output feeds Frame synthesis (§6) only:
+Load `use-second-opinion`. Dispatch `@second-opinion` concurrently with base framers. Excluded from peer-reaction round — SO output feeds Frame synthesis (§6) only:
 - Prompt content: current `problem_frame` + `known`/`unknown` inventory + `key_decisions` with door-types + `codebase_signals` + `external_signals` (all self-contained — no local path references)
 - Output format: 4-section framer structure with `external-analyst` perspective (perspective summary, key observations, challenges to current framing, synthesis weights)
 - Output path: `.scratch/<session>/discuss-explore-second-opinion.md`
@@ -186,7 +186,7 @@ Cap: base framers (3) + navigator (1) + second-opinion (1) + augmented ≤ 6.
 
 #### Second-Opinion (sequential pre-synthesis)
 
-Load `with-second-opinion`. Dispatch `@second-opinion` BEFORE synthesizer (sequential — Frame has zero base agents, so concurrent dispatch would prevent synthesizer from seeing SO output):
+Load `use-second-opinion`. Dispatch `@second-opinion` BEFORE synthesizer (sequential — Frame has zero base agents, so concurrent dispatch would prevent synthesizer from seeing SO output):
 - Prompt content: problem framing question + final `known`/`unknown` inventory + `key_decisions` with door-types + structured explore summary (if tier 3 ran) + `codebase_signals` + `external_signals` (all self-contained — no local path references)
 - Output format: 4-section advisory structure (frame assessment, missing considerations, weight adjustments, confidence factors)
 - Output path: `.scratch/<session>/discuss-frame-second-opinion.md`
@@ -208,7 +208,7 @@ Dispatch context must include:
 - `.scratch/<session>/discuss-explore-second-opinion.md` if it exists and is not a skip advisory
 - `.scratch/<session>/discuss-frame-second-opinion.md` if it exists and is not a skip advisory
 
-Synthesizer: with-second-opinion `advisory-only` variant (both explore and frame SO files). Tail: "Evaluate for framing insights."
+Synthesizer: use-second-opinion `advisory-only` variant (both explore and frame SO files). Tail: "Evaluate for framing insights."
 
 `@synthesizer` writes the frame artifact. Main thread reads the output and validates the self-sufficiency contract: understandable without chat history, all terms defined, no conversation references, evidence levels present. If self-sufficiency fails, re-dispatch with the gap list appended to context.
 

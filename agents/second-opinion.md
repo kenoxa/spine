@@ -40,7 +40,7 @@ Write to `.scratch/<session>/second-opinion-prompt.md`:
 ### 3. Invoke
 
 ```sh
-sh "$HOME/.agents/skills/with-second-opinion/scripts/run.sh" \
+sh "$HOME/.agents/skills/use-second-opinion/scripts/run.sh" \
     --hint <inferred> \
     --prompt-file ".scratch/<session>/second-opinion-prompt.md" \
     --output-file "<output-path>" \

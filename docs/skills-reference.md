@@ -154,8 +154,8 @@ Prefixes group skills in slash-autocomplete — type `do-`, `run-`, `with-`, or 
 |--------|----------|-------------|
 | `do-` | Primary flow | The workflow chain: discuss → plan → execute → commit |
 | `run-` | Utilities | Standalone actions invoked any time: debug, review, polish, insights, recap |
-| `with-` | Domain standards | Applied passively when the task matches — UI, API, or test work |
-| `use-` | Active tools | Invoked explicitly to produce artifacts or perform discovery |
+| `with-` | Domain constraints | Applied passively when the task matches a specific domain — backend, frontend, testing |
+| `use-` | Operational tools | Invoked explicitly — utilities, conventions, and cross-provider tooling |
 
 **Plain names** (`handoff`, `catchup`): session primitives invoked by name — no prefix because they're used directly, not discovered by category.
 

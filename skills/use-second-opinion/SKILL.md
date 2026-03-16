@@ -1,5 +1,5 @@
 ---
-name: with-second-opinion
+name: use-second-opinion
 description: >
   Cross-provider second-opinion via headless CLI invocation.
   Use when a skill needs an independent perspective from a different AI provider.
@@ -27,7 +27,7 @@ Provide to `@second-opinion`:
 | Output path | `.scratch/<session>/{skill}-{phase}-second-opinion.md` |
 | Variant | `standard`, `debater`, or `advisory-only` — determines corroboration clause (see §Corroboration Variants) |
 
-Callers must NOT inline: corroboration clauses, "Agent handles all detection..." boilerplate, cap priority rules ("reduce augmented first"), or pre-dispatch size checks. These are owned by `with-second-opinion`.
+Callers must NOT inline: corroboration clauses, "Agent handles all detection..." boilerplate, cap priority rules ("reduce augmented first"), or pre-dispatch size checks. These are owned by `use-second-opinion`.
 
 Pre-dispatch size check: if assembled prompt exceeds 100KB, truncate diff to first 50KB and summarize fields exceeding 2KB. If still over budget, skip dispatch with advisory.
 

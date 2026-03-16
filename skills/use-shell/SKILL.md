@@ -1,10 +1,10 @@
 ---
-name: with-shell
+name: use-shell
 description: >
   Shell and CLI conventions for safe, consistent terminal usage.
   Use when writing shell scripts, running terminal commands, using bash/zsh,
   CLI tools, or any task involving shell execution.
-  Do NOT use for JavaScript/TypeScript package management — see with-js.
+  Do NOT use for JavaScript/TypeScript package management — see use-js.
 argument-hint: "[shell task or command]"
 ---
 
@@ -37,7 +37,7 @@ Always quote glob and regex arguments to prevent shell expansion:
 
 ## JS/Node Crossover
 
-Use `ni` for JS/Node package management — never detect or hardcode package manager. See `with-js` skill for command reference.
+Use `ni` for JS/Node package management — never detect or hardcode package manager. See `use-js` skill for command reference.
 
 ## Anti-Patterns
 

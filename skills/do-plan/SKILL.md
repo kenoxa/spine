@@ -90,7 +90,7 @@ decisions. Preserve provenance. Surface unresolved external conflicts; never fla
 
 #### Second-Opinion
 
-Load `with-second-opinion`. Dispatch `@second-opinion` concurrently with base planners with:
+Load `use-second-opinion`. Dispatch `@second-opinion` concurrently with base planners with:
 - Prompt content: full `planning_brief` + inlined discovery synthesis + referenced evidence (all self-contained — no local path references or agent format assumptions)
 - Output format: inline the 5-section structure (angle summary, key decisions, implementation steps, risks, synthesis weights) directly in the prompt
 - Output path: `.scratch/<session>/plan-planning-second-opinion.md`
@@ -100,7 +100,7 @@ Cap: base (2) + second-opinion (1) + augmented ≤ 6.
 
 Dispatch additional `@planner` per `variance_lenses` entry within remaining cap.
 
-**Synthesis**: Dispatch `@synthesizer` with input paths: all planning output files. Include `.scratch/<session>/plan-planning-second-opinion.md` if it exists. Output: `.scratch/<session>/plan-synthesis-planning.md`. Read synthesis output for canonical_plan. If output empty or missing, fall back to reading individual outputs. Synthesizer: with-second-opinion `standard` variant. No additional tail.
+**Synthesis**: Dispatch `@synthesizer` with input paths: all planning output files. Include `.scratch/<session>/plan-planning-second-opinion.md` if it exists. Output: `.scratch/<session>/plan-synthesis-planning.md`. Read synthesis output for canonical_plan. If output empty or missing, fall back to reading individual outputs. Synthesizer: use-second-opinion `standard` variant. No additional tail.
 
 ### 4. Challenge
 
@@ -120,7 +120,7 @@ Unresolved after asking → dispatch debate **in parallel** (`@debater` type). E
 
 #### Second-Opinion
 
-Load `with-second-opinion`. Dispatch `@second-opinion` concurrently with base debaters:
+Load `use-second-opinion`. Dispatch `@second-opinion` concurrently with base debaters:
 - Prompt content: `canonical_plan` + unresolved blocking findings + inlined `evidence_manifest` (all self-contained — no local path references)
 - Output format: 4-section debater-adapted structure (opening position, challenges, irreducible objections, resolution paths)
 - Output path: `.scratch/<session>/plan-challenge-second-opinion.md`
@@ -130,7 +130,7 @@ Cap: base (3) + second-opinion (1) + augmented ≤ 6.
 
 Dispatch additional `@debater` per `variance_lenses` entry within remaining cap.
 
-**Synthesis**: Dispatch `@synthesizer` with input paths: all challenge output files. Include `.scratch/<session>/plan-challenge-second-opinion.md` if it exists and is not a skip advisory. Output: `.scratch/<session>/plan-synthesis-challenge.md`. Read synthesis output. If output empty or missing, fall back to reading individual outputs. Synthesizer: with-second-opinion `debater` variant. Tail: "Incorporate surviving E2+ findings; close resolved findings with rationale."
+**Synthesis**: Dispatch `@synthesizer` with input paths: all challenge output files. Include `.scratch/<session>/plan-challenge-second-opinion.md` if it exists and is not a skip advisory. Output: `.scratch/<session>/plan-synthesis-challenge.md`. Read synthesis output. If output empty or missing, fall back to reading individual outputs. Synthesizer: use-second-opinion `debater` variant. Tail: "Incorporate surviving E2+ findings; close resolved findings with rationale."
 
 ### 5. Synthesis
 

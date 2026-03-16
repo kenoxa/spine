@@ -34,6 +34,17 @@ description: >
 
 Include a `name` field matching the directory name (with prefix).
 `description` is the sole trigger surface — the body loads only after activation. Every behavior mode and trigger phrase must appear in the description or the skill won't auto-invoke.
+
+**Prefix convention** — pick the prefix that matches your skill's role:
+
+| Prefix | Use for |
+|--------|---------|
+| `do-` | Workflow chain (discuss → plan → execute → commit) |
+| `run-` | Standalone utilities (debug, review, polish, recap) |
+| `with-` | Domain constraints — applied when task matches a domain (backend, frontend, testing) |
+| `use-` | Operational tools — utilities, conventions, cross-provider tooling |
+
+Plain names (`handoff`, `catchup`): session primitives. See `docs/skills-reference.md` for full details.
 Add `disable-model-invocation: true` only when the skill is a thin routing wrapper
 that immediately delegates to another skill.
 
@@ -94,7 +105,7 @@ Red flags:
 
 **Step 2 — Identify root-level essentials.** Root AGENTS.md keeps only:
 - One-sentence project description
-- Package manager (omit — `ni` is universal; see `with-js` skill)
+- Package manager (omit — `ni` is universal; see `use-js` skill)
 - Non-standard build, typecheck, or test commands
 - Instructions relevant to every single task
 

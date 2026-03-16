@@ -123,7 +123,7 @@ Append to session log: advisory finding count per lens, actions applied count, f
 
    **Second-Opinion (standard/deep only)**
 
-   Load `with-second-opinion`. Dispatch `@second-opinion` concurrently with @inspector agents:
+   Load `use-second-opinion`. Dispatch `@second-opinion` concurrently with @inspector agents:
    - Prompt content: `scope_artifact` summary + `files_modified` + diff + severity bucket definitions (all self-contained — no local path references)
    - Output format: severity-bucketed findings with `[B]`/`[S]`/`[F]` prefixes, evidence levels, per-finding file path and line range, correctness assessment (`correct` or `issues found`) with categorical confidence (high/med/low)
    - Output path: `.scratch/<session>/execute-review-second-opinion.md`
@@ -131,7 +131,7 @@ Append to session log: advisory finding count per lens, actions applied count, f
 
    Cap: base (3) + second-opinion (1) + augmented <= 6.
 
-	**Synthesis**: Dispatch `@synthesizer` with input paths: all review output files. Include `.scratch/<session>/execute-review-second-opinion.md` if it exists and is not a skip advisory. Output: `.scratch/<session>/execute-synthesis-review.md`. Read synthesis output for review_findings. If output empty or missing, fall back to reading individual outputs. Assign final E-levels and severity per `run-review` rules. Synthesizer: with-second-opinion `standard` variant. Tail: "After merging findings, include a correctness assessment per `run-review` synthesis rules."
+	**Synthesis**: Dispatch `@synthesizer` with input paths: all review output files. Include `.scratch/<session>/execute-review-second-opinion.md` if it exists and is not a skip advisory. Output: `.scratch/<session>/execute-synthesis-review.md`. Read synthesis output for review_findings. If output empty or missing, fall back to reading individual outputs. Assign final E-levels and severity per `run-review` rules. Synthesizer: use-second-opinion `standard` variant. Tail: "After merging findings, include a correctness assessment per `run-review` synthesis rules."
 
 Blocking (E2+) → `re_dispatch_brief` → re-enter polish. Advisory → record, proceed to verify.
 

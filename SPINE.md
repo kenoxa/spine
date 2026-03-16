@@ -30,6 +30,8 @@
 
 Use native tools: Grep not `rg`/`grep`, Glob not `find`/`ls`, Read not `cat`/`head`/`tail`, Edit not `sed`/`awk`.
 
+**Batch replacements** — for mechanical find-and-replace across several files, prefer `sd 'old' 'new' file1 file2 ...` over individual Edit tool calls. Use `rg` to scope before and verify after. Use `fd` to build file lists when pattern-matching targets.
+
 **GitHub file URLs** — rewrite `github.com/.../blob/...` to `raw.githubusercontent.com` before fetching. Only applies to `/blob/` paths (single files).
 
 Prefer MCP tools over WebFetch/WebSearch. One search tool per question.
@@ -51,7 +53,7 @@ When shell is unavoidable:
 - Always quote glob and regex arguments to prevent shell expansion (`rg 'pattern'`, not `rg pattern`; `fd '*.ts'`, not `fd *.ts`).
 - Lint shell scripts with `shellcheck`; format with `shfmt`
 - Include a short description (4–7 words) on every shell command.
-- Use `ni` for JS/Node package management — never detect or hardcode package manager. See `with-js` skill for command reference.
+- Use `ni` for JS/Node package management — never detect or hardcode package manager. See `use-js` skill for command reference.
 
 ## Workflow
 
