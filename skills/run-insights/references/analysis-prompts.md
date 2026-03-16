@@ -19,6 +19,7 @@ Analyze {provider} session data from last N days. Find repeated workflows, frict
 4. **MCP server candidates**: Repeated shell for external CLIs/APIs (gh, psql, docker, curl) — count invocations per tool
 5. **Error patterns**: Common failures, recurring error classes
 6. **Session efficiency**: What distinguishes short successful vs long struggling sessions?
+7. **Operational health**: Rate limits, streaming stalls, MCP errors, auth failures, security warnings -- correlate with session outcomes.
 
 ## Provider-specific focus
 {provider_focus}
@@ -29,7 +30,7 @@ Per finding: pattern name, frequency, evidence, implication. Write complete outp
 
 ### Provider focus areas
 
-**Claude Code:** Friction tags (causes, themes). Skill usage (frequent, underused, missing). Subagent dispatch patterns.
+**Claude Code:** Friction tags (causes, themes). Skill usage (frequent, underused, missing). Subagent dispatch patterns (type distribution, heavy-dispatch sessions). Operational health (rate limits, streaming stalls, MCP errors, timeouts). Security warning patterns.
 **Codex:** exec_command sequences to script. Mode (full-auto vs interactive) correlation with success. Thread naming → task categories.
 **Cursor:** scored_commits AI attribution % by project. Model choice vs session type. Conversation summaries → dominant categories, tool preference.
 

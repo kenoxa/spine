@@ -361,6 +361,72 @@ def _collect_sample_prompts(sessions: list[dict], max_total: int = 50) -> list[s
     return _pick_diverse_prompts(all_prompts, max_total)
 
 
+def _build_subagent_patterns(sessions: list[dict]) -> dict:
+    type_counts: Counter[str] = Counter()
+    sessions_with_subagents = 0
+    total_subagents = 0
+    heavy_dispatch: list[dict] = []
+
+    for s in sessions:
+        count = s.get("subagent_count", 0)
+        if count > 0:
+            sessions_with_subagents += 1
+            total_subagents += count
+            heavy_dispatch.append({
+                "session_id": s.get("id"),
+                "project": s.get("project"),
+                "subagent_count": count,
+            })
+        for t in s.get("subagent_types", []):
+            type_counts[t] += 1
+
+    heavy_dispatch.sort(key=lambda x: x["subagent_count"], reverse=True)
+
+    return {
+        "type_distribution": dict(type_counts.most_common()),
+        "sessions_with_subagents": sessions_with_subagents,
+        "avg_per_session": round(total_subagents / sessions_with_subagents, 1) if sessions_with_subagents else 0,
+        "heavy_dispatch_sessions": heavy_dispatch[:10],
+    }
+
+
+def _build_operational_health(sessions: list[dict]) -> dict:
+    debug_totals: Counter[str] = Counter()
+    warning_counts: Counter[str] = Counter()
+    task_totals = {"task_count": 0, "completed": 0, "empty": 0}
+    sessions_with_debug = 0
+    sessions_with_warnings = 0
+    sessions_with_tasks = 0
+
+    for s in sessions:
+        debug = s.get("debug_issues")
+        if isinstance(debug, dict) and debug:
+            sessions_with_debug += 1
+            for k, v in debug.items():
+                debug_totals[k] += v
+
+        warnings = s.get("security_warnings")
+        if isinstance(warnings, list) and warnings:
+            sessions_with_warnings += 1
+            for w in warnings:
+                warning_counts[w] += 1
+
+        tasks = s.get("task_outputs")
+        if isinstance(tasks, dict):
+            sessions_with_tasks += 1
+            for k in task_totals:
+                task_totals[k] += tasks.get(k, 0)
+
+    return {
+        "debug_issues": dict(debug_totals.most_common()) if debug_totals else {},
+        "security_warnings": dict(warning_counts.most_common()) if warning_counts else {},
+        "task_outputs": task_totals if task_totals["task_count"] > 0 else {},
+        "sessions_with_debug_issues": sessions_with_debug,
+        "sessions_with_security_warnings": sessions_with_warnings,
+        "sessions_with_task_outputs": sessions_with_tasks,
+    }
+
+
 def aggregate(input_dir: Path, output: Path, budget_kb: int, verbose: bool) -> bool:
     """Aggregate sessions and write output. Returns True on success."""
     sessions, providers_found, commit_stats = _load_provider_files(input_dir)
@@ -387,6 +453,9 @@ def aggregate(input_dir: Path, output: Path, budget_kb: int, verbose: bool) -> b
         "notable_sessions": _build_notable_sessions(sessions),
         "cross_tool": _build_cross_tool(sessions),
         "sample_prompts": _collect_sample_prompts(sessions),
+        "subagent_patterns": _build_subagent_patterns(sessions),
+        # Supplementary sections — lowest priority for budget truncation
+        "operational_health": _build_operational_health(sessions),
     }
 
     if commit_stats:

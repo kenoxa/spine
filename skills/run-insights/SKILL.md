@@ -42,7 +42,7 @@ Dispatch 3 source-expert subagents in parallel. Each receives their provider's s
 
 | Role | Agent type | Input | Output |
 |------|-----------|-------|--------|
-| `claude-expert` | `@miner` | Claude sections of analytics + per_project Claude data + friction_patterns | `.scratch/<session>/insights-analyze-claude-expert.md` |
+| `claude-expert` | `@miner` | Claude sections of analytics + per_project Claude data + friction_patterns + subagent_patterns + operational_health | `.scratch/<session>/insights-analyze-claude-expert.md` |
 | `codex-expert` | `@miner` | Codex sections of analytics + per_project Codex data | `.scratch/<session>/insights-analyze-codex-expert.md` |
 | `cursor-expert` | `@miner` | Cursor sections of analytics + per_project Cursor data + cross_tool | `.scratch/<session>/insights-analyze-cursor-expert.md` |
 

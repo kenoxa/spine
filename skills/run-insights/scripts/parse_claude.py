@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import os
 import re
 import sys
 from datetime import datetime, timezone
@@ -25,7 +26,7 @@ from common import (
 
 logger = logging.getLogger(__name__)
 
-SKIP_TYPES = frozenset({"progress", "file-history-snapshot", "queue-operation", "last-prompt"})
+SKIP_TYPES = frozenset({"progress", "file-history-snapshot", "last-prompt"})
 SKILL_RE = re.compile(r"<command-name>\s*(\S+)\s*</command-name>")
 
 
@@ -128,7 +129,7 @@ def _build_tier1_sessions(
             "files_touched": files,
             "skills_used": [],
             "errors": errors,
-            "subagent_count": 0,
+            "subagent_count": meta.get("subagent_count", 0),
             "outcome": facet.get("outcome", ""),
             "friction": list(facet.get("friction_counts", {}).keys()) if isinstance(facet.get("friction_counts"), dict) else [],
             "goal_categories": list(facet.get("goal_categories", {}).keys()) if isinstance(facet.get("goal_categories"), dict) else [],
@@ -166,6 +167,7 @@ def _parse_jsonl_session(path: Path) -> dict[str, Any] | None:
     timestamp: str | None = None
     duration_seconds: float = 0
     errors: dict[str, int] = {}
+    tool_id_to_name: dict[str, str] = {}
     tokens: dict[str, int] = {}
 
     for record in iter_jsonl(path):
@@ -211,6 +213,14 @@ def _parse_jsonl_session(path: Path) -> dict[str, Any] | None:
                 if is_real_prompt(text) and len(user_prompts) < 10:
                     user_prompts.append(truncate_text(text, 500))
 
+            for block in blocks:
+                if not isinstance(block, dict) or block.get("type") != "tool_result":
+                    continue
+                if block.get("is_error"):
+                    tool_use_id = block.get("tool_use_id", "")
+                    tool_name = tool_id_to_name.get(tool_use_id, "unknown")
+                    errors[tool_name] = errors.get(tool_name, 0) + 1
+
         elif rec_type == "assistant":
             message = record.get("message", {})
             content = message.get("content") if isinstance(message, dict) else None
@@ -221,6 +231,7 @@ def _parse_jsonl_session(path: Path) -> dict[str, Any] | None:
                     continue
                 name = block.get("name", "unknown")
                 tool_counts[name] = tool_counts.get(name, 0) + 1
+                tool_id_to_name[block.get("id", "")] = name
                 inp = block.get("input", {})
                 if not isinstance(inp, dict):
                     continue
@@ -261,7 +272,7 @@ def _parse_jsonl_session(path: Path) -> dict[str, Any] | None:
         "tool_calls": tool_counts,
         "files_touched": sorted_files,
         "skills_used": sorted(skills_used),
-        "errors": [f"{k}: {v}" for k, v in errors.items()],
+        "errors": [f"{k}: {v}" for k, v in sorted(errors.items(), key=lambda x: x[1], reverse=True)[:10]],
         "subagent_count": subagent_count,
         "outcome": "",
         "friction": [],
@@ -328,6 +339,207 @@ def _build_tier2_sessions(
 
 
 # ---------------------------------------------------------------------------
+# Enrichment: post-merge, pre-write
+# ---------------------------------------------------------------------------
+
+
+def _enrich_history(sessions: list[dict], session_index: dict[str, dict]) -> None:
+    """Enrich sessions with history.jsonl data (prompt counts, slash commands)."""
+    history_path = Path.home() / ".claude" / "history.jsonl"
+    if not history_path.is_file():
+        return
+
+    per_session: dict[str, dict] = {}
+    for record in iter_jsonl(history_path):
+        sid = record.get("sessionId")
+        if not isinstance(sid, str) or not sid:
+            continue
+        short_id = sid[:12]
+        if short_id not in session_index:
+            continue
+        bucket = per_session.setdefault(short_id, {"prompt_count": 0, "slash_commands": {}})
+        bucket["prompt_count"] += 1
+        display = record.get("display")
+        if isinstance(display, str) and display.startswith("/"):
+            cmd = display.split()[0]
+            bucket["slash_commands"][cmd] = bucket["slash_commands"].get(cmd, 0) + 1
+
+    for sid, data in per_session.items():
+        session = session_index.get(sid)
+        if session is not None:
+            session["prompt_count"] = data["prompt_count"]
+            if data["slash_commands"]:
+                session["slash_commands"] = data["slash_commands"]
+
+
+def _enrich_subagent_meta(sessions: list[dict], session_index: dict[str, dict]) -> None:
+    """Enrich sessions with subagent type distribution from meta files."""
+    projects_dir = Path.home() / ".claude" / "projects"
+    if not projects_dir.is_dir():
+        return
+
+    per_session: dict[str, dict] = {}
+    for meta_path in projects_dir.rglob("agent-*.meta.json"):
+        sid = meta_path.parent.parent.name[:12]
+        if sid not in session_index:
+            continue
+        try:
+            data = json.loads(meta_path.read_text(encoding="utf-8", errors="replace"))
+        except (json.JSONDecodeError, OSError):
+            logger.warning("Skipping malformed subagent meta: %s", meta_path)
+            continue
+        if not isinstance(data, dict):
+            continue
+        agent_type = data.get("agentType", "unknown")
+        bucket = per_session.setdefault(sid, {"types": {}, "count": 0})
+        bucket["types"][agent_type] = bucket["types"].get(agent_type, 0) + 1
+        bucket["count"] += 1
+
+    for sid, data in per_session.items():
+        session = session_index.get(sid)
+        if session is not None:
+            session["subagent_types"] = sorted(data["types"].keys())
+            session["subagent_count"] = data["count"]
+
+
+DEBUG_DIRS = ("debug", "debug-logs")
+DEBUG_PATTERNS = {
+    "rate_limit": re.compile(r"status[=: ]*429|\brate[._-]?limit", re.IGNORECASE),
+    "streaming_stall": re.compile(r"stall\s+detect", re.IGNORECASE),
+    "mcp_error": re.compile(r"mcp[^\n]{0,80}(?:error|fail)", re.IGNORECASE),
+    "timeout": re.compile(r"timed?\s*out|timeout\s+(?:error|exceed|reach)", re.IGNORECASE),
+    "auth_error": re.compile(r"(?:oauth|auth)[^\n]{0,80}(?:error|fail|expired|invalid|denied)|\b401\b|\b403\b", re.IGNORECASE),
+}
+
+
+def _enrich_debug_logs(sessions: list[dict], session_index: dict[str, dict]) -> None:
+    """Enrich sessions with debug log error categories."""
+    home = Path.home()
+    debug_dir = None
+    for name in DEBUG_DIRS:
+        candidate = home / ".claude" / name
+        if candidate.is_dir():
+            debug_dir = candidate
+            break
+    if debug_dir is None:
+        return
+
+    per_session: dict[str, dict[str, int]] = {}
+    for log_path in debug_dir.iterdir():
+        if not log_path.is_file():
+            continue
+        sid = log_path.stem[:12]
+        if sid not in session_index:
+            continue
+        counts: dict[str, int] = {}
+        try:
+            with log_path.open(encoding="utf-8", errors="replace") as f:
+                for line in f:
+                    # Skip verbose debug lines (93.6% of content) before regex
+                    if line.find("[DEBUG]", 0, 60) != -1:
+                        continue
+                    for category, pattern in DEBUG_PATTERNS.items():
+                        if pattern.search(line):
+                            counts[category] = counts.get(category, 0) + 1
+        except OSError:
+            continue
+        if counts:
+            existing = per_session.get(sid, {})
+            for k, v in counts.items():
+                existing[k] = existing.get(k, 0) + v
+            per_session[sid] = existing
+
+    for sid, counts in per_session.items():
+        session = session_index.get(sid)
+        if session is not None:
+            session["debug_issues"] = counts
+
+
+def _enrich_security_warnings(sessions: list[dict], session_index: dict[str, dict]) -> None:
+    """Enrich sessions with security warning types."""
+    claude_dir = Path.home() / ".claude"
+    if not claude_dir.is_dir():
+        return
+
+    for path in claude_dir.glob("security_warnings_state_*.json"):
+        sid_full = path.stem.replace("security_warnings_state_", "")
+        sid = sid_full[:12]
+        if sid not in session_index:
+            continue
+        try:
+            data = json.loads(path.read_text(encoding="utf-8", errors="replace"))
+        except (json.JSONDecodeError, OSError):
+            continue
+        if not isinstance(data, list):
+            logger.debug("security_warnings: unexpected structure in %s: %s", path.name, type(data).__name__)
+            continue
+        warning_types: set[str] = set()
+        for item in data:
+            if not isinstance(item, str):
+                continue
+            parts = item.rsplit("-", 1)
+            if len(parts) == 2:
+                wtype = parts[1].strip()[:60]
+                if wtype and "/" not in wtype and "\\" not in wtype:
+                    warning_types.add(wtype)
+        if warning_types:
+            session = session_index.get(sid)
+            if session is not None:
+                session["security_warnings"] = sorted(warning_types)
+
+
+def _enrich_task_outputs(sessions: list[dict], session_index: dict[str, dict]) -> None:
+    """Enrich sessions with task output stats from /tmp.
+
+    Layout: /tmp/claude-{uid}/<project>/<session-uuid>/tasks/*.output
+    """
+    if not hasattr(os, "getuid"):
+        return
+    base = Path(f"/tmp/claude-{os.getuid()}")
+    if not base.is_dir():
+        return
+    resolved_base = base.resolve()
+
+    per_session: dict[str, dict] = {}
+    for project_dir in base.iterdir():
+        if not project_dir.is_dir():
+            continue
+        try:
+            for session_dir in project_dir.iterdir():
+                if not session_dir.is_dir():
+                    continue
+                if not session_dir.resolve().is_relative_to(resolved_base):
+                    continue
+                sid = session_dir.name[:12]
+                if sid not in session_index:
+                    continue
+                tasks_dir = session_dir / "tasks"
+                if not tasks_dir.is_dir():
+                    continue
+                bucket = per_session.setdefault(sid, {"task_count": 0, "completed": 0, "empty": 0})
+                for output_file in tasks_dir.glob("*.output"):
+                    if output_file.name.startswith("a"):
+                        continue  # subagent task outputs — duplicates of main session
+                    bucket["task_count"] += 1
+                    try:
+                        with output_file.open(encoding="utf-8", errors="replace") as fh:
+                            text = fh.read(4096)
+                        if not text.strip():
+                            bucket["empty"] += 1
+                        else:
+                            bucket["completed"] += 1
+                    except OSError:
+                        continue
+        except OSError:
+            continue
+
+    for sid, data in per_session.items():
+        session = session_index.get(sid)
+        if session is not None and data["task_count"] > 0:
+            session["task_outputs"] = data
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -369,6 +581,21 @@ def main() -> None:
 
     # Sort by timestamp descending
     all_sessions.sort(key=lambda s: s.get("timestamp", ""), reverse=True)
+
+    # Enrich with additional data sources
+    session_index = {s["id"]: s for s in all_sessions}
+
+    for name, fn in [
+        ("history", _enrich_history),
+        ("subagent_meta", _enrich_subagent_meta),
+        ("security_warnings", _enrich_security_warnings),
+        ("debug_logs", _enrich_debug_logs),
+        ("task_outputs", _enrich_task_outputs),
+    ]:
+        try:
+            fn(all_sessions, session_index)
+        except Exception:
+            logger.warning("Enrichment %s failed", name, exc_info=True)
 
     if args.verbose:
         print(f"[total] sessions: {len(all_sessions)}", file=sys.stderr)
