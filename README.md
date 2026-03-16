@@ -111,14 +111,14 @@ Use your provider in its most autonomous mode:
 Then start from the workflow:
 
 ```text
-/do-discuss -> /do-plan -> /do-execute -> /do-commit
+/do-plan -> /do-execute -> /do-commit           # straightforward work
+/do-discuss -> /do-plan -> /do-execute           # vague or complex problems
+/do-specify -> /do-discuss -> /do-plan -> ...    # multi-session features
 ```
-
-For straightforward work, start directly with `/do-execute`.
 
 ## What You Get
 
-- A shared workflow: `do-discuss`, `do-plan`, `do-execute`, `do-commit`
+- A shared workflow: `do-specify`, `do-discuss`, `do-plan`, `do-execute`, `do-commit`
 - Utility skills for review, debugging, polish, insights, and recap
 - Shared guardrails through `SPINE.md` and your own global overrides through `AGENTS.md`
 - Shared subagents in `agents/`
@@ -149,10 +149,14 @@ If `~/.config/spine/.env` exists, the installer reads it for MCP authentication.
 
 ## Workflow
 
-Spine’s default path is four steps:
+Pick the entry point that matches your task size:
 
-1. **[Discuss](docs/skills-reference.md#do-discuss)** with `/do-discuss` when the problem is vague.
+0. **[Specify](docs/skills-reference.md#do-specify)** with `/do-specify` when the work spans multiple sessions.
+1. **[Discuss](docs/skills-reference.md#do-discuss)** with `/do-discuss` when the problem is vague. Per-phase when a spec exists.
 2. **[Plan](docs/skills-reference.md#do-plan)** with `/do-plan` before multi-file or higher-risk work.
+
+Then continue through execution:
+
 3. **[Execute](docs/skills-reference.md#do-execute)** with `/do-execute` once the plan is approved.
 4. **[Commit](docs/skills-reference.md#do-commit)** with `/do-commit` when the change is ready to stage and ship.
 

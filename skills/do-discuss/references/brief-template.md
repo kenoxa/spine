@@ -1,8 +1,8 @@
-# Frame Template
+# Brief Template
 
 ## Self-Sufficiency Contract
 
-Frames MUST be understandable without chat-history context. Claims cite evidence; terms defined at first use. No references to prior conversation turns.
+Briefs MUST be understandable without chat-history context. Claims cite evidence; terms defined at first use. No references to prior conversation turns.
 
 Target ~80 lines. Longer signals unresolved ambiguity or prose-table duplication.
 
@@ -12,6 +12,7 @@ Target ~80 lines. Longer signals unresolved ambiguity or prose-table duplication
 |---------|--------------------------|
 | Goal | `goal` |
 | Scope | `scope` |
+| Technical Context | `technical_context` |
 | Known Facts | `constraints`, `planner_focus_cues` |
 | Key Decisions | `key_decisions` |
 | Constraints | `constraints` |
@@ -44,6 +45,13 @@ One-sentence problem restatement, disambiguated by discussion.
 |-----------|-----|-----|
 | [area] | [included] | [excluded] |
 
+### Technical Context
+Required when environmental constraints affect planning — runtime versions, deployment targets, framework choices, infrastructure facts. Differs from Known Facts (problem-domain evidence) and Codebase Signals (file/symbol references).
+
+| Fact | Relevance |
+|------|-----------|
+| [environmental constraint] | [how it shapes implementation] |
+
 ### Known Facts
 
 | Fact | Evidence | Source |
@@ -74,7 +82,7 @@ One of: `do-plan`, `brainstorming`, `run-debug`, `more-discuss`. Note which fiel
 Include when condition met. Omit only with skip rationale.
 
 ### External Signals
-Required when `external_signals` is non-empty or when the frame must preserve upstream evidence
+Required when `external_signals` is non-empty or when the brief must preserve upstream evidence
 for `do-plan`.
 
 Keep provenance explicit. Use lane names such as `navigator-external`; do not fold external

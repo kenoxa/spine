@@ -156,8 +156,26 @@ Main thread only. Sole completion authority.
 
 1. Check content gates (see [Content Gates](#content-gates)).
 2. Learnings as proposals only — never auto-apply. User must approve any rule/skill/memory update.
-3. Declare completion.
-4. Append to session log: completion declaration, final `files_modified`, open items if any.
+3. **Spec status update** (conditional): if plan.md contains `> Spec: <path> | Phase N of <total>` (per `do-specify/references/spec-template.md`):
+   - Parse phase number N and spec path from the reference line.
+   - If spec file missing at parsed path → warn and skip.
+   - If phase already `[x] done` → skip with note.
+   - Otherwise propose: "Phase N complete. Update spec status to `[x] done`?"
+   - User confirms → edit the phase's Status table row in the spec, setting status to `[x] done` (replacing `[~] in-progress` or `[ ] pending`).
+   - User declines → note it, proceed.
+   - After status update (or if user declines), append to progress.md in the spec directory:
+     ```
+     | YYYY-MM-DD | Phase N | completed | <1-line phase summary> |
+     ```
+   - If execution diverged from spec, append additional row:
+     ```
+     | YYYY-MM-DD | Phase N | divergence | <what diverged and why> |
+     ```
+   - If progress.md missing at spec directory path, warn and skip (do not create).
+   - After update, if all phases are `[x] done` → note "Spec is complete."
+   - No reference line in plan.md → skip entirely (standalone mode).
+4. Declare completion.
+5. Append to session log: completion declaration, final `files_modified`, open items if any.
 
 ## Re-entry
 
@@ -199,3 +217,4 @@ Exact phrases:
 - Blocking completion on E2- verifier output (advisory, not gate)
 - Overlapping concurrent writes to the same file
 - Skipping tests-and-docs stage without verifying `docs_impact` classification
+- Updating spec status without user confirmation (human gate required)

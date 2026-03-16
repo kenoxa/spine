@@ -12,6 +12,8 @@ Target ~150 lines. Longer signals narrative Summary or prose-heavy Task descript
 
 Problem or goal, solution approach, expected outcome. 2–4 sentences minimum.
 
+In spec mode: the spec reference line (`> Spec: ...`) appears as the first line after the Summary heading, before the prose summary.
+
 ### Tasks
 
 Ordered list of implementation tasks. Each task includes:
@@ -64,6 +66,9 @@ Use when scope warrants. When present, each section's MUST-when-present rules ap
 | **Implementation Intent** | `code_intent` (pattern-level what/how), `acceptance_criteria` (testable per-task). MAY include `reference_anchors` | Outcome-focused "what" over "how" |
 | **Code Anchors** | Existing code to align with or modify | MUST list explicit paths |
 | **Draft Artifacts** | Pre-written text for docs, config, schema. Workers refine rather than create | MUST be non-placeholder |
+| **Spec Context** | Spec reference line + verbatim EARS acceptance criteria + constraints from spec | NEVER paraphrase EARS criteria — copy verbatim from spec |
+| **Validation** | Runnable check per EARS criterion from spec phase | 1:1 mapping to acceptance criteria; every EARS criterion gets a validation step |
+| **Deferred** | Scope drift log — tasks removed from this phase with target phase noted | Silent population — log drift items without prompting user for each one |
 
 ## Evidence Expectations
 

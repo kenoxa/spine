@@ -45,6 +45,8 @@ Accept raw input, classify, redirect if wrong tool.
 | Pure ideation without a problem | Redirect to `brainstorming` |
 | < 1 sentence of problem context | Ask grounding question: "What situation are you trying to change?" |
 | Vague, ambiguous, or symptom-based | Proceed to clarify |
+| Scope exceeds single session (2-of-3: multiple phases, cross-cutting concerns [3+ unrelated modules], multi-day signals) | Recommend `/do-specify` |
+| Spec provided via `@`-reference | See [references/spec-mode.md](references/spec-mode.md) |
 | Plan/design for stress-testing, "grill me", "challenge my assumptions", "poke holes" | Proceed to clarify with deep-interview mode |
 
 Detect upstream handoff: `brainstorming` (selected direction) or `run-debug` (root cause, scope exceeds fix). Seed known inventory from upstream.
@@ -161,7 +163,7 @@ Team `discuss-explore` — three `@framer` personas for one-way-door decisions r
 | `systems-thinker` | `.scratch/<session>/discuss-explore-systems-thinker.md` |
 | `skeptic` | `.scratch/<session>/discuss-explore-skeptic.md` |
 
-Dispatch context: current `problem_frame` (in-progress), full `known`/`unknown` inventory, assigned perspective, all three output paths.
+Dispatch context: current `brief` (in-progress), full `known`/`unknown` inventory, assigned perspective, all three output paths.
 
 Dispatch `@navigator` in parallel with the framer team. Use `mode`: `alternatives`. Output: `.scratch/<session>/discuss-explore-navigator.md`.
 
@@ -171,7 +173,7 @@ Dispatch one additional `@framer` with the variance lens from investigate (or se
 
 ### 6. Frame
 
-Dispatch `@synthesizer` with accumulated session state. Output: `.scratch/<session>/discuss-frame.md` per [references/frame-template.md](references/frame-template.md).
+Dispatch `@synthesizer` with accumulated session state. Output: `.scratch/<session>/brief.md` per [references/brief-template.md](references/brief-template.md).
 
 Dispatch context must include:
 - `known` / `unknown` inventory (final state after clarify)
@@ -202,6 +204,7 @@ do-discuss → do-plan → do-execute  (frame → plan → build)
 brainstorming → do-plan             (ideate → plan)
 do-discuss → brainstorming          (low confidence → ideation)
 run-debug → do-discuss               (root cause → architectural scope)
+do-discuss → do-specify              (scope growth → multi-session)
 ```
 
 ## Ask Policy
@@ -233,3 +236,5 @@ run-debug → do-discuss               (root cause → architectural scope)
 - Fire-and-forward navigator usage with no `external_signals` handoff into later phases
 - Using navigator for codebase-depth questions that belong to `@researcher`
 - Re-dispatching navigator for a library or dependency already covered in the session
+- Recommending do-specify for clearly single-session work
+- Ignoring scope-growth signals (multiple phases, cross-cutting concerns, multi-day estimates)

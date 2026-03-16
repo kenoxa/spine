@@ -29,6 +29,10 @@ Run once at skill entry (before discovery). Match task description against [refe
 
 When no lens trigger matches the task, `variance_lenses` is empty (no augmented agents dispatched). Augmented agents use the lens focus directive as persona. Output paths: `.scratch/<session>/plan-{phase}-augmented-{lens}.md`.
 
+## Spec Mode (conditional)
+
+When a spec is detected via `@`-reference, see [references/spec-mode.md](references/spec-mode.md). Standalone mode proceeds unchanged below.
+
 ### 1. Discovery
 
 Map codebase before planning. Dispatch **in parallel** (`@researcher` and `@navigator` types):
@@ -59,6 +63,7 @@ Distill `discovery_findings` into a shared `planning_brief`. Fields:
 | `key_decisions` | Numbered IDs, A/B/C options, explicit tradeoffs |
 | `planner_focus_cues` | E2 pointers to entry points, patterns, tests — no narrative |
 | `evidence_manifest` | Artifact paths with provenance (`local-code`, `local-doc`, `researcher-upstream`, `navigator-external`), why-relevant, and conflict status; planners lazy-load from here |
+| `technical_context` | Environmental constraints from brief: runtime versions, deployment targets, infrastructure facts |
 | `docs_impact` | Classification: `customer-facing`, `internal`, `both`, or `none` — with skip rationale when `none` |
 
 Classify `docs_impact` for every plan. `none` → record skip rationale. `customer-facing`/`both` → changelog in scope; load `use-writing`. No raw dumps — distilled signals only.
@@ -156,7 +161,7 @@ Synthesis cannot declare readiness unless plan includes:
 
 ## Readiness Declaration
 
-- `Plan is ready for execution.` — STOP. Await user approval ("go", "approved", "proceed"). Declaration is not approval.
+- `Plan is ready for execution.` followed by clickable relative link to `.scratch/<session>/plan.md` — STOP. Await user approval ("go", "approved", "proceed"). Declaration is not approval.
 - `Plan is NOT ready for execution` — followed by gaps.
 
 ## Iteration Cap
@@ -168,3 +173,4 @@ Synthesis cannot declare readiness unless plan includes:
 - Silently carrying unresolved `key_decisions` past the ask checkpoint
 - Re-selecting variance lenses mid-plan instead of carrying entry selection
 - Same output filename for both `@visualizer` dispatches — use `plan-challenge-diagram.html` and `plan-review.html`
+- Running spec detection on files not explicitly `@`-referenced by the user

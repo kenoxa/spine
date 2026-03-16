@@ -4,6 +4,14 @@
 
 ## Workflow Skills
 
+### do-specify
+
+Interactive interview to create a spec for multi-session feature delivery. Produces `docs/specs/{YY}{WW}-<slug>/spec.md` with EARS acceptance criteria, DAG-ordered phases, and `progress.md` for cross-session tracking.
+
+Use when work spans multiple sessions, needs persistent scope documentation, or requires phase decomposition. For single-session tasks, start with `do-plan` directly.
+
+Canonical entry: [`skills/do-specify/SKILL.md`](../skills/do-specify/SKILL.md).
+
 ### do-discuss
 
 Structured problem framing through tiered Socratic dialogue. Use when the problem is vague, ambiguous, or too broad for direct planning.
@@ -12,7 +20,7 @@ Structured problem framing through tiered Socratic dialogue. Use when the proble
 - **Tier 2** — (conditional) dispatch `@scout` or `@researcher` when codebase evidence is needed; route external unknowns to `@navigator`.
 - **Tier 3** — (conditional) multi-perspective `@framer` team (stakeholder-advocate, systems-thinker, skeptic) for ambiguous scope with one-way-door decisions.
 
-Produces a `problem_frame` artifact (goal, scope, constraints, key decisions, unknowns) and a confidence-gated handoff recommendation. Discuss preserves `external_signals` for planning handoff; the bounded `researcher` upstream-lookup exception lives in `do-plan`, not discuss routing.
+Produces a `brief` artifact (goal, scope, constraints, key decisions, unknowns) and a confidence-gated handoff recommendation. Discuss preserves `external_signals` for planning handoff; the bounded `researcher` upstream-lookup exception lives in `do-plan`, not discuss routing.
 
 Canonical entry: [`skills/do-discuss/SKILL.md`](../skills/do-discuss/SKILL.md).
 
@@ -32,14 +40,15 @@ Canonical entry: [`skills/do-plan/SKILL.md`](../skills/do-plan/SKILL.md).
 
 ### do-execute
 
-Six phases with built-in quality gates:
+Seven phases with built-in quality gates:
 
 1. **Scope** — read the approved plan, classify depth (`focused`/`standard`/`deep`), partition work into independent and dependent groups.
 2. **Implement** — one `@implementer` per partition. Parallel for independent groups; sequential for dependent. No overlapping writes. Implementer self-review before reporting.
-3. **Polish** — advisory pass (read-only reviewers produce findings) → apply pass (implementers fix). Every E2+ finding acknowledged or explicitly rejected.
-4. **Review** — two stages: tests & docs (skip when no behavior changes and docs_impact is `none`), then adversarial review with multiple lenses and optional cross-provider second-opinion. Blocking findings re-enter polish.
-5. **Verify** — single verifier instance. All claims require E3 evidence (executed command + observed output).
-6. **Finalize** — content gates check for test evidence, edge coverage, and docs. Learnings captured as proposals (never auto-applied).
+3. **Validate** — structural integrity check: do changed files parse, do imports resolve, do expected exports exist per plan.
+4. **Polish** — advisory pass (read-only reviewers produce findings) → apply pass (implementers fix). Every E2+ finding acknowledged or explicitly rejected.
+5. **Review** — two stages: tests & docs (skip when no behavior changes and docs_impact is `none`), then adversarial review with multiple lenses and optional cross-provider second-opinion. Blocking findings re-enter polish.
+6. **Verify** — single verifier instance. All claims require E3 evidence (executed command + observed output).
+7. **Finalize** — content gates check for test evidence, edge coverage, and docs. Learnings captured as proposals (never auto-applied).
 
 Re-entry loop: blocking review findings → polish → review → verify. Capped at 5 iterations.
 
@@ -151,7 +160,7 @@ Prefixes group skills in slash-autocomplete — type `do-`, `run-`, `with-`, or 
 
 | Prefix | Semantic | When to use |
 |--------|----------|-------------|
-| `do-` | Primary flow | The workflow chain: discuss → plan → execute → commit |
+| `do-` | Primary flow | The workflow chain: specify → discuss → plan → execute → commit |
 | `run-` | Utilities | Standalone actions invoked any time: debug, review, polish, insights, recap |
 | `with-` | Domain standards | Applied passively when the task matches — UI, API, or test work |
 | `use-` | Active tools | Invoked explicitly to produce artifacts or perform discovery |

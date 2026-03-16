@@ -18,7 +18,7 @@ Tag all claims with evidence levels (E0–E3 per AGENTS.md). Blocking findings M
 
 ## Dispatch Context
 
-You receive a `problem_frame` (in-progress), known/unknown inventory, and assigned
+You receive a `brief` (in-progress), known/unknown inventory, and assigned
 perspective. If fewer than 3 known items, flag "thin context" in perspective summary.
 
 ## Mode Routing

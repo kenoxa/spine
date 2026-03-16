@@ -56,14 +56,7 @@ When shell is unavoidable:
 
 For any task with 3+ steps or architectural decisions: plan before implementing. If the approach stalls, stop and re-plan — don't keep pushing.
 
-**Skills** (slash commands):
-- `do-plan` — required before complex implementation. After emitting a readiness declaration, STOP and await explicit user approval before proceeding to execution. The readiness declaration is not approval.
-- `do-execute` — implement an approved plan
-- `run-debug` — diagnose and fix a failing system
-- `do-commit` — stage, message, and push
-- `run-review` — review code changes
-- `handoff` — distill session context for a fresh session to continue
-- `catchup` — reconstruct session state after /clear or compaction
+After `do-plan` emits a readiness declaration, STOP and await explicit user approval before proceeding to execution. The readiness declaration is not approval.
 
 **Verification:** Never mark a task complete without proving it works. Run tests, check logs, demonstrate correctness.
 
@@ -78,6 +71,10 @@ For any task with 3+ steps or architectural decisions: plan before implementing.
 **Dependencies:** Batch dependency updates by risk. Verify (lint, build, tests) after each batch. Never update all dependencies at once. Pin versions. Audit before deploying.
 
 **Bugs:** Point at logs, errors, and failing tests — then resolve them. Don't ask for hand-holding when the evidence is available.
+
+**Project Layout:** `TODO.md` (flat task list) · `docs/specs/{YY}{WW}-<slug>/` (spec directory: spec.md + progress.md) · `.scratch/<session>/` (ephemeral session output)
+
+**Triage:** `< 1 session` → TODO.md + do-plan directly · `≥ 1 session` → `do-specify` → phase-scoped do-plan → do-execute per phase
 
 ## Evidence Levels
 
