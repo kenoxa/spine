@@ -74,7 +74,7 @@ Status table format:
 ### Good Examples
 
 ```
-WHEN do-specify is invoked THE SYSTEM SHALL create docs/specs/{YY}{WW}-<slug>/spec.md
+WHEN spec-creation mode is triggered THE SYSTEM SHALL create docs/specs/{YY}{WW}-<slug>/spec.md
 IF Phase N depends on Phase M AND M is [ ] pending THEN THE SYSTEM SHALL warn before proceeding
 WHILE a phase is [~] in-progress THE SYSTEM SHALL prevent concurrent phase starts
 THE SYSTEM SHALL initialize all phases as [ ] pending on spec creation

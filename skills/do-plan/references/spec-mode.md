@@ -4,7 +4,7 @@ Conditional mode activated when an `@`-referenced file is a spec. Standalone mod
 
 ## Detection
 
-Triggered when `@`-referenced file contains all three spec markers (per `do-specify/references/spec-template.md`):
+Triggered when `@`-referenced file contains all three spec markers (per `do-discuss/references/spec-template.md`):
 - `## Status` table
 - `## Phases` heading
 - `### Phase N:` headings

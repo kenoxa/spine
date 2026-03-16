@@ -153,7 +153,7 @@ Main thread only. Sole completion authority.
 
 1. Check content gates (see [Content Gates](#content-gates)).
 2. Learnings as proposals only — never auto-apply. User must approve any rule/skill/memory update.
-3. **Spec status update** (conditional): if plan.md contains `> Spec: <path> | Phase N of <total>` (per `do-specify/references/spec-template.md`):
+3. **Spec status update** (conditional): if plan.md contains `> Spec: <path> | Phase N of <total>` (per `do-discuss/references/spec-template.md`):
    - Parse phase number N and spec path from the reference line.
    - If spec file missing at parsed path → warn and skip.
    - If phase already `[x] done` → skip with note.

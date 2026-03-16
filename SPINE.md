@@ -74,8 +74,6 @@ After `do-plan` emits a readiness declaration, STOP and await explicit user appr
 
 **Project Layout:** `TODO.md` (flat task list) · `docs/specs/{YY}{WW}-<slug>/` (spec directory: spec.md + progress.md) · `.scratch/<session>/` (ephemeral session output)
 
-**Triage:** `< 1 session` → TODO.md + do-plan directly · `≥ 1 session` → `do-specify` → phase-scoped do-plan → do-execute per phase
-
 ## Evidence Levels
 
 All claims in plans, reviews, and execution phases must be tagged:

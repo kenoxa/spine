@@ -8,6 +8,11 @@ description: >
   Also trigger on: "grill me", "challenge my assumptions", "poke holes",
   plan/design for stress-testing, upstream handoffs (brainstorming selected
   direction, run-debug root cause with architectural scope).
+  Also trigger on spec creation: "write a spec", "create a spec",
+  "specify this feature", "scope this feature", "break this into phases",
+  "multi-session", "more than one session", "too big for one session",
+  "decompose this", feature spanning multiple sessions,
+  need persistent scope documentation.
   Do NOT use when: requirements are plan-ready (do-plan), reproducible defect (run-debug),
   creative ideation without a problem (brainstorming).
 argument-hint: "[problem description, symptom, or situation]"
@@ -22,6 +27,7 @@ Frame the actual problem through tiered Socratic dialogue: intake → orient →
 | 1 | Orient (pre-tier, conditional) + Socratic dialogue with between-round @scout assists | Always starts here | `@scout` (orient + clarify-assist) + `@navigator` |
 | 2 | Codebase-assisted | Codebase-dependent unknown blocks framing AND user cannot answer | `@scout`, `@researcher`, or `@navigator` |
 | 3 | Multi-perspective exploration | Ambiguous scope + 2+ one-way-door decisions after clarify + investigate | `@framer` team |
+| 4 | Spec creation (terminal — emits spec.md + progress.md, not brief.md) | Scope exceeds single session at intake OR mid-clarify scope growth (2-of-3 signals) | Main thread interview + `@second-opinion` (2x advisory-only) |
 
 ## Phases
 
@@ -31,6 +37,7 @@ Frame the actual problem through tiered Socratic dialogue: intake → orient →
 | Investigate | `@scout` / `@researcher` / `@navigator` |
 | Explore | `@framer` + `@navigator` |
 | Frame | `@synthesizer` |
+| Spec Create | `@second-opinion` (advisory-only, 2x sequential) |
 
 **Session ID**: Per SPINE.md convention. Carry into do-plan. Append to session log at phase boundaries and tier escalations. `<session>` placeholder below.
 
@@ -45,7 +52,7 @@ Accept raw input, classify, redirect if wrong tool.
 | Pure ideation without a problem | Redirect to `brainstorming` |
 | < 1 sentence of problem context | Ask grounding question: "What situation are you trying to change?" |
 | Vague, ambiguous, or symptom-based | Proceed to clarify |
-| Scope exceeds single session (2-of-3: multiple phases, cross-cutting concerns [3+ unrelated modules], multi-day signals) | Recommend `/do-specify` |
+| Scope exceeds single session (2-of-3 signals) AND no @-reference present | Activate spec-creation mode — see [references/spec-creation.md](references/spec-creation.md) |
 | Spec provided via `@`-reference | See [references/spec-mode.md](references/spec-mode.md) |
 | Plan/design for stress-testing, "grill me", "challenge my assumptions", "poke holes" | Proceed to clarify with deep-interview mode |
 
@@ -119,6 +126,8 @@ When `codebase_signals` is non-empty (orient ran): seed `known` inventory before
 **Between rounds** (after each user response, before formulating next questions): if the user's answer introduces a named codebase reference (file, module, function, service) not already covered by orient or a prior clarify-assist dispatch → dispatch `@scout` (haiku, orient mode) with the named reference as query. Output: `.scratch/<session>/discuss-clarify-assist-<round>.md`. Incorporate findings into the next question batch. Track dispatched references to avoid re-dispatch.
 
 **Between-round navigator assists** (after each user response): if the user's answer introduces a library, framework, or external dependency not already covered by orient's navigator dispatch or a prior clarify-nav dispatch → dispatch `@navigator` with the new reference as `seed_terms`, `mode`: `synthesis`, output: `.scratch/<session>/discuss-clarify-nav-<round>.md`. Incorporate findings into the next question batch as additional `external_signals`. Track dispatched references to avoid re-dispatch.
+
+**Between-round scope escalation**: if user's answer reveals scope-growth signals meeting the 2-of-3 threshold, escalate to spec-creation mode. Carry all accumulated state. Do not restart from intake. See [references/spec-creation.md](references/spec-creation.md).
 
 Round budget adjustment: if orient's **Answer** section is non-empty, reduce budget by 1. If `external_signals` is non-empty, reduce budget by 1. Minimum 2 rounds normal / 4 rounds deep-interview. Hard minimum 2 rounds.
 
@@ -232,7 +241,7 @@ do-discuss → do-plan → do-execute  (frame → plan → build)
 brainstorming → do-plan             (ideate → plan)
 do-discuss → brainstorming          (low confidence → ideation)
 run-debug → do-discuss               (root cause → architectural scope)
-do-discuss → do-specify              (scope growth → multi-session)
+do-discuss (spec-creation) → do-discuss (spec-mode)  (spec created → phase-scoped discussion)
 ```
 
 ## Ask Policy
@@ -264,5 +273,6 @@ do-discuss → do-specify              (scope growth → multi-session)
 - Fire-and-forward navigator usage with no `external_signals` handoff into later phases
 - Using navigator for codebase-depth questions that belong to `@researcher`
 - Re-dispatching navigator for a library or dependency already covered in the session
-- Recommending do-specify for clearly single-session work
-- Ignoring scope-growth signals (multiple phases, cross-cutting concerns, multi-day estimates)
+- Entering spec-creation mode for clearly single-session work
+- Restarting interview from scratch when mid-clarify escalation triggers spec-creation
+- Auto-triggering do-plan after spec creation (hand off to new discuss session, not planning)

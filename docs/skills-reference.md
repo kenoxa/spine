@@ -4,17 +4,9 @@
 
 ## Workflow Skills
 
-### do-specify
-
-Interactive interview to create a spec for multi-session feature delivery. Produces `docs/specs/{YY}{WW}-<slug>/spec.md` with EARS acceptance criteria, DAG-ordered phases, and `progress.md` for cross-session tracking.
-
-Use when work spans multiple sessions, needs persistent scope documentation, or requires phase decomposition. For single-session tasks, start with `do-plan` directly.
-
-Canonical entry: [`skills/do-specify/SKILL.md`](../skills/do-specify/SKILL.md).
-
 ### do-discuss
 
-Structured problem framing through tiered Socratic dialogue. Use when the problem is vague, ambiguous, or too broad for direct planning.
+Structured problem framing through tiered Socratic dialogue. Use when the problem is vague, ambiguous, or too broad for direct planning. Also handles spec creation for multi-session features — activated by scope-growth detection at intake or mid-clarify.
 
 - **Tier 1** — Socratic dialogue: batch questions, track known/unknown inventory, converge on the core problem.
 - **Tier 2** — (conditional) dispatch `@scout` or `@researcher` when codebase evidence is needed; route external unknowns to `@navigator`.
@@ -160,7 +152,7 @@ Prefixes group skills in slash-autocomplete — type `do-`, `run-`, `with-`, or 
 
 | Prefix | Semantic | When to use |
 |--------|----------|-------------|
-| `do-` | Primary flow | The workflow chain: specify → discuss → plan → execute → commit |
+| `do-` | Primary flow | The workflow chain: discuss → plan → execute → commit |
 | `run-` | Utilities | Standalone actions invoked any time: debug, review, polish, insights, recap |
 | `with-` | Domain standards | Applied passively when the task matches — UI, API, or test work |
 | `use-` | Active tools | Invoked explicitly to produce artifacts or perform discovery |
