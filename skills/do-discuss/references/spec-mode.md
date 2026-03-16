@@ -11,6 +11,8 @@ Spec detected by presence of all three markers (per `do-specify/references/spec-
 
 If markers missing or malformed → fall back to standalone discuss. Note: "Spec markers incomplete — running standalone discuss."
 
+Never run detection on files not explicitly `@`-referenced by the user.
+
 ## Phase Scoping
 
 Default scope: next unblocked phase — first `[ ] pending` where all predecessors are `[x] done`.
