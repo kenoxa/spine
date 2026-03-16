@@ -12,7 +12,7 @@ Classify and lock at end of Phase 1. May upgrade during Phases 2–4 on strong e
 | `standard` | Medium | Session ID generated. Phases 1–2 inline → review_brief (Gate A) → Phase 3 dispatch → Phase 4 dispatch → Phase 5 re-sort → Phase 6 output. |
 | `deep` | High | Same as `standard` + expanded security probe + augmented @inspector (cap 6 total). |
 
-**Default standalone: `standard`.** When loaded as rule-set by another agent: depth does not apply — only shared review rules in SKILL.md are used.
+**Default standalone: `standard`.**
 
 ## Session
 
@@ -50,7 +50,6 @@ Main thread (all depths). Build understanding before judging. Four passes:
    - High risk: line-by-line analysis, not gist-level skimming.
    - Track invariants and assumptions explicitly.
    - Treat external calls as adversarial until proven otherwise.
-   - When evidence contradicts mental model, update the model — never reshape evidence to fit.
 3. **Evidence check** — validate claims against current code and requirements.
 4. **Spec compliance** — verify built behavior matches requested behavior.
 
@@ -139,9 +138,6 @@ Write `.scratch/<session>/review-findings.md` as severity-bucketed table: severi
 
 ## Anti-Patterns
 
-- Blocking on `@visualizer` failure — review findings are the primary deliverable
-- Dispatching @inspector at `focused` depth — inline pass only
-- Running Phases 3–5 inline at `standard`/`deep` depth — dispatch is mandatory
 - Re-sorting by evidence level instead of severity bucket before user presentation
 - Passing empty/absent agent output paths to @synthesizer — filter before dispatch
 - Emitting a `review_brief` without `noise_context` — inspectors will flag pre-existing issues as findings

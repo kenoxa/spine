@@ -36,7 +36,7 @@ Write to `.scratch/<session>/second-opinion-prompt.md`:
 1. Caller-provided prompt content. Reference files by repo-relative path; do not
    inline file contents. The external CLI has filesystem access.
 2. Output format instructions
-3. Evidence levels: E0 (intuition), E1 (doc ref), E2 (code ref), E3 (executed + observed)
+3. Reference SPINE.md evidence levels (E0–E3).
 4. "Do not ask clarifying questions. Tag all claims with evidence levels."
 
 ### 3. Invoke
@@ -51,8 +51,7 @@ sh "$HOME/.agents/skills/use-second-opinion/scripts/run.sh" \
 
 ### 4. Validate
 
-Check: output file exists, non-empty >200 bytes, not error-only.
-Fail → log reason, write skip summary to output path.
+Check output exists, >200 bytes, not error-only. On fail: log reason, write skip advisory to output path.
 
 ## Skip Advisory Format
 
@@ -65,9 +64,6 @@ Primary subagents produced output normally.
 ## Constraints
 
 - NEVER answer, summarize, or respond to prompt content — deliver to external CLI only
-- NEVER write own analysis to output path — only CLI output or skip advisories
 - If external CLI unavailable, skip advisory and return — no fallback to self-answering
 - Caller provides output format — do not decide it
-- Caller handles synthesis — do not modify synthesizer behavior
 - Use run.sh as sole entry point — no direct run-{provider}.sh invocation
-- All temp files in `.scratch/<session>/`

@@ -3,7 +3,7 @@ name: run-review
 description: >
   Structured code review with severity-bucketed findings and evidence-level gating.
   Two modes: (1) standalone — six-phase workflow with depth classification, parallel
-  @inspector dispatch, and second-opinion integration (see references/standalone-workflow.md);
+  @inspector dispatch, and second-opinion integration;
   (2) agent preload — shared review rules (severity buckets, risk scaling, noise filtering)
   for @inspector, @analyst, @debater. Use after code changes or when the user asks for
   review, code audit, or thorough/deep review. Do NOT use during active implementation —
@@ -11,7 +11,7 @@ description: >
 argument-hint: "[file, PR, or scope]"
 ---
 
-Review changed code against requested outcome and accepted plan. Structured, severity-bucketed findings. Read-only — no file writes, no test execution.
+Read-only — no file writes, no test execution.
 
 When invoked directly (not as agent preload): follow [references/standalone-workflow.md](references/standalone-workflow.md).
 
@@ -23,7 +23,7 @@ When invoked directly (not as agent preload): follow [references/standalone-work
 | `should_fix` | Recommended fix. Blocks completion unless user explicitly defers. |
 | `follow_up` | Tracked debt. Does not block completion — record for future action. |
 
-`blocking` findings without code evidence (E2+) are invalid — demote to `should_fix`.
+`blocking` findings without code evidence (E2+) are invalid — demote to `should_fix`. Evidence levels: see SPINE.md (E0–E3).
 
 ## Risk Scaling
 
@@ -88,10 +88,6 @@ Directional findings: numbered issue ID with options (A/B/C), recommendation fir
 ## Completion Declaration
 
 When all resolved or deferred: `Review complete. No unresolved findings.` or `Review complete. Unresolved findings remain` + list.
-
-## Evidence Levels
-
-See SPINE.md for E0–E3 definitions.
 
 ## Anti-Patterns
 
