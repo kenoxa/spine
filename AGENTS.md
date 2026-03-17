@@ -32,7 +32,7 @@ After changing any AI-loaded file: `scripts/token-counts.sh --update`.
 - **Authoring test**: every line in skills/agents must address something AI handles worse without guidance — cut if no
 - **Description-is-the-trigger**: skill frontmatter `description:` must contain trigger phrases — body loads only after activation
 - **No tool-specific references**: no k5-*, nestor, dotcursor in skills or agents
-- **Composition model**: agent + reference file = augmented behavior. References add, never replace. Dispatch via file paths, not content. See `docs/specs/2612-thin-orchestrator/spec.md`
+- **Composition model**: agent + reference file = augmented behavior. References add, never replace. In SKILL.md, linked refs load into mainthread; backticked paths are dispatch-only — do NOT Read. See `docs/specs/2612-thin-orchestrator/spec.md`
 - **Retired names**: when renaming agents/skills/MCP servers, add old name to the corresponding retired array in install.sh
 - **Reference naming**: `{phase}-{role}.md`, `orchestrate-{mode}.md`, `template-{artifact}.md`
 

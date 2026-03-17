@@ -21,24 +21,26 @@ Cross-tool session analysis. Python scripts compress ~256MB raw data into ~100KB
 
 Every subagent prompt MUST be self-contained — include all prior-phase context.
 
+**Reference paths** (backticked): dispatch to subagent — do NOT Read into mainthread.
+
 **Session ID**: Generate per SPINE.md Sessions convention. Reuse across all phases.
 
 | Phase | Agent type | Reference |
 |-------|-----------|-----------|
-| Collect | `@miner` | [collect-miner.md](references/collect-miner.md) |
-| Analyze | `@miner` (source-expert) | [analyze-source-expert.md](references/analyze-source-expert.md) |
-| Synthesize | `@miner` (synthesizer) | [synthesize-miner.md](references/synthesize-miner.md) |
-| Present | `@visualizer` | [present-visualizer.md](references/present-visualizer.md) |
+| Collect | `@miner` | `references/collect-miner.md` |
+| Analyze | `@miner` (source-expert) | `references/analyze-source-expert.md` |
+| Synthesize | `@miner` (synthesizer) | `references/synthesize-miner.md` |
+| Present | `@visualizer` | `references/present-visualizer.md` |
 
 ### 1. Collect
 
-Dispatch `@miner` (`collector`) → [collect-miner.md](references/collect-miner.md).
+Dispatch `@miner` (`collector`) → `references/collect-miner.md`.
 
 Output: `.scratch/<session>/insights-collect-collector.md`
 
 ### 2. Analyze
 
-Dispatch 3 `@miner` in parallel → [analyze-source-expert.md](references/analyze-source-expert.md). Skip providers with 0 sessions.
+Dispatch 3 `@miner` in parallel → `references/analyze-source-expert.md`. Skip providers with 0 sessions.
 
 | Role | Input | Output |
 |------|-------|--------|
@@ -50,7 +52,7 @@ Include relevant analytics data inline in each dispatch prompt.
 
 ### 3. Synthesize
 
-Dispatch 1 `@miner` → [synthesize-miner.md](references/synthesize-miner.md).
+Dispatch 1 `@miner` → `references/synthesize-miner.md`.
 
 Input: all `insights-analyze-*.md` files + `cross_tool` + `sample_prompts` sections from `analytics.json`.
 
@@ -64,7 +66,7 @@ Output: `.scratch/<session>/insights-synthesize-synthesizer.md`
 
 **HTML dashboard**: Guard: `.scratch/<session>/insights-synthesize-synthesizer.md` exists and non-empty. Inform user before dispatch.
 
-Dispatch `@visualizer` → [present-visualizer.md](references/present-visualizer.md).
+Dispatch `@visualizer` → `references/present-visualizer.md`.
 
 Inputs: `.scratch/<session>/insights-synthesize-synthesizer.md`, `.scratch/<session>/analytics.json`
 

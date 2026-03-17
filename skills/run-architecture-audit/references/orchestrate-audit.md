@@ -13,7 +13,7 @@ Generate session ID if none inherited. Output: scope classification + candidate 
 
 ## Phase 2 — Explore (broad scope only)
 
-Dispatch @scout + [audit-scout.md](audit-scout.md) per module area (max 2-3 areas). Each scout prompt:
+Dispatch @scout + `audit-scout.md` per module area (max 2-3 areas). Each scout prompt:
 
 > Map module boundaries, export surfaces, cross-module coupling, pass-through functions,
 > and internal-mocking test patterns for `<area>`.

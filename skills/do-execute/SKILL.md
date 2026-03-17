@@ -32,13 +32,15 @@ Classify at entry. Controls fanout, not which phases run — all seven always ex
 - **Variance**: inherit from plan when available; else select 1-2 from [variance-lenses.md](../do-plan/references/variance-lenses.md).
 - Dispatch at `standard`/`deep`; at `focused`, run inline. Prompts MUST be self-contained.
 
+**Reference convention**: linked refs load into mainthread. Backticked paths → dispatch to subagent, do NOT Read into mainthread.
+
 | Phase | Agent | Reference |
 |-------|-------|-----------|
-| Implement | `@implementer` | [implement.md](references/implement.md) |
-| Validate | `@inspector` | [validate.md](references/validate.md) |
-| Polish | `@analyst` | [polish-*.md](references/) |
-| Review | `@inspector` | [review-*.md](references/) |
-| Verify | `@verifier` | [verify.md](references/verify.md) |
+| Implement | `@implementer` | `references/implement.md` |
+| Validate | `@inspector` | `references/validate.md` |
+| Polish | `@analyst` | `references/polish-*.md` |
+| Review | `@inspector` | `references/review-*.md` |
+| Verify | `@verifier` | `references/verify.md` |
 | Finalize | mainthread | [finalize.md](references/finalize.md) |
 
 | Phase | Base | Envoy | Max Augmented (f/s/d) | Cap |
@@ -52,34 +54,34 @@ Invariant: sum every row ≤ 6.
 Main thread. Read plan, classify depth, partition work. Output `scope_artifact`: `target_files`, `partitions`, `blocking_questions` (must be empty), `plan_excerpt`. Ask user when blocking questions non-empty.
 
 ### 2. Implement
-`@implementer` → [implement.md](references/implement.md): one per partition. Parallel for independent; sequential for dependent. Output: `files_modified`.
+`@implementer` → `references/implement.md`: one per partition. Parallel for independent; sequential for dependent. Output: `files_modified`.
 
 ### 3. Validate
-`@inspector` → [validate.md](references/validate.md). PASS → polish. BLOCK → re-enter implement. 2 consecutive BLOCKs → escalate.
+`@inspector` → `references/validate.md`. PASS → polish. BLOCK → re-enter implement. 2 consecutive BLOCKs → escalate.
 
 ### 4. Polish
 
 1. **Advisory**: `@analyst` in parallel:
-   - `conventions-advisor` → [polish-conventions-advisor.md](references/polish-conventions-advisor.md)
-   - `complexity-advisor` → [polish-complexity-advisor.md](references/polish-complexity-advisor.md)
-   - `efficiency-advisor` → [polish-efficiency-advisor.md](references/polish-efficiency-advisor.md)
+   - `conventions-advisor` → `references/polish-conventions-advisor.md`
+   - `complexity-advisor` → `references/polish-complexity-advisor.md`
+   - `efficiency-advisor` → `references/polish-efficiency-advisor.md`
    - +augmented per variance lens
-2. **Synthesis**: `@synthesizer` → [polish-synthesis.md](references/polish-synthesis.md)
-3. **Apply**: `@implementer` → [polish-apply.md](references/polish-apply.md). Skip when no actions.
+2. **Synthesis**: `@synthesizer` → `references/polish-synthesis.md`
+3. **Apply**: `@implementer` → `references/polish-apply.md`. Skip when no actions.
 
 ### 5. Review
 
 1. **Tests & docs**: skip when no behavior-changing code AND `docs_impact` = `none`. Otherwise: tests (E3), docs per impact. Missing = blocking.
 2. **Adversarial**: `@inspector` in parallel:
-   - `spec-reviewer` → [review-spec-reviewer.md](references/review-spec-reviewer.md)
-   - `correctness-reviewer` → [review-correctness-reviewer.md](references/review-correctness-reviewer.md)
-   - `risk-reviewer` → [review-risk-reviewer.md](references/review-risk-reviewer.md)
+   - `spec-reviewer` → `references/review-spec-reviewer.md`
+   - `correctness-reviewer` → `references/review-correctness-reviewer.md`
+   - `risk-reviewer` → `references/review-risk-reviewer.md`
    - +augmented per variance lens
-3. **Envoy** (standard/deep): `@envoy` → [review-envoy.md](references/review-envoy.md) concurrent with inspectors.
-4. **Synthesis**: `@synthesizer` → [review-synthesis.md](references/review-synthesis.md). Blocking (E2+) → re-enter polish. Advisory → proceed.
+3. **Envoy** (standard/deep): `@envoy` → `references/review-envoy.md` concurrent with inspectors.
+4. **Synthesis**: `@synthesizer` → `references/review-synthesis.md`. Blocking (E2+) → re-enter polish. Advisory → proceed.
 
 ### 6. Verify
-`@verifier` → [verify.md](references/verify.md). Output: PASS, FAIL, or PARTIAL with `failure_class`.
+`@verifier` → `references/verify.md`. Output: PASS, FAIL, or PARTIAL with `failure_class`.
 
 ### 7. Finalize
 Main thread. Load [finalize.md](references/finalize.md) unconditionally. Sole completion authority.
@@ -87,9 +89,9 @@ Main thread. Load [finalize.md](references/finalize.md) unconditionally. Sole co
 ## Re-entry
 
 - **Validate BLOCK** → implement with `validation_brief`
-- **Blocking review** → polish (`@implementer` → [review-fix.md](references/review-fix.md) applies fixes)
+- **Blocking review** → polish (`@implementer` → `references/review-fix.md` applies fixes)
 - **Verify semantic** → polish → review → verify
-- **Verify non-semantic** → `@implementer` → [review-fix.md](references/review-fix.md) → re-verify only
+- **Verify non-semantic** → `@implementer` → `references/review-fix.md` → re-verify only
 Re-entry brief: blocker, what was attempted, what changed. Shared counter, cap **5**, freeze on cap.
 
 ## Completion

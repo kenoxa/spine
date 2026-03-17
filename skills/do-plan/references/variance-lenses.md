@@ -12,8 +12,8 @@
 | `dependency` | Cross-module coupling, blast radius | Map coupling chains and transitive blast radius of the change | multi-file refactors, interface changes, shared utility edits |
 | `ux-flow` | User-facing workflow impact, error messaging | Trace user journeys; surface friction, error clarity, and flow gaps | "UI", "form", "error message", "user flow", "onboarding", "feedback" |
 | `data-model` | Schema shape, normalization, query patterns | Check normalization, index coverage, and query-pattern alignment | "schema", "model", "relation", "index", "query", "normalization" |
-| `vertical-slice` | Feature builds, greenfield, spec-driven work | Break implementation into thin end-to-end slices spanning all layers; each slice independently demoable. See [vertical-slices.md](vertical-slices.md) | "new feature", "greenfield", "spec", "tracer bullet", "vertical slice", "from scratch", "build from zero" |
-| `architecture-depth` | Module boundaries, interface design, dependency classification | Evaluate module depth ratios; classify dependencies; apply Design It Twice for interface decisions. See [deep-modules.md](deep-modules.md). (Include depth heuristic + dependency categories in planner_focus_cues when selected) | "deep module", "shallow module", "module depth", "design it twice", "dependency category", "tighten interface", "reduce coupling" |
+| `vertical-slice` | Feature builds, greenfield, spec-driven work | Break implementation into thin end-to-end slices spanning all layers; each slice independently demoable. See `vertical-slices.md` | "new feature", "greenfield", "spec", "tracer bullet", "vertical slice", "from scratch", "build from zero" |
+| `architecture-depth` | Module boundaries, interface design, dependency classification | Evaluate module depth ratios; classify dependencies; apply Design It Twice for interface decisions. See `deep-modules.md`. (Include depth heuristic + dependency categories in planner_focus_cues when selected) | "deep module", "shallow module", "module depth", "design it twice", "dependency category", "tighten interface", "reduce coupling" |
 
 ## Selection
 

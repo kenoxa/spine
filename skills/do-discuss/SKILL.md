@@ -22,13 +22,15 @@ Tiered Socratic dialogue: intake → orient → clarify → investigate → expl
 
 ## Phases
 
+**Reference paths** (backticked): dispatch to subagent — do NOT Read into mainthread.
+
 | Phase | Agent type | Reference |
 |-------|-----------|-----------|
-| Orient | `@scout` + `@navigator` | [orient-scout.md](references/orient-scout.md), [navigator-synthesis.md](references/navigator-synthesis.md) |
-| Investigate | `@scout` / `@researcher` / `@navigator` | [orient-scout.md](references/orient-scout.md), [navigator-synthesis.md](references/navigator-synthesis.md) |
-| Explore | `@framer` + `@navigator` | [explore-*.md](references/) |
-| Frame | `@framer` + `@envoy` + `@synthesizer` | [frame-*.md](references/) |
-| Spec Create | `@envoy` | [orchestrate-spec-creation.md](references/orchestrate-spec-creation.md) |
+| Orient | `@scout` + `@navigator` | `references/orient-scout.md`, `references/navigator-synthesis.md` |
+| Investigate | `@scout` / `@researcher` / `@navigator` | `references/orient-scout.md`, `references/navigator-synthesis.md` |
+| Explore | `@framer` + `@navigator` | `references/explore-*.md` |
+| Frame | `@framer` + `@envoy` + `@synthesizer` | `references/frame-*.md` |
+| Spec Create | `@envoy` | `references/orchestrate-spec-creation.md` |
 
 ## Intake
 
@@ -38,12 +40,12 @@ Redirects: plan-ready → `do-plan`, reproducible defect → `run-debug`, pure i
 
 | Detection | Mode | Load |
 |-----------|------|------|
-| "grill me", "challenge", "poke holes", stress-test | deep-interview | [orchestrate-discuss.md](references/orchestrate-discuss.md) `mode=deep-interview` |
-| Scope exceeds single session + no @-ref | spec-creation | [orchestrate-spec-creation.md](references/orchestrate-spec-creation.md) |
-| @-referenced spec file | spec-mode | [spec-mode.md](references/spec-mode.md) |
-| Default | normal | [orchestrate-discuss.md](references/orchestrate-discuss.md) `mode=normal` |
+| "grill me", "challenge", "poke holes", stress-test | deep-interview | `references/orchestrate-discuss.md` `mode=deep-interview` |
+| Scope exceeds single session + no @-ref | spec-creation | `references/orchestrate-spec-creation.md` |
+| @-referenced spec file | spec-mode | `references/spec-mode.md` |
+| Default | normal | `references/orchestrate-discuss.md` `mode=normal` |
 
-Load matched reference after detection.
+**Lazy-load**: after mode detection, Read the matched orchestrator/spec reference via the Read tool.
 
 **Session ID**: per SPINE.md. Carry into do-plan. Log at phase boundaries and tier escalations.
 

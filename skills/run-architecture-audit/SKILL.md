@@ -17,12 +17,14 @@ Cross-reference: `do-plan/references/deep-modules.md` for depth heuristics, depe
 
 ## Phases
 
+**Reference convention**: linked refs load into mainthread. Backticked paths → dispatch to subagent, do NOT Read into mainthread.
+
 All phases: [orchestrate-audit.md](references/orchestrate-audit.md).
 
 | Phase | Agent | Reference |
 |-------|-------|-----------|
-| Scope | `@scout` | [orient-scout.md](../do-discuss/references/orient-scout.md) |
-| Explore | `@scout` | [audit-scout.md](references/audit-scout.md) |
+| Scope | `@scout` | `../do-discuss/references/orient-scout.md` |
+| Explore | `@scout` | `references/audit-scout.md` |
 | Analyze | `@researcher` | shared |
 | Synthesize | `@synthesizer` | shared |
 

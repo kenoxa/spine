@@ -12,12 +12,14 @@ Diagnose root cause and fix: observe → pattern → hypothesis → harden. Suba
 
 ## Phase Table
 
+**Reference paths** (backticked): dispatch to subagent — do NOT Read into mainthread.
+
 | Phase | Agent | Reference |
 |-------|-------|-----------|
-| Observe | `@scout` | [observe-scout.md](references/observe-scout.md) |
-| Pattern | `@researcher` | [pattern-researcher.md](references/pattern-researcher.md) |
-| Hypothesis | `@implementer` | [hypothesis-implementer.md](references/hypothesis-implementer.md) |
-| Harden | `@implementer` | [harden-implementer.md](references/harden-implementer.md) |
+| Observe | `@scout` | `references/observe-scout.md` |
+| Pattern | `@researcher` | `references/pattern-researcher.md` |
+| Hypothesis | `@implementer` | `references/hypothesis-implementer.md` |
+| Harden | `@implementer` | `references/harden-implementer.md` |
 
 ## Loop State
 
