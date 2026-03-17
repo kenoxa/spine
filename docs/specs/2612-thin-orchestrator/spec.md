@@ -112,8 +112,8 @@ Dispatch flow:
 1. Entry → session ID, variance lenses, spec-mode check
 2. Discovery → dispatch @researcher (file-scout ref) + @researcher (docs-explorer ref) + @navigator in parallel → @synthesizer
 3. Framing → mainthread distills planning_brief from synthesis
-4. Planning → dispatch @planner (planning ref, rigorous) + @planner (creative) + @second-opinion → @synthesizer
-5. Challenge → dispatch @debater (challenge ref, 3 personas) + @second-opinion → @synthesizer
+4. Planning → dispatch @planner (planning ref, rigorous) + @planner (creative) + @envoy → @synthesizer
+5. Challenge → dispatch @debater (challenge ref, 3 personas) + @envoy → @synthesizer
 6. Synthesis → mainthread reads final synthesis, assembles plan (references/template-plan.md) → readiness declaration
 
 ### do-discuss (Tier B)
@@ -140,8 +140,8 @@ Dispatch flow (normal mode):
 2. Orient (conditional) → @scout (orient-scout ref) + @navigator in parallel
 3. Clarify → mainthread dialogue; between-round @scout/@navigator assists
 4. Investigate (conditional) → @researcher / @scout / @navigator per unknown
-5. Explore (conditional) → @framer team (explore-framer ref) + @navigator + @second-opinion
-6. Frame → @second-opinion → @synthesizer (frame-synthesis ref) → brief.md
+5. Explore (conditional) → @framer team (explore-framer ref) + @navigator + @envoy
+6. Frame → @envoy → @synthesizer (frame-synthesis ref) → brief.md
 7. Handoff → confidence-gated recommendation
 
 ### do-execute (Tier B)

@@ -46,17 +46,17 @@ Each phase gets:
 - **Acceptance Criteria**: 2-5 EARS statements per [spec-template.md](spec-template.md)
 - **Out of scope**: what this phase explicitly does not touch
 
-## 3. SO Injection Point A
+## 3. Envoy Injection Point A
 
 After phases+EARS drafted, before DAG. Advisory-only, sequential.
 
-Load `use-second-opinion`. Dispatch `@second-opinion`:
+Load `use-envoy`. Dispatch `@envoy`:
 - Prompt: problem + users/context + constraints + phases + EARS (self-contained — no local path references)
-- Output: `.scratch/<session>/discuss-spec-phases-second-opinion.md`
+- Output: `.scratch/<session>/discuss-spec-phases-envoy.md`
 
-Main thread reads SO output, incorporates adjustments, presents DAG with refinements noted.
+Main thread reads Envoy output, incorporates adjustments, presents DAG with refinements noted.
 
-Skip: proceed without if provider unavailable. Do NOT block on SO failure.
+Skip: proceed without if provider unavailable. Do NOT block on Envoy failure.
 
 ## 4. DAG Elicitation
 
@@ -69,19 +69,19 @@ Skip: proceed without if provider unavailable. Do NOT block on SO failure.
    ```
 4. **Cycle warning**: if the graph contains cycles, flag them as advisory. Cycles indicate phase boundaries need adjustment.
 
-User must confirm the dependency graph before output. If rejected → revise phases/dependencies, re-present. If user rejects DAG after SO-A feedback, do NOT re-dispatch SO-A.
+User must confirm the dependency graph before output. If rejected → revise phases/dependencies, re-present. If user rejects DAG after Envoy-A feedback, do NOT re-dispatch Envoy-A.
 
-## 5. SO Injection Point B
+## 5. Envoy Injection Point B
 
 After DAG confirmed, before file creation. Advisory-only, sequential.
 
-Load `use-second-opinion`. Dispatch `@second-opinion`:
+Load `use-envoy`. Dispatch `@envoy`:
 - Prompt: full spec draft (self-contained — no local path references)
-- Output: `.scratch/<session>/discuss-spec-final-second-opinion.md`
+- Output: `.scratch/<session>/discuss-spec-final-envoy.md`
 
 Present findings to user; user confirms or requests changes before file creation.
 
-Skip: proceed without if provider unavailable. Do NOT block on SO failure.
+Skip: proceed without if provider unavailable. Do NOT block on Envoy failure.
 
 ## 6. Output
 
@@ -128,7 +128,7 @@ Do NOT suggest `/do-plan` directly. Do NOT auto-trigger do-plan.
 If session ID exists (mid-clarify activation): append to existing session log.
 If none (intake activation): generate per SPINE.md convention, then append.
 
-Log at: problem defined, constraints elicited, phases drafted, SO-A dispatched, DAG confirmed, SO-B dispatched, files created.
+Log at: problem defined, constraints elicited, phases drafted, Envoy-A dispatched, DAG confirmed, Envoy-B dispatched, files created.
 
 ## 10. Anti-Patterns
 

@@ -22,7 +22,7 @@ Five phases produce a self-sufficient, executable implementation plan:
 
 1. **Discovery** — map the codebase: file scouting, docs exploration, bounded upstream lookup inside `researcher`, and external-first research through `navigator`. All claims tagged with evidence levels (E0–E3).
 2. **Framing** — distill discoveries into a planning brief: goal, scope, constraints, key decisions, provenance-tagged evidence manifest, and docs impact classification.
-3. **Planning** — dispatch planners with distinct approach angles (rigorous, creative) plus an optional cross-provider second-opinion. Merge via consensus; rank by evidence level.
+3. **Planning** — dispatch planners with distinct approach angles (rigorous, creative) plus an optional cross-provider envoy. Merge via consensus; rank by evidence level.
 4. **Challenge** — adversarial review exposing hidden assumptions, underestimated risks, and unnecessary abstraction. Blocking findings require E2+ evidence and a better alternative.
 5. **Synthesis** — assemble the final plan using the plan template. Validate self-sufficiency, test tasks, edge coverage, docs tasks, and completion criteria.
 
@@ -38,7 +38,7 @@ Seven phases with built-in quality gates:
 2. **Implement** — one `@implementer` per partition. Parallel for independent groups; sequential for dependent. No overlapping writes. Implementer self-review before reporting.
 3. **Validate** — structural integrity check: do changed files parse, do imports resolve, do expected exports exist per plan.
 4. **Polish** — advisory pass (read-only reviewers produce findings) → apply pass (implementers fix). Every E2+ finding acknowledged or explicitly rejected.
-5. **Review** — two stages: tests & docs (skip when no behavior changes and docs_impact is `none`), then adversarial review with multiple lenses and optional cross-provider second-opinion. Blocking findings re-enter polish.
+5. **Review** — two stages: tests & docs (skip when no behavior changes and docs_impact is `none`), then adversarial review with multiple lenses and optional cross-provider envoy. Blocking findings re-enter polish.
 6. **Verify** — single verifier instance. All claims require E3 evidence (executed command + observed output).
 7. **Finalize** — content gates check for test evidence, edge coverage, and docs. Learnings captured as proposals (never auto-applied).
 
@@ -58,7 +58,7 @@ Structured code review with severity-bucketed findings:
 6. **Quality pass** — readability, cohesion, duplication, test adequacy, edge/failure coverage.
 7. **Output** — return findings using severity buckets.
 
-Findings are bucketed as `blocking` (must fix, E2+ required), `should_fix` (recommended, blocks unless deferred), or `follow_up` (tracked debt). At standard/deep depth, dispatches parallel @inspector agents (spec, correctness, risk lenses) plus an optional cross-provider second-opinion; synthesis includes a correctness assessment with categorical confidence. All passes inline at focused depth. Review is read-only — no file writes.
+Findings are bucketed as `blocking` (must fix, E2+ required), `should_fix` (recommended, blocks unless deferred), or `follow_up` (tracked debt). At standard/deep depth, dispatches parallel @inspector agents (spec, correctness, risk lenses) plus an optional cross-provider envoy; synthesis includes a correctness assessment with categorical confidence. All passes inline at focused depth. Review is read-only — no file writes.
 
 Canonical entry: [`skills/run-review/SKILL.md`](../skills/run-review/SKILL.md).
 
@@ -144,7 +144,7 @@ Canonical entry: [`skills/run-recap/SKILL.md`](../skills/run-recap/SKILL.md).
 | `miner` | inherit | Session data analysis and cross-session pattern extraction |
 | `visualizer` | inherit | HTML visualization via visual-explainer commands, preloads `visual-explainer` |
 | `implementer` | inherit | Read-write implementation for plan-driven code changes |
-| `second-opinion` | inherit | Cross-provider CLI invocation for independent perspectives |
+| `envoy` | inherit | Cross-provider CLI invocation for independent perspectives |
 
 ## Skill Prefix Convention
 

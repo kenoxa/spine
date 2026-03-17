@@ -40,7 +40,7 @@ RETIRED_MCP_SERVERS=()
 
 # Agent names previously used by Spine — cleaned up on next run.
 # Add names here when renaming an agent to ensure cross-provider cleanup.
-RETIRED_AGENT_NAMES=("worker")
+RETIRED_AGENT_NAMES=("worker" "second-opinion")
 
 # --- Helpers ---
 

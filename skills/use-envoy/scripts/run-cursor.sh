@@ -1,5 +1,5 @@
 #!/bin/sh
-# Invoke cursor-agent CLI headlessly for cross-provider second-opinion.
+# Invoke cursor-agent CLI headlessly for cross-provider envoy.
 # Exit: 0=success, 1=invocation failed, 2=timeout, 3=output validation failed
 
 set -eu
@@ -43,12 +43,12 @@ _script_dir=$(cd "$(dirname "$0")" && pwd)
 # shellcheck source=_common.sh
 . "$_script_dir/_common.sh"
 
-# --- Model (configurable via SPINE_SECOND_OPINION_{CLAUDE,CODEX}_CURSOR_FALLBACK) ---
+# --- Model (configurable via SPINE_ENVOY_{CLAUDE,CODEX}_CURSOR_FALLBACK) ---
 
 case "$fallback_for" in
-    claude) model="${SPINE_SECOND_OPINION_CLAUDE_CURSOR_FALLBACK:-sonnet-4.6-thinking}" ;;
-    codex)  model="${SPINE_SECOND_OPINION_CODEX_CURSOR_FALLBACK:-gpt-5.4-high}" ;;
-    *)      model="${SPINE_SECOND_OPINION_CLAUDE_CURSOR_FALLBACK:-sonnet-4.6-thinking}" ;;
+    claude) model="${SPINE_ENVOY_CLAUDE_CURSOR_FALLBACK:-sonnet-4.6-thinking}" ;;
+    codex)  model="${SPINE_ENVOY_CODEX_CURSOR_FALLBACK:-gpt-5.4-high}" ;;
+    *)      model="${SPINE_ENVOY_CLAUDE_CURSOR_FALLBACK:-sonnet-4.6-thinking}" ;;
 esac
 timeout_secs="${timeout_secs:-900}"
 

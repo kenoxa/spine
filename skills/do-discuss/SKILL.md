@@ -27,7 +27,7 @@ Frame the actual problem through tiered Socratic dialogue: intake → orient →
 | 1 | Orient (pre-tier, conditional) + Socratic dialogue with between-round @scout assists | Always starts here | `@scout` (orient + clarify-assist) + `@navigator` |
 | 2 | Codebase-assisted | Codebase-dependent unknown blocks framing AND user cannot answer | `@scout`, `@researcher`, or `@navigator` |
 | 3 | Multi-perspective exploration | Ambiguous scope + 2+ one-way-door decisions after clarify + investigate | `@framer` team |
-| 4 | Spec creation (terminal — emits spec.md + progress.md, not brief.md) | Scope exceeds single session at intake OR mid-clarify scope growth (2-of-3 signals) | Main thread interview + `@second-opinion` (2x advisory-only) |
+| 4 | Spec creation (terminal — emits spec.md + progress.md, not brief.md) | Scope exceeds single session at intake OR mid-clarify scope growth (2-of-3 signals) | Main thread interview + `@envoy` (2x advisory-only) |
 
 ## Phases
 
@@ -37,7 +37,7 @@ Frame the actual problem through tiered Socratic dialogue: intake → orient →
 | Investigate | `@scout` / `@researcher` / `@navigator` |
 | Explore | `@framer` + `@navigator` |
 | Frame | `@synthesizer` |
-| Spec Create | `@second-opinion` (advisory-only, 2x sequential) |
+| Spec Create | `@envoy` (advisory-only, 2x sequential) |
 
 **Session ID**: Per SPINE.md convention. Carry into do-plan. Append to session log at phase boundaries and tier escalations. `<session>` placeholder below.
 
@@ -170,29 +170,29 @@ Dispatch `@navigator` in parallel with the framer team. Use `mode`: `alternative
 
 Dispatch all three in parallel → wait → re-invoke each to read peers and append `## Peer Reactions` → synthesize. Include navigator in the peer-reaction round when dispatched. Irreconcilable positions become `key_decisions`.
 
-Dispatch one additional `@framer` with the variance lens from investigate (or select lens per variance-lenses.md if investigate was skipped). Output: `.scratch/<session>/discuss-explore-augmented-{lens}.md`. Included in peer reaction round. Max 4 total framers plus 1 navigator plus 1 second-opinion.
+Dispatch one additional `@framer` with the variance lens from investigate (or select lens per variance-lenses.md if investigate was skipped). Output: `.scratch/<session>/discuss-explore-augmented-{lens}.md`. Included in peer reaction round. Max 4 total framers plus 1 navigator plus 1 envoy.
 
-#### Second-Opinion
+#### Envoy
 
-Load `use-second-opinion`. Dispatch `@second-opinion` concurrently with base framers. Excluded from peer-reaction round — SO output feeds Frame synthesis (§6) only:
+Load `use-envoy`. Dispatch `@envoy` concurrently with base framers. Excluded from peer-reaction round — Envoy output feeds Frame synthesis (§6) only:
 - Prompt content: current `problem_frame` + `known`/`unknown` inventory + `key_decisions` with door-types + `codebase_signals` + `external_signals` (all self-contained — no local path references)
 - Output format: 4-section framer structure with `external-analyst` perspective (perspective summary, key observations, challenges to current framing, synthesis weights)
-- Output path: `.scratch/<session>/discuss-explore-second-opinion.md`
+- Output path: `.scratch/<session>/discuss-explore-envoy.md`
 - Variant: `standard`
 
-Cap: base framers (3) + navigator (1) + second-opinion (1) + augmented ≤ 6.
+Cap: base framers (3) + navigator (1) + envoy (1) + augmented ≤ 6.
 
 ### 6. Frame
 
-#### Second-Opinion (sequential pre-synthesis)
+#### Envoy (sequential pre-synthesis)
 
-Load `use-second-opinion`. Dispatch `@second-opinion` BEFORE synthesizer (sequential — Frame has zero base agents, so concurrent dispatch would prevent synthesizer from seeing SO output):
+Load `use-envoy`. Dispatch `@envoy` BEFORE synthesizer (sequential — Frame has zero base agents, so concurrent dispatch would prevent synthesizer from seeing Envoy output):
 - Prompt content: problem framing question + final `known`/`unknown` inventory + `key_decisions` with door-types + structured explore summary (if tier 3 ran) + `codebase_signals` + `external_signals` (all self-contained — no local path references)
 - Output format: 4-section advisory structure (frame assessment, missing considerations, weight adjustments, confidence factors)
-- Output path: `.scratch/<session>/discuss-frame-second-opinion.md`
+- Output path: `.scratch/<session>/discuss-frame-envoy.md`
 - Variant: `advisory-only`
 
-Cap: second-opinion (1) + synthesizer (1) ≤ 2.
+Cap: envoy (1) + synthesizer (1) ≤ 2.
 
 #### Synthesis
 
@@ -205,10 +205,10 @@ Dispatch context must include:
 - `key_decisions` with door-type classifications
 - Evidence manifest (paths to orient, investigate, and explore artifacts)
 - Session ID
-- `.scratch/<session>/discuss-explore-second-opinion.md` if it exists and is not a skip advisory
-- `.scratch/<session>/discuss-frame-second-opinion.md` if it exists and is not a skip advisory
+- `.scratch/<session>/discuss-explore-envoy.md` if it exists and is not a skip advisory
+- `.scratch/<session>/discuss-frame-envoy.md` if it exists and is not a skip advisory
 
-Synthesizer: use-second-opinion `advisory-only` variant (both explore and frame SO files). Tail: "Evaluate for framing insights."
+Synthesizer: use-envoy `advisory-only` variant (both explore and frame Envoy files). Tail: "Evaluate for framing insights."
 
 `@synthesizer` writes the frame artifact. Main thread reads the output and validates the self-sufficiency contract: understandable without chat history, all terms defined, no conversation references, evidence levels present. If self-sufficiency fails, re-dispatch with the gap list appended to context.
 

@@ -32,7 +32,7 @@ Dispatch roles apply at `standard` and `deep` depth. At `focused` depth, run all
 |-------|-----------|-------|
 | 1. Scope | main thread | all |
 | 2. Context (passes 1–4) | main thread | all |
-| 3. Inspect | `@inspector` (parallel) + `@second-opinion` | standard/deep |
+| 3. Inspect | `@inspector` (parallel) + `@envoy` | standard/deep |
 | 4. Synthesize | `@synthesizer` | standard/deep |
 | 5. Re-sort | main thread | standard/deep |
 | 6. Output | main thread | all |
@@ -71,15 +71,15 @@ At `deep` depth: dispatch additional `@inspector` per applicable variance lens, 
 
 Variant hunting scope: `standard` — constrained to reviewed change surface. `deep` — full codebase.
 
-#### Second-Opinion
+#### Envoy
 
-Load `use-second-opinion`. Dispatch `@second-opinion` concurrently with @inspector agents:
+Load `use-envoy`. Dispatch `@envoy` concurrently with @inspector agents:
 - Prompt content: `review_brief` contents + diff/file list + severity bucket definitions + noise filtering rules (all self-contained — no local path references)
 - Output format: severity-bucketed findings with `[B]`/`[S]`/`[F]` prefixes, evidence levels, per-finding file path and line range, correctness assessment (`correct` or `issues found`) with categorical confidence (high/med/low)
-- Output path: `.scratch/<session>/review-inspect-second-opinion.md`
+- Output path: `.scratch/<session>/review-inspect-envoy.md`
 - Variant: `standard`
 
-Cap: base (3) + second-opinion (1) + augmented ≤ 6.
+Cap: base (3) + envoy (1) + augmented ≤ 6.
 
 #### Gate B: Agent output verification
 
@@ -90,15 +90,15 @@ After all @inspector agents complete, before Phase 4 dispatch, verify each expec
 | `risk-reviewer` missing or no findings | Inject blocking finding: "Risk review agent produced no output (infrastructure gap) — security coverage incomplete. Manual security pass recommended." |
 | `spec-reviewer` missing or no findings | Note in findings header: "Spec compliance review incomplete — coverage gap." Proceed. |
 | `correctness-reviewer` missing or no findings | Note in findings header: "Correctness review incomplete — coverage gap." Proceed. |
-| `second-opinion` missing or skip advisory | Proceed without — primary inspectors sufficient. Do not include in synthesis. |
+| `envoy` missing or skip advisory | Proceed without — primary inspectors sufficient. Do not include in synthesis. |
 
 Do NOT pass empty/absent paths to Phase 4 (@synthesizer).
 
 ### 4. Synthesize (standard/deep only — mandatory dispatch)
 
-Dispatch `@synthesizer` with all non-empty inspector output paths. Include `.scratch/<session>/review-inspect-second-opinion.md` if it exists and is not a skip advisory. Output: `.scratch/<session>/review-synthesis.md`.
+Dispatch `@synthesizer` with all non-empty inspector output paths. Include `.scratch/<session>/review-inspect-envoy.md` if it exists and is not a skip advisory. Output: `.scratch/<session>/review-synthesis.md`.
 
-Synthesizer: use-second-opinion `standard` variant. Tail: "After merging findings, include a correctness assessment (`correct` or `issues found`) with categorical confidence (high/med/low) and 1-2 sentence justification. When second-opinion assessment exists, note agreement or disagreement."
+Synthesizer: use-envoy `standard` variant. Tail: "After merging findings, include a correctness assessment (`correct` or `issues found`) with categorical confidence (high/med/low) and 1-2 sentence justification. When envoy assessment exists, note agreement or disagreement."
 
 **Gate C:** If synthesis output empty or missing: read individual agent output files directly; merge manually by severity bucket; apply deduplication; apply severity re-sort. Log to user: "Synthesis output absent — falling back to individual agent outputs."
 

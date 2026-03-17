@@ -1,5 +1,5 @@
 #!/bin/sh
-# Shared output sanitization pipeline for second-opinion provider scripts.
+# Shared output sanitization pipeline for envoy provider scripts.
 # Sourced (not executed) — expects caller to set: $output_file, $_sanitize_tmp
 # shellcheck disable=SC2154
 # After sourcing, sanitized content is in $_sanitize_tmp. Caller adds trust marker.

@@ -1,5 +1,5 @@
 #!/bin/sh
-# _common.sh — shared functions for SO provider scripts.
+# _common.sh — shared functions for Envoy provider scripts.
 # Caller-provided vars: $prompt_file, $output_file, $stderr_log, $timeout_secs, $_rc, $_script_dir.
 # Caller-provided function: error().
 # Ordering: call finalize_output() AFTER trust-boundary marker assembly (which reads $_sanitize_tmp).

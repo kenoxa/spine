@@ -50,7 +50,7 @@ codex login
 <details>
 <summary id="codex-cross-provider-setup">Codex cross-provider setup</summary>
 
-Spine's second-opinion skill can invoke Claude Code from within a Codex session. On macOS, Codex runs shell commands inside a [Seatbelt sandbox](https://developer.apple.com/documentation/security/app-sandbox) that blocks macOS Keychain access. Claude Code stores OAuth credentials in Keychain, so `claude auth status` fails under the default sandbox.
+Spine's envoy skill can invoke Claude Code from within a Codex session. On macOS, Codex runs shell commands inside a [Seatbelt sandbox](https://developer.apple.com/documentation/security/app-sandbox) that blocks macOS Keychain access. Claude Code stores OAuth credentials in Keychain, so `claude auth status` fails under the default sandbox.
 
 To enable cross-provider invocation, relax the sandbox in `~/.codex/config.toml`:
 
@@ -72,7 +72,7 @@ codex -s danger-full-access
 
 `danger-full-access` disables the Seatbelt sandbox entirely — shell commands run with full system access. Keep `approval_policy = "on-request"` so Codex still asks before running unexpected commands.
 
-This is only required for cross-provider second-opinion (Codex calling Claude). Standard Codex usage and Claude calling Codex work without this change.
+This is only required for cross-provider envoy (Codex calling Claude). Standard Codex usage and Claude calling Codex work without this change.
 
 </details>
 
@@ -272,18 +272,18 @@ export EXA_API_KEY=your-key-here
 </details>
 
 <details>
-<summary>Second-opinion model overrides</summary>
+<summary>Envoy model overrides</summary>
 
-The second-opinion skill defaults to high-capability models per provider. Override via `~/.config/spine/.env`:
+The envoy skill defaults to high-capability models per provider. Override via `~/.config/spine/.env`:
 
 ```sh
 # Format: model[:effort]  (effort defaults to "high" if omitted)
-export SPINE_SECOND_OPINION_CLAUDE=opus:high
-export SPINE_SECOND_OPINION_CODEX=gpt-5.4:high
+export SPINE_ENVOY_CLAUDE=opus:high
+export SPINE_ENVOY_CODEX=gpt-5.4:high
 
 # Cursor-agent fallback models (used when primary provider is unavailable)
-export SPINE_SECOND_OPINION_CLAUDE_CURSOR_FALLBACK=sonnet-4.6-thinking
-export SPINE_SECOND_OPINION_CODEX_CURSOR_FALLBACK=gpt-5.4-high
+export SPINE_ENVOY_CLAUDE_CURSOR_FALLBACK=sonnet-4.6-thinking
+export SPINE_ENVOY_CODEX_CURSOR_FALLBACK=gpt-5.4-high
 ```
 
 See [`env.example`](env.example) for the full template.
@@ -310,7 +310,7 @@ See [claude/README.md](claude/README.md) for plugin details and fallback install
 
 - Re-run `./install.sh` after pulling new changes to sync guardrails, agents, MCP registration, and skills.
 - If Claude Code or Codex were skipped, make sure the `claude` or `codex` CLI is installed and available on `PATH`.
-- If Codex's second-opinion fails with "Keychain access blocked by Seatbelt sandbox", see [Codex cross-provider setup](#codex-cross-provider-setup).
+- If Codex's envoy fails with "Keychain access blocked by Seatbelt sandbox", see [Codex cross-provider setup](#codex-cross-provider-setup).
 - If Cursor works in the editor but `agent` is missing in the terminal, add `~/.local/bin` to `PATH` and open a new shell.
 - If MCP auth is not applied, check `~/.config/spine/.env` and your shell environment. On zsh, the installer may add a source line to `~/.zshenv`.
 - If Claude plugin installation fails, Spine falls back to the manual hook path described in [claude/README.md](claude/README.md).

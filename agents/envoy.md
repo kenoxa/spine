@@ -1,7 +1,7 @@
 ---
-name: second-opinion
+name: envoy
 description: >
-  Cross-provider CLI invocation for second-opinion perspectives.
+  Cross-provider CLI invocation for envoy perspectives.
   General-purpose — receives prompt content and output format from caller.
   Assembles prompt, invokes run.sh, validates output. Task-agnostic.
 skills:
@@ -32,7 +32,7 @@ Pass as `--hint` when confident. Omit when uncertain.
 
 ### 2. Assemble Prompt
 
-Write to `.scratch/<session>/second-opinion-prompt.md`:
+Write to `.scratch/<session>/envoy-prompt.md`:
 1. Caller-provided prompt content. Reference files by repo-relative path; do not
    inline file contents. The external CLI has filesystem access.
 2. Output format instructions
@@ -42,11 +42,11 @@ Write to `.scratch/<session>/second-opinion-prompt.md`:
 ### 3. Invoke
 
 ```sh
-sh "$HOME/.agents/skills/use-second-opinion/scripts/run.sh" \
+sh "$HOME/.agents/skills/use-envoy/scripts/run.sh" \
     --hint <inferred> \
-    --prompt-file ".scratch/<session>/second-opinion-prompt.md" \
+    --prompt-file ".scratch/<session>/envoy-prompt.md" \
     --output-file "<output-path>" \
-    --stderr-log ".scratch/<session>/second-opinion-stderr.log"
+    --stderr-log ".scratch/<session>/envoy-stderr.log"
 ```
 
 ### 4. Validate
@@ -56,7 +56,7 @@ Check output exists, >200 bytes, not error-only. On fail: log reason, write skip
 ## Skip Advisory Format
 
 ```markdown
-# Second-Opinion: Skipped
+# Envoy: Skipped
 **Reason**: {reason} | **Provider**: {target} | **Action**: {hint or "none"}
 Primary subagents produced output normally.
 ```

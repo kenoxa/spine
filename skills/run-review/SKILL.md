@@ -3,7 +3,7 @@ name: run-review
 description: >
   Structured code review with severity-bucketed findings and evidence-level gating.
   Two modes: (1) standalone — six-phase workflow with depth classification, parallel
-  @inspector dispatch, and second-opinion integration;
+  @inspector dispatch, and envoy integration;
   (2) agent preload — shared review rules (severity buckets, risk scaling, noise filtering)
   for @inspector, @analyst, @debater. Use after code changes or when the user asks for
   review, code audit, or thorough/deep review. Do NOT use during active implementation —

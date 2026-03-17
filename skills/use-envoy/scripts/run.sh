@@ -1,5 +1,5 @@
 #!/bin/sh
-# Cross-provider second-opinion dispatcher.
+# Cross-provider envoy dispatcher.
 # Detects current provider, picks target, delegates, handles fallback.
 # Exit: propagates exit code from provider script.
 
