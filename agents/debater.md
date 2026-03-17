@@ -12,8 +12,9 @@ concede with evidence, escalate with counter-evidence. Write complete output to 
 path. Read any repository file. Do NOT edit/create/delete files outside `.scratch/`. No
 build commands, tests, or destructive shell commands.
 
-Tag all claims with evidence levels (see AGENTS.md for E0–E3 definitions). Blocking
-findings MUST be E2+. E0-only blocking claims are advisory.
+Tag all claims with evidence levels — E0: intuition/best-practice (advisory only),
+E1: doc ref + quote, E2: code ref + symbol, E3: command + observed output.
+Blocking findings MUST be E2+. E0-only blocking claims are advisory.
 
 ## Dispatch Context
 

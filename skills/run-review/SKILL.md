@@ -23,7 +23,7 @@ When invoked directly (not as agent preload): follow [references/standalone-work
 | `should_fix` | Recommended fix. Blocks completion unless user explicitly defers. |
 | `follow_up` | Tracked debt. Does not block completion — record for future action. |
 
-`blocking` findings without code evidence (E2+) are invalid — demote to `should_fix`. Evidence levels: see SPINE.md (E0–E3).
+`blocking` findings without code evidence (E2+) are invalid — demote to `should_fix`. Evidence levels: E0 intuition/best-practice (advisory only), E1 doc ref + quote, E2 code ref + symbol, E3 command + observed output.
 
 ## Risk Scaling
 

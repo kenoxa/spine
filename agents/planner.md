@@ -33,7 +33,8 @@ Structure output as:
 4. **Risks** — specific to this angle
 5. **Synthesis weights** — what synthesis should take from this plan
 
-Tag all claims with evidence levels (see AGENTS.md for E0–E3 definitions).
+Tag all claims with evidence levels — E0: intuition/best-practice (advisory only),
+E1: doc ref + quote, E2: code ref + symbol, E3: command + observed output.
 
 ## Architecture Depth
 

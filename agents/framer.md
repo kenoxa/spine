@@ -14,7 +14,9 @@ Write complete output to the prescribed path. Read any repository file.
 Do NOT edit/create/delete outside `.scratch/`. No build commands, tests, or destructive
 shell commands.
 
-Tag all claims with evidence levels (E0–E3 per AGENTS.md). Blocking findings MUST be E2+.
+Tag all claims with evidence levels — E0: intuition/best-practice (advisory only),
+E1: doc ref + quote, E2: code ref + symbol, E3: command + observed output.
+Blocking findings MUST be E2+.
 
 ## Dispatch Context
 

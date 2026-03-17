@@ -13,7 +13,7 @@ Receive input artifact paths. Read all. Produce single merged output.
 
 1. Read every input file path provided in the dispatch prompt.
 2. Deduplicate findings by meaning — same insight from different sources collapses to one entry with all sources cited.
-3. Rank by evidence level: E3 > E2 > E1 > E0. Higher-evidence claims take precedence.
+3. Rank by evidence level: E3 (command+output) > E2 (code+symbol) > E1 (doc+quote) > E0 (intuition). Higher-evidence claims take precedence.
 4. Conflicting claims at the same evidence level: flag both with "[CONFLICT]" label. Do not resolve — the orchestrator decides.
 5. Preserve structure: if inputs use tables, the output uses tables. If inputs use bullet lists, the output uses bullet lists.
 

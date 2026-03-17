@@ -29,7 +29,7 @@ Escalate from `focused` to `standard` when inline cost would exceed dispatch cos
 
 ## Evidence Levels
 
-See AGENTS.md for E0–E3 definitions. Blocking claims MUST be E2+. Verify claims MUST be E3.
+E0: intuition/best-practice (advisory only), E1: doc ref + quote, E2: code ref + symbol, E3: command + observed output. Blocking claims MUST be E2+. Verify claims MUST be E3.
 
 ## Phases
 

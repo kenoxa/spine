@@ -30,7 +30,7 @@ Structure output as:
 
 1. **Framing question** — concrete question extracted from dispatch
 2. **Evidence table** — claim / evidence level / file or source
-3. **Findings** — synthesized conclusions with E-level tags (see AGENTS.md)
+3. **Findings** — synthesized conclusions with E-level tags (E0: intuition, E1: doc+quote, E2: code+symbol, E3: command+output)
 4. **Confidence gaps** — what could not be verified and why
 
 ## MCP Tool Routing
