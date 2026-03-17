@@ -1,10 +1,9 @@
 ---
-name: do-commit
+name: commit
 description: >
   Safe, scoped commit workflow.
   Use when ready to commit changes. Do NOT use mid-implementation —
   finish the current task first.
-disable-model-invocation: true
 argument-hint: "[message]"
 ---
 

@@ -3,7 +3,7 @@ name: use-writing
 description: >
   Documentation and prose quality standards.
   Use when creating or editing docs, READMEs, changelogs, ADRs, or user-facing text.
-  Do NOT use for code comments or commit messages — do-commit handles commits.
+  Do NOT use for code comments or commit messages — commit skill handles commits.
 argument-hint: "[artifact type or document to write/edit]"
 ---
 

@@ -96,11 +96,11 @@ Advisory code polish with conventions, complexity, and efficiency lenses.
 
 Canonical entry: [`skills/run-polish/SKILL.md`](../skills/run-polish/SKILL.md).
 
-### do-commit
+### commit
 
 Scoped staging with conventional commits.
 
-Canonical entry: [`skills/do-commit/SKILL.md`](../skills/do-commit/SKILL.md).
+Canonical entry: [`skills/commit/SKILL.md`](../skills/commit/SKILL.md).
 
 ### handoff
 
@@ -152,12 +152,12 @@ Prefixes group skills in slash-autocomplete — type `do-`, `run-`, `with-`, or 
 
 | Prefix | Semantic | When to use |
 |--------|----------|-------------|
-| `do-` | Primary flow | The workflow chain: discuss → plan → execute → commit |
+| `do-` | Primary flow | The workflow chain: discuss → plan → execute |
 | `run-` | Utilities | Standalone actions invoked any time: debug, review, polish, insights, recap |
 | `with-` | Domain constraints | Applied passively when the task matches a specific domain — backend, frontend, testing |
 | `use-` | Operational tools | Invoked explicitly — utilities, conventions, and cross-provider tooling |
 
-**Plain names** (`handoff`, `catchup`): session primitives invoked by name — no prefix because they're used directly, not discovered by category.
+**Plain names** (`commit`, `handoff`, `catchup`): invoked by name — no prefix because they're used directly, not discovered by category.
 
 **Why prefixes?** Without them, spine's skills get lost among globally installed skills in slash-autocomplete. Typing the first few characters of a prefix immediately narrows the list to the relevant group.
 

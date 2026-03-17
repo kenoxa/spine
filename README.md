@@ -111,12 +111,12 @@ Use your provider in its most autonomous mode:
 Then start from the workflow:
 
 ```text
-/do-discuss -> /do-plan -> /do-execute -> /do-commit
+/do-discuss -> /do-plan -> /do-execute -> /commit
 ```
 
 ## What You Get
 
-- A shared workflow: `do-discuss`, `do-plan`, `do-execute`, `do-commit`
+- A shared workflow: `do-discuss`, `do-plan`, `do-execute`, `commit`
 - Utility skills for review, debugging, polish, insights, and recap
 - Shared guardrails through `SPINE.md` and your own global overrides through `AGENTS.md`
 - Shared subagents in `agents/`
@@ -150,7 +150,7 @@ If `~/.config/spine/.env` exists, the installer reads it for MCP authentication.
 1. **[Discuss](docs/skills-reference.md#do-discuss)** with `/do-discuss` to frame the problem. Handles vague inputs, multi-session scoping, and per-phase discussion when a spec exists.
 2. **[Plan](docs/skills-reference.md#do-plan)** with `/do-plan` to produce an executable implementation plan.
 3. **[Execute](docs/skills-reference.md#do-execute)** with `/do-execute` once the plan is approved.
-4. **[Commit](docs/skills-reference.md#do-commit)** with `/do-commit` when the change is ready to stage and ship.
+4. **[Commit](docs/skills-reference.md#commit)** with `/commit` when the change is ready to stage and ship.
 
 Skills write session artifacts to `.scratch/` during planning and execution. Keep `.scratch/` in your project `.gitignore`.
 

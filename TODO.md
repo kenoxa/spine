@@ -1,11 +1,7 @@
 # TODO
 
-- do-execute: always use subagents to protect main context
 - run-skill-eval: on rewriten skills, reference files, and agents
 	- run-insight is suspicous
-- should we re-use run-polish in do-execute?
-- run-review: focused should use subagents as well
-- rename do-commit -> commit
 - https://github.com/mattpocock/skills/blob/main/ubiquitous-language/SKILL.md
 - document handoff/clear/catchup after planning
 - nightly update run sudo?

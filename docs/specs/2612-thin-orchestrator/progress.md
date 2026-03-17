@@ -58,7 +58,7 @@ Measured via `tokenizer -f <file> -m gpt-4.1` (o200k_base encoding). 2026-03-17.
 | File | Tokens | Status |
 |------|--------|--------|
 | catchup | 556 | pass |
-| do-commit | 549 | pass |
+| commit | 549 | pass |
 | do-discuss | 955 | pass |
 | do-execute | 1416 | pass |
 | do-plan | 1269 | pass |

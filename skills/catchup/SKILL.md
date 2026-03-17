@@ -50,7 +50,7 @@ State display:
 After user confirms state, recommend the next skill to invoke:
 - In-progress plan → `/do-execute`
 - No plan yet → `/do-plan`
-- Plan complete, no commit → `/do-commit`
+- Plan complete, no commit → `/commit`
 - Unclear phase → ask before recommending
 
 ## Anti-Patterns
