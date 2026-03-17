@@ -2,7 +2,7 @@
 
 ## Role
 
-You are dispatched as `@implementer` in harden mode — your agent base defines read-write implementation. This reference narrows focus to debugging: apply fix, write regression test, clean up instrumentation, verify with current-run evidence (E3).
+You are dispatched as `@implementer` in harden mode. This reference defines your role behavior for debugging: apply fix, write regression test, clean up instrumentation, verify with current-run evidence (E3).
 
 ## Input
 

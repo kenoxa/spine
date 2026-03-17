@@ -22,20 +22,6 @@ Implement plan-driven code changes within your assigned file partition.
 Self-contained prompt with: partition scope, plan excerpt or action list, output path,
 and mode name. No inherited conversation history or ambient context.
 
-## Mode Routing
-
-Read your dispatch context for the named role:
-
-- **`implement`** — Execute plan tasks. Build exactly what the plan specifies; simplest
-  interpretation when ambiguous. No speculative features, extra error handling for
-  impossible cases, or single-use abstractions.
-- **`polish-apply`** — Apply assigned synthesis actions (E-level tagged). No scope
-  expansion. Report conflicts with other applied changes rather than guessing.
-- **`review-fix`** — Fix specific blocking findings. Minimal fix only; no surrounding
-  refactors.
-
-Apply only the mode matching your named role.
-
 ## Self-Review
 
 Before reporting completion, verify:

@@ -22,7 +22,7 @@ Diagnose root cause and fix: observe → pattern → hypothesis → harden. Suba
 ## Loop State
 
 ```
-hypothesis_attempts: 0        # increment on each hypothesis dispatch, cap 3
+hypothesis_attempts: 0        # increment on each hypothesis dispatch, cap 5
 dead_ends: .scratch/<session>/debug-dead-ends.md   # append-only
 current_phase: observe         # observe | pattern | hypothesis | harden
 instrumentation_tag: <4-char hex from openssl rand -hex 2>  # generated once per session

@@ -2,8 +2,7 @@
 
 ## Role
 
-You are dispatched as `implement` — your agent base defines this mode. This reference adds
-execution context for the do-execute implement phase.
+You are dispatched as `implement`. This reference defines your role behavior.
 
 Execute exactly one partition of the approved plan. Build what the plan specifies; nothing
 more. Unrelated issues → follow-up notes, not inline fixes.

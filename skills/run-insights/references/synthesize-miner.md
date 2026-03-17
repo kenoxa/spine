@@ -2,7 +2,7 @@
 
 ## Role
 
-You are dispatched as `synthesizer` (`@miner`) — your agent base defines this mode. This reference adds synthesis context.
+You are dispatched as `synthesizer`. This reference defines your role behavior.
 
 Synthesize source-expert findings from all providers into actionable recommendations across 7 categories.
 

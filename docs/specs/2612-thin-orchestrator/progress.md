@@ -19,6 +19,21 @@ Session: `thin-orchestrator-ref-arch-7ff2`
 | run-polish | A | done | Content creation: 5 new refs (advisory + synthesis + apply) |
 | run-architecture-audit | A | done | Scope addition. Rename + routing table rewrite |
 
+## Agent Mode Extraction
+
+Terminal phase. Removed `## Mode Routing` / `## Thoroughness` from 6 agents; created 10 new reference files; updated 15 drift phrases and 8+ orchestrator dispatch sites.
+
+| Agent | Pre | Post | New Refs | Notes |
+|-------|-----|------|----------|-------|
+| analyst | 298 | 170 | 0 | Below 250 floor — all role behavior in refs |
+| miner | 450 | 149 | 0 | Below 250 floor — all role behavior in refs |
+| framer | 525 | 394 | 4 | explore-{stakeholder-advocate,systems-thinker,skeptic,augmented-framer} |
+| implementer | 462 | 336 | 1 | review-fix.md |
+| scout | 461 | 368 | 2 | orient-scout.md, audit-scout.md |
+| navigator | 835 | 687 | 3 | navigator-{synthesis,alternatives}.md, discovery-navigator.md |
+
+Enforcement gate: no agent contains mode enumeration; every dispatch names a reference path. Behavioral validation deferred (structural gates only).
+
 ## Decisions Log
 
 | # | Decision | Door |
@@ -83,17 +98,17 @@ Measured via `tokenizer -f <file> -m gpt-4.1` (o200k_base encoding). 2026-03-17.
 
 | File | Tokens | Status |
 |------|--------|--------|
-| analyst | 298 | pass |
+| analyst | 170 | flag |
 | debater | 287 | pass |
 | envoy | 562 | pass |
-| framer | 525 | pass |
-| implementer | 462 | pass |
+| framer | 394 | pass |
+| implementer | 336 | pass |
 | inspector | 474 | pass |
-| miner | 450 | pass |
-| navigator | 835 | flag |
+| miner | 149 | flag |
+| navigator | 687 | pass |
 | planner | 377 | pass |
 | researcher | 359 | pass |
-| scout | 461 | pass |
+| scout | 368 | pass |
 | synthesizer | 284 | pass |
 | verifier | 572 | pass |
 | visualizer | 217 | pass |

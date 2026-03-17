@@ -20,7 +20,6 @@ and conflicting-claim reconciliation.
 - `research_question` — external knowledge gap to fill
 - `seed_terms` — library names, versions, framework context
 - `codebase_signals` — orient/discovery findings (optional)
-- `mode` — `raw-docs` | `alternatives` | `synthesis` (default)
 - `output_path` — `.scratch/<session>/` path
 
 No named library in context: skip Context7, use Exa domain queries only, mark
@@ -46,30 +45,19 @@ Execute in order. Do not skip steps.
    skip Context7 entirely.
 
 Stop when 2+ Context7 queries and 3+ Exa queries complete with at least 1
-finding for the current mode. After 3 consecutive empty queries, mark the gap
+finding. After 3 consecutive empty queries, mark the gap
 and stop. Always write the output file. `Confidence Gaps` is required even when
 empty.
 
-## Mode Routing
-
-- `raw-docs` — versioned API excerpts, deprecated signatures, migration notes.
-  Context7 primary; Exa for gaps. Quote excerpts with source.
-- `alternatives` — comparison table: Option | Summary | Tradeoffs | Evidence.
-  Treat the current approach as baseline. Use 2+ Exa queries for real-world
-  patterns.
-- `synthesis` — research question -> external_signals table -> findings
-  (E-level tagged) -> confidence gaps.
-
 ## Output Format
 
-All modes include an `external_signals` table:
+Always include an `external_signals` table:
 
 | library | version | finding | evidence | relevance |
 |---------|---------|---------|----------|-----------|
 
-`synthesis`: research question -> external_signals -> findings -> confidence gaps.
-`raw-docs`: per-source quoted excerpts plus external_signals.
-`alternatives`: comparison table plus external_signals.
+Default: research question → external_signals → findings → confidence gaps.
+Specific output structure per reference file when provided.
 
 ## Anti-Patterns
 

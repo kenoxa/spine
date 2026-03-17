@@ -26,7 +26,7 @@ When `mode = deep-interview`, these override defaults. Phases reference this tab
 
 ## Orient (conditional — codebase-adjacent input only)
 
-Dispatch `@scout` (haiku, orient mode) + `@navigator` for breadth-first codebase context before Socratic dialogue. Clarify's no-subagent constraint does not apply here.
+Dispatch `@scout` + [orient-scout.md](orient-scout.md) + `@navigator` for breadth-first codebase context before Socratic dialogue. Clarify's no-subagent constraint does not apply here.
 
 **Codebase-adjacency classification** (run at end of intake, after redirect check):
 
@@ -42,8 +42,8 @@ Dispatch `@scout` (haiku, orient mode) + `@navigator` for breadth-first codebase
 | Pure process/organizational/domain question | Not codebase-adjacent — skip orient |
 
 **When codebase-adjacent**:
-1. `@scout` orient-mode: intake signals as seed. Output: `.scratch/<session>/discuss-orient.md`
-1b. `@navigator` parallel with scout. `seed_terms` from intake, `mode`: `synthesis`. Output: `.scratch/<session>/discuss-orient-external.md`
+1. `@scout` + [orient-scout.md](orient-scout.md): intake signals as seed. Output: `.scratch/<session>/discuss-orient.md`
+1b. `@navigator` + [navigator-synthesis.md](navigator-synthesis.md) parallel with scout. `seed_terms` from intake. Output: `.scratch/<session>/discuss-orient-external.md`
 2. Artifacts must contain: Answer, File map, Gaps (note potential lens signals), External signals table
 3. Session log: phase boundary, scout dispatched, 1-sentence summary. Carry `codebase_signals` + `external_signals` into clarify.
 
@@ -58,7 +58,7 @@ Dispatch `@scout` (haiku, orient mode) + `@navigator` for breadth-first codebase
 | No library/framework names | Skip — `external_signals = []` |
 | Ambiguous | Dispatch — handles no-library gracefully |
 
-When triggered: `@navigator` with `seed_terms`, `codebase_signals = []`, `mode`: `synthesis`. Output: `.scratch/<session>/discuss-orient-external.md`. Carry `external_signals` into clarify.
+When triggered: `@navigator` + [navigator-synthesis.md](navigator-synthesis.md) with `seed_terms`, `codebase_signals = []`. Output: `.scratch/<session>/discuss-orient-external.md`. Carry `external_signals` into clarify.
 
 **Failure**: scout/navigator returns empty → signals = `[]`, note in Gaps, proceed. Re-run adjacency classification after grounding response if deferred.
 
@@ -72,9 +72,9 @@ Socratic dialogue. Main thread only — user interaction loop. Subagent dispatch
 
 Seed `known` from `codebase_signals` when non-empty. Seed `external_signals` from navigator. Do not re-ask already-answered questions.
 
-**Between-round @scout assists**: user introduces named codebase reference not covered → dispatch `@scout` (haiku, orient mode). Output: `.scratch/<session>/discuss-clarify-assist-<round>.md`. Track dispatched references.
+**Between-round @scout assists**: user introduces named codebase reference not covered → dispatch `@scout` + [orient-scout.md](orient-scout.md). Output: `.scratch/<session>/discuss-clarify-assist-<round>.md`. Track dispatched references.
 
-**Between-round @navigator assists**: user introduces library/dependency not covered → dispatch `@navigator`, `mode`: `synthesis`. Output: `.scratch/<session>/discuss-clarify-nav-<round>.md`. Append to `external_signals`.
+**Between-round @navigator assists**: user introduces library/dependency not covered → dispatch `@navigator` + [navigator-synthesis.md](navigator-synthesis.md). Output: `.scratch/<session>/discuss-clarify-nav-<round>.md`. Append to `external_signals`.
 
 **Between-round scope escalation**: 2-of-3 threshold met → escalate to spec-creation. Carry all state. See [orchestrate-spec-creation.md](orchestrate-spec-creation.md).
 
@@ -94,11 +94,11 @@ Escalation to tier 2: blocking unknown requires depth — behavior, side effects
 
 Subagent dispatch for codebase evidence.
 
-| Agent | Use when | Output |
-|-------|----------|--------|
-| `@scout` | Orientation: "does X exist? where?" | `.scratch/<session>/discuss-investigate-scout.md` |
-| `@researcher` | Depth: "how does X work? side effects?" | `.scratch/<session>/discuss-investigate-researcher.md` |
-| `@navigator` | External: "ecosystem says what about X?" | `.scratch/<session>/discuss-investigate-navigator.md` |
+| Agent | Reference | Use when | Output |
+|-------|-----------|----------|--------|
+| `@scout` | [orient-scout.md](orient-scout.md) | Orientation: "does X exist? where?" | `.scratch/<session>/discuss-investigate-scout.md` |
+| `@researcher` | — | Depth: "how does X work? side effects?" | `.scratch/<session>/discuss-investigate-researcher.md` |
+| `@navigator` | [navigator-synthesis.md](navigator-synthesis.md) | External: "ecosystem says what about X?" | `.scratch/<session>/discuss-investigate-navigator.md` |
 
 Dispatch context: specific unknowns, `known`/`unknown` state, why user couldn't answer. Navigator: external library behavior, API compatibility — not codebase depth. Targeted queries, not broad sweep. Duplication prevention: check orient + clarify-assist outputs first. File presence in File map narrows query; only explicit Answer resolution omits dispatch.
 
@@ -112,15 +112,15 @@ Escalation to tier 3: ambiguous scope AND `key_decisions` has 2+ one-way-door op
 
 Three `@framer` personas for one-way-door decisions resisting convergence:
 
-| Role | Output |
-|------|--------|
-| `stakeholder-advocate` | `.scratch/<session>/discuss-explore-stakeholder-advocate.md` |
-| `systems-thinker` | `.scratch/<session>/discuss-explore-systems-thinker.md` |
-| `skeptic` | `.scratch/<session>/discuss-explore-skeptic.md` |
+| Role | Reference | Output |
+|------|-----------|--------|
+| `stakeholder-advocate` | [explore-stakeholder-advocate.md](explore-stakeholder-advocate.md) | `.scratch/<session>/discuss-explore-stakeholder-advocate.md` |
+| `systems-thinker` | [explore-systems-thinker.md](explore-systems-thinker.md) | `.scratch/<session>/discuss-explore-systems-thinker.md` |
+| `skeptic` | [explore-skeptic.md](explore-skeptic.md) | `.scratch/<session>/discuss-explore-skeptic.md` |
 
-`@navigator` parallel with framers, `mode`: `alternatives`. Output: `.scratch/<session>/discuss-explore-navigator.md`.
+`@navigator` + [navigator-alternatives.md](navigator-alternatives.md) parallel with framers. Output: `.scratch/<session>/discuss-explore-navigator.md`.
 
-All three parallel → wait → re-invoke each to read peers + append `## Peer Reactions` → synthesize. Include navigator in peer-reaction. Irreconcilable positions → `key_decisions`. Augmented `@framer` with variance lens from investigate (or select per `do-plan/references/variance-lenses.md`). Output: `.scratch/<session>/discuss-explore-augmented-{lens}.md`. Included in peer reaction.
+All three parallel → wait → re-invoke each to read peers + append `## Peer Reactions` → synthesize. Include navigator in peer-reaction. Irreconcilable positions → `key_decisions`. Augmented `@framer` + [explore-augmented-framer.md](explore-augmented-framer.md) with variance lens from investigate (or select per `do-plan/references/variance-lenses.md`). Output: `.scratch/<session>/discuss-explore-augmented-{lens}.md`. Included in peer reaction.
 
 **Envoy**: load `use-envoy`. Dispatch concurrent with base framers. Excluded from peer-reaction — feeds Frame phase only. Prompt: `problem_frame` + `known`/`unknown` + `key_decisions` + `codebase_signals` + `external_signals` (self-contained). Output: `.scratch/<session>/discuss-explore-envoy.md`. Variant: `standard`.
 

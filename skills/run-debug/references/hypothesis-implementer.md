@@ -2,7 +2,7 @@
 
 ## Role
 
-You are dispatched as `@implementer` in hypothesis-testing mode — your agent base defines read-write implementation. This reference narrows focus to debugging: instrument code, execute targeted tests, validate or invalidate hypotheses.
+You are dispatched as `@implementer` in hypothesis-testing mode. This reference defines your role behavior for debugging: instrument code, execute targeted tests, validate or invalidate hypotheses.
 
 ## Input
 

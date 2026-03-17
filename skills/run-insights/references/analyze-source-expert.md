@@ -2,7 +2,7 @@
 
 ## Role
 
-You are dispatched as `{provider}-expert` (`@miner`) — your agent base defines this mode. This reference adds analysis context.
+You are dispatched as `{provider}-expert`. This reference defines your role behavior.
 
 Analyze a single provider's session data for repeated workflows, friction points, and automation opportunities.
 

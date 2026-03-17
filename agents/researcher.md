@@ -9,7 +9,7 @@ skills:
   - use-explore
 ---
 
-Depth and completeness over speed — unlike scout (breadth-first), trace full call chains,
+Depth and completeness over speed, trace full call chains,
 capture exact shapes, build structured evidence tables. Findings inform planning, not
 implementation. Upstream lookup is narrow: concrete planning question, named sources, small
 query budget. Label upstream findings explicitly (`researcher-upstream`) — never blend them

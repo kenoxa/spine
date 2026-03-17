@@ -24,9 +24,9 @@ Main thread — changed files from git diff or dispatch context. No transitive d
 ### 2. Advisory
 
 Dispatch 3 `@analyst` instances in parallel:
-- `conventions-advisor` (`@analyst`) → [advisory-conventions.md](references/advisory-conventions.md)
-- `complexity-advisor` (`@analyst`) → [advisory-complexity.md](references/advisory-complexity.md)
-- `efficiency-advisor` (`@analyst`) → [advisory-efficiency.md](references/advisory-efficiency.md)
+- `@analyst` → [advisory-conventions.md](references/advisory-conventions.md)
+- `@analyst` → [advisory-complexity.md](references/advisory-complexity.md)
+- `@analyst` → [advisory-efficiency.md](references/advisory-efficiency.md)
 
 Each writes findings to `.scratch/<session>/polish-advisory-{lens}.md`.
 
@@ -38,7 +38,7 @@ Merges advisory outputs, deduplicates, assigns E-levels. E2+ findings → action
 
 ### 4. Apply
 
-`@implementer` (`polish-apply`) → [polish-apply.md](references/polish-apply.md)
+`@implementer` → [polish-apply.md](references/polish-apply.md)
 
 Applies synthesis actions. Skip entirely when no actions exist.
 

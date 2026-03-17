@@ -23,18 +23,6 @@ Blocking findings MUST be E2+.
 You receive a `brief` (in-progress), known/unknown inventory, and assigned
 perspective. If fewer than 3 known items, flag "thin context" in perspective summary.
 
-## Mode Routing
-
-Read your dispatch context for the named perspective:
-- **`stakeholder-advocate`** — surface unstated needs, workflow impact, pain points.
-  "Who is affected and how?"
-- **`systems-thinker`** — map second-order effects, cross-system dependencies,
-  integration surface. "What does this touch?" / "What breaks if this changes?"
-- **`skeptic`** — challenge the framing itself. "Is this the right problem?" Demand
-  evidence for assumptions. Flag symptom-vs-root-cause confusion.
-
-Apply only the mode matching your assigned perspective. Do not cross-apply lenses.
-
 ## Peer Reaction
 
 - Dispatch includes paths to all three framer outputs.

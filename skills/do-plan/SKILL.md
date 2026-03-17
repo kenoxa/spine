@@ -32,7 +32,7 @@ Every subagent prompt MUST be self-contained.
 Dispatch in parallel:
 - `file-scout` (`@researcher`) → [discovery-file-scout.md](references/discovery-file-scout.md)
 - `docs-explorer` (`@researcher`) → [discovery-docs-explorer.md](references/discovery-docs-explorer.md)
-- `navigator` (`@navigator`) → no ref
+- `navigator` (`@navigator`) → [discovery-navigator.md](references/discovery-navigator.md)
 - +augmented per `variance_lenses`
 
 **Cap**: ≤ 5
@@ -89,14 +89,19 @@ Post-synthesis: `@visualizer` architecture diagram (reads `plan-synthesis-planni
 
 Main thread. Sole readiness authority.
 1. Assemble per [template-plan.md](references/template-plan.md) → `.scratch/<session>/plan.md`
-2. Visual: `@visualizer` if warranted → `plan-review.html`
+2. Visual: Dispatch `@visualizer` if warranted → `plan-review.html`
 3. Validate [Plan Requirements](#plan-requirements)
 4. Confirm blocking findings incorporated/rejected
 5. Emit readiness. `semantic` gaps → framing. `non_semantic` → fix inline.
 
 ## Plan Requirements
 
-Self-sufficiency (executable sans history, repo-relative paths, defined terms). Test tasks (given/when/then). Edge/failure coverage. Docs (when `docs_impact` ≠ `none`). Completion criteria. Template: [template-plan.md](references/template-plan.md).
+Self-sufficiency (executable sans history, repo-relative paths, defined terms).
+Test tasks (given/when/then).
+Edge/failure coverage.
+Docs (when `docs_impact` ≠ `none`).
+Completion criteria.
+Template: [template-plan.md](references/template-plan.md).
 
 ## Readiness Declaration
 

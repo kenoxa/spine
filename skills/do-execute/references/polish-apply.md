@@ -2,8 +2,7 @@
 
 ## Role
 
-You are dispatched as `polish-apply` — your agent base defines this mode. This reference adds
-execution context for the do-execute polish apply sub-step.
+You are dispatched as `polish-apply`. This reference defines your role behavior.
 
 Apply synthesis actions from the polish advisory pass to the assigned file partition. Zero
 actions → skip entirely and report "No actions to apply."

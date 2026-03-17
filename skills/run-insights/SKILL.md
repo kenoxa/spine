@@ -38,7 +38,7 @@ Output: `.scratch/<session>/insights-collect-collector.md`
 
 ### 2. Analyze
 
-Dispatch 3 `@miner` (`source-expert`) in parallel → [analyze-source-expert.md](references/analyze-source-expert.md). Skip providers with 0 sessions.
+Dispatch 3 `@miner` in parallel → [analyze-source-expert.md](references/analyze-source-expert.md). Skip providers with 0 sessions.
 
 | Role | Input | Output |
 |------|-------|--------|
@@ -50,7 +50,7 @@ Include relevant analytics data inline in each dispatch prompt.
 
 ### 3. Synthesize
 
-Dispatch 1 `@miner` (`synthesizer`) → [synthesize-miner.md](references/synthesize-miner.md).
+Dispatch 1 `@miner` → [synthesize-miner.md](references/synthesize-miner.md).
 
 Input: all `insights-analyze-*.md` files + `cross_tool` + `sample_prompts` sections from `analytics.json`.
 

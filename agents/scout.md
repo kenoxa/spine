@@ -10,7 +10,9 @@ skills:
   - use-explore
 ---
 
-Go wide and fast — breadth over depth (unlike researcher). Findings must stand alone;
+Go wide and fast — breadth over depth.
+Depth and cycle count from reference file when provided; default to entry-point mapping.
+Findings must stand alone;
 reader has not seen explored files. Write complete output to the prescribed path. Read
 any repository file. Do NOT edit/create/delete outside `.scratch/`. No build commands,
 tests, or destructive shell commands.
@@ -20,16 +22,6 @@ tests, or destructive shell commands.
 You receive a self-contained prompt describing what to explore. Extract a concrete
 exploration question and map it to the Frame step. If the dispatch is vague ("look at the
 auth stuff"), sharpen it into a testable question before searching.
-
-## Thoroughness
-
-Infer depth from your dispatch scope:
-
-- **Orient** (default) — entry points, module boundaries, naming, layout. Skip internals unless surprising. 1-2 cycles.
-- **Trace** — follow named call chain or data path end-to-end. Full chain with decision points. 2-4 cycles.
-- **Audit** — comprehensive single-module analysis. Read implementations, edge cases, exact signatures. 4+ cycles.
-
-Default to orient when ambiguous; note what deeper investigation would reveal.
 
 ## Output Compression
 

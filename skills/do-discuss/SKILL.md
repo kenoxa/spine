@@ -24,9 +24,9 @@ Tiered Socratic dialogue: intake → orient → clarify → investigate → expl
 
 | Phase | Agent type | Reference |
 |-------|-----------|-----------|
-| Orient | `@scout` + `@navigator` | — (in orchestrator) |
-| Investigate | `@scout` / `@researcher` / `@navigator` | — (in orchestrator) |
-| Explore | `@framer` + `@navigator` | — (in orchestrator) |
+| Orient | `@scout` + `@navigator` | [orient-scout.md](references/orient-scout.md), [navigator-synthesis.md](references/navigator-synthesis.md) |
+| Investigate | `@scout` / `@researcher` / `@navigator` | [orient-scout.md](references/orient-scout.md), [navigator-synthesis.md](references/navigator-synthesis.md) |
+| Explore | `@framer` + `@navigator` | [explore-*.md](references/) |
 | Frame | `@framer` + `@envoy` + `@synthesizer` | [frame-*.md](references/) |
 | Spec Create | `@envoy` | [orchestrate-spec-creation.md](references/orchestrate-spec-creation.md) |
 

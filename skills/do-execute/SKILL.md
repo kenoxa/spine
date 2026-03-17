@@ -65,7 +65,7 @@ Main thread. Read plan, classify depth, partition work. Output `scope_artifact`:
    - `efficiency-advisor` → [polish-efficiency-advisor.md](references/polish-efficiency-advisor.md)
    - +augmented per variance lens
 2. **Synthesis**: `@synthesizer` → [polish-synthesis.md](references/polish-synthesis.md)
-3. **Apply**: `@implementer` (`polish-apply`) → [polish-apply.md](references/polish-apply.md). Skip when no actions.
+3. **Apply**: `@implementer` → [polish-apply.md](references/polish-apply.md). Skip when no actions.
 
 ### 5. Review
 
@@ -87,9 +87,9 @@ Main thread. Load [finalize.md](references/finalize.md) unconditionally. Sole co
 ## Re-entry
 
 - **Validate BLOCK** → implement with `validation_brief`
-- **Blocking review** → polish (`@implementer` `review-fix` applies fixes)
+- **Blocking review** → polish (`@implementer` → [review-fix.md](references/review-fix.md) applies fixes)
 - **Verify semantic** → polish → review → verify
-- **Verify non-semantic** → `@implementer` `review-fix` → re-verify only
+- **Verify non-semantic** → `@implementer` → [review-fix.md](references/review-fix.md) → re-verify only
 Re-entry brief: blocker, what was attempted, what changed. Shared counter, cap **5**, freeze on cap.
 
 ## Completion

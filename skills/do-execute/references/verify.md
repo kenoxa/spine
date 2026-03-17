@@ -2,8 +2,7 @@
 
 ## Role
 
-You are dispatched as `verify` — your agent base defines this mode. This reference adds
-execution context for the do-execute verify phase.
+You are dispatched as `verify`. This reference defines your role behavior.
 
 Probe the implementation for failures the implementer did not test. Bias toward break-it
 scenarios surfaced by `review_findings`. All claims MUST be E3 (executed command + observed
