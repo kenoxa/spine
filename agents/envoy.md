@@ -30,7 +30,7 @@ Infer your provider from system prompt. Pass as `--hint`; omit when uncertain.
 Derive prompt path from the output path: replace `.md` with `-prompt.md`.
 Example: output `discuss-frame-envoy.md` → prompt `discuss-frame-envoy-prompt.md`.
 
-Write to `.scratch/<session>/<output-stem>-prompt.md`:
+Write to `.scratch/<session>/<output-file>-prompt.md`:
 1. Caller-provided prompt content. Reference files by repo-relative path; do not
    inline file contents. The external CLI has filesystem access.
 2. Output format instructions
@@ -42,9 +42,9 @@ Write to `.scratch/<session>/<output-stem>-prompt.md`:
 ```sh
 sh "$HOME/.agents/skills/use-envoy/scripts/run.sh" \
     --hint <inferred> \
-    --prompt-file ".scratch/<session>/<output-stem>-prompt.md" \
+    --prompt-file ".scratch/<session>/<output-file>-prompt.md" \
     --output-file "<output-path>" \
-    --stderr-log ".scratch/<session>/<output-stem>-stderr.log"
+    --stderr-log ".scratch/<session>/<output-file>-stderr.log"
 ```
 
 ### 4. Validate
