@@ -30,6 +30,7 @@ discover_files() {
   cd "$REPO_ROOT"
   {
     # Root files
+    echo "AGENTS.md"
     echo "SPINE.md"
     # Agent files
     printf '%s\n' agents/*.md

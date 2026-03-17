@@ -1,5 +1,7 @@
 # Contributing
 
+AI contributors: see `AGENTS.md` for per-invocation constraints and token budgets.
+
 ## Repo Structure
 
 ```
@@ -136,3 +138,4 @@ Before submitting changes:
 - [ ] Anti-patterns are one line each
 - [ ] Cross-references to global skills are registered in `docs/global-skills.md`
 - [ ] SPINE.md stays under ~1800 tokens
+- [ ] AGENTS.md stays under ~1000 tokens
