@@ -170,7 +170,7 @@ skills/do-execute/
 - **No concurrent writes**: per-agent naming convention enforces isolation
 - **Prompt-only data channel**: parent-to-child passes paths, not content
 - **Implicit batch barrier**: all agents in one turn complete before orchestrator continues
-- **Agent files unchanged**: refactoring touches SKILL.md and references/ only
+- **Agent files unchanged** (skill migration phases): refactoring touches SKILL.md and references/ only. Relaxed during agent mode extraction (§ Migration > Agent Mode Extraction).
 
 ### Known Risks
 
@@ -188,6 +188,7 @@ skills/do-execute/
 2. **do-execute** — Tier B, tests mode-specific orchestrator refs.
 3. **do-discuss** — Tier B, most complex (tiered escalation, conditional phases).
 4. **run-\* skills** — run-review, run-debug, run-recap, run-insights, run-polish. Tier A, lighter.
+5. **Agent mode extraction** — terminal phase. Requires all skill migrations complete first.
 
 ### Per-Skill Migration Steps
 
@@ -197,8 +198,38 @@ skills/do-execute/
 4. Validate: run refactored skill on test task, compare output artifacts to baseline
 5. Confirm all phases execute and all expected output files produced
 
+### Agent Mode Extraction
+
+Terminal phase — runs after all skill migrations complete. Agents become pure base behavior; all role-specific instructions move to reference files.
+
+**Principle**: agent + reference = augmented behavior. Agents define *what* the role does generically. References define *how* in a specific skill context. Modes in agents are pre-baked references that belong in the reference layer.
+
+**Scope**: 7 agents, ~20 roles total.
+
+| Agent | Current modes | Type | Action |
+|-------|--------------|------|--------|
+| implementer | implement, polish-apply, review-fix | explicit `## Mode Routing` | Extract bullets → skill refs |
+| framer | stakeholder-advocate, systems-thinker, skeptic | explicit `## Mode Routing` | Extract bullets → skill refs |
+| analyst | conventions-advisor, complexity-advisor, efficiency-advisor | explicit `## Mode Routing` | Extract bullets → skill refs |
+| navigator | raw-docs, alternatives, synthesis | explicit `## Mode Routing` | Extract bullets → skill refs |
+| scout | orient, trace, audit | explicit `## Thoroughness` | Extract bullets → skill refs |
+| debater | thesis-champion, counterpoint-dissenter, tradeoff-analyst | implicit via dispatch | Author new skill refs |
+| planner | rigorous, creative | implicit via dispatch | Author new skill refs |
+
+**Per-agent steps**:
+
+1. Consumer audit: identify all skills dispatching this agent (repo-wide, not just migration tracker)
+2. For each consumer skill: verify a reference file exists covering the dispatched role. Author if missing.
+3. Remove `## Mode Routing` (or equivalent) section from agent file
+4. Clean base text: remove mode-name references (e.g., scout "Default to orient", navigator "mode: synthesis (default)")
+5. Validate: run each consumer skill on a test task, confirm role behavior preserved
+
+**Enforcement gate**: after extraction, no agent file contains mode enumeration and no skill dispatches an agent without a reference path.
+
 ### Risk Assessment
 
 - Inline cross-references between phases may break when extracted
 - Mainthread state that subagents currently inherit implicitly must become explicit in dispatch prompt
 - Conditional logic spanning multiple sections needs careful untangling
+- Non-tracked skills (e.g., run-architecture-audit dispatches @scout with audit thoroughness) depend on agent modes — consumer audit must be repo-wide
+- Scout and navigator base text contains mode-name defaults requiring semantic rewrite, not just deletion
