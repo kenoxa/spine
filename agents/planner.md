@@ -34,3 +34,7 @@ Structure output as:
 5. **Synthesis weights** — what synthesis should take from this plan
 
 Tag all claims with evidence levels (see AGENTS.md for E0–E3 definitions).
+
+## Architecture Depth
+
+When `architecture-depth` variance lens is active: generate 2+ radically different interface designs per key_decision that involves module boundaries.
