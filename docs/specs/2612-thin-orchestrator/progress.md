@@ -9,7 +9,7 @@ Session: `thin-orchestrator-ref-arch-7ff2`
 
 | Skill | Tier | Status | Notes |
 |-------|------|--------|-------|
-| do-plan | A | done | 90L orchestrator + 12 per-role refs + 1 rename |
+| do-plan | A | done | ~1250 token orchestrator + 12 per-role refs + 1 rename |
 | do-execute | B | pending | Tests mode-specific orchestrator refs |
 | do-discuss | B | pending | Most complex — tiered escalation |
 | run-review | A | pending | |
@@ -42,8 +42,8 @@ Session: `thin-orchestrator-ref-arch-7ff2`
 ## Open Questions (resolved)
 
 1. Framing phase — may stay mainthread or be dispatched; decide per-skill during planning
-2. Reference size — 30–80L soft target; >100L flagged
-3. Orchestrator ref size — 80–120L acceptable for Tier B
+2. Reference size — 250–800 token soft target; >1000 tokens flagged
+3. Orchestrator ref size — 1000–1500 tokens acceptable for Tier B
 4. do-execute focused depth — inline instructions in orchestrator ref
 5. Navigator — agent file only unless behavior diverges
 6. Migration order — do-plan → do-execute → do-discuss → run-*

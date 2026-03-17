@@ -72,7 +72,7 @@ it to a directive in the main instructions instead.
 
 ### Size
 
-Keep under 500 lines. If examples push past the limit, extract to
+Keep under 5000 tokens. If examples push past the limit, extract to
 `references/examples.md` and link from the relevant section. NEVER nest deeper
 than `skill.md → references/file.md`.
 

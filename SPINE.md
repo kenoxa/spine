@@ -20,7 +20,7 @@
 
 ## Code Quality
 
-- Functions: ≤100 lines, cyclomatic complexity ≤8, ≤5 positional parameters.
+- Functions: ≤1000 tokens, cyclomatic complexity ≤8, ≤5 positional parameters.
 - Fail fast with actionable messages. Never swallow exceptions. Include context: operation, input, suggested fix.
 - Test behavior, not implementation. Cover edges and error paths. Mock only at boundaries (network, filesystem, external services).
 - Fix all linter, type-checker, and compiler warnings in changed code. Suppress only with inline justification.

@@ -4,7 +4,7 @@
 
 Briefs MUST be understandable without chat-history context. Claims cite evidence; terms defined at first use. No references to prior conversation turns.
 
-Target ~80 lines. Longer signals unresolved ambiguity or prose-table duplication.
+Target ~750 tokens. Longer signals unresolved ambiguity or prose-table duplication.
 
 ## Required Sections
 

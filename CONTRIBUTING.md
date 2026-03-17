@@ -18,7 +18,8 @@ Use `/use-skill-craft` — it covers the full authoring workflow. Key points:
 1. **Pass the authoring test**: Would an LLM perform the task worse without this skill? If the agent can figure it out from general knowledge or target files, don't create the skill.
 2. **Structure**: `frontmatter → overview → core directives → anti-patterns`. No other sections unless prerequisites require it.
 3. **Be concrete**: Vague directives fail the authoring test. "Handle errors properly" is cut. "Fail-closed: deny by default, allowlist explicitly" stays.
-4. **Size**: Under 500 lines. Extract examples and templates to `references/` if needed. Never nest deeper than `SKILL.md → references/file.md`.
+4. **Size**: Under 5000 tokens. Extract examples and templates to `references/` if needed. Never nest deeper than `SKILL.md → references/file.md`.
+   All size thresholds use token counts (o200k_base encoding). Verify with any o200k_base tokenizer (e.g., `tokenizer -f <file> -m gpt-4.1`).
 5. **Scripts**: Acceptable when the task involves processing data volumes exceeding LLM context limits. Place in `scripts/` subdirectory of the skill. Document runtime requirements (e.g., Python 3.9+) in the skill description. Keep scripts stdlib-only — no package-manager dependencies.
 
 ### Frontmatter
@@ -134,4 +135,4 @@ Before submitting changes:
 - [ ] No tool-specific references (k5-*, nestor, dotcursor)
 - [ ] Anti-patterns are one line each
 - [ ] Cross-references to global skills are registered in `docs/global-skills.md`
-- [ ] SPINE.md stays under ~100 lines
+- [ ] SPINE.md stays under ~1800 tokens

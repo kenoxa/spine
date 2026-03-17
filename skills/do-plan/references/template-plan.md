@@ -4,7 +4,7 @@
 
 Plans MUST be executable without chat-history context. Paths are repo-relative; terms defined at first use; rationale included for material decisions. No references to prior conversation turns.
 
-Target ~150 lines. Longer signals narrative Summary or prose-heavy Task descriptions.
+Target ~1500 tokens. Longer signals narrative Summary or prose-heavy Task descriptions.
 
 ## Required Sections
 

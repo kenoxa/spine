@@ -26,7 +26,7 @@ Distill accumulated session context into a self-contained prompt a fresh session
 
 ## Artifact Format
 
-Actionable without session history — no "what we discussed", no conversation-turn pointers. All paths repo-relative. Under 80 lines — longer means Filter was too loose.
+Actionable without session history — no "what we discussed", no conversation-turn pointers. All paths repo-relative. Under 800 tokens — longer means Filter was too loose.
 
 | Section | Required | Content |
 |---------|----------|---------|

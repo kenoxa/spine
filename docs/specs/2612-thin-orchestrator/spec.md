@@ -4,7 +4,7 @@ Skills become minimal orchestrators that sequence subagent dispatches via file r
 
 ## Problem
 
-Large skill files (do-discuss 268L, do-execute 217L, do-plan 185L) cause instruction forgetting. Context bleed hierarchy: reading subagent results back into mainthread (worst) > skill file size > conversation growth. The mainthread forgets dispatch rules, skips phases, or misroutes agents as context fills.
+Large skill files (do-discuss ~4500, do-execute ~2900, do-plan ~2200 tokens) cause instruction forgetting. Context bleed hierarchy: reading subagent results back into mainthread (worst) > skill file size > conversation growth. The mainthread forgets dispatch rules, skips phases, or misroutes agents as context fills.
 
 ## Architecture
 
@@ -25,7 +25,7 @@ Orchestrator (SKILL.md)
 
 ### Composition Model
 
-Agent files (40–81L) = base behavior. Reference files = task-specific instructions. Augmentation — reference adds to agent, never replaces.
+Agent files (250–750 tokens) = base behavior. Reference files = task-specific instructions. Augmentation — reference adds to agent, never replaces.
 
 ### Synthesizer as Aggregation Proxy
 
@@ -42,20 +42,21 @@ Orchestrator never reads full subagent outputs. Dispatches synthesizer with file
 
 ### Complexity Tiers
 
-**Tier A — Routing Table** (~40–60L SKILL.md)
+**Tier A — Routing Table** (~500–750 token SKILL.md)
 Single dispatch sequence regardless of input. SKILL.md is a flat phase table.
 Candidates: do-plan, run-review, run-debug, run-recap, run-insights, run-polish.
 
-**Tier B — Mode-Specific Orchestrator References** (~20L SKILL.md + one orchestrator ref per mode)
+**Tier B — Mode-Specific Orchestrator References** (~250 token SKILL.md + one orchestrator ref per mode)
 Multiple dispatch sequences selected by input shape. SKILL.md classifies input, lazy-loads matching orchestrator reference.
 Candidates: do-discuss, do-execute.
 
 ### Reference File Guidelines
 
 - **Per-role granularity**: each subagent loads exactly one reference matching its role. Zero noise from other roles.
-- **Size target**: 30–80 lines. Flag >100L for decomposition review.
+- **Size target**: 250–800 tokens. Flag >1000 tokens for decomposition review.
 - **Self-sufficiency**: understandable without the SKILL.md that dispatches it.
-- **Orchestrator refs (Tier B)**: 80–120L acceptable — replaces the full monolithic SKILL.md.
+- **Orchestrator refs (Tier B)**: 1000–1500 tokens acceptable — replaces the full monolithic SKILL.md.
+- **Measurement**: token counts via o200k_base encoding (e.g., `tokenizer -f <file> -m gpt-4.1`). ±2% vs Claude tokenizer at instruction-file scale.
 - **Naming convention** — type-first prefix, consistent across all reference types:
   - Role: `{phase}-{role}.md` or `{role}.md` (e.g., `discovery-file-scout.md`, `planning.md`)
   - Orchestrator: `orchestrate-{mode}.md` (e.g., `orchestrate-normal.md`)
@@ -94,7 +95,7 @@ The orchestrator constructs absolute paths for dispatch prompts. Subagents recei
 
 ```
 skills/do-plan/
-  SKILL.md                          # ~50L orchestrator
+  SKILL.md                          # ~500 token orchestrator
   references/
     discovery-file-scout.md         # NEW — file-scout role
     discovery-docs-explorer.md      # NEW — docs-explorer role
@@ -120,7 +121,7 @@ Dispatch flow:
 
 ```
 skills/do-discuss/
-  SKILL.md                          # ~20L intake + lazy-load
+  SKILL.md                          # ~250 token intake + lazy-load
   references/
     orchestrate-normal.md           # NEW — tier 1-3 dispatch sequence
     orchestrate-spec-creation.md    # NEW — spec-creation dispatch
@@ -148,7 +149,7 @@ Dispatch flow (normal mode):
 
 ```
 skills/do-execute/
-  SKILL.md                          # ~20L entry gate + depth classification
+  SKILL.md                          # ~250 token entry gate + depth classification
   references/
     orchestrate-focused.md          # NEW — inline execution (no subagents)
     orchestrate-standard.md         # NEW — standard dispatch sequence
@@ -192,7 +193,7 @@ skills/do-execute/
 
 ### Per-Skill Migration Steps
 
-1. Decomposition inventory: map SKILL.md sections → reference files (line ranges → target files)
+1. Decomposition inventory: map SKILL.md sections → reference files (token budgets → target files)
 2. Extract reference files — write new, verify self-sufficiency
 3. Thin SKILL.md to orchestrator — replace inline instructions with dispatch + reference paths
 4. Validate: run refactored skill on test task, compare output artifacts to baseline

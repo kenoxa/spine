@@ -64,7 +64,7 @@ Overhead only justified for complex dependency graphs — not for linear flows.
 | ID | Anti-Pattern | Fix |
 |----|-------------|-----|
 | AP-1 | No goals/anti-goals — skill activates for wrong tasks | Add When to Use AND When NOT to Use with named alternatives |
-| AP-2 | Monolithic SKILL.md >500 lines — LLM loses focus | Split into references/ and workflows/ |
+| AP-2 | Monolithic SKILL.md >5000 tokens — LLM loses focus | Split into references/ and workflows/ |
 | AP-3 | Reference chains (A->B->C) — context breaks | All files one hop from SKILL.md |
 | AP-4 | Unnumbered phases — unreliable execution order | Number every phase with entry/exit criteria |
 | AP-5 | Missing exit criteria — "done" undefined | Define completion condition per phase |
