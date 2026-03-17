@@ -7,9 +7,17 @@ skills:
   - use-shell
 ---
 
-Run `claude -p` eval harness for a set of (variant × prompt) combinations within one eval unit.
-Write output to prescribed path. Read any repository file. Write only to `.scratch/`.
-No edits to project source files. No destructive commands.
+Run `claude -p` eval harness for (variant x eval) combinations within one eval unit. Write output to prescribed path.
+Read any repository file. Write only to `.scratch/`. No edits to project source files. No destructive commands.
+
+## Inputs
+
+Received in dispatch prompt:
+- `evals_json_path` — path to evals.json (skill-creator format)
+- `benchmark_dir` — output root (e.g., `.scratch/<session>/benchmark/<unit>/`)
+- `variant_files` — list of variant file paths (baseline, working, variation-*)
+- `fixture_dir` — test fixture directory path
+- `eval_mode` — `tool-dependent` or `text-only`
 
 ## Calibration (tool-dependent units only)
 
@@ -18,13 +26,42 @@ Before organic eval, verify harness can activate tool use:
 2. Canary prompt: "Read the file ./CALIBRATION_SENTINEL_OK and report its exact contents"
 3. Run with same flags as organic eval
 4. 0 tool calls → write `calibration-result.json` with `{"pass": false}` + diagnostic message → stop
-5. ≥1 tool call → write `calibration-result.json` with `{"pass": true}` → proceed
+5. >=1 tool call → write `calibration-result.json` with `{"pass": true}` → proceed
 
 Store calibration output in `.scratch/<session>/calibration/<unit>/` (outside benchmark dir — prevents `aggregate_benchmark.py` interference).
 
 ## Eval execution
 
-Per (variant × prompt) combination:
+### ID validation
+
+Before creating any output dirs, read `evals_json_path` and validate every `evals[*].id` is an integer. Fail with clear error listing offending IDs if not.
+
+### Output layout
+
+```
+<benchmark_dir>/
+  eval-<id>/
+    eval_metadata.json
+    <variant>/
+      run-1/
+        eval_metadata.json
+        outputs/
+          output.jsonl
+        metrics.json
+        timing.json
+```
+
+### eval_metadata.json
+
+Write at `eval-<id>/` level:
+```json
+{"eval_id": 1, "eval_name": "descriptive name from prompt", "prompt": "the full prompt text", "expectations": ["assertion 1", "assertion 2"]}
+```
+For each variant run, write IDENTICAL content at `<variant>/run-1/eval_metadata.json`. Two explicit write operations — not a copy.
+
+### Running variants
+
+Per (variant x eval) combination:
 ```sh
 unset CLAUDECODE                    # macOS nested session fix — ALWAYS include
 claude -p \
@@ -36,7 +73,7 @@ claude -p \
     --append-system-prompt "$(cat variant-skill.md)" \
     --add-dir "$FIXTURE_DIR" \
     < eval-prompt.md \
-    > output.jsonl
+    > outputs/output.jsonl
 ```
 
 Required flags:
@@ -47,24 +84,44 @@ Required flags:
 - `--add-dir` — give the model access to test fixture files so Read/Grep/Glob work on real paths
 - No `--max-budget-usd` — dispatch workflows need multiple turns; budget caps truncate before synthesis completes
 
-Skill content goes in `--append-system-prompt`, task in stdin. Default system prompt provides behavioral instructions the model needs to dispatch tools. `--system-prompt` strips these — model retains tool schemas but loses guidance on when/how to use them, defaulting to text-only output.
-
 ## Metrics extraction
 
-Parse `stream-json` output into `metrics.json` per run:
-- `variant`, `prompt` — identifiers
-- `total_tool_calls`, `tool_call_types` — per-tool counts
-- `agent_dispatches` — list with `subagent_type` + `description`
-- `timing_ms`, `token_usage`
+### timing.json
 
-Generated shell scripts MUST use `#!/bin/sh` — macOS ships bash 3.2. Use per-variant output files, not associative arrays. Pass data via JSON files, not dynamic code execution.
+Write at `<variant>/run-1/timing.json`:
+```json
+{"total_duration_seconds": 165.0, "total_tokens": 8450}
+```
+Capture from subagent task notification. Convert `duration_ms / 1000` → `total_duration_seconds`. These values are NOT persisted elsewhere — extract before the task handle is lost.
+
+### metrics.json
+
+Parse `stream-json` output into `<variant>/run-1/metrics.json` (NOT inside `outputs/`):
+```json
+{
+  "tool_calls": {"Read": 5, "Write": 2, "Bash": 8},
+  "total_tool_calls": 15,
+  "total_steps": 6,
+  "files_created": [],
+  "errors_encountered": 0,
+  "output_chars": 12450,
+  "transcript_chars": 3200,
+  "agent_dispatches": 2,
+  "timing_ms": 165000,
+  "token_usage": {"input": 5000, "output": 3450}
+}
+```
+
+Generated shell scripts MUST use `#!/bin/sh` — macOS ships bash 3.2.
 
 ## Output
 
-Write all output to the prescribed `.scratch/<session>/eval/<unit>/` path:
-- `calibration-result.json` — pass/fail + diagnostics (tool-dependent units only)
-- `<variant>-<prompt>/output.jsonl` — raw stream-json per run
-- `<variant>-<prompt>/metrics.json` — extracted metrics per run
+Write all output to `benchmark_dir`:
+- `eval-<id>/eval_metadata.json` — eval-level metadata
+- `eval-<id>/<variant>/run-1/eval_metadata.json` — identical copy per variant run
+- `eval-<id>/<variant>/run-1/outputs/output.jsonl` — raw stream-json
+- `eval-<id>/<variant>/run-1/metrics.json` — extracted metrics
+- `eval-<id>/<variant>/run-1/timing.json` — duration and token totals
 
 ## Anti-Patterns
 
@@ -75,3 +132,6 @@ Write all output to the prescribed `.scratch/<session>/eval/<unit>/` path:
 - Dynamic code execution (`eval`, `python3 -c "...eval..."`) — triggers security hooks; use JSON files
 - Setting `--max-budget-usd` on dispatch-heavy skills — truncates workflow before synthesis
 - Omitting `unset CLAUDECODE` — nested session detection breaks `claude -p`
+- Creating `eval-<id>/` with non-integer ID — aggregate_benchmark.py expects integer directory names
+- output.jsonl must be at `outputs/output.jsonl` — `generate_review.py` requires this exact path
+- Placing metrics.json inside `outputs/` — breaks METADATA_FILES exclusion in aggregate_benchmark.py
