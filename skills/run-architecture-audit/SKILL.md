@@ -15,7 +15,16 @@ Read-only audit — no file writes, no code changes.
 
 Cross-reference: `do-plan/references/deep-modules.md` for depth heuristics, dependency categories, Design It Twice.
 
-Follow [references/audit-workflow.md](references/audit-workflow.md).
+## Phases
+
+All phases: [orchestrate-audit.md](references/orchestrate-audit.md).
+
+| Phase | Agent | Reference |
+|-------|-------|-----------|
+| Scope | `@scout` | shared |
+| Explore | `@scout` | shared |
+| Analyze | `@researcher` | shared |
+| Synthesize | `@synthesizer` | shared |
 
 ## Candidate Format
 
