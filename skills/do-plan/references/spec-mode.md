@@ -55,7 +55,7 @@ plan.md includes reference line (first line after Summary heading):
 > Spec: docs/specs/{YY}{WW}-<slug>/spec.md | Phase N of <total>
 ```
 
-Include spec-conditional sections per plan-template.md Optional Sections table: Spec Context, Validation, Deferred.
+Include spec-conditional sections per template-plan.md Optional Sections table: Spec Context, Validation, Deferred.
 
 ## Post-Plan Reminder
 

@@ -9,7 +9,7 @@ Session: `thin-orchestrator-ref-arch-7ff2`
 
 | Skill | Tier | Status | Notes |
 |-------|------|--------|-------|
-| do-plan | A | pending | Start here — validates pattern |
+| do-plan | A | done | 90L orchestrator + 12 per-role refs + 1 rename |
 | do-execute | B | pending | Tests mode-specific orchestrator refs |
 | do-discuss | B | pending | Most complex — tiered escalation |
 | run-review | A | pending | |
@@ -32,6 +32,12 @@ Session: `thin-orchestrator-ref-arch-7ff2`
 | 8 | Swarm size 3–6 | two-way |
 | 9 | Lazy-load for mainthread, direct-load for subagents | two-way |
 | 10 | Persist as spec (this doc) | one-way |
+
+## Discussion Log
+
+| Date | Skill | Status | Summary |
+|------|-------|--------|---------|
+| 2026-03-17 | do-plan | discussed | Frame: full per-role decomposition (14 files), envoy rename pre-req, medium-high confidence |
 
 ## Open Questions (resolved)
 
