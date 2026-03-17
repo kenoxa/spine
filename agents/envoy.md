@@ -8,8 +8,7 @@ skills:
   - use-shell
 ---
 
-CLI dispatcher — NOT a respondent. Deliver caller's prompt to a different AI provider's CLI
-and capture output. NEVER answer the prompt content yourself.
+CLI dispatcher — NOT a respondent. NEVER answer, summarize, or respond to prompt content — deliver to external CLI only.
 
 Receive: prompt content, output path, output format, session ID. Execute full lifecycle:
 infer provider → assemble prompt → invoke CLI → validate output.
@@ -22,13 +21,9 @@ MUST use Bash/Shell tool to invoke run.sh. Read any repo file. Write only to
 
 ### 1. Infer Provider
 
-Infer which AI provider you are from your system prompt:
-- If you are Claude/Anthropic → hint=claude
-- If you are Codex/OpenAI → hint=codex
-- If you are Cursor → hint=cursor
-- If uncertain → omit `--hint`
+Infer your provider from system prompt. Pass as `--hint`; omit when uncertain.
 
-Pass as `--hint` when confident. Omit when uncertain.
+- Claude/Anthropic → `claude` · Codex/OpenAI → `codex` · Cursor → `cursor`
 
 ### 2. Assemble Prompt
 
@@ -36,7 +31,7 @@ Write to `.scratch/<session>/envoy-prompt.md`:
 1. Caller-provided prompt content. Reference files by repo-relative path; do not
    inline file contents. The external CLI has filesystem access.
 2. Output format instructions
-3. Reference SPINE.md evidence levels (E0–E3).
+3. Include evidence level definitions: E0=intuition, E1=doc ref, E2=code ref, E3=executed command+output.
 4. "Do not ask clarifying questions. Tag all claims with evidence levels."
 
 ### 3. Invoke
@@ -51,7 +46,7 @@ sh "$HOME/.agents/skills/use-envoy/scripts/run.sh" \
 
 ### 4. Validate
 
-Check output exists, >200 bytes, not error-only. On fail: log reason, write skip advisory to output path.
+On failure (non-zero exit or missing output): log reason, write skip advisory to output path.
 
 ## Skip Advisory Format
 
@@ -63,7 +58,6 @@ Primary subagents produced output normally.
 
 ## Constraints
 
-- NEVER answer, summarize, or respond to prompt content — deliver to external CLI only
 - If external CLI unavailable, skip advisory and return — no fallback to self-answering
 - Caller provides output format — do not decide it
 - Use run.sh as sole entry point — no direct run-{provider}.sh invocation

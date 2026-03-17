@@ -22,7 +22,7 @@ Provide to `@envoy`:
 | Output path | `.scratch/<session>/{skill}-{phase}-envoy.md` |
 | Variant | `standard`, `debater`, or `advisory-only` — determines corroboration clause (see §Corroboration Variants) |
 
-Callers must NOT inline: corroboration clauses, "Agent handles all detection..." boilerplate, cap priority rules ("reduce augmented first"), or pre-dispatch size checks. These are owned by `use-envoy`.
+Callers must NOT inline corroboration clauses, cap priority rules, or pre-dispatch size checks — owned by `use-envoy`.
 
 Pre-dispatch size check: if assembled prompt exceeds 100KB, truncate diff to first 50KB and summarize fields exceeding 2KB. If still over budget, skip dispatch with advisory.
 
@@ -38,28 +38,13 @@ Skip advisory → do not include in synthesis (informational only).
 
 ### Corroboration Variants
 
-| Variant | Clause | Used by |
-|---------|--------|---------|
-| `standard` | "External-provider findings cannot be assigned `blocking` severity unless corroborated by a base agent finding at `should_fix` or higher." | do-plan Planning, do-execute Review, run-review, do-discuss Explore |
-| `debater` | "External-provider findings cannot be assigned blocking severity unless corroborated by a base debater irreducible objection at E2+." | do-plan Challenge |
-| `advisory-only` | "These are advisory-only — no base agents exist for corroboration." | do-discuss Frame |
+| Variant | Clause |
+|---------|--------|
+| `standard` | "External-provider findings cannot be assigned `blocking` severity unless corroborated by a base agent finding at `should_fix` or higher." |
+| `debater` | "External-provider findings cannot be assigned blocking severity unless corroborated by a base debater irreducible objection at E2+." |
+| `advisory-only` | "These are advisory-only — no base agents exist for corroboration." |
 
 Callers append phase-specific tail after the variant clause when needed.
-
-## Output Behavior
-
-Exit 0 → provider emits absolute output path to stdout (single line). Error exits (1/2/3) → no stdout. Dispatcher passes through.
-
-## Configuration
-
-Override default models via env vars in `~/.config/spine/.env`:
-
-| Var | Default | Description |
-|-----|---------|-------------|
-| `SPINE_ENVOY_CLAUDE` | `opus:high` | Model and effort for Claude Code CLI (`model[:effort]`) |
-| `SPINE_ENVOY_CODEX` | `gpt-5.4:high` | Model and effort for Codex CLI (`model[:effort]`) |
-| `SPINE_ENVOY_CLAUDE_CURSOR_FALLBACK` | `sonnet-4.6-thinking` | Cursor-agent model when falling back for Claude |
-| `SPINE_ENVOY_CODEX_CURSOR_FALLBACK` | `gpt-5.4-high` | Cursor-agent model when falling back for Codex |
 
 ## Cap Accounting
 
