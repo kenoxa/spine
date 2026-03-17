@@ -43,7 +43,7 @@ Break the capability into 3-6 phases. Push back outside this range:
 Each phase gets:
 - **Title**: short, action-oriented
 - **Scope**: concrete file/component names — not abstract nouns
-- **Acceptance Criteria**: 2-5 EARS statements per [spec-template.md](spec-template.md)
+- **Acceptance Criteria**: 2-5 EARS statements per [template-spec.md](template-spec.md)
 - **Out of scope**: what this phase explicitly does not touch
 
 ## 3. Envoy Injection Point A
@@ -85,7 +85,7 @@ Skip: proceed without if provider unavailable. Do NOT block on Envoy failure.
 
 ## 6. Output
 
-1. Create `docs/specs/{YY}{WW}-<slug>/spec.md` per the skeleton in [spec-template.md](spec-template.md)
+1. Create `docs/specs/{YY}{WW}-<slug>/spec.md` per the skeleton in [template-spec.md](template-spec.md)
 2. Create `docs/specs/{YY}{WW}-<slug>/progress.md` with scaffold:
    ```markdown
    # Progress: <Feature Name>

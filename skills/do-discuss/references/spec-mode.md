@@ -4,7 +4,7 @@ Activated when user provides a spec document via `@`-reference. Augments normal 
 
 ## Detection
 
-Spec detected by presence of all three markers (per `do-discuss/references/spec-template.md`):
+Spec detected by presence of all three markers (per `do-discuss/references/template-spec.md`):
 - `## Status` table
 - `## Phases` heading
 - `### Phase N:` headings
