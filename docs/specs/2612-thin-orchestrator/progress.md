@@ -1,0 +1,43 @@
+# Progress: Thin Orchestrator Architecture
+
+Spec: [spec.md](spec.md)
+Session: `thin-orchestrator-ref-arch-7ff2`
+
+## Status: spec-complete
+
+## Migration Tracker
+
+| Skill | Tier | Status | Notes |
+|-------|------|--------|-------|
+| do-plan | A | pending | Start here — validates pattern |
+| do-execute | B | pending | Tests mode-specific orchestrator refs |
+| do-discuss | B | pending | Most complex — tiered escalation |
+| run-review | A | pending | |
+| run-debug | A | pending | |
+| run-recap | A | pending | |
+| run-insights | A | pending | |
+| run-polish | A | pending | |
+
+## Decisions Log
+
+| # | Decision | Door |
+|---|----------|------|
+| 1 | Skills → thin orchestrators | two-way |
+| 2 | Per-role reference granularity | two-way |
+| 3 | Agent + reference = augment | two-way |
+| 4 | Synthesizer as aggregation proxy | two-way |
+| 5 | Session dir as handoff medium | two-way |
+| 6 | Minimal dispatch prompt (paths only) | two-way |
+| 7 | Tier A (routing table) / Tier B (mode-specific refs) | two-way |
+| 8 | Swarm size 3–6 | two-way |
+| 9 | Lazy-load for mainthread, direct-load for subagents | two-way |
+| 10 | Persist as spec (this doc) | one-way |
+
+## Open Questions (resolved)
+
+1. Framing phase — may stay mainthread or be dispatched; decide per-skill during planning
+2. Reference size — 30–80L soft target; >100L flagged
+3. Orchestrator ref size — 80–120L acceptable for Tier B
+4. do-execute focused depth — inline instructions in orchestrator ref
+5. Navigator — agent file only unless behavior diverges
+6. Migration order — do-plan → do-execute → do-discuss → run-*
