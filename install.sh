@@ -86,8 +86,11 @@ dep_present() {
 has_brew() { command -v brew >/dev/null 2>&1; }
 
 brew_formula_name() {
-  [ "$1" = "python3" ] && { echo "python"; return 0; }
-  echo "$1"
+  case "$1" in
+    python3)   echo "python" ;;
+    tokenizer) echo "zahidcakici/tap/tokenizer" ;;
+    *)         echo "$1" ;;
+  esac
 }
 
 # Install a Homebrew formula if not already on PATH or installed via brew.
@@ -128,6 +131,7 @@ ensure_system_deps() {
     sd
     shellcheck
     shfmt
+    tokenizer
   )
 
   local use_brew=false

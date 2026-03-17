@@ -19,7 +19,7 @@ Use `/use-skill-craft` — it covers the full authoring workflow. Key points:
 2. **Structure**: `frontmatter → overview → core directives → anti-patterns`. No other sections unless prerequisites require it.
 3. **Be concrete**: Vague directives fail the authoring test. "Handle errors properly" is cut. "Fail-closed: deny by default, allowlist explicitly" stays.
 4. **Size**: Under 5000 tokens. Extract examples and templates to `references/` if needed. Never nest deeper than `SKILL.md → references/file.md`.
-   All size thresholds use token counts (o200k_base encoding). Verify with any o200k_base tokenizer (e.g., `tokenizer -f <file> -m gpt-4.1`).
+   All size thresholds use token counts (o200k_base encoding). Verify with any o200k_base tokenizer (e.g., `tokenizer -f <file> -m gpt-4.1`; installed by `install.sh` or `brew install zahidcakici/tap/tokenizer`).
 5. **Scripts**: Acceptable when the task involves processing data volumes exceeding LLM context limits. Place in `scripts/` subdirectory of the skill. Document runtime requirements (e.g., Python 3.9+) in the skill description. Keep scripts stdlib-only — no package-manager dependencies.
 
 ### Frontmatter
