@@ -8,56 +8,50 @@ description: >
 argument-hint: "[error, failing test, or symptom]"
 ---
 
-Diagnose root cause and fix: observe → pattern → hypothesis → harden.
+Diagnose root cause and fix: observe → pattern → hypothesis → harden. Subagent-dispatched with orchestrator-managed loop.
 
-## 1. Observe and Capture
+## Phase Table
 
-Reproduce deterministically. Capture exact error, steps, environment, variance. Record known vs unknown before editing code.
+| Phase | Agent | Reference |
+|-------|-------|-----------|
+| Observe | `@scout` | [observe-scout.md](references/observe-scout.md) |
+| Pattern | `@researcher` | [pattern-researcher.md](references/pattern-researcher.md) |
+| Hypothesis | `@implementer` | [hypothesis-implementer.md](references/hypothesis-implementer.md) |
+| Harden | `@implementer` | [harden-implementer.md](references/harden-implementer.md) |
 
-## 2. Pattern Analysis
+## Loop State
 
-Generate 5–7 falsifiable hypotheses from distinct failure classes: timing, data shape, config, ordering, boundary, dependency, environment. Narrow to 1–2 most likely on static evidence only — no code changes yet. Deprioritize rest as `LOW-PRIOR: <reason>`; revisit if all Phase 3 survivors fail. Narrow to smallest collision zone distinguishing surviving hypotheses.
-
-## 3. Hypothesis Testing
-
-If non-deterministic, stabilize first. Static analysis before instrumentation.
-
-Wrap each instrumentation block: `DEBUG:start-<tag>` / `DEBUG:end-<tag>` in language comment syntax; `<tag>` = 4-char session hash (`openssl rand -hex 2`). Add broad instrumentation covering all surviving hypotheses simultaneously. Statements append to `.scratch/<session>/debug.log`; clear before each reproduction run.
-
-Reproduce. Analyze `debug.log` to eliminate hypotheses in one pass. Record eliminated as `DEAD END: <reason>`. Narrow to survivors. Repeat until one confirmed (E3).
-
-Removal command (user runs):
 ```
-rg -l 'DEBUG:start-<tag>' . | xargs sd -f ms '[^\n]*DEBUG:start-<tag>[^\n]*\n[\s\S]*?[^\n]*DEBUG:end-<tag>[^\n]*\n' ''
+hypothesis_attempts: 0        # increment on each hypothesis dispatch, cap 3
+dead_ends: .scratch/<session>/debug-dead-ends.md   # append-only
+current_phase: observe         # observe | pattern | hypothesis | harden
+instrumentation_tag: <4-char hex from openssl rand -hex 2>  # generated once per session
 ```
 
-All candidates DEAD END → escalate. Failed hypothesis → return to Phase 1, not forward. This is a loop.
+## Flow
 
-## 4. Implement and Harden
+```
+observe(@scout) → pattern(@researcher) → hypothesis(@implementer) → harden(@implementer)
+```
 
-Apply smallest fix resolving confirmed root cause. Harden to make bug class impossible:
-- Entry validation
-- Domain invariants
-- Environment guardrails
-- Regression test coverage
+**Backtrack**: hypothesis fails → orchestrator appends failed hypotheses to `dead_ends` → increment `hypothesis_attempts` → re-dispatch observe with `dead_ends` path.
 
-Verification requires current-run evidence (E3). Confirm instrumentation removed: `rg 'DEBUG:start-<tag>' .` returns zero hits before marking complete. Semantic regression → re-enter Phase 1. Non-semantic failure (lint, format) → fix inline.
+**Proceed**: hypothesis confirmed → dispatch harden with confirmed hypothesis.
 
-## Escalation into Root-Cause Chain
+## Dispatch Protocol
 
-Root cause unclear after Phase 2, or failure spans multiple modules: chain "why" grounded in observed evidence. Stop when cause is actionable. Branching unknowns → return to Phase 1.
+Each dispatch is self-contained. Pass by path:
+- Observe: error description, `dead_ends` path (if backtracking)
+- Pattern: `debug-observe.md` path, `dead_ends` path (if exists)
+- Hypothesis: `debug-pattern.md` path, `dead_ends` path, `instrumentation_tag`
+- Harden: `debug-hypothesis.md` path, `instrumentation_tag`
 
-## Unsticking Patterns
-
-- **Simplification cascade**: strip non-essential parts until failure obvious.
-- **Collision-zone narrowing**: reduce to smallest interacting set that still fails.
-- **Inversion check**: validate assumptions by forcing opposite conditions.
-- **Boundary stress**: test near limits to expose hidden conditions.
-- **Determinism isolation**: fix seed, mock time, remove network/filesystem calls until failure reproduces on demand.
+After each hypothesis dispatch, orchestrator reads `debug-hypothesis.md` header (`status: confirmed|failed`) to decide backtrack or proceed.
 
 ## Escalation
 
-3 failed hypotheses → escalate with concrete evidence and attempted alternatives. Architectural uncertainty or repeated cross-module failures → re-enter planning (`/do-plan`).
+- 3 failed hypotheses (`hypothesis_attempts >= 5`) → halt loop, report all dead-end evidence to user, suggest `/do-plan` for architectural investigation.
+- Architectural uncertainty or repeated cross-module failures → re-enter planning (`/do-plan`).
 
 ## Anti-Patterns
 
@@ -68,3 +62,7 @@ Root cause unclear after Phase 2, or failure spans multiple modules: chain "why"
 - Claiming completion without current-run verification evidence
 - Adding instrumentation before generating and ranking hypotheses
 - Leaving debug instrumentation in code after confirming and applying fix
+
+## Completion
+
+Verification requires current-run evidence (E3). Confirm instrumentation fully removed before marking complete.

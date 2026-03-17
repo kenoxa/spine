@@ -1,0 +1,77 @@
+# Scope + Context (Phases 1-2)
+
+## Role
+
+Scope and context building for standalone review — main thread phases. Classify depth, lock risk, build understanding before dispatch.
+
+## Input
+
+- User request (file, PR, scope, or free-form review ask)
+- Diff or file list to review
+- Active session ID (if invoked from another skill — inherit; otherwise generate)
+
+## Instructions
+
+### Depth Classification
+
+Classify and lock at end of Phase 1. May upgrade during Phase 2 on strong evidence (auth boundary, privilege escalation, injection surface). Downgrade never permitted.
+
+| Depth | Risk | Behavior |
+|-------|------|----------|
+| `focused` | Low | Phases 1-2 inline -> skip to Phase 6. No dispatch, no session ID, no scratch artifacts (except @visualizer, non-blocking). |
+| `standard` | Medium | Session ID generated. Phases 1-2 inline -> review_brief (Gate A) -> dispatch phases. |
+| `deep` | High | Same as `standard` + expanded security probe + augmented @inspector (cap 6 total). |
+
+**Default standalone: `standard`.**
+
+### Session
+
+At `standard`/`deep`: generate session ID after depth classification. Format: `{slug}-{hash}` — 3-5 words from review scope, hash from `openssl rand -hex 2`. Inherit active session ID when invoked from another skill. All scratch paths: `.scratch/<session>/`.
+
+At `focused`: no session ID.
+
+### Phase 1: Scope
+
+Main thread (all depths). Confirm what was requested and what changed. Classify depth. Lock risk level.
+
+### Phase 2: Context (passes 1-4)
+
+Main thread (all depths). Build understanding before judging. Four passes:
+
+1. **Scope check** — what was requested; what changed; what is explicitly out of scope.
+2. **Context building** — scale depth by risk.
+   - High risk: line-by-line analysis, not gist-level skimming.
+   - Track invariants and assumptions explicitly.
+   - Treat external calls as adversarial until proven otherwise.
+3. **Evidence check** — validate claims against current code and requirements.
+4. **Spec compliance** — verify built behavior matches requested behavior.
+
+At `focused` depth: after pass 4, skip directly to Phase 6.
+
+At `standard`/`deep` depth: after pass 4, emit `review_brief` per [template-review-brief.md](template-review-brief.md) (Gate A) before proceeding.
+
+### Bug-Fix Review
+
+Require root-cause evidence — fix must target source trigger, not symptom. Missing root-cause -> `blocking`.
+
+### Documentation Review
+
+When reviewing docs, READMEs, or user-facing text:
+- Wording precision and actionability
+- Outdated or contradictory statements
+- Command/skill/API names match current surface
+- Claims backed by codebase evidence — unsupported -> `should_fix`
+
+### Gate A: review_brief
+
+After writing review_brief, read it back and confirm all 7 fields present. Dispatch must not begin in the same orchestration turn as the write. If any mandatory field is absent: do NOT proceed to Phase 3. Fall back to inline execution of remaining phases. Log to user: "review_brief incomplete after pass 4; proceeding inline at focused depth."
+
+## Output
+
+`review_brief` written to `.scratch/<session>/review-brief.md` per [template-review-brief.md](template-review-brief.md) schema.
+
+## Constraints
+
+- Read-only — no file writes except review_brief, no test execution.
+- Emitting a `review_brief` without `noise_context` is an error — inspectors will flag pre-existing issues as findings.
+- At `focused` depth, skip dispatch entirely — proceed inline to output phase.

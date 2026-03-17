@@ -1,11 +1,14 @@
 # TODO
 
-- use ask question tool in mainthread
-- run insights on planning sessions: goal reduce planning time while preserving quality
-	- how often did planner complement each other or found real different stratgeties/tactics/solutions
-	- same for other planning phases
-- run insights on execution sessions:
-	- inspector
+- do-execute: always use subagents to protect main context
+- run-skill-eval: on rewriten skills, reference files, and agents
+	- run-insight is suspicous
+- should we re-use run-polish in do-execute?
+- run-review: focused should use subagents as well
+- rename do-commit -> commit
+- https://github.com/mattpocock/skills/blob/main/ubiquitous-language/SKILL.md
+- document handoff/clear/catchup after planning
+- nightly update run sudo?
 - additional core tools:
 	- agent-browser: https://github.com/vercel-labs/agent-browser
 		- `/plugin marketplace add vercel-labs/agent-browser`

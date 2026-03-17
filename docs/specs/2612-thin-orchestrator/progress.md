@@ -10,13 +10,14 @@ Session: `thin-orchestrator-ref-arch-7ff2`
 | Skill | Tier | Status | Notes |
 |-------|------|--------|-------|
 | do-plan | A | done | ~1250 token orchestrator + 12 per-role refs + 1 rename |
-| do-execute | B | pending | Tests mode-specific orchestrator refs |
-| do-discuss | B | pending | Most complex — tiered escalation |
-| run-review | A | pending | |
-| run-debug | A | pending | |
-| run-recap | A | pending | |
-| run-insights | A | pending | |
-| run-polish | A | pending | |
+| do-execute | B | done | Mode-specific orchestrator refs |
+| do-discuss | B | done | Tiered escalation, spec-creation mode |
+| run-review | A | done | Hybrid: routing table + ~25L shared preload rules. 3 phase refs + 1 rename |
+| run-debug | A | done | Workflow redesign: 4-phase subagent dispatch with loop management. 4 new refs |
+| run-recap | A | done | Preamble + 3 format templates split. 4 new refs + 1 delete |
+| run-insights | A | done | Source-expert + synthesizer split. 2 new refs + 1 delete |
+| run-polish | A | done | Content creation: 5 new refs (advisory + synthesis + apply) |
+| run-architecture-audit | A | done | Scope addition. Rename + routing table rewrite |
 
 ## Decisions Log
 
@@ -62,12 +63,12 @@ Measured via `tokenizer -f <file> -m gpt-4.1` (o200k_base encoding). 2026-03-17.
 | do-execute | 1416 | pass |
 | do-plan | 1269 | pass |
 | handoff | 653 | pass |
-| run-architecture-audit | 456 | pass |
-| run-debug | 777 | pass |
-| run-insights | 1180 | pass |
-| run-polish | 584 | pass |
-| run-recap | 1166 | pass |
-| run-review | 988 | pass |
+| run-architecture-audit | — | pending |
+| run-debug | — | pending |
+| run-insights | — | pending |
+| run-polish | — | pending |
+| run-recap | — | pending |
+| run-review | — | pending |
 | use-envoy | 523 | pass |
 | use-explore | 733 | pass |
 | use-js | 714 | pass |
@@ -135,9 +136,23 @@ Measured via `tokenizer -f <file> -m gpt-4.1` (o200k_base encoding). 2026-03-17.
 | do-plan/spec-mode | 653 | pass |
 | do-plan/variance-lenses | 823 | flag |
 | do-plan/vertical-slices | 241 | pass |
-| run-architecture-audit/audit-workflow | 517 | pass |
-| run-insights/analysis-prompts | 836 | flag |
-| run-review/review-brief-schema | 344 | pass |
+| run-architecture-audit/orchestrate-audit | 517 | pass |
+| run-debug/observe-scout | — | pending |
+| run-debug/pattern-researcher | — | pending |
+| run-debug/hypothesis-implementer | — | pending |
+| run-debug/harden-implementer | — | pending |
+| run-insights/analyze-source-expert | — | pending |
+| run-insights/synthesize-miner | — | pending |
+| run-polish/advisory-conventions | — | pending |
+| run-polish/advisory-complexity | — | pending |
+| run-polish/advisory-efficiency | — | pending |
+| run-polish/polish-synthesis | — | pending |
+| run-polish/polish-apply | — | pending |
+| run-recap/dispatch-preamble | — | pending |
+| run-review/scope-context | — | pending |
+| run-review/inspect-dispatch | — | pending |
+| run-review/synthesize-resort | — | pending |
+| run-review/template-review-brief | 344 | pass |
 | use-skill-craft/examples | 531 | pass |
 | use-writing/decision-template | 177 | pass |
 
@@ -155,14 +170,15 @@ Measured via `tokenizer -f <file> -m gpt-4.1` (o200k_base encoding). 2026-03-17.
 | do-discuss/template-brief | 1020 |
 | do-discuss/template-spec | 630 |
 | do-plan/template-plan | 826 |
+| run-recap/template-standup | — |
+| run-recap/template-timesheet | — |
+| run-recap/template-recap | — |
 
 ### Reference Files — Flagged (>1000 tokens, non-orchestrator)
 
 | File | Tokens | Notes |
 |------|--------|-------|
-| run-recap/recap-prompts | 1173 | prompt collection |
 | run-review/security-probe | 1002 | probe checklist |
-| run-review/standalone-workflow | 2022 | full workflow |
 | use-skill-craft/workflow-patterns | 829 | near threshold |
 
 ### Root Files
