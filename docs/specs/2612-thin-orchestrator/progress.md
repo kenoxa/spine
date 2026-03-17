@@ -47,3 +47,127 @@ Session: `thin-orchestrator-ref-arch-7ff2`
 4. do-execute focused depth — inline instructions in orchestrator ref
 5. Navigator — agent file only unless behavior diverges
 6. Migration order — do-plan → do-execute → do-discuss → run-*
+
+## Token Counts
+
+Measured via `tokenizer -f <file> -m gpt-4.1` (o200k_base encoding). 2026-03-17.
+
+### SKILL.md Files (<5000 tokens)
+
+| File | Tokens | Status |
+|------|--------|--------|
+| catchup | 556 | pass |
+| do-commit | 549 | pass |
+| do-discuss | 955 | pass |
+| do-execute | 1416 | pass |
+| do-plan | 1269 | pass |
+| handoff | 653 | pass |
+| run-architecture-audit | 456 | pass |
+| run-debug | 777 | pass |
+| run-insights | 1180 | pass |
+| run-polish | 584 | pass |
+| run-recap | 1166 | pass |
+| run-review | 988 | pass |
+| use-envoy | 523 | pass |
+| use-explore | 733 | pass |
+| use-js | 714 | pass |
+| use-shell | 395 | pass |
+| use-skill-craft | 1169 | pass |
+| use-writing | 473 | pass |
+| with-backend | 132 | pass |
+| with-frontend | 276 | pass |
+| with-testing | 481 | pass |
+
+### Agent Files (250–750 tokens)
+
+| File | Tokens | Status |
+|------|--------|--------|
+| analyst | 298 | pass |
+| debater | 287 | pass |
+| envoy | 562 | pass |
+| framer | 525 | pass |
+| implementer | 462 | pass |
+| inspector | 474 | pass |
+| miner | 450 | pass |
+| navigator | 835 | flag |
+| planner | 377 | pass |
+| researcher | 359 | pass |
+| scout | 461 | pass |
+| synthesizer | 284 | pass |
+| verifier | 572 | pass |
+| visualizer | 217 | pass |
+
+### Reference Files — Role Refs (250–800 tokens, flag >1000)
+
+| File | Tokens | Status |
+|------|--------|--------|
+| do-discuss/frame-dialogue-tracker | 245 | pass |
+| do-discuss/frame-evidence-mapper | 248 | pass |
+| do-discuss/frame-synthesis | 432 | pass |
+| do-discuss/spec-mode | 379 | pass |
+| do-execute/finalize | 778 | pass |
+| do-execute/implement | 407 | pass |
+| do-execute/polish-apply | 427 | pass |
+| do-execute/polish-complexity-advisor | 383 | pass |
+| do-execute/polish-conventions-advisor | 366 | pass |
+| do-execute/polish-efficiency-advisor | 415 | pass |
+| do-execute/polish-synthesis | 504 | pass |
+| do-execute/review-correctness-reviewer | 608 | pass |
+| do-execute/review-envoy | 430 | pass |
+| do-execute/review-risk-reviewer | 628 | pass |
+| do-execute/review-spec-reviewer | 578 | pass |
+| do-execute/review-synthesis | 638 | pass |
+| do-execute/validate | 486 | pass |
+| do-execute/verify | 714 | pass |
+| do-plan/challenge-counterpoint-dissenter | 320 | pass |
+| do-plan/challenge-envoy | 318 | pass |
+| do-plan/challenge-synthesis | 411 | pass |
+| do-plan/challenge-thesis-champion | 329 | pass |
+| do-plan/challenge-tradeoff-analyst | 355 | pass |
+| do-plan/deep-modules | 445 | pass |
+| do-plan/discovery-docs-explorer | 367 | pass |
+| do-plan/discovery-file-scout | 351 | pass |
+| do-plan/discovery-synthesis | 329 | pass |
+| do-plan/planning-creative | 356 | pass |
+| do-plan/planning-envoy | 345 | pass |
+| do-plan/planning-rigorous | 339 | pass |
+| do-plan/planning-synthesis | 363 | pass |
+| do-plan/spec-mode | 653 | pass |
+| do-plan/variance-lenses | 823 | flag |
+| do-plan/vertical-slices | 241 | pass |
+| run-architecture-audit/audit-workflow | 517 | pass |
+| run-insights/analysis-prompts | 836 | flag |
+| run-review/review-brief-schema | 344 | pass |
+| use-skill-craft/examples | 531 | pass |
+| use-writing/decision-template | 177 | pass |
+
+### Reference Files — Orchestrator Refs (1000–1500 tokens)
+
+| File | Tokens | Status |
+|------|--------|--------|
+| do-discuss/orchestrate-discuss | 2367 | flag |
+| do-discuss/orchestrate-spec-creation | 1587 | flag |
+
+### Reference Files — Templates (no hard threshold)
+
+| File | Tokens |
+|------|--------|
+| do-discuss/template-brief | 1020 |
+| do-discuss/template-spec | 630 |
+| do-plan/template-plan | 826 |
+
+### Reference Files — Flagged (>1000 tokens, non-orchestrator)
+
+| File | Tokens | Notes |
+|------|--------|-------|
+| run-recap/recap-prompts | 1173 | prompt collection |
+| run-review/security-probe | 1002 | probe checklist |
+| run-review/standalone-workflow | 2022 | full workflow |
+| use-skill-craft/workflow-patterns | 829 | near threshold |
+
+### Root Files
+
+| File | Tokens | Threshold | Status |
+|------|--------|-----------|--------|
+| SPINE.md | 1764 | ~1800 | pass |
+| CONTRIBUTING.md | 1869 | — | — |
