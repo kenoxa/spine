@@ -26,7 +26,7 @@ Text after a slash command is the task scope. Examples:
 - **Context rotation** — at ~60% context, run `/handoff` then `/clear` then `/catchup`. Prefer over `/compact` — compaction loses rationale and rejected approaches.
 - **Use subagents for parallel work** — `scout` handles breadth, `researcher` handles deep discovery plus bounded plan-local upstream checks, `navigator` handles broad/current external research, and `inspector` / `analyst` handle review lenses.
 - **Evidence levels matter** — all claims in plans, reviews, and execution are tagged E0–E3. Blocking claims require code evidence (E2+). Verification requires executed output (E3).
-- **Skill-craft for meta-work** — use `/use-skill-craft` to write, review, or audit skills and AGENTS.md files. It enforces the authoring test: every skill line must address something an LLM handles worse without guidance.
+- **Skill-craft for meta-work** — use `/use-skill-craft` to write, review, or audit skills, agent files, reference files, and AGENTS.md. It enforces the authoring test: every skill line must address something an LLM handles worse without guidance.
 
 ## Agent Mode
 
