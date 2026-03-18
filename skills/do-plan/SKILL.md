@@ -32,14 +32,14 @@ Every subagent prompt MUST be self-contained. All 5 phases MUST execute — neve
 ### 1. Discovery
 
 Dispatch in parallel:
-- `file-scout` (`@researcher`) → `references/discovery-file-scout.md`
-- `docs-explorer` (`@researcher`) → `references/discovery-docs-explorer.md`
-- `navigator` (`@navigator`) → `references/discovery-navigator.md`
+- `file-scout` (`@researcher`) → `run-explore/references/explore-file-scout.md`
+- `docs-explorer` (`@researcher`) → `run-explore/references/explore-docs.md`
+- `navigator` (`@navigator`) → `run-explore/references/explore-navigator.md`
 - +augmented per `variance_lenses`
 
 **Cap**: ≤ 5
 
-**Synthesis**: `@synthesizer` + `references/discovery-synthesis.md`. Retry once on empty; halt on failure.
+**Synthesis**: `@synthesizer` + `run-explore/references/explore-synthesis.md`. Retry once on empty; halt on failure.
 
 ### 2. Framing
 
@@ -62,9 +62,9 @@ Ask before dispatch when scope/risk changes, evidence missing, or conflicts unre
 
 ### 3. Planning
 
-Dispatch in parallel (`@planner`):
-- `rigorous` → `references/planning-rigorous.md`
-- `creative` → `references/planning-creative.md`
+Dispatch in parallel:
+- `rigorous` (`@planner`) → `references/planning-rigorous.md`
+- `creative` (`@planner`) → `references/planning-creative.md`
 - `envoy` (`@envoy`) → `references/planning-envoy.md` (variant: `standard`, via `use-envoy`)
 
 **Cap**: (2) + envoy + augmented ≤ 6.
@@ -74,10 +74,10 @@ Dispatch in parallel (`@planner`):
 ### 4. Challenge
 
 Adversarial review of `canonical_plan`. Blocking = E2+. Lenses: `assumptions`, `nfr`.
-Dispatch in parallel (`@debater`):
-- `thesis-champion` → `references/challenge-thesis-champion.md`
-- `counterpoint-dissenter` → `references/challenge-counterpoint-dissenter.md`
-- `tradeoff-analyst` → `references/challenge-tradeoff-analyst.md`
+Dispatch in parallel:
+- `thesis-champion` (`@debater`) → `references/challenge-thesis-champion.md`
+- `counterpoint-dissenter` (`@debater`) → `references/challenge-counterpoint-dissenter.md`
+- `tradeoff-analyst` (`@debater`) → `references/challenge-tradeoff-analyst.md`
 - `envoy` (`@envoy`) → `references/challenge-envoy.md` (variant: `debater`, via `use-envoy`)
 
 **Cap**: (3) + envoy + augmented ≤ 6.

@@ -23,7 +23,7 @@ All phases: [orchestrate-audit.md](references/orchestrate-audit.md).
 
 | Phase | Agent | Reference |
 |-------|-------|-----------|
-| Scope | `@scout` | `../do-discuss/references/orient-scout.md` |
+| Scope | `@scout` | `run-explore/references/explore-scout.md` |
 | Explore | `@scout` | `references/audit-scout.md` |
 | Analyze | `@researcher` | `references/analyze-researcher.md` |
 | Synthesize | `@synthesizer` | shared |

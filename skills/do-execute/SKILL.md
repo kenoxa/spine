@@ -29,7 +29,7 @@ Classify at entry. Controls fanout, not which phases run — all seven always ex
 
 - **Evidence**: E0 intuition · E1 doc ref · E2 code ref · E3 command+output. Blocking = E2+. Verify = E3.
 - **Session**: Reuse plan's session ID; otherwise per SPINE.md. Log at every phase boundary.
-- **Variance**: inherit from plan when available; else select 1-2 from [variance-lenses.md](../do-plan/references/variance-lenses.md).
+- **Variance**: inherit from plan when available; else select 1-2 from `do-plan/references/variance-lenses.md`.
 - Dispatch at `standard`/`deep`; at `focused`, run inline. Prompts MUST be self-contained.
 
 **Reference convention**: linked refs load into mainthread. Backticked paths → dispatch to subagent, do NOT Read into mainthread.
@@ -38,7 +38,7 @@ Classify at entry. Controls fanout, not which phases run — all seven always ex
 |-------|-------|-----------|
 | Implement | `@implementer` | `references/implement.md` |
 | Validate | `@inspector` | `references/validate.md` |
-| Polish | `@analyst` | `../run-polish/references/advisory-*.md`, `references/polish-apply.md` |
+| Polish | `@analyst` | `run-polish/references/advisory-*.md`, `references/polish-apply.md` |
 | Review | `@inspector`, `@envoy` | `references/review-*.md` |
 | Verify | `@verifier` | `references/verify.md` |
 | Finalize | mainthread | [finalize.md](references/finalize.md) |
@@ -62,11 +62,11 @@ Main thread. Read plan, classify depth, partition work. Output `scope_artifact`:
 ### 4. Polish
 
 1. **Advisory**: `@analyst` in parallel:
-   - `conventions-advisor` → `../run-polish/references/advisory-conventions.md`
-   - `complexity-advisor` → `../run-polish/references/advisory-complexity.md`
-   - `efficiency-advisor` → `../run-polish/references/advisory-efficiency.md`
+   - `conventions-advisor` → `run-polish/references/advisory-conventions.md`
+   - `complexity-advisor` → `run-polish/references/advisory-complexity.md`
+   - `efficiency-advisor` → `run-polish/references/advisory-efficiency.md`
    - +augmented per variance lens
-2. **Synthesis**: `@synthesizer` → `../run-polish/references/polish-synthesis.md`
+2. **Synthesis**: `@synthesizer` → `run-polish/references/polish-synthesis.md`
 3. **Apply**: `@implementer` → `references/polish-apply.md`. Skip when no actions.
 
 ### 5. Review

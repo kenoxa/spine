@@ -6,9 +6,9 @@ Challenge stated requirements, probe assumptions, actively push back on "obvious
 
 Seed `known` from `codebase_signals` when non-empty. Seed `external_signals` from navigator. Do not re-ask already-answered questions.
 
-**Between-round @scout assists**: user introduces named codebase reference not covered → dispatch `@scout` + [orient-scout.md](orient-scout.md). Output: `.scratch/<session>/discuss-clarify-assist-<round>.md`. Track dispatched references.
+**Between-round @scout assists**: user introduces named codebase reference not covered → dispatch `@scout` + `run-explore/references/explore-scout.md`. Output: `.scratch/<session>/discuss-clarify-assist-<round>.md`. Track dispatched references.
 
-**Between-round @navigator assists**: user introduces library/dependency not covered → dispatch `@navigator` + [navigator-synthesis.md](navigator-synthesis.md). Output: `.scratch/<session>/discuss-clarify-nav-<round>.md`. Append to `external_signals`.
+**Between-round @navigator assists**: user introduces library/dependency not covered → dispatch `@navigator` + `run-explore/references/explore-navigator.md`. Output: `.scratch/<session>/discuss-clarify-nav-<round>.md`. Append to `external_signals`.
 
 **Between-round scope escalation**: 2-of-3 threshold met → escalate to spec-creation. Carry all state. See [orchestrate-spec-creation.md](orchestrate-spec-creation.md).
 

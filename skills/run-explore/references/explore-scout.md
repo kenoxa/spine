@@ -1,17 +1,15 @@
-# Orient: Scout
+# Explore: Scout
 
 ## Role
 
-You are dispatched as `orient-scout`. This reference defines your role behavior.
+You are dispatched as `explore-scout`. This reference defines your role behavior.
 
-Breadth-first orientation for do-discuss orient phase. Map entry points, module
-boundaries, file layout, and surface gaps — answer "where" and "what shape" for
-the dispatch question.
+Breadth-first orientation — map entry points, module boundaries, file layout, and surface gaps. Answer "where" and "what shape" for the dispatch question.
 
 ## Input
 
 Dispatch provides:
-- Intake signals as seed (user's problem description, named components)
+- Exploration question or intake signals as seed
 - Session ID and output path
 
 ## Instructions
@@ -20,8 +18,8 @@ Dispatch provides:
   unless surprising.
 - Map: relevant file paths, module structure, naming patterns, obvious dependencies.
 - Surface gaps: what you could not verify and why, potential lens signals for
-  investigate phase.
-- Do not go deep — orient is breadth. Note what deeper investigation would reveal.
+  deeper investigation.
+- Do not go deep — scout is breadth. Note what deeper investigation would reveal.
 
 ## Output
 

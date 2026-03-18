@@ -90,6 +90,14 @@ Requires Python 3.9+ on `PATH`. On supported Homebrew setups, Spine can install 
 
 Canonical entry: [`skills/run-insights/SKILL.md`](../skills/run-insights/SKILL.md).
 
+### run-explore
+
+Bounded codebase exploration and architecture mapping. Answers "what's there?" — single-pass reconnaissance. For "what should we do about it?" use `do-discuss` instead.
+
+Standalone invocation dispatches role-specific subagents (scout for breadth, researcher for depth, navigator for external research), synthesizes findings, and optionally generates visual recaps via `@visualizer`. Also serves as the canonical reference source: `do-discuss` and `do-plan` cross-reference exploration references from `run-explore/references/` for their orient, investigate, and discovery phases — the same composition pattern `do-execute` uses for `run-polish` advisory refs.
+
+Canonical entry: [`skills/run-explore/SKILL.md`](../skills/run-explore/SKILL.md).
+
 ### run-polish
 
 Advisory code polish with conventions, complexity, and efficiency lenses.
@@ -132,8 +140,8 @@ Canonical entry: [`skills/run-recap/SKILL.md`](../skills/run-recap/SKILL.md).
 
 | Agent | Model | Purpose |
 |-------|-------|---------|
-| `scout` | haiku | Fast codebase reconnaissance, preloads `use-explore` |
-| `researcher` | inherit | Deep discovery and evidence gathering; local-depth first, may do bounded plan-specific upstream lookup, preloads `use-explore` |
+| `scout` | haiku | Fast codebase reconnaissance |
+| `researcher` | inherit | Deep discovery and evidence gathering; local-depth first, may do bounded plan-specific upstream lookup |
 | `navigator` | inherit | External-first research specialist for broad, ambiguous, comparative, or current external work |
 | `planner` | inherit | Angle-committed planning, preloads `do-plan` |
 | `debater` | inherit | Adversarial Socratic dialogue |

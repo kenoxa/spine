@@ -1,6 +1,6 @@
 # Orient Phase
 
-Conditional — codebase-adjacent input only. Dispatch `@scout` + [orient-scout.md](orient-scout.md) + `@navigator` for breadth-first codebase context before Socratic dialogue. Clarify's no-subagent constraint does not apply here.
+Conditional — codebase-adjacent input only. Dispatch `@scout` + `run-explore/references/explore-scout.md` + `@navigator` for breadth-first codebase context before Socratic dialogue. Clarify's no-subagent constraint does not apply here.
 
 **Codebase-adjacency classification** (run at end of intake, after redirect check):
 
@@ -16,8 +16,8 @@ Conditional — codebase-adjacent input only. Dispatch `@scout` + [orient-scout.
 | Pure process/organizational/domain question | Not codebase-adjacent — skip orient |
 
 **When codebase-adjacent**:
-1. `@scout` + [orient-scout.md](orient-scout.md): intake signals as seed. Output: `.scratch/<session>/discuss-orient.md`
-1b. `@navigator` + [navigator-synthesis.md](navigator-synthesis.md) parallel with scout. `seed_terms` from intake. Output: `.scratch/<session>/discuss-orient-external.md`
+1. `@scout` + `run-explore/references/explore-scout.md`: intake signals as seed. Output: `.scratch/<session>/discuss-orient.md`
+1b. `@navigator` + `run-explore/references/explore-navigator.md` parallel with scout. `seed_terms` from intake. Output: `.scratch/<session>/discuss-orient-external.md`
 2. Artifacts must contain: Answer, File map, Gaps (note potential lens signals), External signals table
 3. Session log: phase boundary, scout dispatched, 1-sentence summary. Carry `codebase_signals` + `external_signals` into clarify.
 
@@ -32,7 +32,7 @@ Conditional — codebase-adjacent input only. Dispatch `@scout` + [orient-scout.
 | No library/framework names | Skip — `external_signals = []` |
 | Ambiguous | Dispatch — handles no-library gracefully |
 
-When triggered: `@navigator` + [navigator-synthesis.md](navigator-synthesis.md) with `seed_terms`, `codebase_signals = []`. Output: `.scratch/<session>/discuss-orient-external.md`. Carry `external_signals` into clarify.
+When triggered: `@navigator` + `run-explore/references/explore-navigator.md` with `seed_terms`, `codebase_signals = []`. Output: `.scratch/<session>/discuss-orient-external.md`. Carry `external_signals` into clarify.
 
 **Failure**: scout/navigator returns empty → signals = `[]`, note in Gaps, proceed. Re-run adjacency classification after grounding response if deferred.
 

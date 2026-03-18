@@ -3,7 +3,6 @@ name: run-polish
 description: >
   Advisory code polish with parallel lenses: conventions, complexity, efficiency.
   Use after implementation or for standalone cleanup on recently modified code.
-  Composable: do-execute dispatches advisory agents using these references with additional context via dispatch prompts.
 argument-hint: "[files or scope]"
 ---
 

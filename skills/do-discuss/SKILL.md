@@ -27,9 +27,9 @@ Tiered Socratic dialogue: intake → orient → clarify → investigate → expl
 
 | Phase | Dispatch ref | Agent type | Subagent refs |
 |-------|-------------|-----------|---------------|
-| Orient | `references/dispatch-orient.md` | `@scout` + `@navigator` | `references/orient-scout.md`, `references/navigator-synthesis.md` |
-| Clarify | `references/dispatch-clarify.md` | mainthread | `references/orient-scout.md`, `references/navigator-synthesis.md` (between-round assists) |
-| Investigate | `references/dispatch-investigate.md` | `@scout` / `@researcher` / `@navigator` | `references/orient-scout.md`, `references/investigate-researcher.md`, `references/navigator-synthesis.md` |
+| Orient | `references/dispatch-orient.md` | `@scout` + `@navigator` | `run-explore/references/explore-scout.md`, `run-explore/references/explore-navigator.md` |
+| Clarify | `references/dispatch-clarify.md` | mainthread | `run-explore/references/explore-scout.md`, `run-explore/references/explore-navigator.md` (between-round assists) |
+| Investigate | `references/dispatch-investigate.md` | `@scout` / `@researcher` / `@navigator` | `run-explore/references/explore-scout.md`, `references/investigate-researcher.md`, `run-explore/references/explore-navigator.md` |
 | Explore | `references/dispatch-explore.md` | `@framer` + `@navigator` + `@envoy` | `references/explore-*.md` |
 | Frame | `references/dispatch-frame.md` | `@framer` + `@envoy` + `@synthesizer` | `references/frame-*.md` |
 | Spec Create | — | `@envoy` | `references/orchestrate-spec-creation.md` |

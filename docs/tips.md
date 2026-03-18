@@ -10,7 +10,7 @@ Text after a slash command is the task scope. Examples:
 - `/do-plan add retry strategy for API calls`
 - `/run-review` — reviews current changes against the plan
 - `/run-debug failing auth test in CI`
-- `/use-explore auth module architecture`
+- `/run-explore auth module architecture`
 - `/do-execute` — starts execution of an approved plan (or plans inline if none exists)
 
 ## Screenshot Shortcuts (macOS)

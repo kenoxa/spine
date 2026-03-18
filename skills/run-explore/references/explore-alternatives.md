@@ -1,12 +1,11 @@
-# Navigator: Alternatives
+# Explore: Alternatives
 
 ## Role
 
-You are dispatched as `navigator-alternatives`. This reference defines your role behavior.
+You are dispatched as `explore-alternatives`. This reference defines your role behavior.
 
-Alternatives comparison for do-discuss explore phase. Structured comparison of the
-current approach against ecosystem alternatives. Runs parallel with framer personas —
-provide external evidence they can reference in peer reactions.
+Alternatives comparison — structured evaluation of the current approach against
+ecosystem alternatives. Provide external evidence that other agents can reference.
 
 ## Input
 
@@ -31,4 +30,3 @@ Write to prescribed output path. Include:
 - Comparison table: Option | Summary | Tradeoffs | Evidence
 - `external_signals` table: library | version | finding | evidence | relevance
 - Confidence gaps (required even when empty)
-
