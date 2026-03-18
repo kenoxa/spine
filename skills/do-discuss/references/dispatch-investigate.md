@@ -1,0 +1,17 @@
+# Investigate Phase
+
+Conditional, tier 2. Subagent dispatch for codebase evidence.
+
+| Agent | Reference | Use when | Output |
+|-------|-----------|----------|--------|
+| `@scout` | [orient-scout.md](orient-scout.md) | Orientation: "does X exist? where?" | `.scratch/<session>/discuss-investigate-scout.md` |
+| `@researcher` | — | Depth: "how does X work? side effects?" | `.scratch/<session>/discuss-investigate-researcher.md` |
+| `@navigator` | [navigator-synthesis.md](navigator-synthesis.md) | External: "ecosystem says what about X?" | `.scratch/<session>/discuss-investigate-navigator.md` |
+
+Dispatch context: specific unknowns, `known`/`unknown` state, why user couldn't answer. Navigator: external library behavior, API compatibility — not codebase depth. Targeted queries, not broad sweep. Duplication prevention: check orient + clarify-assist outputs first. File presence in File map narrows query; only explicit Answer resolution omits dispatch.
+
+Before dispatch: select 1 lens from `do-plan/references/variance-lenses.md` — match unknowns against trigger column, log reasoning (2-3 sentences). One augmented `@researcher` with lens. Max 3 concurrent (1-2 base + 1 augmented). Max 2 rounds. Synthesize into `codebase_signals`; merge navigator into `external_signals` (append, not overwrite).
+
+Escalation to tier 3: ambiguous scope AND `key_decisions` has 2+ one-way-door options after investigation.
+
+> Anti-patterns: (1) Tier-2 for unknowns already answered by orient. (2) Navigator for codebase-depth questions (@researcher's job).

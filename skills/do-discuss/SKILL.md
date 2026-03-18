@@ -22,30 +22,44 @@ Tiered Socratic dialogue: intake → orient → clarify → investigate → expl
 
 ## Phases
 
-**Reference paths** (backticked): dispatch to subagent — do NOT Read into mainthread.
+**Subagent references** (backticked): dispatch to subagent — do NOT Read into mainthread.
+**Phase dispatch references** (backticked `dispatch-*.md`): lazy-load into mainthread when entering each phase. Read the matched dispatch ref via the Read tool.
 
-| Phase | Agent type | Reference |
-|-------|-----------|-----------|
-| Orient | `@scout` + `@navigator` | `references/orient-scout.md`, `references/navigator-synthesis.md` |
-| Investigate | `@scout` / `@researcher` / `@navigator` | `references/orient-scout.md`, `references/navigator-synthesis.md` |
-| Explore | `@framer` + `@navigator` | `references/explore-*.md` |
-| Frame | `@framer` + `@envoy` + `@synthesizer` | `references/frame-*.md` |
-| Spec Create | `@envoy` | `references/orchestrate-spec-creation.md` |
+| Phase | Dispatch ref | Agent type | Subagent refs |
+|-------|-------------|-----------|---------------|
+| Orient | `references/dispatch-orient.md` | `@scout` + `@navigator` | `references/orient-scout.md`, `references/navigator-synthesis.md` |
+| Clarify | `references/dispatch-clarify.md` | mainthread | `references/orient-scout.md`, `references/navigator-synthesis.md` (between-round assists) |
+| Investigate | `references/dispatch-investigate.md` | `@scout` / `@researcher` / `@navigator` | `references/orient-scout.md`, `references/navigator-synthesis.md` |
+| Explore | `references/dispatch-explore.md` | `@framer` + `@navigator` | `references/explore-*.md` |
+| Frame | `references/dispatch-frame.md` | `@framer` + `@envoy` + `@synthesizer` | `references/frame-*.md` |
+| Spec Create | — | `@envoy` | `references/orchestrate-spec-creation.md` |
+
+Note: `dispatch-{phase}.md` is a local naming convention for mainthread-loaded phase refs in do-discuss. Not a repo-wide standard.
+
+## State Protocol
+
+| Variable | Lifecycle | Mutation Rule |
+|----------|-----------|---------------|
+| `codebase_signals` | create: orient; append: investigate | append-only |
+| `external_signals` | create: orient/research-override; append: clarify-nav, investigate | append-only |
+| `known` / `unknown` | create: orient/clarify-start; mutate: clarify, investigate | mutable — items move between them |
+| `key_decisions` | create: clarify; accumulate: investigate, explore | accumulate-only |
+| `frame_question` | derive: clarify | immutable after derivation |
+| `round_budget` | set: clarify entry (base 5); reduce: orient/external findings | conditional reduction, hard minimum 3 |
+
+## Escalation
+
+| From | To | Trigger |
+|------|----|---------|
+| Clarify | spec-creation | 2-of-3 scope threshold — carry all state to `references/orchestrate-spec-creation.md` |
+| Clarify | Investigate | blocking unknown requires codebase depth beyond scout orient or clarify-assists |
+| Investigate | Explore | ambiguous scope + 2+ one-way-door `key_decisions` after investigation |
 
 ## Intake
 
 Redirects: plan-ready → `do-plan`, reproducible defect → `run-debug`, pure ideation → `brainstorming`, < 1 sentence → grounding question. Detect upstream handoff (brainstorming selected direction, run-debug root cause). Seed known inventory.
 
-## Mode Routing
-
-| Detection | Mode | Load |
-|-----------|------|------|
-| "grill me", "challenge", "poke holes", stress-test | deep-interview | `references/orchestrate-discuss.md` `mode=deep-interview` |
-| Scope exceeds single session + no @-ref | spec-creation | `references/orchestrate-spec-creation.md` |
-| @-referenced spec file | spec-mode | `references/spec-mode.md` |
-| Default | normal | `references/orchestrate-discuss.md` `mode=normal` |
-
-**Lazy-load**: after mode detection, Read the matched orchestrator/spec reference via the Read tool.
+Spec routing: @-referenced spec file → Read `references/spec-mode.md`. Explicit "write a spec" → Read `references/orchestrate-spec-creation.md`.
 
 **Session ID**: per SPINE.md. Carry into do-plan. Log at phase boundaries and tier escalations.
 

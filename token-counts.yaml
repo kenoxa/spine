@@ -23,6 +23,11 @@ claude/agents/run-skill-eval/runner.md: 1423
 claude/skills/run-skill-eval/SKILL.md: 3230
 skills/catchup/SKILL.md: 554
 skills/commit/SKILL.md: 539
+skills/do-discuss/references/dispatch-clarify.md: 444
+skills/do-discuss/references/dispatch-explore.md: 459
+skills/do-discuss/references/dispatch-frame.md: 298
+skills/do-discuss/references/dispatch-investigate.md: 380
+skills/do-discuss/references/dispatch-orient.md: 659
 skills/do-discuss/references/explore-augmented-framer.md: 250
 skills/do-discuss/references/explore-skeptic.md: 248
 skills/do-discuss/references/explore-stakeholder-advocate.md: 241
@@ -32,13 +37,12 @@ skills/do-discuss/references/frame-evidence-mapper.md: 248
 skills/do-discuss/references/frame-synthesis.md: 432
 skills/do-discuss/references/navigator-alternatives.md: 244
 skills/do-discuss/references/navigator-synthesis.md: 289
-skills/do-discuss/references/orchestrate-discuss.md: 2518
 skills/do-discuss/references/orchestrate-spec-creation.md: 1587
 skills/do-discuss/references/orient-scout.md: 261
 skills/do-discuss/references/spec-mode.md: 379
 skills/do-discuss/references/template-brief.md: 1020
 skills/do-discuss/references/template-spec.md: 630
-skills/do-discuss/SKILL.md: 978
+skills/do-discuss/SKILL.md: 1276
 skills/do-execute/references/finalize.md: 778
 skills/do-execute/references/implement.md: 392
 skills/do-execute/references/polish-apply.md: 410
@@ -69,7 +73,7 @@ skills/do-plan/references/spec-mode.md: 653
 skills/do-plan/references/template-plan.md: 826
 skills/do-plan/references/variance-lenses.md: 813
 skills/do-plan/references/vertical-slices.md: 241
-skills/do-plan/SKILL.md: 1229
+skills/do-plan/SKILL.md: 1267
 skills/handoff/SKILL.md: 653
 skills/run-architecture-audit/references/audit-scout.md: 285
 skills/run-architecture-audit/references/orchestrate-audit.md: 518

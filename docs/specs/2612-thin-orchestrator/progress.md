@@ -11,7 +11,7 @@ Session: `thin-orchestrator-ref-arch-7ff2`
 |-------|------|--------|-------|
 | do-plan | A | done | ~1250 token orchestrator + 12 per-role refs + 1 rename |
 | do-execute | B | done | Mode-specific orchestrator refs |
-| do-discuss | B | done | Tiered escalation, spec-creation mode |
+| do-discuss | B | done | Phase-ref decomposition: orchestrate-discuss.md → 5 dispatch-*.md + SKILL.md absorbs orchestrator. Modes eliminated (normal/deep-interview merged). `dispatch-{phase}.md` is local naming — not repo-wide standard. |
 | run-review | A | done | Hybrid: routing table + ~25L shared preload rules. 3 phase refs + 1 rename |
 | run-debug | A | done | Workflow redesign: 4-phase subagent dispatch with loop management. 4 new refs |
 | run-recap | A | done | Preamble + 3 format templates split. 4 new refs + 1 delete |
@@ -74,7 +74,7 @@ Measured via `tokenizer -f <file> -m gpt-4.1` (o200k_base encoding). 2026-03-17.
 |------|--------|--------|
 | catchup | 556 | pass |
 | commit | 549 | pass |
-| do-discuss | 955 | pass |
+| do-discuss | 1276 | pass |
 | do-execute | 1416 | pass |
 | do-plan | 1269 | pass |
 | handoff | 653 | pass |
@@ -117,6 +117,11 @@ Measured via `tokenizer -f <file> -m gpt-4.1` (o200k_base encoding). 2026-03-17.
 
 | File | Tokens | Status |
 |------|--------|--------|
+| do-discuss/dispatch-clarify | 444 | pass (phase ref — local `dispatch-{phase}.md` convention) |
+| do-discuss/dispatch-explore | 459 | pass (phase ref) |
+| do-discuss/dispatch-frame | 298 | pass (phase ref) |
+| do-discuss/dispatch-investigate | 380 | pass (phase ref) |
+| do-discuss/dispatch-orient | 659 | pass (phase ref) |
 | do-discuss/frame-dialogue-tracker | 245 | pass |
 | do-discuss/frame-evidence-mapper | 248 | pass |
 | do-discuss/frame-synthesis | 432 | pass |
@@ -171,7 +176,7 @@ Measured via `tokenizer -f <file> -m gpt-4.1` (o200k_base encoding). 2026-03-17.
 
 | File | Tokens | Status |
 |------|--------|--------|
-| do-discuss/orchestrate-discuss | 2367 | flag |
+| do-discuss/orchestrate-discuss | — | deleted (decomposed into 5 dispatch-*.md phase refs) |
 | do-discuss/orchestrate-spec-creation | 1587 | flag |
 
 ### Reference Files — Templates (no hard threshold)
