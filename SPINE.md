@@ -30,7 +30,7 @@
 
 Use native tools: Grep not `rg`/`grep`, Glob not `find`/`ls`, Read not `cat`/`head`/`tail`, Edit not `sed`/`awk`.
 
-**Batch replacements** — for mechanical find-and-replace across several files, prefer `sd 'old' 'new' file1 file2 ...` over individual Edit tool calls. Use `rg` to scope before and verify after. Use `fd` to build file lists when pattern-matching targets.
+**Batch replacements** — prefer `sd 'old' 'new' file1 file2 ...` for text/config; `sg -r` for structural code (see use-shell). Scope with `rg` before, verify after. `fd` for file lists.
 
 **GitHub file URLs** — rewrite `github.com/.../blob/...` to `raw.githubusercontent.com` before fetching. Only applies to `/blob/` paths (single files).
 
@@ -49,7 +49,7 @@ Context7 → Exa → built-in web tools. If Context7 returns no results, fall ba
 
 When shell is unavoidable:
 - Use `trash`, never `rm`, for file deletion.
-- Use `rg` (not `grep`), `fd` (not `find`), `jq` (not grepping JSON), `sd` (not `perl`/`sed`) for in-place replacement, `ast-grep` (not regex) for structural patterns.
+- Use `rg` (not `grep`), `fd` (not `find`), `jq` (not grepping JSON), `sd` (not `perl`/`sed`) for text replacement, `ast-grep`/`sg` (not regex) for structural search and rewrite.
 - Always quote glob and regex arguments to prevent shell expansion (`rg 'pattern'`, not `rg pattern`; `fd '*.ts'`, not `fd *.ts`).
 - Lint shell scripts with `shellcheck`; format with `shfmt`
 - Include a short description (4–7 words) on every shell command.

@@ -3,7 +3,9 @@ name: use-shell
 description: >
   Shell and CLI conventions for safe, consistent terminal usage.
   Use when writing shell scripts, running terminal commands, using bash/zsh,
-  CLI tools, or any task involving shell execution.
+  CLI tools, code pattern matching, renaming symbols across files,
+  replacing function calls with ast-grep/sg, structural code search,
+  or any task involving shell execution.
   Do NOT use for JavaScript/TypeScript package management — see use-js.
 argument-hint: "[shell task or command]"
 ---
@@ -22,13 +24,18 @@ Use `trash`, never `rm`, for file deletion.
 | `find` | `fd` | simpler syntax, respects .gitignore |
 | grepping JSON | `jq` | structured parsing |
 | `perl`/`sed` | `sd` | simpler in-place replacement |
-| regex for code | `ast-grep` | structural patterns, not string matching |
+| regex for code | `ast-grep` (`sg`) | AST-aware search and rewrite |
+
+## ast-grep (sg)
+
+`sg -r` supersedes `rg + sd` for structural code replacements; `sd` stays for text/config. For pattern syntax, flags, and examples → `references/ast-grep.md`.
 
 ## Quoting
 
 Always quote glob and regex arguments to prevent shell expansion:
 - `rg 'pattern'`, not `rg pattern`
 - `fd '*.ts'`, not `fd *.ts`
+- `sg -p '$EXPR'`, not `sg -p "$EXPR"` (metavar `$` expansion)
 
 ## Quality
 
@@ -45,3 +52,7 @@ Use `ni` for JS/Node package management — never detect or hardcode package man
 - Unquoted globs or regex in shell commands
 - Skipping `shellcheck` on committed shell scripts
 - Hardcoding `npm`/`pnpm`/`yarn`/`bun` — use `ni`
+- Using `sd` for structural code changes when `sg -r` handles the pattern
+- Using `sg` for text/config files — `sd` is simpler and correct
+- Double-quoting `sg` patterns containing `$` metavars
+- Running `sg -r ... -U` without a search-only dry run first
