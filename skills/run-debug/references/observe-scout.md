@@ -8,8 +8,8 @@ You are dispatched as `@scout` in observe mode. This reference defines your role
 
 Dispatch provides:
 - Error or symptom description
-- Session ID and output path
-- `dead_ends` file path (optional — present when backtracking from failed hypotheses)
+- `{output_path}` -- write observation report here
+- `{dead_ends_path}` -- dead ends file (optional — present when backtracking from failed hypotheses)
 
 ## Instructions
 
@@ -26,7 +26,7 @@ Dispatch provides:
 
 ## Output
 
-Write to `.scratch/<session>/debug-observe.md`.
+Write to `{output_path}`.
 
 Sections: reproduction steps, exact error output, affected component map, known/unknown inventory, environment details, unexplored leads.
 

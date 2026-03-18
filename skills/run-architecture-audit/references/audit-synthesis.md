@@ -7,8 +7,8 @@ Merge per-candidate researcher outputs into a consolidated architecture findings
 ## Input
 
 Dispatch provides:
-- Researcher output paths (`.scratch/<session>/audit-analyze-{candidate-slug}.md`)
-- Session ID and output path
+- `{researcher_output_paths}` -- per-candidate researcher outputs
+- `{output_path}` -- write synthesis here
 - Output format from SKILL.md (summary, candidate table, per-candidate analysis, next step)
 
 **Existence verification**: confirm every expected input file exists and is non-empty. Report absent files in output header.
@@ -23,7 +23,7 @@ Dispatch provides:
 
 ## Output
 
-Write `architecture-findings.md` to prescribed output path. Structure per SKILL.md Output Format:
+Write to `{output_path}`. Structure per SKILL.md Output Format:
 1. **Summary** — scope audited, candidate count, top friction areas (2-3 sentences)
 2. **Candidate table** — module | depth | dependency category | priority
 3. **Per-candidate analysis** — coupling indicators, depth assessment, test impact, deepening approach
@@ -33,4 +33,4 @@ Write `architecture-findings.md` to prescribed output path. Structure per SKILL.
 
 - Flag conflicts; never resolve them.
 - Missing inputs are a reportable gap, not a reason to skip synthesis.
-- Read-only — no file writes outside `.scratch/<session>/`.
+- Read-only — no file writes outside session directory.

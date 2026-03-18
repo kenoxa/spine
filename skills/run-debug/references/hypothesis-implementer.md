@@ -7,18 +7,19 @@ You are dispatched as `@implementer` in hypothesis-testing mode. This reference 
 ## Input
 
 Dispatch provides:
-- Ranked hypothesis list path (`.scratch/<session>/debug-pattern.md`)
+- `{hypothesis_list_path}` -- ranked hypothesis list from pattern phase
 - `dead_ends` file path
 - `instrumentation_tag` (4-char hex for DEBUG markers)
-- Session ID and output path
+- `{output_path}` -- write hypothesis result here
+- `{debug_log_path}` -- append instrumentation statements here
 
 ## Instructions
 
 - If non-deterministic, stabilize first. Static analysis before instrumentation.
 - Wrap each instrumentation block in language comment syntax: `DEBUG:start-<tag>` / `DEBUG:end-<tag>` where `<tag>` is the provided instrumentation tag.
 - Add broad instrumentation covering all surviving hypotheses simultaneously.
-- Instrumentation statements append to `.scratch/<session>/debug.log`; clear the log before each reproduction run.
-- Reproduce. Analyze `debug.log` to eliminate hypotheses in one pass.
+- Instrumentation statements append to `{debug_log_path}`; clear the log before each reproduction run.
+- Reproduce. Analyze the debug log to eliminate hypotheses in one pass.
 - Record eliminated hypotheses as `DEAD END: <reason>`.
 - Report which hypotheses survived, which were eliminated, and evidence for each.
 - **On success** (hypothesis confirmed): report confirmed hypothesis with E3 evidence (command + observed output).
@@ -26,7 +27,7 @@ Dispatch provides:
 
 ## Output
 
-Write to `.scratch/<session>/debug-hypothesis.md`.
+Write to `{output_path}`.
 
 Header fields: `status: confirmed|failed`, `confirmed_hypothesis:` (if confirmed) or `dead_ends:` list (if failed). Body: evidence per hypothesis, debug.log analysis, reproduction output.
 

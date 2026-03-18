@@ -9,7 +9,7 @@ Apply synthesis actions from the polish advisory pass. Zero actions → skip ent
 ## Input
 
 Dispatch provides:
-- `synthesis_path` — path to `.scratch/<session>/polish-synthesis.md`
+- `{synthesis_path}` — path to polish synthesis output
 - Session ID
 
 ## Instructions

@@ -11,7 +11,7 @@ actions → skip entirely and report "No actions to apply."
 
 Dispatch provides:
 - `partition_scope` — files assigned to this dispatch (edit boundary)
-- `synthesis_path` — path to `.scratch/<session>/execute-synthesis-polish.md`
+- `{synthesis_path}` — path to polish synthesis output
 - `files_modified` — current list of changed files (updated after apply)
 - `session_id` — carry forward in output
 

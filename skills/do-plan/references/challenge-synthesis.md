@@ -6,7 +6,11 @@ Merge all challenge subagent outputs into a consolidated adversarial review. Rec
 
 ## Input
 
-Expected files (pattern: `.scratch/<session>/plan-challenge-*.md`):
+Dispatch provides:
+- `{file_pattern}` -- glob pattern for challenge output files
+- `{output_path}` -- write synthesis here
+
+Expected files matching `{file_pattern}`:
 - `plan-challenge-thesis-champion.md`
 - `plan-challenge-counterpoint-dissenter.md`
 - `plan-challenge-tradeoff-analyst.md`
@@ -27,7 +31,7 @@ Merge strategy:
 
 ## Output
 
-Write to `.scratch/<session>/plan-synthesis-challenge.md`. Include evidence summary table at end.
+Write to `{output_path}`. Include evidence summary table at end.
 
 ## Constraints
 

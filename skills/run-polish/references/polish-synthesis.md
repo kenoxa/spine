@@ -21,7 +21,7 @@ Before merging, confirm every provided input file exists and is non-empty. Repor
 
 ## Output
 
-Write to output path from dispatch context. Structure:
+Write to `{output_path}`. Structure:
 
 1. **Actions** — ordered list; each entry: finding summary, source advisor(s), evidence level, file + location, action description
 2. **Rejected Findings** — E2+ findings not actioned; each with rejection rationale

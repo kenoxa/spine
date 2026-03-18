@@ -32,7 +32,7 @@ Dispatch provides:
 
 ## Output
 
-Write to prescribed output path. Include:
+Write to `{output_path}`. Include:
 - `external_signals` table: library | version | finding | evidence | relevance
 - Findings with E-level tags
 - Confidence gaps (required even when empty)

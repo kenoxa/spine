@@ -33,7 +33,7 @@ After merging findings, include a correctness assessment: categorical confidence
 
 ## Output
 
-Write to output path from dispatch context. Structure:
+Write to `{output_path}`. Structure:
 
 1. **Blocking Findings** — E2+ severity; each entry: `[B]` prefix, finding summary, source reviewer(s), evidence level, file + line range
 2. **Should-Fix Findings** — advisory but strongly recommended; each entry: `[S]` prefix, same fields

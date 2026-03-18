@@ -22,8 +22,9 @@ Use `/use-skill-craft` — it covers the full authoring workflow. Key points:
 3. **Be concrete**: Vague directives fail the authoring test. "Handle errors properly" is cut. "Fail-closed: deny by default, allowlist explicitly" stays.
 4. **Size**: Under 5000 tokens. Extract examples and templates to `references/` if needed. Never nest deeper than `SKILL.md → references/file.md`.
 5. **Reference links**: In SKILL.md, use markdown links `[text](references/file.md)` only for references the mainthread reads at activation. For subagent dispatch references, use backticked paths `` `references/file.md` `` — these are passed as paths in dispatch prompts, not loaded by the skill loader. For lazy-loaded references (Tier B orchestrator refs), also use backticked paths with an explicit Read instruction.
+6. **I/O path parameterization**: Subagent reference files declare all scratch I/O via `{placeholder}` names (`{output_path}`, `{input_name_path}`). The orchestrator constructs paths; subagents receive them. See `use-skill-craft/SKILL.md:64`.
    All size thresholds use token counts (o200k_base encoding). Verify with any o200k_base tokenizer (e.g., `tokenizer -f <file> -m gpt-4.1`; installed by `install.sh` or `brew install zahidcakici/tap/tokenizer`).
-5. **Scripts**: Acceptable when the task involves processing data volumes exceeding LLM context limits. Place in `scripts/` subdirectory of the skill. Document runtime requirements (e.g., Python 3.9+) in the skill description. Keep scripts stdlib-only — no package-manager dependencies.
+7. **Scripts**: Acceptable when the task involves processing data volumes exceeding LLM context limits. Place in `scripts/` subdirectory of the skill. Document runtime requirements (e.g., Python 3.9+) in the skill description. Keep scripts stdlib-only — no package-manager dependencies.
 
 ### Frontmatter
 

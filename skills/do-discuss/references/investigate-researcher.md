@@ -14,7 +14,7 @@ Dispatch provides:
 - Specific unknowns to investigate (from `known`/`unknown` state)
 - Why the user couldn't answer during clarify
 - Orient and clarify-assist outputs (for duplication prevention)
-- Session ID and output path
+- `{output_path}` -- write investigation findings here
 
 ## Instructions
 
@@ -34,7 +34,7 @@ When dispatched with a variance lens:
 
 ## Output
 
-Write to `.scratch/<session>/discuss-investigate-researcher.md`.
+Write to `{output_path}`.
 Follow `@researcher` output format (framing question, evidence table, findings, confidence gaps).
 
 ## Constraints

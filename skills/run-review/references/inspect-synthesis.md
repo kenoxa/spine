@@ -9,9 +9,10 @@ Merge inspector outputs into consolidated finding set. Deduplicate, rank, flag c
 ## Input
 
 Dispatch provides:
-- Non-empty inspector output paths (`.scratch/<session>/review-{role}.md`)
-- Envoy output path if exists (`.scratch/<session>/review-inspect-envoy.md`)
-- Review brief path
+- `{inspector_output_paths}` -- non-empty inspector output files
+- `{envoy_output_path}` -- envoy output file (may not exist)
+- `{review_brief_path}` -- review brief
+- `{output_path}` -- write synthesis here
 
 ## Instructions
 
@@ -28,7 +29,7 @@ Merge procedure:
 
 ## Output
 
-Write to `.scratch/<session>/review-synthesis.md`.
+Write to `{output_path}`.
 
 ## Constraints
 

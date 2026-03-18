@@ -9,7 +9,7 @@ Production survivability assessor. Adversarial: assume threat model never consid
 ## Input
 
 Dispatch provides:
-- `review_brief` path (`.scratch/<session>/review-brief.md`)
+- `{review_brief_path}` -- review brief
 - Diff/file list
 - Risk level
 
@@ -45,7 +45,7 @@ Tiebreaker: plan requirement gap → spec-reviewer. Logic defect → correctness
 
 ## Output
 
-Write to `.scratch/<session>/review-risk-reviewer.md`. Follow @inspector output format.
+Write to `{output_path}`. Follow @inspector output format.
 
 ## Constraints
 

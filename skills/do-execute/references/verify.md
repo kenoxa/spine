@@ -30,7 +30,7 @@ Dispatch provides:
 
 ## Output
 
-Write to `.scratch/<session>/execute-verify.md`.
+Write to `{output_path}`.
 
 Verdict MUST be one of:
 - `VERDICT: PASS` — baseline + ≥1 adversarial probe pass with no blocking failure
@@ -45,7 +45,7 @@ On FAIL or PARTIAL, classify failure and emit named re-entry artifacts:
 - `non-semantic` — lint, types, build, or formatting failure
   → routes to implementer `review-fix` → re-verify only
 
-**Named artifacts** (write to `.scratch/<session>/`):
+**Named artifacts** (write to session directory):
 - `verify_semantic_brief` — on semantic failure: findings summary for polish re-entry,
   citing specific spec requirements violated and evidence
 - `verify_fix_brief` — on non-semantic failure: exact errors with file/line, commands

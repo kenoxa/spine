@@ -7,7 +7,7 @@ You are dispatched as `@visualizer`. Render a work activity recap into a reviewa
 ## Input
 
 Dispatch provides:
-- `{report_path}` — `.scratch/<session>/report-{format}.md`
+- `{report_path}` — recap report markdown
 - `{output_path}` — write HTML here
 
 ## Instructions

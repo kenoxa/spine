@@ -35,7 +35,7 @@ Dispatch provides:
 
 ## Output
 
-Write to `.scratch/<session>/execute-review-risk-reviewer.md`. Follow @inspector output format.
+Write to `{output_path}`. Follow @inspector output format.
 
 ## Constraints
 

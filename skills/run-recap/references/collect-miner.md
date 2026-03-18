@@ -26,7 +26,7 @@ COLLECT="$HOME/.agents/skills/run-insights/scripts/collect_sessions.sh"
 "$COLLECT" --days "${DAYS:-7}" --session "<session>"
 ```
 
-Replace placeholders from dispatch context. Verify `.scratch/<session>/analytics.json` exists and contains session data.
+Replace placeholders from dispatch context. Verify `analytics.json` exists in session directory.
 
 If `summary.total_sessions == 0`: report "No AI sessions found in the last N days. Try increasing --days." and stop.
 
@@ -34,9 +34,9 @@ If `summary.total_sessions == 0`: report "No AI sessions found in the last N day
 
 Extract unique `project` values from `*_sessions.json`. For each project:
 1. Resolve to filesystem path via `~/Projects/{project}` or cwd
-2. Read `SINCE` from `.scratch/<session>/collect.env`
+2. Read `SINCE` from `collect.env` in session directory
 3. Run `git log --oneline --since="$SINCE"` in project dir
-4. Write to `.scratch/<session>/git_log.json` as `{project: [commit_lines]}`
+4. Write to `git_log.json` in session directory as `{project: [commit_lines]}`
 
 Skip unresolvable projects, non-repos, or empty ranges. Best-effort — git log supplements session data.
 

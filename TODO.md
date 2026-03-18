@@ -1,11 +1,7 @@
 # TODO
 
-/do-discuss do-execute review refs hardcode `execute-review-*` output paths — parameterize per use-skill-craft "declare, don't
-branch" rule so callers shape paths at dispatch time
-
-- envoy is using xhigh and may take a while — always wait until it has finished!
 - verify cross-skill references work, or move to ~/.agents/skills/run-explore/references/explore-scout.md
-- run-skill-eval: on rewriten skills, reference files, and agents
+- run-skill-eval: on rewritten skills, reference files, and agents
 	- run-insight is suspicous
 - document handoff/clear/catchup after planning
 - nightly update run sudo?

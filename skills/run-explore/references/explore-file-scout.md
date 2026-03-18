@@ -12,7 +12,7 @@ config flags, and affected modules — precision over speed.
 Dispatch provides:
 - Task or exploration question (disambiguated)
 - Repo root and any known starting files
-- Session ID and output path
+- `{output_path}` -- write findings here
 
 ## Instructions
 
@@ -29,7 +29,7 @@ Dispatch provides:
 
 ## Output
 
-Write to prescribed output path. Follow `@researcher` output format.
+Write to `{output_path}`. Follow `@researcher` output format.
 
 ## Constraints
 

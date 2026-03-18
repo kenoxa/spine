@@ -26,7 +26,7 @@ Output format in prompt: findings (`[B]`/`[S]`/`[F]`-prefixed), correctness asse
 
 ## Output
 
-Write to `.scratch/<session>/review-inspect-envoy.md`.
+Write to `{output_path}`.
 
 ## Constraints
 

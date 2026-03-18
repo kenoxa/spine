@@ -27,7 +27,7 @@ Dispatch provides: changed file list, output path.
 
 ## Output
 
-Write findings to output path from dispatch context.
+Write findings to `{output_path}`.
 
 Each finding: `[S]` or `[F]` prefix, location, specific pattern detected, why it is bloat at this call site.
 

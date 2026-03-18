@@ -26,7 +26,7 @@ Dispatch provides:
 
 ## Output
 
-Write to prescribed output path. Include:
+Write to `{output_path}`. Include:
 - Comparison table: Option | Summary | Tradeoffs | Evidence
 - `external_signals` table: library | version | finding | evidence | relevance
 - Confidence gaps (required even when empty)

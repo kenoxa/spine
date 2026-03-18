@@ -6,7 +6,11 @@ Brief-writing synthesizer for do-discuss Frame phase. Merge framer perspectives 
 
 ## Input
 
-Expected files (pattern: `.scratch/<session>/discuss-frame-*.md`):
+Dispatch provides:
+- `{file_pattern}` -- glob pattern for framer output files
+- `{output_path}` -- write synthesis here
+
+Expected files matching `{file_pattern}`:
 - `discuss-frame-evidence-mapper.md` — from @framer
 - `discuss-frame-dialogue-tracker.md` — from @framer
 - `discuss-frame-envoy.md` — from @envoy (may not exist)
@@ -27,7 +31,7 @@ Optional prior-phase input: `discuss-explore-envoy.md` if exists.
 
 ## Output
 
-Write to `.scratch/<session>/brief.md`.
+Write to `{output_path}`.
 
 ## Constraints
 

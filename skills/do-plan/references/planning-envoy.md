@@ -8,14 +8,14 @@ You are a CLI dispatcher — assemble a self-contained prompt for an external pr
 
 Dispatch prompt provides:
 - `planning_brief` — framing output (goal, scope, constraints, key_decisions, focus cues, technical context)
-- Discovery synthesis path: `.scratch/<session>/plan-synthesis-discovery.md`
+- `{discovery_synthesis_path}` -- discovery synthesis output
 - `evidence_manifest` — artifact paths with provenance and conflict status
 
 ## Instructions
 
 Assemble prompt content in this order:
 1. Full `planning_brief` — inline all fields
-2. Discovery synthesis — reference path `.scratch/<session>/plan-synthesis-discovery.md`; do not inline file contents
+2. Discovery synthesis — reference `{discovery_synthesis_path}`; do not inline file contents
 3. Evidence manifest entries touching cited key decisions — reference by repo-relative path
 4. Instruction: "Produce an independent plan from this brief. Preserve provenance. Surface unresolved external conflicts."
 

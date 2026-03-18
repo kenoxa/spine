@@ -9,6 +9,7 @@ You are dispatched as `collector` (`@miner`). Run the collection scripts, verify
 Dispatch provides:
 - `{days}` — lookback window; default 14
 - `{session}` — shared session ID
+- `{analytics_path}` -- path to analytics.json output
 - `{output_path}` — write complete output here
 
 ## Instructions
@@ -20,11 +21,11 @@ COLLECT="$HOME/.agents/skills/run-insights/scripts/collect_sessions.sh"
 "$COLLECT" --days "${DAYS:-14}" --session "<session>"
 ```
 
-Replace placeholders from dispatch context. Verify `.scratch/<session>/analytics.json` exists and contains session data.
+Replace placeholders from dispatch context. Verify `{analytics_path}` exists and contains session data.
 
 If `summary.total_sessions == 0`, report "no sessions found" and suggest expanding time window.
 
-Read `.scratch/<session>/analytics.json`. Summarize:
+Read `{analytics_path}`. Summarize:
 - sessions per provider
 - date range
 - top projects

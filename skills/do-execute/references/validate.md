@@ -12,6 +12,7 @@ Dispatch provides:
 - `files_modified` — repo-relative list of all files changed by implement phase
 - `scope_artifact` — target files, partitions, plan excerpt
 - Plan excerpt — expected exports, function signatures, module boundaries
+- `{output_path}` -- write validation result here
 
 ## Instructions
 
@@ -28,7 +29,7 @@ Dispatch provides:
 
 ## Output
 
-Write to `.scratch/<session>/execute-validate.md`.
+Write to `{output_path}`.
 
 Produce `validation_result`:
 - `PASS` — all structural checks pass; proceed to polish.

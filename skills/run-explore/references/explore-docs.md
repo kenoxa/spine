@@ -12,7 +12,7 @@ comments — understand what the code is supposed to do, not just what it does.
 Dispatch provides:
 - Task or exploration question (disambiguated)
 - Repo root and any known doc/spec paths
-- Session ID and output path
+- `{output_path}` -- write findings here
 
 ## Instructions
 
@@ -30,7 +30,7 @@ Dispatch provides:
 
 ## Output
 
-Write to prescribed output path. Follow `@researcher` output format.
+Write to `{output_path}`. Follow `@researcher` output format.
 
 ## Constraints
 

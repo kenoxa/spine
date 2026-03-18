@@ -6,7 +6,11 @@ Merge all planning subagent outputs into a canonical plan. Reconcile independent
 
 ## Input
 
-Expected files (pattern: `.scratch/<session>/plan-planning-*.md`):
+Dispatch provides:
+- `{file_pattern}` -- glob pattern for planner output files
+- `{output_path}` -- write synthesis here
+
+Expected files matching `{file_pattern}`:
 - `plan-planning-rigorous.md`
 - `plan-planning-creative.md`
 - `plan-planning-envoy.md` (when present; may be skip advisory)
@@ -25,7 +29,7 @@ Merge strategy:
 
 ## Output
 
-Write to `.scratch/<session>/plan-synthesis-planning.md`. Include evidence summary table at end.
+Write to `{output_path}`. Include evidence summary table at end.
 
 ## Constraints
 

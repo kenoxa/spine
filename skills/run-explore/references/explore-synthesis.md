@@ -9,10 +9,10 @@ Merge all exploration subagent outputs into a single findings artifact. Deduplic
 ## Input
 
 Dispatch provides:
-- `file_pattern` — glob pattern for input files (e.g., `plan-discovery-*.md`, `explore-*.md`). **Required.** If not provided, report error: "file_pattern missing from dispatch — cannot identify input files." Do not guess.
-- Session ID and output path
+- `{file_pattern}` — glob pattern for input files (e.g., `plan-discovery-*.md`, `explore-*.md`). **Required.** If not provided, report error: "file_pattern missing from dispatch — cannot identify input files." Do not guess.
+- `{output_path}` -- write synthesis here
 
-Expected files match `file_pattern` within `.scratch/<session>/`.
+Expected files match `{file_pattern}` within session directory.
 
 **Existence verification**: Before merging, confirm every matched input file exists and is non-empty. If any expected file is missing or empty, report which files are absent in the output header. Do not proceed with partial merge without flagging gaps.
 
@@ -27,7 +27,7 @@ Pure merge strategy:
 
 ## Output
 
-Write to prescribed output path. Include evidence summary table at end.
+Write to `{output_path}`. Include evidence summary table at end.
 
 ## Constraints
 

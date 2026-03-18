@@ -7,9 +7,9 @@ You are dispatched as `@implementer` in harden mode. This reference defines your
 ## Input
 
 Dispatch provides:
-- Confirmed hypothesis from `.scratch/<session>/debug-hypothesis.md`
+- `{hypothesis_result_path}` -- confirmed hypothesis from hypothesis phase
 - `instrumentation_tag` (4-char hex for DEBUG marker cleanup)
-- Session ID and output path
+- `{output_path}` -- write harden result here
 
 ## Instructions
 
@@ -29,7 +29,7 @@ Dispatch provides:
 
 ## Output
 
-Write to `.scratch/<session>/debug-harden.md`.
+Write to `{output_path}`.
 
 Sections: files modified, fix description, regression test path, instrumentation cleanup verification, E3 evidence (command + output).
 

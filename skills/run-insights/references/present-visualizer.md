@@ -8,7 +8,7 @@ You are dispatched as `@visualizer`. Render session insights into a reviewable d
 
 Dispatch provides:
 - `{synthesizer_output_path}` — synthesized recommendations markdown
-- `{analytics_path}` — `.scratch/<session>/analytics.json`
+- `{analytics_path}` — analytics data
 - `{output_path}` — write HTML here
 
 ## Instructions

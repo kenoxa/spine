@@ -9,8 +9,8 @@ Depth-first evidence gathering narrowed to debugging: correlate observations, fo
 ## Input
 
 Dispatch provides:
-- Observation report path (`.scratch/<session>/debug-observe.md`)
-- Session ID and output path
+- `{observation_report_path}` -- observation report from observe phase
+- `{output_path}` -- write pattern analysis here
 - `dead_ends` file path (optional — contains previously failed hypotheses)
 
 ## Instructions
@@ -25,7 +25,7 @@ Dispatch provides:
 
 ## Output
 
-Write to `.scratch/<session>/debug-pattern.md`.
+Write to `{output_path}`.
 
 Sections: hypothesis list (numbered, each with failure class + falsification criteria), survivor rationale, collision zone, deprioritized list with reasons.
 
