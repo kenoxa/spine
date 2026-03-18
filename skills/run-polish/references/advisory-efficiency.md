@@ -8,9 +8,7 @@ Surface reuse opportunities, data-access anti-patterns, missed concurrency, and 
 
 ## Input
 
-Dispatch provides:
-- Changed file list (from scope phase)
-- Session ID and output path
+Dispatch provides: changed file list, output path.
 
 ## Instructions
 
@@ -28,7 +26,7 @@ Dispatch provides:
 
 ## Output
 
-Write findings to `.scratch/<session>/polish-advisory-efficiency.md`.
+Write findings to output path from dispatch context.
 
 Each finding: `[S]` or `[F]` prefix, location, pattern detected, existing utility or concurrency opportunity with file reference where applicable.
 
@@ -36,5 +34,6 @@ Each finding: `[S]` or `[F]` prefix, location, pattern detected, existing utilit
 
 - `[S]`/`[F]` prefixes only — no `[B]` (no gate authority).
 - Advisory only. Findings inform, not block.
+- Reuse findings require E2 evidence that the utility exists and is accessible.
 - Single lens: reuse, data-access patterns, concurrency, resource management. Do not cross-apply naming or complexity lenses.
 - No file writes beyond the output artifact.

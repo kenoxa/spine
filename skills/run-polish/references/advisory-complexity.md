@@ -8,9 +8,7 @@ Identify defensive bloat and premature abstraction in changed code. NEVER flag a
 
 ## Input
 
-Dispatch provides:
-- Changed file list (from scope phase)
-- Session ID and output path
+Dispatch provides: changed file list, output path.
 
 ## Instructions
 
@@ -29,7 +27,7 @@ Dispatch provides:
 
 ## Output
 
-Write findings to `.scratch/<session>/polish-advisory-complexity.md`.
+Write findings to output path from dispatch context.
 
 Each finding: `[S]` or `[F]` prefix, location, specific pattern detected, why it is bloat at this call site.
 
@@ -38,5 +36,6 @@ Each finding: `[S]` or `[F]` prefix, location, specific pattern detected, why it
 - `[S]`/`[F]` prefixes only — no `[B]` (no gate authority).
 - NEVER flag auth, authz, or input validation at system boundaries.
 - Advisory only. Do not prescribe rewrites.
+- Require concrete internal-path argument per finding. Do not flag purely on "looks defensive."
 - Single lens: defensive bloat and premature abstraction only.
 - No file writes beyond the output artifact.

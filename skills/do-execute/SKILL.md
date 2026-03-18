@@ -38,7 +38,7 @@ Classify at entry. Controls fanout, not which phases run — all seven always ex
 |-------|-------|-----------|
 | Implement | `@implementer` | `references/implement.md` |
 | Validate | `@inspector` | `references/validate.md` |
-| Polish | `@analyst` | `references/polish-*.md` |
+| Polish | `@analyst` | `../run-polish/references/advisory-*.md`, `references/polish-apply.md` |
 | Review | `@inspector` | `references/review-*.md` |
 | Verify | `@verifier` | `references/verify.md` |
 | Finalize | mainthread | [finalize.md](references/finalize.md) |
@@ -62,11 +62,11 @@ Main thread. Read plan, classify depth, partition work. Output `scope_artifact`:
 ### 4. Polish
 
 1. **Advisory**: `@analyst` in parallel:
-   - `conventions-advisor` → `references/polish-conventions-advisor.md`
-   - `complexity-advisor` → `references/polish-complexity-advisor.md`
-   - `efficiency-advisor` → `references/polish-efficiency-advisor.md`
+   - `conventions-advisor` → `../run-polish/references/advisory-conventions.md`
+   - `complexity-advisor` → `../run-polish/references/advisory-complexity.md`
+   - `efficiency-advisor` → `../run-polish/references/advisory-efficiency.md`
    - +augmented per variance lens
-2. **Synthesis**: `@synthesizer` → `references/polish-synthesis.md`
+2. **Synthesis**: `@synthesizer` → `../run-polish/references/polish-synthesis.md`
 3. **Apply**: `@implementer` → `references/polish-apply.md`. Skip when no actions.
 
 ### 5. Review

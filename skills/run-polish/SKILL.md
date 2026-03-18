@@ -3,11 +3,13 @@ name: run-polish
 description: >
   Advisory code polish with parallel lenses: conventions, complexity, efficiency.
   Use after implementation or for standalone cleanup on recently modified code.
-  Do NOT use during do-execute — use its built-in polish phase instead.
+  Composable: do-execute dispatches advisory agents using these references with additional context via dispatch prompts.
 argument-hint: "[files or scope]"
 ---
 
 Advisory-only — produces suggestions, not rewrites. Read-only — no file writes during advisory. Findings use `[S]`/`[F]` prefixes only (no `[B]` — no gate authority).
+
+When dispatched with depth context, additional augmented `@analyst` per variance lens (cap: base 3 + augmented ≤ 6).
 
 ## Phases
 

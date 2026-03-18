@@ -6,14 +6,16 @@ Merge all review subagent outputs into a consolidated finding set. Reconcile ind
 
 ## Input
 
-Expected files (pattern: `.scratch/<session>/execute-review-*.md`):
-- `execute-review-spec-reviewer.md`
-- `execute-review-correctness-reviewer.md`
-- `execute-review-risk-reviewer.md`
-- `execute-review-envoy.md` (when present; may be skip advisory)
-- Any `execute-review-augmented-{lens}.md` from variance lenses
+<!-- severity rules canonical source: run-review/SKILL.md Severity Buckets -->
 
-**Existence verification**: Before merging, confirm every expected input file exists and is non-empty. Report absent or empty files in the output header. Do not proceed with partial merge without flagging gaps.
+Reviewer output files from dispatch context:
+- spec-reviewer
+- correctness-reviewer
+- risk-reviewer
+- envoy (when present; may be skip advisory)
+- augmented lens outputs (when present)
+
+**Existence verification**: Before merging, confirm every provided input file exists and is non-empty. Report absent or empty files in the output header. Do not proceed with partial merge without flagging gaps.
 
 ## Instructions
 
@@ -25,13 +27,13 @@ Merge + corroboration strategy:
 5. When envoy output is a skip advisory, proceed with base reviewer outputs only.
 6. Propagate test blocking signals: absent E3 test evidence for behavior-changing code = blocking finding; preserve as-is from reviewer output.
 7. Propagate doc blocking signals: missing docs when `docs_impact` ≠ `none` = blocking finding; preserve as-is.
-8. Assign final severity per `run-review` rules: E2+ required for `blocking`; E1- findings are advisory only.
+8. Assign final severity: E2+ required for `blocking`; E1- findings are advisory only.
 
-After merging findings, include a correctness assessment per `run-review` synthesis rules.
+After merging findings, include a correctness assessment: categorical confidence (high/med/low); 1-2 sentence justification.
 
 ## Output
 
-Write to `.scratch/<session>/execute-synthesis-review.md`. Structure:
+Write to output path from dispatch context. Structure:
 
 1. **Blocking Findings** — E2+ severity; each entry: `[B]` prefix, finding summary, source reviewer(s), evidence level, file + line range
 2. **Should-Fix Findings** — advisory but strongly recommended; each entry: `[S]` prefix, same fields

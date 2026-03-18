@@ -8,9 +8,7 @@ Check naming and structural patterns in changed code against conventions establi
 
 ## Input
 
-Dispatch provides:
-- Changed file list (from scope phase)
-- Session ID and output path
+Dispatch provides: changed file list, output path.
 
 ## Instructions
 
@@ -26,7 +24,7 @@ Dispatch provides:
 
 ## Output
 
-Write findings to `.scratch/<session>/polish-advisory-conventions.md`.
+Write findings to output path from dispatch context.
 
 Each finding: `[S]` or `[F]` prefix, affected symbol/file, established norm (with file reference), observed deviation.
 
@@ -34,5 +32,6 @@ Each finding: `[S]` or `[F]` prefix, affected symbol/file, established norm (wit
 
 - `[S]`/`[F]` prefixes only — no `[B]` (no gate authority).
 - Advisory only. Do not suggest rewrites — name the deviation and cite the norm.
+- Do not flag casing style (camelCase vs snake_case) unless codebase uses both inconsistently in same scope.
 - Single lens: naming and structural conventions only. Route efficiency or complexity concerns to other advisors.
 - No file writes beyond the output artifact.
