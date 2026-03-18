@@ -75,7 +75,7 @@ Blocking unknowns become do-plan discovery targets.
 - [constraint] — [evidence level] — [source]
 
 ### Recommended Next Step
-One of: `do-plan`, `brainstorming`, `run-debug`, `more-discuss`. Note which fields to seed into next step.
+One of: `do-plan`, `brainstorming`, `run-debug`, `more-discuss`, `spec-creation`. Note which fields to seed into next step.
 
 ## Conditionally Required Sections
 
@@ -93,7 +93,7 @@ evidence into `Known Facts`. When present, map these entries into `planning_brie
 | [finding] | doc:path / artifact | E1+ | [why it matters] |
 
 ### Codebase Signals
-Required when orient phase ran (codebase-adjacent input) OR tier-2 investigate phase triggered.
+Required when orient phase ran (codebase-adjacent input) OR investigate phase triggered.
 
 When orient ran but investigate did not: populate from `.scratch/<session>/discuss-orient.md`. Mark evidence as E2 (@scout file read). Note which findings came from orient vs. investigate when both ran.
 

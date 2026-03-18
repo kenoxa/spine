@@ -18,7 +18,7 @@ description: >
 argument-hint: "[problem description, symptom, or situation]"
 ---
 
-Tiered Socratic dialogue: intake → orient → clarify → investigate → explore → frame → handoff. Tiers: (1) dialogue + between-round assists, (2) codebase investigation, (3) multi-perspective exploration, (4) spec creation (terminal).
+Socratic dialogue: intake → orient → clarify → investigate → explore → frame → handoff. All phases always execute; agent scales dispatch within each. Orient fast-exits when not codebase-adjacent.
 
 ## Phases
 
@@ -47,21 +47,13 @@ Note: `dispatch-{phase}.md` is a local naming convention for mainthread-loaded p
 | `frame_question` | derive: clarify | immutable after derivation |
 | `round_budget` | set: clarify entry (base 5); reduce: orient/external findings | conditional reduction, hard minimum 3 |
 
-## Escalation
-
-| From | To | Trigger |
-|------|----|---------|
-| Clarify | spec-creation | 2-of-3 scope threshold — carry all state to `references/orchestrate-spec-creation.md` |
-| Clarify | Investigate | blocking unknown requires codebase depth beyond scout orient or clarify-assists |
-| Investigate | Explore | ambiguous scope + 2+ one-way-door `key_decisions` after investigation |
-
 ## Intake
 
 Redirects: plan-ready → `do-plan`, reproducible defect → `run-debug`, pure ideation → `brainstorming`, < 1 sentence → grounding question. Detect upstream handoff (brainstorming selected direction, run-debug root cause). Seed known inventory.
 
 Spec routing: @-referenced spec file → Read `references/spec-mode.md`. Explicit "write a spec" → Read `references/orchestrate-spec-creation.md`.
 
-**Session ID**: per SPINE.md. Carry into do-plan. Log at phase boundaries and tier escalations.
+**Session ID**: per SPINE.md. Carry into do-plan. Log at phase boundaries.
 
 ## Handoff
 
@@ -72,6 +64,7 @@ Confidence-gated. Main thread = sole handoff authority.
 | high | "Discussion complete. Proceed with `/do-plan`." |
 | medium | "Complete with open assumptions. Proceed with `/do-plan` or resolve assumptions first." |
 | low | "Needs further exploration. Consider `/brainstorming`." |
+| `spec-creation` | "Scope exceeds single session. Proceed with spec creation." Carry all state to `references/orchestrate-spec-creation.md`. |
 
 Termination: frame question answered → `complete`. "just plan it" + acknowledged unknowns → `complete` with risk. 5 iteration cap → freeze + surface gaps. Wrong tool → redirect.
 
@@ -86,5 +79,5 @@ Ask: during clarify (problem changes), before handoff (blocking unknowns). Never
 ## Anti-Patterns
 
 - Entering spec-creation mode for clearly single-session work
-- Restarting interview from scratch when mid-clarify escalation triggers spec-creation
+- Restarting interview from scratch when Handoff routes to spec-creation
 - Auto-triggering do-plan after spec creation

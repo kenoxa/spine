@@ -1,6 +1,6 @@
 # Orient Phase
 
-Conditional — codebase-adjacent input only. Dispatch `@scout` + `run-explore/references/explore-scout.md` + `@navigator` for breadth-first codebase context before Socratic dialogue. Clarify's no-subagent constraint does not apply here.
+Codebase reconnaissance. Dispatches when input is codebase-adjacent; fast-exits with empty signals otherwise. Dispatch `@scout` + `run-explore/references/explore-scout.md` + `@navigator` for breadth-first codebase context before Socratic dialogue. Clarify's no-subagent constraint does not apply here.
 
 **Codebase-adjacency classification** (run at end of intake, after redirect check):
 

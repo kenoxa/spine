@@ -1,6 +1,6 @@
 # Investigate Phase
 
-Conditional, tier 2. Subagent dispatch for codebase evidence.
+Codebase evidence gathering. Scales dispatch to blocking unknowns; fast-exits when no unknowns need codebase depth beyond orient or clarify assists.
 
 | Agent | Reference | Use when | Output |
 |-------|-----------|----------|--------|
@@ -12,6 +12,4 @@ Dispatch context: specific unknowns, `known`/`unknown` state, why user couldn't 
 
 Before dispatch: select 1 lens from `do-plan/references/variance-lenses.md` — match unknowns against trigger column, log reasoning (2-3 sentences). One augmented `@researcher` with lens. Max 3 concurrent (1-2 base + 1 augmented). Max 2 rounds. Synthesize into `codebase_signals`; merge navigator into `external_signals` (append, not overwrite).
 
-Escalation to tier 3: ambiguous scope AND `key_decisions` has 2+ one-way-door options after investigation.
-
-> Anti-patterns: (1) Tier-2 for unknowns already answered by orient. (2) Navigator for codebase-depth questions (@researcher's job).
+> Anti-patterns: (1) Dispatching for unknowns already answered by orient. (2) Navigator for codebase-depth questions (@researcher's job).

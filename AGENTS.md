@@ -38,6 +38,7 @@ After changing any AI-loaded file: `scripts/token-counts.sh --update`.
 - **Retired names**: when renaming agents/skills/MCP servers, add old name to the corresponding retired array in install.sh
 - **Declare, don't branch**: reference files describe what they consume and produce — callers shape context at dispatch time. No caller-identity conditionals in refs; parameterize I/O paths instead of hardcoding.
 - **Reference naming**: `{phase}-{role}.md`, `orchestrate-{mode}.md`, `template-{artifact}.md`
+- **Phases are mandatory, fanout is adaptive**: depth controls fanout, not phase activation — all phases always execute. Dispatch tables are menus; the agent picks minimum necessary.
 
 ## Deep Dives
 

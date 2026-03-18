@@ -9,6 +9,7 @@ Concurrent dispatch: 2 `@framer` agents + `@envoy`, then sequential `@synthesize
 
 **Then sequential** (1 agent):
 - `@synthesizer` + [frame-synthesis.md](frame-synthesis.md): all frame outputs + session state + explore envoy if exists → `.scratch/<session>/brief.md` per [template-brief.md](template-brief.md).
+  When producing the brief, evaluate whether scope evidence meets spec-creation criteria (multiple phases, cross-cutting concerns [3+ unrelated modules], multi-day signals). If met, set `Recommended Next Step` to `spec-creation`.
 
 Main thread validates self-sufficiency contract: understandable without chat history, terms defined, no conversation references, evidence levels present. Re-dispatch on failure with gap list. Cap: framers (2) + envoy (1) + synthesizer (1) <= 4.
 

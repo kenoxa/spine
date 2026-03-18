@@ -7,13 +7,13 @@ Terminal branch — emits spec.md + progress.md only, never brief.md. Do NOT aut
 Two triggers:
 
 - **Intake routing**: scope exceeds single session (2-of-3: multiple phases, cross-cutting concerns [3+ unrelated modules], multi-day signals) AND no `@`-reference present.
-- **Mid-clarify escalation**: user's answer reveals scope-growth signals meeting the same 2-of-3 threshold. Between-round check.
+- **Handoff routing**: Frame phase brief recommends `spec-creation` as next step. Full brief + all accumulated state carried forward.
 
 Guard: present scope-signal evidence to user, get confirmation before activating.
 
 Guard: NOT when `@`-reference present — that's [spec-mode.md](spec-mode.md), not spec-creation.
 
-**Mid-clarify state transfer**: round budget does not carry forward. Resume from first unanswered interview step. Pre-populate answered steps from clarify state. Carry `known`/`unknown` inventory, `codebase_signals`, `external_signals`, session log.
+**Handoff state transfer**: full brief, `known`/`unknown` inventory, `codebase_signals`, `external_signals`, session log. Resume from first unanswered interview step. Pre-populate answered steps from accumulated state.
 
 ## 2. Interview
 

@@ -6,11 +6,13 @@
 
 ### do-discuss
 
-Structured problem framing through tiered Socratic dialogue. Use when the problem is vague, ambiguous, or too broad for direct planning. Also handles spec creation for multi-session features — activated by scope-growth detection at intake or mid-clarify.
+Structured problem framing through Socratic dialogue. Use when the problem is vague, ambiguous, or too broad for direct planning. Also handles spec creation for multi-session features — activated via Handoff routing when the brief recommends it.
 
-- **Tier 1** — Socratic dialogue: batch questions, track known/unknown inventory, converge on the core problem.
-- **Tier 2** — (conditional) dispatch `@scout` or `@researcher` when codebase evidence is needed; route external unknowns to `@navigator`.
-- **Tier 3** — (conditional) multi-perspective `@framer` team (stakeholder-advocate, systems-thinker, skeptic) for ambiguous scope with one-way-door decisions.
+All phases always execute; the agent scales dispatch within each:
+- **Orient** — breadth-first codebase context via `@scout` + `@navigator`; fast-exits when not codebase-adjacent.
+- **Clarify** — Socratic dialogue: batch questions, track known/unknown inventory, converge on the core problem.
+- **Investigate** — `@scout` / `@researcher` / `@navigator` for codebase evidence on blocking unknowns.
+- **Explore** — multi-perspective `@framer` team (stakeholder-advocate, systems-thinker, skeptic) for ambiguous scope with one-way-door decisions.
 
 Produces a `brief` artifact (goal, scope, constraints, key decisions, unknowns) and a confidence-gated handoff recommendation. Discuss preserves `external_signals` for planning handoff; the bounded `researcher` upstream-lookup exception lives in `do-plan`, not discuss routing.
 

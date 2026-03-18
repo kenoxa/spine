@@ -1,6 +1,6 @@
 # Explore Phase
 
-Conditional, tier 3. Three `@framer` personas for one-way-door decisions resisting convergence:
+Multi-perspective exploration. Scales dispatch to scope ambiguity and `key_decisions` complexity; fast-exits when scope is converged and key decisions resolved. Three `@framer` personas for one-way-door decisions resisting convergence:
 
 | Role | Reference | Output |
 |------|-----------|--------|
@@ -16,4 +16,4 @@ All dispatches parallel → wait → re-invoke framers + navigator to read peers
 
 Cap: base framers (3) + navigator (1) + envoy (1) + augmented <= 6.
 
-> Anti-patterns: (1) Tier-3 team for simple problems. (2) Re-dispatching navigator for already-covered dependency.
+> Anti-patterns: (1) Full framer team for simple problems with no one-way-door decisions. (2) Re-dispatching navigator for already-covered dependency.
