@@ -47,7 +47,7 @@ _script_dir=$(cd "$(dirname "$0")" && pwd)
 
 case "$fallback_for" in
     claude) model="${SPINE_ENVOY_CLAUDE_CURSOR_FALLBACK:-sonnet-4.6-thinking}" ;;
-    codex)  model="${SPINE_ENVOY_CODEX_CURSOR_FALLBACK:-gpt-5.4-high}" ;;
+    codex)  model="${SPINE_ENVOY_CODEX_CURSOR_FALLBACK:-gpt-5.4-xhigh}" ;;
     *)      model="${SPINE_ENVOY_CLAUDE_CURSOR_FALLBACK:-sonnet-4.6-thinking}" ;;
 esac
 timeout_secs="${timeout_secs:-900}"
