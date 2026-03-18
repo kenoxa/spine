@@ -18,7 +18,7 @@ description: >
 argument-hint: "[problem description, symptom, or situation]"
 ---
 
-Socratic dialogue: intake → orient → clarify → investigate → explore → frame → handoff. All phases always execute; agent scales dispatch within each. Orient fast-exits when not codebase-adjacent.
+Socratic dialogue: intake → orient → clarify → investigate → explore → frame → handoff. All phases always execute; agent scales dispatch within each. Orient runs zero-dispatch when not codebase-adjacent.
 
 ## Phases
 

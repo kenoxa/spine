@@ -1,6 +1,6 @@
 # Investigate Phase
 
-Codebase evidence gathering. Scales dispatch to blocking unknowns; fast-exits when no unknowns need codebase depth beyond orient or clarify assists.
+Codebase evidence gathering. Scales dispatch to blocking unknowns; zero-dispatch (phase executes, dispatches no subagents) when no unknowns need codebase depth beyond orient or clarify assists.
 
 | Agent | Reference | Use when | Output |
 |-------|-----------|----------|--------|

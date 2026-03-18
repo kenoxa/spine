@@ -9,7 +9,7 @@
 Structured problem framing through Socratic dialogue. Use when the problem is vague, ambiguous, or too broad for direct planning. Also handles spec creation for multi-session features — activated via Handoff routing when the brief recommends it.
 
 All phases always execute; the agent scales dispatch within each:
-- **Orient** — breadth-first codebase context via `@scout` + `@navigator`; fast-exits when not codebase-adjacent.
+- **Orient** — breadth-first codebase context via `@scout` + `@navigator`; zero-dispatch when not codebase-adjacent.
 - **Clarify** — Socratic dialogue: batch questions, track known/unknown inventory, converge on the core problem.
 - **Investigate** — `@scout` / `@researcher` / `@navigator` for codebase evidence on blocking unknowns.
 - **Explore** — multi-perspective `@framer` team (stakeholder-advocate, systems-thinker, skeptic) for ambiguous scope with one-way-door decisions.

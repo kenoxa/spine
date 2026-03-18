@@ -1,6 +1,6 @@
 # Orient Phase
 
-Codebase reconnaissance. Dispatches when input is codebase-adjacent; fast-exits with empty signals otherwise. Dispatch `@scout` + `run-explore/references/explore-scout.md` + `@navigator` for breadth-first codebase context before Socratic dialogue. Clarify's no-subagent constraint does not apply here.
+Codebase reconnaissance. Dispatches when input is codebase-adjacent; zero-dispatch (phase executes, dispatches no subagents) with empty signals otherwise. Dispatch `@scout` + `run-explore/references/explore-scout.md` + `@navigator` for breadth-first codebase context before Socratic dialogue. Clarify's no-subagent constraint does not apply here.
 
 **Codebase-adjacency classification** (run at end of intake, after redirect check):
 
@@ -11,9 +11,9 @@ Codebase reconnaissance. Dispatches when input is codebase-adjacent; fast-exits 
 | Contains inline code block | Codebase-adjacent |
 | Diagnostic language + named component | Codebase-adjacent (soft) |
 | Diagnostic language only, no named component | Grounding question first; re-classify after |
-| Design/architectural framing without operational context | Not codebase-adjacent — skip orient |
+| Design/architectural framing without operational context | Not codebase-adjacent — zero-dispatch orient |
 | Input < 1 sentence, grounding question not yet asked | Defer until after grounding response |
-| Pure process/organizational/domain question | Not codebase-adjacent — skip orient |
+| Pure process/organizational/domain question | Not codebase-adjacent — zero-dispatch orient |
 
 **When codebase-adjacent**:
 1. `@scout` + `run-explore/references/explore-scout.md`: intake signals as seed. Output: `.scratch/<session>/discuss-orient.md`
@@ -21,9 +21,9 @@ Codebase reconnaissance. Dispatches when input is codebase-adjacent; fast-exits 
 2. Artifacts must contain: Answer, File map, Gaps (note potential lens signals), External signals table
 3. Session log: phase boundary, scout dispatched, 1-sentence summary. Carry `codebase_signals` + `external_signals` into clarify.
 
-**When NOT codebase-adjacent**: skip to clarify. `codebase_signals = []`, `external_signals = []` unless research override triggers.
+**When NOT codebase-adjacent**: zero-dispatch; proceed to clarify. `codebase_signals = []`, `external_signals = []` unless research override triggers.
 
-**External research override** (orient skipped, library names present):
+**External research override** (orient zero-dispatched, library names present):
 
 | Signal | Action |
 |--------|--------|

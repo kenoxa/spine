@@ -1,6 +1,6 @@
 # TODO
 
-/do-discuss do-execute review refs hardcode `execute-review-*` output paths — parameterize per AGENTS.md "declare, don't
+/do-discuss do-execute review refs hardcode `execute-review-*` output paths — parameterize per use-skill-craft "declare, don't
 branch" rule so callers shape paths at dispatch time
 
 - envoy is using xhigh and may take a while — always wait until it has finished!

@@ -27,19 +27,9 @@ install.sh            Installer — manages ~/.config/spine/ and provider symlin
 Encoding: o200k_base. Measure: `tokenizer -f <file> -m gpt-4.1`.
 After changing any AI-loaded file: `scripts/token-counts.sh --update`.
 
-## Every-Task Rules
+## Execution Invariants
 
-- **Authoring test**: every line in skills/agents must address something AI handles worse without guidance — cut if no
-- **Description-is-the-trigger**: skill frontmatter `description:` must contain trigger phrases — body loads only after activation
-- **No tool-specific references**: no k5-*, nestor, dotcursor in skills or agents
-- **Composition model**: agent + reference file = augmented behavior. References add, never replace. In SKILL.md, linked refs load into mainthread; backticked paths are dispatch-only — do NOT Read. See `docs/specs/2612-thin-orchestrator/spec.md`
-- **Dispatch visibility**: every dispatched agent must appear in both the phase table AND inline dispatch list. Standalone bold paragraphs (`**Agent**:`) read as annotations — inline them as list items to ensure execution.
-- **Cross-skill refs**: some skills cross-reference sibling skill refs via `../` paths. When renaming/moving reference files, check for downstream consumers.
-- **Retired names**: when renaming agents/skills/MCP servers, add old name to the corresponding retired array in install.sh
-- **Declare, don't branch**: reference files describe what they consume and produce — callers shape context at dispatch time. No caller-identity conditionals in refs; parameterize I/O paths instead of hardcoding.
-- **Reference naming**: `{phase}-{role}.md`, `orchestrate-{mode}.md`, `template-{artifact}.md`
-- **Phases are mandatory, fanout is adaptive**: depth controls fanout, not phase activation — all phases always execute. Dispatch tables are menus; the agent picks minimum necessary.
-- **Skill-craft on skill changes**: when editing `skills/` or `agents/`, apply `use-skill-craft` authoring test
+- **Do not infer phase skipping from low depth or empty signals.** Execute every phase unless the active skill explicitly gates it; zero-dispatch (phase runs, no subagents) is execution, not skipping. Dispatch tables are menus; the agent picks minimum necessary.
 
 ## Deep Dives
 

@@ -56,6 +56,13 @@ requires prerequisites.
 Core directives must be domain-specific procedures the agent wouldn't know.
 For multi-phase workflow skills: see `references/workflow-patterns.md` — pattern selection, phase structure, anti-patterns.
 
+**Composition model.** Agent + reference file = augmented behavior. References add, never replace. Linked refs load into mainthread; backticked paths dispatch-only — do NOT Read. See `docs/specs/2612-thin-orchestrator/spec.md`.
+**Dispatch visibility.** Every dispatched agent appears in both the phase table AND inline dispatch list. Bold standalone paragraphs read as annotations — inline as list items.
+**Cross-skill refs.** Skills cross-reference sibling refs via `../` paths. When renaming/moving reference files, check downstream consumers.
+**Retired names.** When renaming agents/skills/MCP servers, add old name to the retired array in `install.sh`.
+**Declare, don't branch.** Reference files describe what they consume and produce. No caller-identity conditionals; parameterize I/O paths.
+**Reference naming.** `{phase}-{role}.md`, `orchestrate-{mode}.md`, `template-{artifact}.md`.
+
 Cut:
 - Definitions ("A trace is the complete record of...")
 - Motivation ("This is important because...")
@@ -96,6 +103,7 @@ Red flags:
 - "It's important to..." / "Note that..." openers
 - Anti-patterns that take more than one line to state
 - Full sentences where imperative fragments suffice
+- Tool-specific references (k5-*, nestor, dotcursor) in skills or agents
 
 ---
 
