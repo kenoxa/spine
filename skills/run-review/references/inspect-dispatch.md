@@ -24,36 +24,35 @@ Dispatch `@inspector` type in parallel. Each receives: `review_brief` path, diff
 | `correctness-reviewer` | Logic errors, edge cases, race conditions, adversarial inputs | `.scratch/<session>/review-correctness-reviewer.md` |
 | `risk-reviewer` | Security boundaries, performance, scalability; depth scales by risk level | `.scratch/<session>/review-risk-reviewer.md` |
 
+### Persona Disambiguation
+
+Each inspector applies ONLY its assigned lens — override @inspector generic review order.
+
+- **spec-reviewer**: NOT logic, risk, or quality — only plan↔code structural alignment
+- **correctness-reviewer**: NOT plan coverage or security — only logic soundness under adversarial inputs
+- **risk-reviewer**: NOT plan fidelity or isolated logic — only production survivability (security, perf, scale)
+
+Ambiguity tiebreaker: plan requirement gap → spec-reviewer. Logic defect → correctness-reviewer. Missing control/resource bound → risk-reviewer.
+
 At `deep` depth: dispatch additional `@inspector` per applicable variance lens, capped at 6 total. Each writes to `.scratch/<session>/review-augmented-{lens}.md`.
 
 Variant hunting scope: `standard` — constrained to reviewed change surface. `deep` — full codebase.
 
 ### High-Risk Security Probe
 
-When risk is high, explicitly check:
-- Auth boundary regressions and privilege escalation paths
-- Input trust boundaries (injection, unsafe parsing, unvalidated external data)
-- Secret/token exposure in logs, configs, or error surfaces
-- Failure-mode behavior that leaks data or bypasses controls
+When risk is high: auth boundary regressions, privilege escalation paths, input trust boundary violations (injection, unsafe parsing, unvalidated data), secret/token exposure in logs/configs/errors, failure-mode data leaks.
 
 ### Variant Hunting
 
-After finding a security issue, search for similar patterns across the entire codebase — not just the module where the issue was found.
-
-1. Start with exact match of the vulnerable pattern using Grep.
-2. Generalize one element at a time (function name > argument shape > call context).
-3. Review all new matches after each generalization. Stop when false-positive rate exceeds ~50%.
-4. Search everywhere — variants often appear in unrelated modules.
-5. Group results by root cause, not by symptom. One root cause may manifest as multiple vulnerability classes.
-6. Per match: note location, confidence (high/medium/low), and whether inputs are attacker-controllable.
+After finding a security issue, search codebase-wide for similar patterns. Exact match first → generalize one element at a time (function name → argument shape → call context) → stop when FP rate >50%. Group by root cause. Per match: location, confidence (high/med/low), attacker-controllability.
 
 See also: [security-probe.md](security-probe.md) (false-positive filtering).
 
 ### Envoy
 
 Load `use-envoy`. Dispatch `@envoy` concurrently with @inspector agents:
-- Prompt content: `review_brief` contents + diff/file list + severity bucket definitions + noise filtering rules (all self-contained — no local path references)
-- Output format: severity-bucketed findings with `[B]`/`[S]`/`[F]` prefixes, evidence levels, per-finding file path and line range, correctness assessment (`correct` or `issues found`) with categorical confidence (high/med/low)
+- Prompt content: `review_brief` contents, diff/file list, severity buckets, noise filtering rules (self-contained, no local paths)
+- Output format: `[B]`/`[S]`/`[F]`-prefixed findings with evidence levels, file+line range, correctness assessment (correct/issues, high/med/low confidence)
 - Output path: `.scratch/<session>/review-inspect-envoy.md`
 - Variant: `standard`
 
