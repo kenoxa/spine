@@ -22,8 +22,8 @@ Merge procedure:
 2. **Rank by evidence** — E3 > E2 > E1 > E0.
 3. **Conflicting findings** at same evidence level → `[CONFLICT]` label. Do NOT resolve.
 4. **Preserve provenance** — per finding, list originating inspector(s).
-5. **Envoy skip advisory** → proceed without. Do not include absent envoy in synthesis.
-6. **Assign final severity** — E2+ required for blocking.
+5. **Envoy skip notice** → omit from merge; note `[COVERAGE_GAP: envoy skipped]` in output header.
+6. **Assign final severity** — E2+ required for blocking. For any blocking finding, verify cited file+symbol references exist; unverifiable references demote to `should_fix`.
 7. **Correctness assessment** — categorical confidence (high/med/low) + 1-2 sentence justification. Note envoy agreement/disagreement when present.
 
 ## Output

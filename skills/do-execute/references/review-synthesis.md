@@ -2,7 +2,7 @@
 
 ## Role
 
-Merge all review subagent outputs into a consolidated finding set. Reconcile independent reviewer perspectives, apply envoy corroboration rules, propagate test/doc blocking signals, surface unresolved conflicts for the orchestrator.
+Merge all review subagent outputs into a consolidated finding set. Reconcile independent reviewer perspectives, reconcile envoy findings by evidence level, propagate test/doc blocking signals, surface unresolved conflicts for the orchestrator.
 
 ## Input
 
@@ -19,12 +19,12 @@ Reviewer output files from dispatch context:
 
 ## Instructions
 
-Merge + corroboration strategy:
+Merge strategy:
 1. Deduplicate findings by meaning — same finding from multiple reviewers collapses to one entry citing all sources.
 2. Rank by evidence level: E3 > E2 > E1 > E0.
 3. Conflicting findings at same evidence level: flag with `[CONFLICT]` label. Do not resolve.
 4. Preserve per-reviewer provenance (spec-reviewer, correctness-reviewer, risk-reviewer, envoy, augmented lens name).
-5. When envoy output is a skip advisory, proceed with base reviewer outputs only.
+5. When envoy output is a skip notice, note `[COVERAGE_GAP: envoy skipped]` in output header and proceed with base reviewer outputs.
 6. Propagate test blocking signals: absent E3 test evidence for behavior-changing code = blocking finding; preserve as-is from reviewer output.
 7. Propagate doc blocking signals: missing docs when `docs_impact` ≠ `none` = blocking finding; preserve as-is.
 8. Assign final severity: E2+ required for `blocking`; E1- findings are advisory only.
@@ -44,6 +44,6 @@ Write to output path from dispatch context. Structure:
 
 ## Constraints
 
-- **Corroboration rule (standard)**: External-provider findings cannot be assigned `blocking` severity unless corroborated by a base agent finding at `should_fix` or higher.
+- **Evidence-weighted parity**: E2+ required for blocking regardless of source. For any blocking finding, verify cited file+symbol references exist; unverifiable references demote to `should_fix`.
 - Flag all conflicts; never resolve them.
 - Missing inputs are a reportable gap, not a reason to skip synthesis.

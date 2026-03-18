@@ -48,7 +48,7 @@ Each phase gets:
 
 ## 3. Envoy Injection Point A
 
-After phases+EARS drafted, before DAG. Advisory-only, sequential.
+After phases+EARS drafted, before DAG. Sequential (no base agents in this batch).
 
 Load `use-envoy`. Dispatch `@envoy`:
 - Prompt: problem + users/context + constraints + phases + EARS (self-contained — no local path references)
@@ -56,7 +56,7 @@ Load `use-envoy`. Dispatch `@envoy`:
 
 Main thread reads Envoy output, incorporates adjustments, presents DAG with refinements noted.
 
-Skip: proceed without if provider unavailable. Do NOT block on Envoy failure.
+Skip: note `[COVERAGE_GAP: envoy — provider unavailable]` and proceed. Do NOT block on Envoy failure.
 
 ## 4. DAG Elicitation
 
@@ -73,7 +73,7 @@ User must confirm the dependency graph before output. If rejected → revise pha
 
 ## 5. Envoy Injection Point B
 
-After DAG confirmed, before file creation. Advisory-only, sequential.
+After DAG confirmed, before file creation. Sequential (no base agents in this batch).
 
 Load `use-envoy`. Dispatch `@envoy`:
 - Prompt: full spec draft (self-contained — no local path references)
@@ -81,7 +81,7 @@ Load `use-envoy`. Dispatch `@envoy`:
 
 Present findings to user; user confirms or requests changes before file creation.
 
-Skip: proceed without if provider unavailable. Do NOT block on Envoy failure.
+Skip: note `[COVERAGE_GAP: envoy — provider unavailable]` and proceed. Do NOT block on Envoy failure.
 
 ## 6. Output
 

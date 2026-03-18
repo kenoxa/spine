@@ -2,6 +2,12 @@
 
 All notable changes are documented here, focused on user impact.
 
+## 2026-03-18
+
+### Changed
+
+- **Envoy first-class parity** — removed corroboration clauses, advisory/optional language, and silent skip handling across all dispatch/synthesis workflows. Envoy findings now carry equal gate authority (E2+ = blocking regardless of source). Coverage gaps surfaced via `[COVERAGE_GAP]` notices. Variant system (`standard`/`debater`/`advisory-only`) eliminated — dispatch timing determined by batch composition.
+
 ## 2026-03-13
 
 ### Changed

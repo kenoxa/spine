@@ -30,6 +30,5 @@ Write to `.scratch/<session>/review-inspect-envoy.md`.
 
 ## Constraints
 
-- Variant: `standard`.
 - Self-contained prompt — no local path references.
-- When envoy produces a skip advisory, output is not included in synthesis.
+- Skip notice = `[COVERAGE_GAP: envoy skipped — {reason}]`. Included in synthesis as gap notice.

@@ -29,6 +29,5 @@ Include this 4-section structure as the output format:
 
 ## Constraints
 
-- Variant: `debater`
 - Reference files by repo-relative path; do not inline file contents (external CLI has filesystem access)
 - Prompt must be self-contained — no local agent format assumptions or session-internal references

@@ -56,7 +56,7 @@ On failure (non-zero exit or missing output): log reason, write skip advisory to
 ```markdown
 # Envoy: Skipped
 **Reason**: {reason} | **Provider**: {target} | **Action**: {hint or "none"}
-Primary subagents produced output normally.
+Base subagents produced output normally.
 ```
 
 ## Constraints

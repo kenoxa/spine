@@ -51,7 +51,7 @@ At `deep` depth: +augmented `@inspector` per variance lens (cap 6 total).
 
 Do NOT run Phase 3 inline at `standard` or `deep` depth. Dispatch is mandatory. Inline execution only when Gate A fails (fallback to focused depth).
 
-**Gate B**: verify each output has ≥1 finding entry (`[B`/`[S`/`[F`). risk-reviewer absent → inject blocking. spec/correctness absent → note gap. envoy absent → proceed without.
+**Gate B**: verify each output has ≥1 finding entry (`[B`/`[S`/`[F`). risk-reviewer absent → inject blocking. spec/correctness absent → note gap. envoy absent → note `[COVERAGE_GAP: envoy absent]`.
 
 ### Phase 4: Synthesis
 

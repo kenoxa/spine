@@ -10,7 +10,7 @@ Multi-perspective exploration. Scales dispatch to scope ambiguity and `key_decis
 
 Concurrent with framers:
 - `@navigator` + `run-explore/references/explore-alternatives.md` → `.scratch/<session>/discuss-explore-navigator.md`
-- `@envoy` (via `use-envoy`, variant: `standard`) → `.scratch/<session>/discuss-explore-envoy.md`. Excluded from peer-reaction — feeds Frame phase only. Prompt: `problem_frame` + `known`/`unknown` + `key_decisions` + `codebase_signals` + `external_signals` (self-contained).
+- `@envoy` (via `use-envoy`) → `.scratch/<session>/discuss-explore-envoy.md`. Not re-dispatched for peer-reaction (single-pass CLI). Output feeds Frame synthesis as peer input. Prompt: `problem_frame` + `known`/`unknown` + `key_decisions` + `codebase_signals` + `external_signals` (self-contained).
 
 All dispatches parallel → wait → re-invoke framers + navigator to read peers + append `## Peer Reactions` → synthesize. Irreconcilable positions → `key_decisions`. Augmented `@framer` + `explore-augmented-framer.md` with variance lens from investigate (or select per `do-plan/references/variance-lenses.md`). Output: `.scratch/<session>/discuss-explore-augmented-{lens}.md`. Included in peer reaction.
 

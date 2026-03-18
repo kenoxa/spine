@@ -2,7 +2,7 @@
 
 ## Role
 
-Merge all planning subagent outputs into a canonical plan. Reconcile independent plans from distinct angles, apply envoy corroboration rules, surface unresolved conflicts for orchestrator.
+Merge all planning subagent outputs into a canonical plan. Reconcile independent plans from distinct angles, reconcile envoy findings by evidence level, surface unresolved conflicts for orchestrator.
 
 ## Input
 
@@ -16,12 +16,12 @@ Expected files (pattern: `.scratch/<session>/plan-planning-*.md`):
 
 ## Instructions
 
-Merge + corroboration strategy:
+Merge strategy:
 1. Deduplicate findings by meaning — same insight from multiple planners collapses to one entry citing all sources.
 2. Rank by evidence level: E3 > E2 > E1 > E0.
 3. Conflicting claims at same evidence level: flag with `[CONFLICT]` label. Do not resolve.
 4. Preserve per-planner provenance (rigorous, creative, envoy, augmented lens name).
-5. When envoy output is a skip advisory, proceed with base planner outputs only.
+5. When envoy output is a skip notice, note `[COVERAGE_GAP: envoy skipped]` in output header and proceed with base planner outputs.
 
 ## Output
 
@@ -29,6 +29,6 @@ Write to `.scratch/<session>/plan-synthesis-planning.md`. Include evidence summa
 
 ## Constraints
 
-- **Corroboration rule (standard)**: External-provider findings cannot be assigned `blocking` severity unless corroborated by a base agent finding at `should_fix` or higher.
+- **Evidence-weighted parity**: E2+ required for blocking regardless of source. For any blocking finding, verify cited file+symbol references exist; unverifiable references demote to `should_fix`.
 - Flag all conflicts; never resolve them.
 - Missing inputs are a reportable gap, not a reason to skip synthesis.
