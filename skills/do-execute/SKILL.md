@@ -39,7 +39,7 @@ Classify at entry. Controls fanout, not which phases run — all seven always ex
 | Implement | `@implementer` | `references/implement.md` |
 | Validate | `@inspector` | `references/validate.md` |
 | Polish | `@analyst` | `../run-polish/references/advisory-*.md`, `references/polish-apply.md` |
-| Review | `@inspector` | `references/review-*.md` |
+| Review | `@inspector`, `@envoy` | `references/review-*.md` |
 | Verify | `@verifier` | `references/verify.md` |
 | Finalize | mainthread | [finalize.md](references/finalize.md) |
 
@@ -76,9 +76,9 @@ Main thread. Read plan, classify depth, partition work. Output `scope_artifact`:
    - `spec-reviewer` → `references/review-spec-reviewer.md`
    - `correctness-reviewer` → `references/review-correctness-reviewer.md`
    - `risk-reviewer` → `references/review-risk-reviewer.md`
+   - `envoy` (`@envoy`, standard/deep) → `references/review-envoy.md`
    - +augmented per variance lens
-3. **Envoy** (standard/deep): `@envoy` → `references/review-envoy.md` concurrent with inspectors.
-4. **Synthesis**: `@synthesizer` → `references/review-synthesis.md`. Blocking (E2+) → re-enter polish. Advisory → proceed.
+3. **Synthesis**: `@synthesizer` → `references/review-synthesis.md`. Blocking (E2+) → re-enter polish. Advisory → proceed.
 
 ### 6. Verify
 `@verifier` → `references/verify.md`. Output: PASS, FAIL, or PARTIAL with `failure_class`.

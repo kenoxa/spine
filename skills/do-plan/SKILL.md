@@ -22,8 +22,8 @@ Every subagent prompt MUST be self-contained. All 5 phases MUST execute — neve
 | Phase | Agent type |
 |-------|-----------|
 | Discovery | `@researcher`, `@navigator` |
-| Planning | `@planner` |
-| Challenge | `@debater` |
+| Planning | `@planner`, `@envoy` |
+| Challenge | `@debater`, `@envoy` |
 
 **Variance**: once at entry; match [variance-lenses.md](references/variance-lenses.md); 1-2 lenses; carry unchanged. Augmented output: `plan-{phase}-augmented-{lens}.md`.
 
@@ -65,8 +65,7 @@ Ask before dispatch when scope/risk changes, evidence missing, or conflicts unre
 Dispatch in parallel (`@planner`):
 - `rigorous` → `references/planning-rigorous.md`
 - `creative` → `references/planning-creative.md`
-
-**Envoy**: `use-envoy` + `references/planning-envoy.md` (variant: `standard`).
+- `envoy` (`@envoy`) → `references/planning-envoy.md` (variant: `standard`, via `use-envoy`)
 
 **Cap**: (2) + envoy + augmented ≤ 6.
 
@@ -79,8 +78,7 @@ Dispatch in parallel (`@debater`):
 - `thesis-champion` → `references/challenge-thesis-champion.md`
 - `counterpoint-dissenter` → `references/challenge-counterpoint-dissenter.md`
 - `tradeoff-analyst` → `references/challenge-tradeoff-analyst.md`
-
-**Envoy**: `use-envoy` + `references/challenge-envoy.md` (variant: `debater`).
+- `envoy` (`@envoy`) → `references/challenge-envoy.md` (variant: `debater`, via `use-envoy`)
 
 **Cap**: (3) + envoy + augmented ≤ 6.
 

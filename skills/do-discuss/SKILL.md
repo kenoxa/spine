@@ -30,7 +30,7 @@ Tiered Socratic dialogue: intake → orient → clarify → investigate → expl
 | Orient | `references/dispatch-orient.md` | `@scout` + `@navigator` | `references/orient-scout.md`, `references/navigator-synthesis.md` |
 | Clarify | `references/dispatch-clarify.md` | mainthread | `references/orient-scout.md`, `references/navigator-synthesis.md` (between-round assists) |
 | Investigate | `references/dispatch-investigate.md` | `@scout` / `@researcher` / `@navigator` | `references/orient-scout.md`, `references/investigate-researcher.md`, `references/navigator-synthesis.md` |
-| Explore | `references/dispatch-explore.md` | `@framer` + `@navigator` | `references/explore-*.md` |
+| Explore | `references/dispatch-explore.md` | `@framer` + `@navigator` + `@envoy` | `references/explore-*.md` |
 | Frame | `references/dispatch-frame.md` | `@framer` + `@envoy` + `@synthesizer` | `references/frame-*.md` |
 | Spec Create | — | `@envoy` | `references/orchestrate-spec-creation.md` |
 
