@@ -12,12 +12,12 @@ Session: `thin-orchestrator-ref-arch-7ff2`
 | do-plan | A | done | ~1250 token orchestrator + 12 per-role refs + 1 rename |
 | do-execute | B | done | Mode-specific orchestrator refs |
 | do-discuss | B | done | Phase-ref decomposition: orchestrate-discuss.md → 5 dispatch-*.md + SKILL.md absorbs orchestrator. Modes eliminated (normal/deep-interview merged). `dispatch-{phase}.md` is local naming — not repo-wide standard. |
-| run-review | A | done | Hybrid: routing table + ~25L shared preload rules. 3 phase refs + 1 rename |
+| run-review | A | done | Full decomposition: 6 per-role subagent refs (inspect-*) + 1 mainthread output ref + shared preload rules. inspect-dispatch.md and synthesize-resort.md decomposed and deleted. |
 | run-debug | A | done | Workflow redesign: 4-phase subagent dispatch with loop management. 4 new refs |
 | run-recap | A | done | Preamble + 3 format templates split. 4 new refs + 1 delete |
 | run-insights | A | done | Source-expert + synthesizer split. 2 new refs + 1 delete |
 | run-polish | A | done | Content creation: 5 new refs (advisory + synthesis + apply) |
-| run-architecture-audit | A | done | Scope addition. Rename + routing table rewrite |
+| run-architecture-audit | A | done | Scope addition. Rename + routing table rewrite. Synthesizer wired up with audit-synthesis.md ref. |
 
 ## Agent Mode Extraction
 
@@ -169,8 +169,12 @@ Measured via `tokenizer -f <file> -m gpt-4.1` (o200k_base encoding). 2026-03-17.
 | run-polish/polish-apply | 316 | pass |
 | run-recap/dispatch-preamble | — | pending |
 | run-review/scope-context | — | pending |
-| run-review/inspect-dispatch | — | pending |
-| run-review/synthesize-resort | — | pending |
+| run-review/inspect-spec-reviewer | 412 | pass |
+| run-review/inspect-correctness-reviewer | 363 | pass |
+| run-review/inspect-risk-reviewer | 507 | pass |
+| run-review/inspect-envoy | 224 | flag |
+| run-review/inspect-synthesis | 335 | pass |
+| run-review/review-output | 525 | pass |
 | run-review/template-review-brief | 344 | pass |
 | use-skill-craft/examples | 531 | pass |
 | use-writing/decision-template | 177 | pass |

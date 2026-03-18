@@ -35,13 +35,11 @@ Output: `.scratch/<session>/audit-analyze-<candidate-slug>.md`
 
 ## Phase 4 — Synthesize
 
-Main thread. Per candidate: compile depth assessment, dependency classification, test impact, caller map.
+Dispatch `@synthesizer` → `references/audit-synthesis.md`.
 
-Produce `architecture-findings.md` per SKILL.md Output Format.
+Input: all `audit-analyze-*.md` paths from Phase 3. Output: `.scratch/<session>/architecture-findings.md`.
 
-Next-step footer:
-- Large scope (3+ candidates, cross-cutting friction) → suggest `/do-discuss` for spec creation
-- Focused scope (1-2 candidates, clear boundary) → suggest `/do-plan` with `architecture-depth` lens
+Read synthesis output. Present findings to user per SKILL.md Output Format.
 
 ## Anti-Patterns
 

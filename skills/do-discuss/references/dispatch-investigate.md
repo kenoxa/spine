@@ -5,7 +5,7 @@ Codebase evidence gathering. Scales dispatch to blocking unknowns; fast-exits wh
 | Agent | Reference | Use when | Output |
 |-------|-----------|----------|--------|
 | `@scout` | `run-explore/references/explore-scout.md` | Orientation: "does X exist? where?" | `.scratch/<session>/discuss-investigate-scout.md` |
-| `@researcher` | [investigate-researcher.md](investigate-researcher.md) | Depth: "how does X work? side effects?" | `.scratch/<session>/discuss-investigate-researcher.md` |
+| `@researcher` | `investigate-researcher.md` | Depth: "how does X work? side effects?" | `.scratch/<session>/discuss-investigate-researcher.md` |
 | `@navigator` | `run-explore/references/explore-navigator.md` | External: "ecosystem says what about X?" | `.scratch/<session>/discuss-investigate-navigator.md` |
 
 Dispatch context: specific unknowns, `known`/`unknown` state, why user couldn't answer. Navigator: external library behavior, API compatibility — not codebase depth. Targeted queries, not broad sweep. Duplication prevention: check orient + clarify-assist outputs first. File presence in File map narrows query; only explicit Answer resolution omits dispatch.

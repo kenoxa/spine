@@ -15,19 +15,55 @@ Read-only — no file writes, no test execution.
 
 When invoked directly (not as agent preload): follow standalone review phases below.
 
+**Reference convention**: linked refs load into mainthread. Backticked paths → dispatch to subagent, do NOT Read into mainthread.
+
 ## Phases
 
 | Phase | Agent type | Reference |
 |-------|-----------|-----------|
-| Scope + Context | main thread | [scope-context.md](references/scope-context.md) |
-| Inspect | `@inspector` (parallel) + `@envoy` | [inspect-dispatch.md](references/inspect-dispatch.md) |
-| Synthesize + Output | `@synthesizer` + main thread | [synthesize-resort.md](references/synthesize-resort.md) |
+| Scope + Context | mainthread | [scope-context.md](references/scope-context.md) |
+| Inspect | `@inspector` (x3 parallel) + `@envoy` | `inspect-*.md` |
+| Synthesis | `@synthesizer` | `inspect-synthesis.md` |
+| Output | mainthread | [review-output.md](references/review-output.md) |
 
-Review brief: [template-review-brief.md](references/template-review-brief.md)
+| Phase | Base | Envoy | Max Augmented (s/d) | Cap |
+|-------|------|-------|--------------------|-----|
+| Inspect | 3 | 1 | 0 / 2 | 6 |
 
-Security: [security-probe.md](references/security-probe.md)
+### Phases 1-2: Scope + Context
 
-See also: `security-reviewer` (deeper heuristics), `@visualizer` (visual diff review — dispatched after findings), `reducing-entropy` (net-complexity measurement), `differential-review` (security-focused PR review with blast radius detection), `fp-check` (systematic true/false positive verification).
+Mainthread. Load [scope-context.md](references/scope-context.md).
+
+Depth classification → session → context passes → review_brief (Gate A).
+
+Review brief schema: [template-review-brief.md](references/template-review-brief.md).
+Security probe: [security-probe.md](references/security-probe.md).
+
+### Phase 3: Inspect
+
+Dispatch `@inspector` in parallel + `@envoy`:
+- `spec-reviewer` (`@inspector`) → `references/inspect-spec-reviewer.md`
+- `correctness-reviewer` (`@inspector`) → `references/inspect-correctness-reviewer.md`
+- `risk-reviewer` (`@inspector`) → `references/inspect-risk-reviewer.md`
+- `@envoy` → `references/inspect-envoy.md`
+
+At `deep` depth: +augmented `@inspector` per variance lens (cap 6 total).
+
+Do NOT run Phase 3 inline at `standard` or `deep` depth. Dispatch is mandatory. Inline execution only when Gate A fails (fallback to focused depth).
+
+**Gate B**: verify each output has ≥1 finding entry (`[B`/`[S`/`[F`). risk-reviewer absent → inject blocking. spec/correctness absent → note gap. envoy absent → proceed without.
+
+### Phase 4: Synthesis
+
+`@synthesizer` → `references/inspect-synthesis.md`
+
+**Gate C**: synthesis empty → fall back to individual agent outputs, merge manually.
+
+### Phases 5-6: Output
+
+Mainthread. Load [review-output.md](references/review-output.md).
+
+Conflict resolution → re-sort → user output → visual diff → findings artifact.
 
 ---
 
@@ -69,3 +105,7 @@ Before raising any finding, verify:
 - Silently dropping deferred findings from output
 - Skipping security probe on high-risk changes
 - Merging review with implementation unless user asked for immediate fixes
+
+## See Also
+
+`security-reviewer` (deeper heuristics), `@visualizer` (visual diff review — dispatched after findings), `reducing-entropy` (net-complexity measurement), `differential-review` (security-focused PR review with blast radius detection), `fp-check` (systematic true/false positive verification).
