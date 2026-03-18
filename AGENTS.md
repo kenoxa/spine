@@ -27,10 +27,6 @@ install.sh            Installer — manages ~/.config/spine/ and provider symlin
 Encoding: o200k_base. Measure: `tokenizer -f <file> -m gpt-4.1`.
 After changing any AI-loaded file: `scripts/token-counts.sh --update`.
 
-## Execution Invariants
-
-- **Do not infer phase skipping from low depth or empty signals.** Execute every phase unless the active skill explicitly gates it; zero-dispatch (phase runs, no subagents) is execution, not skipping. Dispatch tables are menus; the agent picks minimum necessary.
-
 ## Deep Dives
 
 - Skill/agent authoring: CONTRIBUTING.md
