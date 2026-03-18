@@ -7,7 +7,6 @@ branch" rule so callers shape paths at dispatch time
 - verify cross-skill references work, or move to ~/.agents/skills/run-explore/references/explore-scout.md
 - run-skill-eval: on rewriten skills, reference files, and agents
 	- run-insight is suspicous
-- https://github.com/mattpocock/skills/blob/main/ubiquitous-language/SKILL.md
 - document handoff/clear/catchup after planning
 - nightly update run sudo?
 - additional core tools:

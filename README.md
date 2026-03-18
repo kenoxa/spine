@@ -157,7 +157,7 @@ Skills write session artifacts to `.scratch/` during planning and execution. Kee
 Useful categories:
 
 - `run-*`: standalone utilities like explore, review, debug, polish, insights, and recap
-- `with-*`: automatic domain standards such as frontend, backend, JavaScript, and testing
+- `with-*`: automatic domain standards such as frontend, backend, terminology, and testing
 - `use-*`: active tools such as `use-writing`, `use-skill-craft`, and `use-envoy`
 
 ## Advanced Setup

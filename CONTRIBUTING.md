@@ -6,7 +6,7 @@ AI contributors: see `AGENTS.md` for per-invocation constraints and token budget
 
 ```
 SPINE.md                Global guardrails (installed to ~/.config/spine/SPINE.md)
-skills/                 20 skills (11 workflow + 3 domain + 6 tools)
+skills/                 22 skills (13 workflow + 4 domain + 5 tools)
 agents/                 13 subagents
 claude/                 Claude Code plugin (hooks + skills)
 docs/                   Reference docs (skills, tips, external skills)
@@ -55,6 +55,7 @@ npx skills add softaworks/agent-toolkit -s reducing-entropy -a '*' -g -y
 npx skills add mcollina/skills -s typescript-magician -a '*' -g -y
 npx skills add trailofbits/skills -s differential-review -a '*' -g -y
 npx skills add trailofbits/skills -s fp-check -a '*' -g -y
+npx skills add mattpocock/skills -s ubiquitous-language -a '*' -g -y
 ```
 
 Public manual examples intentionally use `npx skills add` to match [`skills.sh`](https://skills.sh/). The installer may bootstrap the same CLI through another launcher.

@@ -16,6 +16,7 @@ npx skills add softaworks/agent-toolkit -s reducing-entropy -a '*' -g -y
 npx skills add mcollina/skills -s typescript-magician -a '*' -g -y
 npx skills add trailofbits/skills -s differential-review -a '*' -g -y
 npx skills add trailofbits/skills -s fp-check -a '*' -g -y
+npx skills add mattpocock/skills -s ubiquitous-language -a '*' -g -y
 ```
 
 ## Referenced by local skills
@@ -30,6 +31,7 @@ npx skills add trailofbits/skills -s fp-check -a '*' -g -y
 | `reducing-entropy` | `softaworks/agent-toolkit` | run-review — net-complexity measurement, counters code bloat |
 | `differential-review` | `trailofbits/skills` | run-review — security-focused PR review with blast radius and regression detection |
 | `fp-check` | `trailofbits/skills` | run-review — systematic true/false positive verification for security findings |
+| `ubiquitous-language` | `mattpocock/skills` | with-terminology — DDD-style glossary extraction and canonical term formalization |
 
 ## Standalone
 

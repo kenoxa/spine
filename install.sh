@@ -32,6 +32,7 @@ GLOBAL_SKILLS=(
   "mcollina/skills -s typescript-magician"
   "trailofbits/skills -s differential-review"
   "trailofbits/skills -s fp-check"
+  "mattpocock/skills -s ubiquitous-language"
 )
 
 # MCP servers previously installed by Spine — removed on next run.

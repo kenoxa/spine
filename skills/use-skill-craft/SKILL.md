@@ -41,7 +41,7 @@ Include a `name` field matching the directory name (with prefix).
 |--------|---------|
 | `do-` | Workflow chain (discuss → plan → execute → commit) |
 | `run-` | Standalone utilities (debug, review, polish, recap) |
-| `with-` | Domain constraints — applied when task matches a domain (backend, frontend, testing) |
+| `with-` | Domain constraints — applied when task matches a domain (backend, frontend, terminology, testing) |
 | `use-` | Operational tools — utilities, conventions, cross-provider tooling |
 
 Plain names (`handoff`, `catchup`): session primitives. See `docs/skills-reference.md` for full details.

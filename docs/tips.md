@@ -21,7 +21,7 @@ Text after a slash command is the task scope. Examples:
 
 ## Workflow Tips
 
-- **Domain skills auto-load** — `with-frontend`, `with-backend`, and `with-testing` activate automatically when the task matches. No slash command needed.
+- **Domain skills auto-load** — `with-frontend`, `with-backend`, `with-testing`, and `with-terminology` activate automatically when the task matches. No slash command needed.
 - **Refine before executing** — polish the plan via messages before running `/do-execute`. The plan drives all quality gates downstream.
 - **Context rotation** — at ~60% context, run `/handoff` then `/clear` then `/catchup`. Prefer over `/compact` — compaction loses rationale and rejected approaches.
 - **Use subagents for parallel work** — `scout` handles breadth, `researcher` handles deep discovery plus bounded plan-local upstream checks, `navigator` handles broad/current external research, and `inspector` / `analyst` handle review lenses.
