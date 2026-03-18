@@ -29,6 +29,7 @@ Classify at entry. Controls fanout, not which phases run — all seven always ex
 
 - **Evidence**: E0 intuition · E1 doc ref · E2 code ref · E3 command+output. Blocking = E2+. Verify = E3.
 - **Session**: Reuse plan's session ID; otherwise per SPINE.md. Log at every phase boundary.
+- **Phase Trace**: All phases log rows; finalize verifies row count before content gates.
 - **Variance**: inherit from plan when available; else select 1-2 from `do-plan/references/variance-lenses.md`.
 - Dispatch at `standard`/`deep`; at `focused`, run inline. Prompts MUST be self-contained.
 

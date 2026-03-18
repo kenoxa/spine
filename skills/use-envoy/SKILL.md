@@ -11,6 +11,7 @@ argument-hint: "[prompt-content output-format output-path]"
 Dispatch `@envoy` concurrently with base subagents.
 Await all dispatched agents (envoy + base) before synthesis.
 When no base agents exist in the dispatch batch, dispatch sequentially before synthesis.
+When a skill's phase table lists `@envoy`, callers always attempt dispatch. Envoy's own pre-dispatch size check (below) is the sole skip mechanism — callers do not pre-filter.
 
 ## Caller Interface
 

@@ -19,6 +19,8 @@ Cross-reference: `do-plan/references/deep-modules.md` for depth heuristics, depe
 
 **Reference convention**: linked refs load into mainthread. Backticked paths → dispatch to subagent, do NOT Read into mainthread.
 
+**Phase Trace**: Log row at scope, explore (or zero-dispatch for focused), analyze, synthesize. Include scope classification and candidate count.
+
 All phases: [orchestrate-audit.md](references/orchestrate-audit.md).
 
 | Phase | Agent | Reference |

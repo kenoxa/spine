@@ -1,6 +1,6 @@
 # Explore Phase
 
-Multi-perspective exploration. Scales dispatch to scope ambiguity and `key_decisions` complexity; zero-dispatch (phase executes, dispatches no subagents) when scope is converged and key decisions resolved. Three `@framer` personas for one-way-door decisions resisting convergence:
+Multi-perspective exploration. Scales dispatch to scope ambiguity and `key_decisions` complexity; zero-dispatch (phase executes, dispatches no subagents) when scope is converged and key decisions resolved. Zero-dispatch: log Phase Trace row: `| Explore | zero-dispatch | — | [rationale] |` Three `@framer` personas for one-way-door decisions resisting convergence:
 
 | Role | Reference | Output |
 |------|-----------|--------|

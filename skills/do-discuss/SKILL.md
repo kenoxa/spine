@@ -57,6 +57,8 @@ Spec routing: @-referenced spec file → Read `references/spec-mode.md`. Explici
 
 ## Handoff
 
+Phase coverage: verify Phase Trace has entries for orient through frame. Zero-dispatch phases require a row with justification. Missing = incomplete.
+
 Confidence-gated. Main thread = sole handoff authority.
 
 | Confidence | Declaration |

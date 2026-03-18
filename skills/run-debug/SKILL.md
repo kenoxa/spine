@@ -30,6 +30,8 @@ current_phase: observe         # observe | pattern | hypothesis | harden
 instrumentation_tag: <4-char hex from openssl rand -hex 2>  # generated once per session
 ```
 
+**Phase Trace**: Log row at each phase transition (observe, pattern, hypothesis, harden) and each backtrack. Include hypothesis_attempts count and status.
+
 ## Flow
 
 ```

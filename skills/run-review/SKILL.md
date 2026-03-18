@@ -17,6 +17,8 @@ When invoked directly (not as agent preload): follow standalone review phases be
 
 **Reference convention**: linked refs load into mainthread. Backticked paths → dispatch to subagent, do NOT Read into mainthread.
 
+**Phase Trace**: Log row at scope, inspect dispatch, synthesis, output. Include phase name, dispatch count, 1-line summary.
+
 ## Phases
 
 | Phase | Agent type | Reference |

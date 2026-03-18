@@ -88,6 +88,9 @@ Post-synthesis: `@visualizer` architecture diagram (reads `plan-synthesis-planni
 ### 5. Synthesis
 
 Main thread. Sole readiness authority.
+0. Phase coverage: verify session-log Phase Trace has 4 rows (Discovery through Challenge).
+   - Expected: `plan-synthesis-discovery.md`, `plan-planning-{rigorous,creative}.md` + envoy, `plan-challenge-*.md` + envoy
+   - Missing row or artifact = gap — surface before readiness.
 1. Assemble per [template-plan.md](references/template-plan.md) → `.scratch/<session>/plan.md`
 2. Visual: Dispatch `@visualizer` if warranted → `plan-review.html`
 3. Validate [Plan Requirements](#plan-requirements)

@@ -23,6 +23,8 @@ Every subagent prompt MUST be self-contained — include all prior-phase context
 
 **Session**: per SPINE.md; reuse across phases.
 
+**Phase Trace**: Log row at collect, dispatch, present. Include format.
+
 | Phase | Agent | Reference |
 |-------|-------|-----------|
 | Collect | `@miner` | `references/collect-miner.md` |

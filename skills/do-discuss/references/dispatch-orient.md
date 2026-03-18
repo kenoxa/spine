@@ -21,7 +21,7 @@ Codebase reconnaissance. Dispatches when input is codebase-adjacent; zero-dispat
 2. Artifacts must contain: Answer, File map, Gaps (note potential lens signals), External signals table
 3. Session log: phase boundary, scout dispatched, 1-sentence summary. Carry `codebase_signals` + `external_signals` into clarify.
 
-**When NOT codebase-adjacent**: zero-dispatch; proceed to clarify. `codebase_signals = []`, `external_signals = []` unless research override triggers.
+**When NOT codebase-adjacent**: zero-dispatch; proceed to clarify. `codebase_signals = []`, `external_signals = []` unless research override triggers. Log Phase Trace row: `| Orient | zero-dispatch | — | [classification rationale] |`
 
 **External research override** (orient zero-dispatched, library names present):
 

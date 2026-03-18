@@ -59,6 +59,16 @@ Each task independently completable. Failed tasks block dependents but not unrel
 Check for newly unblocked tasks after each completion. Progress visible and resumable.
 Overhead only justified for complex dependency graphs — not for linear flows.
 
+## Dispatch Taxonomy
+
+| Type | Definition | Audit |
+|------|-----------|-------|
+| Checklist (C) | All listed agents fire | Artifact count == agent count |
+| Routing (R) | Input determines agent(s) | Classification logged + artifact exists |
+| Gated (G) | Phase condition; inner C/R when open; zero-dispatch when closed | Gate outcome in Phase Trace |
+
+`G -> C` = gated then checklist (apply inner audit). Reactive = gated by prior output.
+
 ## Anti-Patterns
 
 | ID | Anti-Pattern | Fix |
@@ -78,3 +88,5 @@ Overhead only justified for complex dependency graphs — not for linear flows.
 | AP-13 | Cartesian product tool calls (N files x M patterns) | Combine patterns into single regex, filter results |
 | AP-14 | Unbounded subagent spawning — one per file | Batch items into groups, one subagent per batch |
 | AP-15 | Description summarizes workflow steps | Description = triggering conditions only |
+| AP-16 | Phase without Phase Trace entry — zero-dispatch leaves no audit trail | Every phase logs to Phase Trace — including zero-dispatch |
+| AP-17 | Completion without phase coverage check — phases execute but completion doesn't verify | Gate completion on Phase Trace row count == declared phases |

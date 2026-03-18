@@ -39,6 +39,8 @@ Read-only — no file writes outside `.scratch/`.
 
 Session setup: generate per SPINE.md. When invoked from a skill with active session, inherit the calling session's ID.
 
+**Phase Trace**: Log row at frame, dispatch, synthesize, visualize. Include dispatch count and question type.
+
 ## Output Format
 
 - `key_findings` — confirmed observations with file paths

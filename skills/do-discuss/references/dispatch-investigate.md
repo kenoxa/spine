@@ -1,6 +1,6 @@
 # Investigate Phase
 
-Codebase evidence gathering. Scales dispatch to blocking unknowns; zero-dispatch (phase executes, dispatches no subagents) when no unknowns need codebase depth beyond orient or clarify assists.
+Codebase evidence gathering. Scales dispatch to blocking unknowns; zero-dispatch (phase executes, dispatches no subagents) when no unknowns need codebase depth beyond orient or clarify assists. Zero-dispatch: log Phase Trace row: `| Investigate | zero-dispatch | — | [rationale] |`
 
 | Agent | Reference | Use when | Output |
 |-------|-----------|----------|--------|

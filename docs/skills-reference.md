@@ -28,7 +28,7 @@ Five phases produce a self-sufficient, executable implementation plan:
 4. **Challenge** — adversarial review exposing hidden assumptions, underestimated risks, and unnecessary abstraction. Blocking findings require E2+ evidence and a better alternative.
 5. **Synthesis** — assemble the final plan using the plan template. Validate self-sufficiency, test tasks, edge coverage, docs tasks, and completion criteria.
 
-Ask checkpoints after discovery and after challenge ensure ambiguity is resolved before proceeding.
+All 5 phases always execute; phase coverage verified via Phase Trace before readiness. Ask checkpoints after discovery and after challenge ensure ambiguity is resolved before proceeding.
 
 Canonical entry: [`skills/do-plan/SKILL.md`](../skills/do-plan/SKILL.md).
 
@@ -44,7 +44,7 @@ Seven phases with built-in quality gates:
 6. **Verify** — single verifier instance. All claims require E3 evidence (executed command + observed output).
 7. **Finalize** — content gates check for test evidence, edge coverage, and docs. Learnings captured as proposals (never auto-applied).
 
-Re-entry loop: blocking review findings → polish → review → verify. Capped at 5 iterations.
+All 7 phases always execute; phase coverage verified via Phase Trace before finalize. Re-entry loop: blocking review findings → polish → review → verify. Capped at 5 iterations.
 
 Canonical entry: [`skills/do-execute/SKILL.md`](../skills/do-execute/SKILL.md).
 

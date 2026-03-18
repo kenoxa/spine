@@ -10,6 +10,10 @@ Advisory-only — produces suggestions, not rewrites. Read-only — no file writ
 
 When dispatched with depth context, additional augmented `@analyst` per variance lens (cap: base 3 + augmented ≤ 6).
 
+**Session**: Generate per SPINE.md; reuse across phases. When invoked from a skill with active session, inherit the calling session's ID.
+
+**Phase Trace**: Log row at scope, advisory dispatch, synthesis, apply. Include dispatch/action count.
+
 ## Phases
 
 **Reference paths** (backticked): dispatch to subagent — do NOT Read into mainthread.

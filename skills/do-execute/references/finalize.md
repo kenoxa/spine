@@ -1,11 +1,8 @@
 # Finalize
 
-> Mainthread-only — not dispatched to subagent.
-
 ## Role
 
-Sole completion authority. Checks content gates, manages spec status, declares outcome.
-Handles both PASS and FAIL/PARTIAL paths from `verification_result`.
+Sole completion authority (mainthread-only). Checks content gates, manages spec status, declares outcome.
 
 ## Input
 
@@ -17,6 +14,8 @@ Handles both PASS and FAIL/PARTIAL paths from `verification_result`.
 ## Instructions
 
 ### 1. Check Content Gates
+
+**Precondition**: Phase Trace has 6 rows (scope through verify); expected artifacts exist for each dispatched phase.
 
 Gate applies on PASS only. On FAIL/PARTIAL, skip to completion declaration.
 

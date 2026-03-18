@@ -62,8 +62,8 @@ For multi-phase workflow skills: see `references/workflow-patterns.md` — patte
 **Cross-skill refs.** Skills cross-reference sibling refs via `../` paths. When renaming/moving reference files, check downstream consumers.
 **Retired names.** When renaming agents/skills/MCP servers, add old name to the retired array in `install.sh`.
 **Declare, don't branch.** Reference files describe what they consume and produce. No caller-identity conditionals; parameterize I/O paths.
-**Reference naming.** `{phase}-{role}.md`, `orchestrate-{mode}.md`, `template-{artifact}.md`.
-**Phases are mandatory, fanout is adaptive.** Every phase executes unless the skill explicitly gates it. Zero-dispatch (phase runs, no subagents) is valid execution — not skip or fast-exit. Dispatch tables are menus; the agent picks minimum necessary.
+**Reference naming.** `{phase}-{role}.md`, `orchestrate-{mode}.md`, `template-{artifact}.md`, `{concept}.md`.
+**Phases are mandatory, fanout is adaptive.** Every phase executes unless the skill explicitly gates it (e.g., depth classification). Zero-dispatch (phase executes, dispatches no subagents) is valid — not skip or fast-exit. Phase execution must be auditable: see `references/phase-audit.md` for logging, completion gates, and dispatch taxonomy.
 
 Cut:
 - Definitions ("A trace is the complete record of...")
