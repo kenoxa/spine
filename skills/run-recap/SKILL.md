@@ -19,33 +19,23 @@ Cross-tool AI session history reporting. Reuses `run-insights/scripts/` for data
 
 Every subagent prompt MUST be self-contained — include all prior-phase context explicitly.
 
+**Reference paths** (backticked): dispatch to subagent — do NOT Read into mainthread.
+
 **Session**: per SPINE.md; reuse across phases.
 
-| Phase | Agent type |
-|-------|-----------|
-| Collect | `@miner` |
-| Dispatch | `@miner` (`recap`) |
-| Present | `@visualizer` |
+| Phase | Agent | Reference |
+|-------|-------|-----------|
+| Collect | `@miner` | `references/collect-miner.md` |
+| Dispatch | `@miner` (`recap`) | [dispatch-preamble.md](references/dispatch-preamble.md), [template-*.md](references/) |
+| Present | `@visualizer` | `references/present-visualizer.md` |
 
 ### 1. Collect
 
-Dispatch `@miner` to parse arguments, run parser scripts, collect git log.
+Dispatch `@miner` (`collector`) → `references/collect-miner.md`.
 
-**Arguments**:
-- `--days N` (default 7) — time window
-- `--format standup|timesheet|recap` (default standup) — output format
-- `--project filter` (optional) — case-insensitive substring match on project name
+Generate session ID. Pass `{days}`, `{format}`, `{project_filter}`, `{session}`.
 
-Generate session ID. Run parser scripts via `sh`:
-
-```sh
-COLLECT="$HOME/.agents/skills/run-insights/scripts/collect_sessions.sh"
-"$COLLECT" --days "${DAYS:-7}" --session "<session>"
-```
-
-Verify `analytics.json` exists and has sessions. If `summary.total_sessions == 0`, report "No AI sessions found in the last N days. Try increasing --days." and stop.
-
-**Git log collection**: Extract unique `project` values from `*_sessions.json`. Resolve each to filesystem path via `~/Projects/{project}` or cwd. Read `SINCE` from `.scratch/<session>/collect.env` inside the same shell invocation that runs git log. Write to `.scratch/<session>/git_log.json` as `{project: [commit_lines]}`. Skip unresolvable projects, non-repos, or empty ranges. Best-effort.
+Output: `.scratch/<session>/recap-collect.md`
 
 ### 2. Dispatch
 
@@ -65,9 +55,9 @@ Construct prompt by combining:
 
 ### 3. Present
 
-Read `.scratch/<session>/report-{format}.md`. Display directly as markdown. No post-processing — subagent output IS final output.
+Read `.scratch/<session>/report-{format}.md`. Display directly as markdown.
 
-Dispatch `@visualizer` if complexity warrants it or requested: work activity recap for time-window. Data: `.scratch/<session>/report-{format}.md`. Output: `.scratch/<session>/history-recap.html`. Otherwise suggest to user. Skip only if user has declined.
+Dispatch `@visualizer` → `references/present-visualizer.md` if complexity warrants or requested. Input: `.scratch/<session>/report-{format}.md`. Output: `.scratch/<session>/history-recap.html`. Otherwise suggest. Skip if user declined.
 
 ## Anti-Patterns
 
