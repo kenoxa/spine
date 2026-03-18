@@ -1,10 +1,9 @@
 ---
 name: implementer
 description: >
-  Read-write implementation for do-execute phases.
-  Use for implement, polish-apply, and review-fix dispatch.
-  Use when editing project source files to implement plan tasks, apply polish fixes,
-  or resolve blocking review findings within a scoped file partition.
+  Read-write implementation within a scoped file partition.
+  Use when editing project source files per plan tasks, polish actions,
+  or review-fix directives.
 skills:
   - use-shell
 ---

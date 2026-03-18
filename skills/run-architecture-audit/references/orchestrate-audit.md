@@ -23,12 +23,13 @@ Synthesize scout outputs into numbered deepening candidates. Present to user. Us
 
 ## Phase 3 — Analyze
 
-Dispatch @researcher per selected candidate (max 3 concurrent). Per candidate:
+Dispatch @researcher + `references/analyze-researcher.md` per selected candidate (max 3 concurrent).
 
-1. Count exports vs implementation scope (depth heuristic from `do-plan/references/deep-modules.md`)
-2. Classify dependencies using 4-category model (in-process, local-substitutable, remote-but-owned, true-external)
-3. Identify current test strategy — boundary tests vs internal mocking
-4. Map callers — who depends on this module's exports
+Verify researcher output covers:
+1. Depth assessment — ratio estimate with shallow/medium/deep classification
+2. Dependency classification — every dependency categorized (4-category model)
+3. Test strategy — boundary tests vs internal mocking, which dominates
+4. Caller map — fan-in count, coupling hotspots
 
 Output: `.scratch/<session>/audit-analyze-<candidate-slug>.md`
 

@@ -21,18 +21,21 @@ Session: `thin-orchestrator-ref-arch-7ff2`
 
 ## Agent Mode Extraction
 
-Terminal phase. Removed `## Mode Routing` / `## Thoroughness` from 6 agents; created 10 new reference files; updated 15 drift phrases and 8+ orchestrator dispatch sites.
+Terminal phase. Removed `## Mode Routing` / `## Thoroughness` from 9 agents; created 12 new reference files; stripped 7 description-field mode enumerations and 2 body-text mode references; fixed 16 drift phrases; updated 10+ orchestrator dispatch sites.
 
 | Agent | Pre | Post | New Refs | Notes |
 |-------|-----|------|----------|-------|
-| analyst | 298 | 170 | 0 | Below 250 floor — all role behavior in refs |
-| miner | 450 | 149 | 0 | Below 250 floor — all role behavior in refs |
-| framer | 525 | 394 | 4 | explore-{stakeholder-advocate,systems-thinker,skeptic,augmented-framer} |
-| implementer | 462 | 336 | 1 | review-fix.md |
+| analyst | 298 | 168 | 0 | Below 250 floor — all role behavior in refs |
+| miner | 450 | 133 | 0 | Below 250 floor — all role behavior in refs |
+| framer | 525 | 397 | 4 | explore-{stakeholder-advocate,systems-thinker,skeptic,augmented-framer} |
+| implementer | 462 | 314 | 1 | review-fix.md |
 | scout | 461 | 368 | 2 | orient-scout.md, audit-scout.md |
 | navigator | 835 | 687 | 3 | navigator-{synthesis,alternatives}.md, discovery-navigator.md |
+| researcher | 359 | 341 | 2 | investigate-researcher.md, analyze-researcher.md |
+| debater | 287 | 269 | 0 | Refs pre-existed (challenge-*.md); description + body cleaned |
+| planner | 377 | 382 | 0 | Refs pre-existed (planning-*.md); description + body cleaned |
 
-Enforcement gate: no agent contains mode enumeration; every dispatch names a reference path. Behavioral validation deferred (structural gates only).
+Enforcement gate met: no agent file contains mode enumeration; every dispatch names a reference path. Synthesizer excluded (phase contexts, not behavioral modes). Behavioral validation deferred (structural gates only). Pre-existing: analyst (168) and miner (133) below 250-token floor; synthesizer `shared` in run-architecture-audit.
 
 ## Decisions Log
 

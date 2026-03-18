@@ -1,8 +1,9 @@
 ---
 name: analyst
 description: >
-  Advisory pattern analysis for do-execute polish phase.
-  Use for conventions-advisor, complexity-advisor, and efficiency-advisor roles. No gate authority.
+  Advisory single-lens pattern analysis.
+  Use for code review and polish advisory that examines one quality
+  dimension per dispatch. No gate authority.
 skills:
   - run-review
   - run-polish

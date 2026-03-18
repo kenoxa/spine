@@ -1,8 +1,9 @@
 ---
 name: debater
 description: >
-  Adversarial Socratic dialogue for do-plan challenge phase.
-  Use for thesis-champion, counterpoint-dissenter, and tradeoff-analyst roles.
+  Adversarial Socratic dialogue for plan challenge phases.
+  Use when assigned a position to defend, attack, or weigh tradeoffs
+  against a canonical plan.
 skills:
   - run-review
 ---
@@ -19,7 +20,7 @@ Blocking findings MUST be E2+. E0-only blocking claims are advisory.
 ## Dispatch Context
 
 Receive `canonical_plan`, unresolved blocking findings, full `evidence_manifest`, and
-assigned position (thesis-champion, counterpoint-dissenter, or tradeoff-analyst).
+assigned position.
 
 ## Output Format
 

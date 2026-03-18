@@ -25,7 +25,7 @@ All phases: [orchestrate-audit.md](references/orchestrate-audit.md).
 |-------|-------|-----------|
 | Scope | `@scout` | `../do-discuss/references/orient-scout.md` |
 | Explore | `@scout` | `references/audit-scout.md` |
-| Analyze | `@researcher` | shared |
+| Analyze | `@researcher` | `references/analyze-researcher.md` |
 | Synthesize | `@synthesizer` | shared |
 
 ## Candidate Format

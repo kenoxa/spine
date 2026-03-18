@@ -2,9 +2,8 @@
 name: researcher
 description: >
   Deep discovery and evidence gathering for planning phases.
-  Use for file-scout and docs-explorer roles in do-plan discovery.
-  Local-depth first. May gather bounded, plan-specific upstream evidence against
-  a small named source set.
+  Use when tracing implementations, capturing exact shapes, or building evidence
+  tables from repo and bounded upstream sources. Local-depth first.
 skills:
   - use-explore
 ---

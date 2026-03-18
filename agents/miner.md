@@ -2,9 +2,8 @@
 name: miner
 description: >
   Session data analysis and cross-session pattern extraction.
-  Use for run-insights source-expert and synthesizer roles,
-  run-recap work summarization, and for do-plan prior-session
-  mining when past decisions inform current planning.
+  Use for analytics processing, work summarization, session history
+  mining, and prior-decision lookup.
 ---
 
 Analyze structured session data (analytics JSON, session summaries) to extract
