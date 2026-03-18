@@ -11,7 +11,7 @@ Produce a self-sufficient, executable plan: discovery → framing → planning �
 
 ## Phases
 
-Every subagent prompt MUST be self-contained.
+Every subagent prompt MUST be self-contained. All 5 phases MUST execute — never skip phases even when discussion was extensive. Discussion context informs subagent dispatches but never replaces them.
 
 **Reference convention**: linked refs load into mainthread. Backticked paths → dispatch to subagent, do NOT Read into mainthread.
 
@@ -112,4 +112,4 @@ Template: [template-plan.md](references/template-plan.md).
 
 **Cap**: 5 iterations; freeze on cap.
 
-**Anti-Patterns**: unresolved `key_decisions` past ask; re-selecting lenses; same visualizer filename; spec detection on non-`@`-ref files.
+**Anti-Patterns**: skipping phases or producing plan without subagent dispatch; unresolved `key_decisions` past ask; re-selecting lenses; same visualizer filename; spec detection on non-`@`-ref files.
