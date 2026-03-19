@@ -721,6 +721,14 @@ generate_cursor_agent_md() {
     return 0
   fi
 
+  # Build body with optional skills preamble (Cursor ignores skills: frontmatter)
+  local body="$_agent_body"
+  if [ -n "$_agent_skills" ]; then
+    body="Load the following skill(s): $_agent_skills
+
+$_agent_body"
+  fi
+
   local tmp out_file="$out_dir/$_agent_name.md"
   tmp=$(mktemp "$out_dir/spine-tmp.XXXXXX")
 
@@ -732,10 +740,11 @@ generate_cursor_agent_md() {
     map_model_for_provider "$_agent_model" cursor
     [ -n "$_mapped_model" ] && echo "model: $_mapped_model"
     # effort: omitted — Cursor has no effort parameter (subagent or CLI)
+    # skills: omitted — Cursor ignores frontmatter skills; embedded in body above
     [ "$_agent_readonly" = "true" ] && echo 'readonly: true'
     echo '---'
     echo ""
-    printf '%s\n' "$_agent_body"
+    printf '%s\n' "$body"
   } > "$tmp"
 
   if [ -f "$out_file" ] && [ ! -L "$out_file" ]; then
