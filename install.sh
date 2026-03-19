@@ -733,8 +733,8 @@ $_agent_body"
   tmp=$(mktemp "$out_dir/spine-tmp.XXXXXX")
 
   {
-    echo '<!-- spine:managed -->'
     echo '---'
+    echo '# spine:managed — do not edit'
     echo "name: $_agent_name"
     printf 'description: >-\n  %s\n' "$_agent_description"
     map_model_for_provider "$_agent_model" cursor
@@ -1077,7 +1077,7 @@ cleanup_stale_files() {
       for md in "$target/agents/"*.md; do
         [ -f "$md" ] || continue
         [ -L "$md" ] && continue  # skip symlinks
-        head -1 "$md" | grep -q '<!-- spine:managed -->' || continue
+        head -3 "$md" | grep -q '^# spine:managed' || continue
         local agent_name
         agent_name=$(basename "$md" .md)
         if [ ! -f "$HOME/.config/spine/agents/$agent_name.md" ]; then
