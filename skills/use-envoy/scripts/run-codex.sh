@@ -73,7 +73,6 @@ timeout --kill-after=10 "$timeout_secs" env \
         -c "model_reasoning_effort=$effort" \
         --ephemeral \
         --skip-git-repo-check \
-        --full-auto \
         - < "$prompt_file" \
         > "$output_file" 2>"$stderr_log" \
     || _rc=$?

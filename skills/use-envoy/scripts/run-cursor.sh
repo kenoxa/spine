@@ -90,7 +90,7 @@ fi
 init_cleanup
 
 # --- Invoke (coreutils timeout handles process group kill + SIGKILL escalation) ---
-# --force: consistency with --dangerously-skip-permissions (Claude) and --full-auto (Codex)
+# --force: consistency with --dangerously-skip-permissions (Claude) and codex exec defaults
 
 _rc=0
 timeout --kill-after=10 "$timeout_secs" env \
