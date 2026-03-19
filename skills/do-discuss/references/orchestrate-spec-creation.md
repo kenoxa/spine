@@ -5,142 +5,70 @@ Terminal branch — emits spec.md + progress.md only, never brief.md. Do NOT aut
 ## 1. Activation
 
 Two triggers:
+- **Intake**: scope exceeds single session (2-of-3: multiple phases, cross-cutting concerns [3+ unrelated modules], multi-day signals) AND no `@`-reference.
+- **Handoff**: Frame phase brief recommends `spec-creation`. Full brief + accumulated state carried forward.
 
-- **Intake routing**: scope exceeds single session (2-of-3: multiple phases, cross-cutting concerns [3+ unrelated modules], multi-day signals) AND no `@`-reference present.
-- **Handoff routing**: Frame phase brief recommends `spec-creation` as next step. Full brief + all accumulated state carried forward.
+Guard: present scope-signal evidence, get user confirmation. NOT when `@`-reference present — that's [spec-mode.md](spec-mode.md).
 
-Guard: present scope-signal evidence to user, get confirmation before activating.
-
-Guard: NOT when `@`-reference present — that's [spec-mode.md](spec-mode.md), not spec-creation.
-
-**Handoff state transfer**: full brief, `known`/`unknown` inventory, `codebase_signals`, `external_signals`, session log. Resume from first unanswered interview step. Pre-populate answered steps from accumulated state.
+**State transfer**: full brief, `known`/`unknown`, `codebase_signals`, `external_signals`, session log. Resume from first unanswered step. Pre-populate answered steps.
 
 ## 2. Interview
 
-Sequential. Do not skip or reorder steps.
+Sequential. Do not skip or reorder.
 
-### 2a. Problem
-
-What situation needs to change? Extract from user input or ask directly. One paragraph — no solutions, no implementation details. May be pre-populated from clarify state.
-
-### 2b. Users & Context
-
-Who is affected? What is the current state? Identify:
-- Primary users (human or system)
-- Current workaround or absence thereof
-- Relevant existing infrastructure
-
-### 2c. Constraints
-
-Elicit: out-of-scope items, hard limits (perf/compat/security), non-goals. Push back on "no constraints" — ask: "What would you reject if someone added it to this work?"
-
-### 2d. Phases
-
-Break the capability into 3-6 phases. Push back outside this range:
-- < 3 phases: likely a single-session task — suggest do-plan directly
-- \> 6 phases: decompose into separate specs or collapse related work
-
-Each phase gets:
-- **Title**: short, action-oriented
-- **Scope**: concrete file/component names — not abstract nouns
-- **Acceptance Criteria**: 2-5 EARS statements per [template-spec.md](template-spec.md)
-- **Out of scope**: what this phase explicitly does not touch
+| Step | Elicit | Pushback trigger |
+|------|--------|-----------------|
+| **Problem** | What situation needs to change? One paragraph — no solutions. | Input contains implementation details |
+| **Users & Context** | Primary users, current workaround, relevant infrastructure. | Missing stakeholder identification |
+| **Constraints** | Out-of-scope, hard limits (perf/compat/security), non-goals. | "No constraints" — ask: "What would you reject if someone added it?" |
+| **Phases** | 3-6 phases. Title, scope (concrete file/component names), 2-5 EARS criteria per [template-spec.md](template-spec.md), out-of-scope. | < 3 → suggest do-plan. > 6 → decompose into separate specs or collapse. |
 
 ## 3. Envoy Injection Point A
 
-After phases+EARS drafted, before DAG. Sequential (no base agents in this batch).
+After phases+EARS drafted, before DAG. Load `use-envoy`. Dispatch `@envoy`:
+- Prompt: problem + users/context + constraints + phases + EARS (self-contained)
+- Tier: standard → `.scratch/<session>/discuss-spec-phases-envoy.md`
 
-Load `use-envoy`. Dispatch `@envoy`:
-- Prompt: problem + users/context + constraints + phases + EARS (self-contained — no local path references)
-- Tier: standard
-- Output: `.scratch/<session>/discuss-spec-phases-envoy.md`
-
-Main thread reads Envoy output, incorporates adjustments, presents DAG with refinements noted.
-
-Skip: note `[COVERAGE_GAP: envoy — provider unavailable]` and proceed. Do NOT block on Envoy failure.
+Main thread reads output, incorporates adjustments. Skip on failure: `[COVERAGE_GAP: envoy — provider unavailable]`.
 
 ## 4. DAG Elicitation
 
-1. **Infer dependencies conservatively** — more deps = safer. A phase that reads output from another phase depends on it. When uncertain, add the dependency.
-2. **Populate `Depends on:`** per phase — list phase numbers (comma-separated), or `none` for root phases. `Depends on: none` must be explicit for roots.
-3. **Present the dependency graph** to user for confirmation. Format:
-   ```
-   Phase 1 (root) → Phase 2 → Phase 4
-                  → Phase 3 → Phase 4
-   ```
-4. **Cycle warning**: if the graph contains cycles, flag them as advisory. Cycles indicate phase boundaries need adjustment.
+Infer dependencies conservatively (more = safer). Populate `Depends on:` per phase — phase numbers or `none` for roots. Present graph to user for confirmation. Cycles = phase boundaries need adjustment.
 
-User must confirm the dependency graph before output. If rejected → revise phases/dependencies, re-present. If user rejects DAG after Envoy-A feedback, do NOT re-dispatch Envoy-A.
+User must confirm before output. Rejection → revise, re-present. Do NOT re-dispatch Envoy-A after rejection.
 
 ## 5. Envoy Injection Point B
 
-After DAG confirmed, before file creation. Sequential (no base agents in this batch).
+After DAG confirmed. Load `use-envoy`. Dispatch `@envoy`:
+- Prompt: full spec draft (self-contained)
+- Tier: standard → `.scratch/<session>/discuss-spec-final-envoy.md`
 
-Load `use-envoy`. Dispatch `@envoy`:
-- Prompt: full spec draft (self-contained — no local path references)
-- Tier: standard
-- Output: `.scratch/<session>/discuss-spec-final-envoy.md`
-
-Present findings to user; user confirms or requests changes before file creation.
-
-Skip: note `[COVERAGE_GAP: envoy — provider unavailable]` and proceed. Do NOT block on Envoy failure.
+Present findings; user confirms before file creation. Skip on failure: `[COVERAGE_GAP: envoy — provider unavailable]`.
 
 ## 6. Output
 
-1. Create `docs/specs/{YY}{WW}-<slug>/spec.md` per the skeleton in [template-spec.md](template-spec.md)
-2. Create `docs/specs/{YY}{WW}-<slug>/progress.md` with scaffold:
-   ```markdown
-   # Progress: <Feature Name>
+Create `docs/specs/{YY}{WW}-<slug>/spec.md` per [template-spec.md](template-spec.md) + `progress.md` with scaffold. All phases: `[ ] pending`.
 
-   | Date | Phase | Action | Detail |
-   |------|-------|--------|--------|
-   | YYYY-MM-DD | -- | created | Initial spec created |
-   ```
-   Date format: `YYYY-MM-DD` (ISO 8601).
-3. All phases initialize as `[ ] pending` in the Status table
-
-**Slug**: derive from feature name. Lowercase, hyphens, no special chars. Prefix with `{YY}{WW}` — execute `date +%g%V` to get 2-digit ISO year + ISO week (do not fabricate). Use `%g` not `%y` — `%y` causes year-boundary bugs at week 52/53 crossover. Example: "Auth Retry System" → `2612-auth-retry-system`.
-
-**Capability section**: what the system will do after all phases complete. Present tense, outcome-focused. 2-4 sentences — not a phase, the aggregate capability.
-
-**Success Criteria section**: top-level EARS statements across the entire spec, not per-phase. Validate the complete feature. 3-5 statements.
-
-**Open Questions section**: unresolved items from interview. Each entry: question, affected phase(s), whether it blocks phase start. Open questions don't block spec creation — they block phase execution.
+**Slug**: lowercase, hyphens. Execute `date +%g%V` for prefix — use `%g` not `%y` (year-boundary bugs). **Capability**: what system does after all phases. Present tense, 2-4 sentences. **Success Criteria**: top-level EARS across entire spec, 3-5 statements. **Open Questions**: unresolved items — question, affected phase(s), blocks-start flag.
 
 ## 7. Revision Mode
 
-When `@`-referenced spec.md exists AND user explicitly requests "rewrite"/"recreate":
-
-1. Edit spec.md in-place — do not recreate
-2. Re-run relevant interview steps for changed sections
-3. Preserve status of unchanged phases
-
-**Slug collision**: if `docs/specs/{YY}{WW}-<slug>/` exists but contains no `spec.md` — warn user about orphaned directory before proceeding.
+`@`-referenced spec.md + explicit "rewrite"/"recreate": edit in-place, re-run relevant steps, preserve unchanged phase status. Slug collision (dir exists, no spec.md) → warn user.
 
 ## 8. Handoff
 
-Suggest `/do-discuss @docs/specs/{YY}{WW}-<slug>/spec.md` with message:
-
-> Spec created. To begin Phase 1 planning, run this command — it activates spec-mode for phase-scoped Socratic dialogue before planning.
-
-Do NOT suggest `/do-plan` directly. Do NOT auto-trigger do-plan.
+Suggest `/do-discuss @docs/specs/{YY}{WW}-<slug>/spec.md`. Do NOT suggest `/do-plan` directly.
 
 ## 9. Session Log
 
-If session ID exists (mid-clarify activation): append to existing session log.
-If none (intake activation): generate per SPINE.md convention, then append.
-
-Log at: problem defined, constraints elicited, phases drafted, Envoy-A dispatched, DAG confirmed, Envoy-B dispatched, files created.
+Append to existing if mid-clarify; generate new if intake activation. Log at: problem defined, constraints elicited, phases drafted, Envoy-A, DAG confirmed, Envoy-B, files created.
 
 ## 10. Anti-Patterns
 
 - Auto-triggering do-plan after spec creation
 - Prose acceptance criteria instead of EARS format
-- Phase count outside 3-6 without explicit pushback
-- Omitting Constraints & Non-Goals section
-- Abstract scope descriptions without file/function names
+- Phase count outside 3-6 without pushback
+- Abstract scope without file/function names
 - Skipping user confirmation of dependency graph
-- Fabricating `{YY}{WW}` prefix instead of executing `date +%g%V`
-- "No constraints" accepted without pushback
+- Fabricating `{YY}{WW}` instead of executing `date +%g%V`
 - Recreating spec when `@`-reference exists (edit in-place)
-- Dispatching `@scout` or clarify-assist during spec-creation interview steps

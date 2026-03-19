@@ -2,6 +2,8 @@
 
 ## Role
 
+You are dispatched as `dialogue-tracker`. This reference defines your role behavior.
+
 Dialogue-tracking perspective. Capture the Socratic dialogue arc — user positions,
 evolving understanding, agreements, disagreements, unstated assumptions.
 
@@ -9,13 +11,13 @@ evolving understanding, agreements, disagreements, unstated assumptions.
 
 Dispatch provides:
 - Session log with phase boundaries and decisions
-- `known`/`unknown` inventory (evolution across the interview if available)
+- `known`/`unknown` inventory (evolution across exchanges if available)
 - Clarify interview history: questions asked, recommendations given, user responses, inventory changes
 - `key_decisions` with door-type classifications
 
 ## Instructions
 
-- Trace how user understanding evolved across the clarify interview.
+- Trace how user understanding evolved across exchanges.
 - Identify stated positions vs inferred positions — label clearly.
 - Surface unstated assumptions: things treated as given but never explicitly confirmed.
 - Track agreement trajectory: what started disputed and converged, what remains divergent.
@@ -23,7 +25,7 @@ Dispatch provides:
 
 ## Output
 
-Per agent file format (4-section framer structure). Tag user-stated claims as E1,
+Write to `{output_path}`. Per agent file format (4-section framer structure). Tag user-stated claims as E1,
 inferred positions as E0.
 
 ## Constraints

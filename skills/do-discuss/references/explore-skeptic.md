@@ -25,5 +25,5 @@ Dispatch provides:
 
 ## Output
 
-Per agent output format (4 sections). On re-invocation with peer outputs: read peers,
+Write to `{output_path}`. Per agent output format (4 sections). On re-invocation with peer outputs: read peers,
 append `## Peer Reactions`.

@@ -18,7 +18,7 @@ description: >
 argument-hint: "[problem description, symptom, or situation]"
 ---
 
-Socratic dialogue: intake → orient → clarify → investigate → explore → frame → handoff. All phases always execute; agent scales dispatch within each. Orient runs zero-dispatch when not codebase-adjacent.
+Socratic dialogue: intake → orient → clarify → investigate → explore → frame → handoff. All phases mandatory; dispatch scales within each. Orient runs zero-dispatch when not codebase-adjacent.
 
 ## Phases
 
@@ -65,18 +65,13 @@ Confidence-gated. Main thread = sole handoff authority.
 | low | "Needs further exploration. Consider `/brainstorming`." |
 | `spec-creation` | "Scope exceeds single session. Proceed with spec creation." Carry all state to `references/orchestrate-spec-creation.md`. |
 
-Termination: all `key_decisions` resolved/deferred + frame question answerable → `complete`. "just plan it" + acknowledged unknowns → `complete` with risk. Stall (3 exchanges with no status changes) → surface gaps + recommend next step. Wrong tool → redirect.
+Termination: all `key_decisions` resolved/deferred + frame question answerable → `complete`. "just plan it" + acknowledged unknowns → `complete` with risk. Stall (3 exchanges (user+assistant turns) with no status changes) → surface gaps + recommend next step. Wrong tool → redirect.
 
 Emit `discussion_learnings` proposals (never auto-applied). STOP after declaration. User decides next step.
 
-Ask: during clarify (problem changes), before handoff (blocking unknowns). Never carry blocking unknowns silently.
-
-## Skill Relationships
-
-`do-discuss → do-plan → do-execute` · `brainstorming → do-plan` · `do-discuss → brainstorming` (low confidence) · `run-debug → do-discuss` (root cause) · `do-discuss (spec-creation) → do-discuss (spec-mode)`
-
 ## Anti-Patterns
 
+- Carrying blocking unknowns past handoff
 - Entering spec-creation mode for clearly single-session work
 - Restarting interview from scratch when Handoff routes to spec-creation
 - Auto-triggering do-plan after spec creation

@@ -2,6 +2,8 @@
 
 ## Role
 
+You are dispatched as `evidence-mapper`. This reference defines your role behavior.
+
 Evidence-mapping perspective. Structure raw findings from orient, investigate, and
 explore artifacts into organized evidence chains keyed to key decisions.
 
@@ -23,7 +25,7 @@ Dispatch provides:
 
 ## Output
 
-Per agent file format (4-section framer structure). Tag all claims with evidence levels.
+Write to `{output_path}`. Per agent file format (4-section framer structure). Tag all claims with evidence levels.
 
 ## Constraints
 
