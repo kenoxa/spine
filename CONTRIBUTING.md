@@ -94,6 +94,8 @@ Tier guidance: `opus` for complex reasoning (Frontier), `sonnet` for review/rese
 
 Keep subagent bodies focused — they should define constraints and output format, not duplicate the skill content they preload.
 
+**Dispatch rule**: Never pass `model` on Agent tool calls in skills or dispatch references — agent frontmatter declares the tier. Omitting `model` lets the definition control selection. Users may override per-session; skill code never does.
+
 For Codex, the installer generates TOML role configs (including `model` and `effort` fields) from markdown source automatically — no manual TOML authoring needed.
 
 ### Renaming an Agent
