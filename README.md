@@ -251,6 +251,8 @@ If your environment exposes only `python`, Spine treats it as satisfying the man
 
 On Linux without Homebrew, the installer prints example manual install hints instead of auto-installing packages.
 
+**Recommended but not managed:** [`gh`](https://cli.github.com/) (GitHub CLI) — provides reliable GitHub content fetching when raw URL access is flaky. Requires `gh auth login` after install.
+
 </details>
 
 <details>
