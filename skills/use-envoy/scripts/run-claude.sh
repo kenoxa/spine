@@ -64,16 +64,11 @@ init_cleanup
 # --- Invoke (coreutils timeout handles process group kill + SIGKILL escalation) ---
 
 _rc=0
-timeout --kill-after=10 "$timeout_secs" env -i \
-    HOME="$HOME" \
+timeout --kill-after=10 "$timeout_secs" env \
+    -u CLAUDECODE -u CURSOR_AGENT -u CODEX_SANDBOX \
     PATH="$HOME/.local/bin:$PATH" \
-    USER="${USER:-$(id -un)}" \
-    TMPDIR="${TMPDIR:-/tmp}" \
-    LANG="${LANG:-en_US.UTF-8}" \
-    TERM="${TERM:-dumb}" \
     CLAUDE_CODE_DISABLE_AUTO_MEMORY=1 \
     CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1 \
-    CLAUDE_CODE_DISABLE_FAST_MODE=1 \
     CLAUDE_CODE_EFFORT_LEVEL="$effort" \
     CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 \
     claude --print \

@@ -64,13 +64,9 @@ init_cleanup
 # --- Invoke (coreutils timeout handles process group kill + SIGKILL escalation) ---
 
 _rc=0
-timeout --kill-after=10 "$timeout_secs" env -i \
-    HOME="$HOME" \
+timeout --kill-after=10 "$timeout_secs" env \
+    -u CLAUDECODE -u CURSOR_AGENT -u CODEX_SANDBOX \
     PATH="$HOME/.local/bin:$PATH" \
-    USER="${USER:-$(id -un)}" \
-    TMPDIR="${TMPDIR:-/tmp}" \
-    LANG="${LANG:-en_US.UTF-8}" \
-    TERM="${TERM:-dumb}" \
     CODEX_HOME="${CODEX_HOME:-$HOME/.codex}" \
     codex exec \
         -m "$model" \

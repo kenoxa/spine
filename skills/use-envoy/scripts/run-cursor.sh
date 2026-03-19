@@ -93,13 +93,9 @@ init_cleanup
 # --force: consistency with --dangerously-skip-permissions (Claude) and --full-auto (Codex)
 
 _rc=0
-timeout --kill-after=10 "$timeout_secs" env -i \
-    HOME="$HOME" \
+timeout --kill-after=10 "$timeout_secs" env \
+    -u CLAUDECODE -u CURSOR_AGENT -u CODEX_SANDBOX \
     PATH="$HOME/.local/bin:$PATH" \
-    USER="${USER:-$(id -un)}" \
-    TMPDIR="${TMPDIR:-/tmp}" \
-    LANG="${LANG:-en_US.UTF-8}" \
-    TERM="${TERM:-dumb}" \
     "$_binary" -p \
         --output-format text \
         --trust \
