@@ -4,6 +4,8 @@ description: >
   Angle-committed planning for do-plan planning phase.
   Use when assigned a planning angle — produces a single-perspective
   plan for synthesis.
+model: opus
+effort: high
 skills:
   - do-plan
 ---

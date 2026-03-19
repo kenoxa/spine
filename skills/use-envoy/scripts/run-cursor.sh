@@ -9,7 +9,7 @@ error() { printf 'Error: %s\n' "$*" >&2; }
 
 usage() {
     cat <<'EOF'
-Usage: run-cursor.sh --prompt-file PATH --output-file PATH --stderr-log PATH [--timeout SECS] [--fallback-for claude|codex]
+Usage: run-cursor.sh --prompt-file PATH --output-file PATH --stderr-log PATH [--timeout SECS] [--tier frontier|standard|fast] [--fallback-for claude|codex]
 
 Invoke cursor-agent CLI headlessly with sanitized environment.
 EOF
@@ -17,7 +17,7 @@ EOF
 
 # --- Argument parsing ---
 
-prompt_file="" output_file="" stderr_log="" timeout_secs="" fallback_for=""
+prompt_file="" output_file="" stderr_log="" timeout_secs="" tier="standard" fallback_for=""
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -25,6 +25,7 @@ while [ $# -gt 0 ]; do
         --output-file)    output_file="$2"; shift 2 ;;
         --stderr-log)     stderr_log="$2"; shift 2 ;;
         --timeout)        timeout_secs="$2"; shift 2 ;;
+        --tier)           tier="$2"; shift 2 ;;
         --fallback-for)   fallback_for="$2"; shift 2 ;;
         -h|--help)        usage; exit 0 ;;
         *)                error "Unknown argument: $1"; usage; exit 1 ;;
@@ -43,12 +44,21 @@ _script_dir=$(cd "$(dirname "$0")" && pwd)
 # shellcheck source=_common.sh
 . "$_script_dir/_common.sh"
 
-# --- Model (configurable via SPINE_ENVOY_{CLAUDE,CODEX}_CURSOR_FALLBACK) ---
+# --- Tier-aware model selection (no effort — cursor-agent CLI unsupported) ---
+# Two-pass: (1) fallback_for determines base model for standard tier,
+# (2) tier overrides base for frontier/fast. Differs from claude/codex
+# scripts because cursor composes fallback-provider with tier selection.
 
+resolve_tier "$tier" cursor
 case "$fallback_for" in
-    claude) model="${SPINE_ENVOY_CLAUDE_CURSOR_FALLBACK:-sonnet-4.6-thinking}" ;;
-    codex)  model="${SPINE_ENVOY_CODEX_CURSOR_FALLBACK:-gpt-5.4-high}" ;;
-    *)      model="${SPINE_ENVOY_CLAUDE_CURSOR_FALLBACK:-sonnet-4.6-thinking}" ;;
+    claude) _base="${SPINE_ENVOY_CLAUDE_CURSOR_FALLBACK:-sonnet-4.6-thinking}" ;;
+    codex)  _base="${SPINE_ENVOY_CODEX_CURSOR_FALLBACK:-gpt-5.4-high}" ;;
+    *)      _base="$_tier_model" ;;  # Direct target (not fallback) — use tier default
+esac
+case "$tier" in
+    frontier) model="${SPINE_ENVOY_FRONTIER_CURSOR:-${SPINE_ENVOY_CURSOR:-$_tier_model}}" ;;
+    fast)     model="${SPINE_ENVOY_FAST_CURSOR:-${SPINE_ENVOY_CURSOR:-$_tier_model}}" ;;
+    *)        model="${SPINE_ENVOY_STANDARD_CURSOR:-${SPINE_ENVOY_CURSOR:-$_base}}" ;;
 esac
 timeout_secs="${timeout_secs:-900}"
 

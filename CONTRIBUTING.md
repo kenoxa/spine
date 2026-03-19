@@ -81,16 +81,19 @@ Subagents go in `agents/`. Use cross-platform frontmatter:
 name: agent-name
 description: >
   When to use. What it does.
-model: haiku          # or inherit (default)
+model: haiku          # opus | sonnet | haiku | inherit (default)
+effort: medium        # high (default) | medium — Codex only; Claude/Cursor ignore
 readonly: true        # Cursor only; omit for agents that write to .scratch/
 skills:
   - skill-to-preload  # Claude Code only; Cursor ignores
 ---
 ```
 
+Tier guidance: `opus` for complex reasoning (Frontier), `sonnet` for review/research (Standard), `haiku` for fast reconnaissance (Fast), `inherit` for session-tracking agents (Adaptive). See [docs/model-selection.md](docs/model-selection.md).
+
 Keep subagent bodies focused — they should define constraints and output format, not duplicate the skill content they preload.
 
-For Codex, the installer generates TOML role configs from markdown source automatically — no manual TOML authoring needed.
+For Codex, the installer generates TOML role configs (including `model` and `effort` fields) from markdown source automatically — no manual TOML authoring needed.
 
 ### Renaming an Agent
 
@@ -108,7 +111,7 @@ The install script downloads spine and sets up the central directory, provider l
 2. Downloads the repo via `git clone --depth 1` (or `curl` tarball fallback)
 3. Sets up `~/.config/spine/` with `SPINE.md` and `agents/*.md` (user-owned copies)
 4. Detects tools by checking for `~/.cursor/`, `~/.claude/`, `~/.codex/`
-5. Writes `@~/.config/spine/SPINE.md` and `@~/.config/spine/AGENTS.md` references to each provider's root file (preserves user content), symlinks agents (Claude/Cursor) or generates TOML role configs (Codex), and for Claude Code installs the Spine plugin
+5. Writes `@~/.config/spine/SPINE.md` and `@~/.config/spine/AGENTS.md` references to each provider's root file (preserves user content), symlinks agents (Claude Code) or generates provider-mapped copies (Cursor `.md` with mapped model values, Codex TOML with mapped model + effort), and for Claude Code installs the Spine plugin
 6. Configures Context7 + Exa MCP servers (`install_mcp_servers()`) — CLI commands for Claude Code/Codex, jq patch for Cursor
 7. Installs skills via the `skills` CLI with its own launcher fallback (local spine skills + global external skills)
 8. Cleans up stale symlinks and backup files

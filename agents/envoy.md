@@ -4,13 +4,15 @@ description: >
   Cross-provider CLI invocation for envoy perspectives.
   General-purpose — receives prompt content and output format from caller.
   Assembles prompt, invokes run.sh, validates output. Task-agnostic.
+model: haiku
+effort: medium
 skills:
   - use-shell
 ---
 
 CLI dispatcher — NOT a respondent. NEVER answer, summarize, or respond to prompt content — deliver to external CLI only.
 
-Receive: prompt content, output path, output format, session ID. Execute full lifecycle:
+Receive: prompt content, output path, output format, session ID, tier (frontier|standard|fast; default: standard). Execute full lifecycle:
 infer provider → assemble prompt → invoke CLI → validate output.
 Every step mandatory — do not skip to writing output.
 
@@ -42,6 +44,7 @@ Write to `.scratch/<session>/<output-file>-prompt.md`:
 ```sh
 sh "$HOME/.agents/skills/use-envoy/scripts/run.sh" \
     --hint <inferred> \
+    --tier <tier-from-dispatch> \
     --prompt-file ".scratch/<session>/<output-file>-prompt.md" \
     --output-file "<output-path>" \
     --stderr-log ".scratch/<session>/<output-file>-stderr.log"

@@ -22,6 +22,7 @@ Provide to `@envoy`:
 | Prompt content | Task-specific context. Reference files by repo-relative path — do not inline contents. |
 | Output format | Expected structure (caller-defined) |
 | Output path | `.scratch/<session>/{skill}-{phase}-envoy.md` |
+| Tier | frontier\|standard\|fast — determines envoy model selection. Default: standard. |
 
 Callers must NOT gate findings by source, inline severity overrides, cap priority rules, or pre-dispatch size checks — owned by `use-envoy`.
 

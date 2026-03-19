@@ -9,7 +9,7 @@ error() { printf 'Error: %s\n' "$*" >&2; }
 
 usage() {
     cat <<'EOF'
-Usage: run-codex.sh --prompt-file PATH --output-file PATH --stderr-log PATH [--timeout SECS]
+Usage: run-codex.sh --prompt-file PATH --output-file PATH --stderr-log PATH [--timeout SECS] [--tier frontier|standard|fast]
 
 Invoke Codex CLI headlessly with sanitized environment.
 EOF
@@ -17,7 +17,7 @@ EOF
 
 # --- Argument parsing ---
 
-prompt_file="" output_file="" stderr_log="" timeout_secs=""
+prompt_file="" output_file="" stderr_log="" timeout_secs="" tier="standard"
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -25,6 +25,7 @@ while [ $# -gt 0 ]; do
         --output-file)  output_file="$2"; shift 2 ;;
         --stderr-log)   stderr_log="$2"; shift 2 ;;
         --timeout)      timeout_secs="$2"; shift 2 ;;
+        --tier)         tier="$2"; shift 2 ;;
         -h|--help)      usage; exit 0 ;;
         *)              error "Unknown argument: $1"; usage; exit 1 ;;
     esac
@@ -42,9 +43,14 @@ _script_dir=$(cd "$(dirname "$0")" && pwd)
 # shellcheck source=_common.sh
 . "$_script_dir/_common.sh"
 
-# --- Model (configurable via SPINE_ENVOY_CODEX=model[:effort]) ---
+# --- Tier-aware model selection (configurable via SPINE_ENVOY_{TIER_}CODEX=model[:effort]) ---
 
-_envoy_val="${SPINE_ENVOY_CODEX:-gpt-5.4:high}"
+resolve_tier "$tier" codex
+case "$tier" in
+    frontier) _envoy_val="${SPINE_ENVOY_FRONTIER_CODEX:-${SPINE_ENVOY_CODEX:-$_tier_model:$_tier_effort}}" ;;
+    fast)     _envoy_val="${SPINE_ENVOY_FAST_CODEX:-${SPINE_ENVOY_CODEX:-$_tier_model:$_tier_effort}}" ;;
+    *)        _envoy_val="${SPINE_ENVOY_STANDARD_CODEX:-${SPINE_ENVOY_CODEX:-$_tier_model:$_tier_effort}}" ;;
+esac
 model="${_envoy_val%%:*}"
 effort="${_envoy_val#*:}"
 [ "$effort" = "$model" ] && effort=high

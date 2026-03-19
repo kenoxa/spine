@@ -42,8 +42,9 @@ Skills technically work in other modes, but the experience degrades to manual ap
 
 ## Which Model to Use
 
-Use cost-effective defaults for orchestration, then escalate only when quality or risk requires it.
+Spine assigns subagents to three tiers (Frontier/Standard/Fast) with provider-mapped models. The mainthread model is your session choice.
 
-- **Default orchestration:** use your tool's auto/default model for planning and coordination.
-- **Frontier reserve:** escalate to stronger models (Opus, Sonnet, Codex) for implementation-heavy work, ambiguous requirements, and debugging.
+- **Subagent tiers are automatic:** agent frontmatter pins each subagent to a tier. The installer and runtime map tiers to provider-specific models. See [docs/model-selection.md](model-selection.md) for the full mapping.
+- **Mainthread guidance:** opus for discuss/plan/debug (reasoning depth), sonnet acceptable for execute/review (focused partitions, pattern matching).
 - **Planning is the lever:** structured planning (`/do-plan`) improves output quality more than model choice alone. Strong model + planning > strong model without planning > weak model + planning.
+- **Override envoy models:** set `SPINE_ENVOY_{TIER}_{PROVIDER}` in `~/.config/spine/.env` for per-tier envoy overrides.

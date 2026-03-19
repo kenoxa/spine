@@ -309,7 +309,7 @@ install_tool() {
     mv "$tmp" "$root_file"
   fi
 
-  # Agents: Codex uses generated TOML; Claude/Cursor use symlinks
+  # Agents: Codex uses generated TOML; Cursor uses generated .md; Claude uses symlinks
   mkdir -p "$target/agents"
   if [ "$tool" = "codex" ]; then
     # Remove old .md symlinks (spine-managed only)
@@ -326,6 +326,19 @@ install_tool() {
     done
     # Patch config.toml with agent registrations
     patch_codex_config "$target" "$spine_dir/agents"
+  elif [ "$tool" = "cursor" ]; then
+    # Remove old symlinks (spine-managed only) — upgrade from symlink to generated .md
+    for md in "$target/agents/"*.md; do
+      [ -L "$md" ] || continue
+      local dest
+      dest=$(readlink "$md")
+      [[ "$dest" == *".config/spine/"* ]] && rm "$md"
+    done
+    # Generate Cursor agent .md files
+    for agent in "$spine_dir/agents/"*.md; do
+      [ -f "$agent" ] || continue
+      generate_cursor_agent_md "$agent" "$target/agents"
+    done
   else
     for agent in "$spine_dir/agents/"*.md; do
       [ -f "$agent" ] || continue
@@ -579,12 +592,12 @@ backup_if_exists() {
 # --- Codex TOML agent generation ---
 
 # Parse YAML frontmatter from an agent markdown file.
-# Sets: _agent_name, _agent_description, _agent_model, _agent_readonly,
-#       _agent_skills (comma-separated), _agent_body (everything after closing ---)
+# Sets: _agent_name, _agent_description, _agent_model, _agent_effort,
+#       _agent_readonly, _agent_skills (comma-separated), _agent_body (everything after closing ---)
 parse_agent_frontmatter() {
   local md_file="$1"
-  _agent_name="" _agent_description="" _agent_model="" _agent_readonly=""
-  _agent_skills="" _agent_body=""
+  _agent_name="" _agent_description="" _agent_model="" _agent_effort=""
+  _agent_readonly="" _agent_skills="" _agent_body=""
   local in_fm=false fm_done=false in_desc=false in_skills=false
 
   while IFS= read -r line || [ -n "$line" ]; do
@@ -611,6 +624,7 @@ parse_agent_frontmatter() {
           local val="${line#description:}"; val="${val# }"
           case "$val" in ">"|">-") in_desc=true ;; *) _agent_description="$val" ;; esac ;;
         model:*)      _agent_model="${line#model:}"; _agent_model="${_agent_model# }" ;;
+        effort:*)     _agent_effort="${line#effort:}"; _agent_effort="${_agent_effort# }" ;;
         readonly:*)   _agent_readonly="${line#readonly:}"; _agent_readonly="${_agent_readonly# }" ;;
         skills:*)     in_skills=true ;;
       esac
@@ -621,6 +635,34 @@ parse_agent_frontmatter() {
   done < "$md_file"
 
   [ -n "$_agent_name" ] || _agent_name="$(basename "$md_file" .md)"
+}
+
+# Canonical mapping reference: docs/model-selection.md
+# Map a canonical model tier to a provider-specific model name.
+# Sets: _mapped_model
+map_model_for_provider() {
+  local model="$1" provider="$2"
+  case "$model:$provider" in
+    opus:codex)    _mapped_model="gpt-5.4" ;;
+    opus:cursor)   _mapped_model="gpt-5.4-high" ;;
+    sonnet:codex)  _mapped_model="gpt-5.4-mini" ;;
+    sonnet:cursor) _mapped_model="composer-1.5" ;;
+    haiku:codex)   _mapped_model="gpt-5.4-nano" ;;
+    haiku:cursor)  _mapped_model="fast" ;;
+    inherit:*|"":*) _mapped_model="" ;;
+    *) warn "Unknown model '$model' for provider '$provider'"; _mapped_model="" ;;
+  esac
+}
+
+# Map a canonical effort level to a provider-specific value.
+# Sets: _mapped_effort
+map_effort_for_provider() {
+  local effort="$1" provider="$2"
+  case "$effort:$provider" in
+    high:codex)   _mapped_effort="high" ;;
+    medium:codex) _mapped_effort="medium" ;;
+    *) _mapped_effort="" ;;
+  esac
 }
 
 # Generate a Codex TOML role config from an agent markdown file.
@@ -647,11 +689,10 @@ $_agent_body"
 
   {
     echo "# spine:managed -- do not edit"
-    case "$_agent_model" in
-      haiku) echo 'model = "gpt-5.1-codex-mini"' ;;
-      inherit|"") ;;
-      *) warn "Unknown model '$_agent_model' for $_agent_name — omitting" ;;
-    esac
+    map_model_for_provider "$_agent_model" codex
+    [ -n "$_mapped_model" ] && echo "model = \"$_mapped_model\""
+    map_effort_for_provider "$_agent_effort" codex
+    [ -n "$_mapped_effort" ] && echo "model_reasoning_effort = \"$_mapped_effort\""
     [ "$_agent_readonly" = "true" ] && echo 'sandbox_mode = "read-only"'
     if [[ "$instructions" == *"'''"* ]]; then
       echo 'developer_instructions = """'
@@ -664,6 +705,42 @@ $_agent_body"
     fi
   } > "$tmp"
 
+  mv "$tmp" "$out_file"
+}
+
+# --- Cursor agent generation ---
+
+# Generate a Cursor agent .md from an agent markdown file.
+# Usage: generate_cursor_agent_md <agent.md> <output-dir>
+generate_cursor_agent_md() {
+  local md_file="$1" out_dir="$2"
+  parse_agent_frontmatter "$md_file"
+
+  if [ -z "$_agent_body" ]; then
+    warn "No body in $(basename "$md_file") — skipping Cursor agent generation"
+    return 0
+  fi
+
+  local tmp out_file="$out_dir/$_agent_name.md"
+  tmp=$(mktemp "$out_dir/spine-tmp.XXXXXX")
+
+  {
+    echo '<!-- spine:managed -->'
+    echo '---'
+    echo "name: $_agent_name"
+    printf 'description: >-\n  %s\n' "$_agent_description"
+    map_model_for_provider "$_agent_model" cursor
+    [ -n "$_mapped_model" ] && echo "model: $_mapped_model"
+    # effort: omitted — Cursor has no effort parameter (subagent or CLI)
+    [ "$_agent_readonly" = "true" ] && echo 'readonly: true'
+    echo '---'
+    echo ""
+    printf '%s\n' "$_agent_body"
+  } > "$tmp"
+
+  if [ -f "$out_file" ] && [ ! -L "$out_file" ]; then
+    backup_if_exists "$out_file"
+  fi
   mv "$tmp" "$out_file"
 }
 
@@ -981,6 +1058,21 @@ cleanup_stale_files() {
         agent_name=$(basename "$toml" .toml)
         if [ ! -f "$HOME/.config/spine/agents/$agent_name.md" ]; then
           rm "$toml"
+          cleaned=$((cleaned + 1))
+        fi
+      done
+    fi
+
+    # Cursor: remove stale spine-managed .md agent files
+    if [ "$tool" = "cursor" ] && [ -d "$target/agents" ]; then
+      for md in "$target/agents/"*.md; do
+        [ -f "$md" ] || continue
+        [ -L "$md" ] && continue  # skip symlinks
+        head -1 "$md" | grep -q '<!-- spine:managed -->' || continue
+        local agent_name
+        agent_name=$(basename "$md" .md)
+        if [ ! -f "$HOME/.config/spine/agents/$agent_name.md" ]; then
+          rm "$md"
           cleaned=$((cleaned + 1))
         fi
       done

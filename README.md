@@ -141,7 +141,7 @@ Spine uses `~/.config/spine/` as the central source of truth.
 
 The installer preserves existing provider root-file content when possible by upgrading or prepending the `@~/.config/spine/...` references instead of assuming a blank file.
 
-Agents are linked from the provider directories back to `~/.config/spine/agents/` so updates stay in sync.
+Agents are linked (Claude Code symlinks) or generated (Cursor `.md` copies with provider-mapped model values, Codex TOML role configs) from the provider directories back to `~/.config/spine/agents/`.
 
 If `~/.config/spine/.env` exists, the installer reads it for MCP authentication. On zsh systems it may also add a `source ~/.config/spine/.env` line to `~/.zshenv` so future shells expose those variables.
 
@@ -211,11 +211,12 @@ printf '%s\n' '@~/.config/spine/SPINE.md' '@~/.config/spine/AGENTS.md' > ~/.curs
 printf '%s\n' '@~/.config/spine/SPINE.md' '@~/.config/spine/AGENTS.md' > ~/.claude/CLAUDE.md
 printf '%s\n' '@~/.config/spine/SPINE.md' '@~/.config/spine/AGENTS.md' > ~/.codex/AGENTS.md
 
+# Claude Code: symlink agents
 for agent in ~/.config/spine/agents/*.md; do
-  ln -sf "../../.config/spine/agents/$(basename "$agent")" ~/.cursor/agents/
   ln -sf "../../.config/spine/agents/$(basename "$agent")" ~/.claude/agents/
-  ln -sf "../../.config/spine/agents/$(basename "$agent")" ~/.codex/agents/
 done
+# Cursor/Codex: use install.sh — it generates provider-mapped copies
+# (Cursor: .md with mapped models; Codex: TOML with mapped model + effort)
 ```
 
 If a provider root file already exists, add the two `@~/.config/spine/...` lines at the top instead of blindly overwriting your file.
@@ -305,6 +306,8 @@ claude plugin install spine@kenoxa
 See [claude/README.md](claude/README.md) for plugin details and fallback installation.
 
 </details>
+
+For subagent model tiers, provider mappings, and effort configuration, see [docs/model-selection.md](docs/model-selection.md).
 
 ## Troubleshooting And Updates
 

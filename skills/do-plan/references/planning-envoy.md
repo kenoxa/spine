@@ -10,6 +10,7 @@ Dispatch prompt provides:
 - `planning_brief` — framing output (goal, scope, constraints, key_decisions, focus cues, technical context)
 - `{discovery_synthesis_path}` -- discovery synthesis output
 - `evidence_manifest` — artifact paths with provenance and conflict status
+- `tier` — model selection tier (frontier|standard|fast)
 
 ## Instructions
 

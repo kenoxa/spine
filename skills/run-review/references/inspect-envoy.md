@@ -13,6 +13,7 @@ Dispatch provides:
 - Diff/file list
 - Severity bucket definitions
 - Noise filtering rules
+- `tier` — model selection tier (frontier|standard|fast)
 
 ## Instructions
 

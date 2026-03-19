@@ -11,6 +11,7 @@ Dispatch prompt provides:
 - `{canonical_plan_path}` -- path to canonical plan file
 - Unresolved blocking findings (E2+ only)
 - `evidence_manifest` — artifact paths with provenance and conflict status
+- `tier` — model selection tier (frontier|standard|fast)
 
 ## Instructions
 

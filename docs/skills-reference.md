@@ -140,21 +140,24 @@ Canonical entry: [`skills/run-recap/SKILL.md`](../skills/run-recap/SKILL.md).
 
 ## Subagents
 
-| Agent | Model | Purpose |
-|-------|-------|---------|
-| `scout` | haiku | Fast codebase reconnaissance |
-| `researcher` | inherit | Deep discovery and evidence gathering; local-depth first, may do bounded plan-specific upstream lookup |
-| `navigator` | inherit | External-first research specialist for broad, ambiguous, comparative, or current external work |
-| `planner` | inherit | Angle-committed planning, preloads `do-plan` |
-| `debater` | inherit | Adversarial Socratic dialogue |
-| `inspector` | inherit | Verdict-focused code review, preloads `run-review` |
-| `analyst` | inherit | Advisory pattern analysis, preloads `run-review` and `run-polish` |
-| `framer` | inherit | Perspective-committed problem framing |
-| `verifier` | inherit | Adversarial verification with E3 evidence, preloads `with-testing` |
-| `miner` | inherit | Session data analysis and cross-session pattern extraction |
-| `visualizer` | inherit | HTML visualization via visual-explainer commands, preloads `visual-explainer` |
-| `implementer` | inherit | Read-write implementation for plan-driven code changes |
-| `envoy` | inherit | Cross-provider CLI invocation for independent perspectives |
+| Agent | Tier | Model | Effort | Purpose |
+|-------|------|-------|--------|---------|
+| `scout` | Fast | haiku | medium | Fast codebase reconnaissance |
+| `researcher` | Standard | sonnet | high | Deep discovery and evidence gathering; local-depth first, may do bounded plan-specific upstream lookup |
+| `navigator` | Standard | sonnet | high | External-first research specialist for broad, ambiguous, comparative, or current external work |
+| `planner` | Frontier | opus | high | Angle-committed planning, preloads `do-plan` |
+| `debater` | Frontier | opus | high | Adversarial Socratic dialogue |
+| `inspector` | Frontier | opus | high | Verdict-focused code review, preloads `run-review` |
+| `analyst` | Standard | sonnet | high | Advisory pattern analysis, preloads `run-review` and `run-polish` |
+| `framer` | Standard | sonnet | high | Perspective-committed problem framing |
+| `verifier` | Frontier | opus | high | Adversarial verification with E3 evidence, preloads `with-testing` |
+| `miner` | Fast | haiku | medium | Session data analysis and cross-session pattern extraction |
+| `visualizer` | Standard | sonnet | high | HTML visualization via visual-explainer commands, preloads `visual-explainer` |
+| `implementer` | Adaptive | inherit | high | Read-write implementation for plan-driven code changes |
+| `envoy` | Fast | haiku | medium | Cross-provider CLI invocation for independent perspectives |
+| `synthesizer` | Adaptive | inherit | high | Aggregation proxy — tracks session model quality |
+
+See [model-selection.md](model-selection.md) for provider mappings and tier details.
 
 ## Skill Prefix Convention
 

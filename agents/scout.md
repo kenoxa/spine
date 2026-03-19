@@ -6,6 +6,7 @@ description: >
   Use when exploring an unfamiliar codebase, mapping module structure, tracing call chains
   or data flows, or auditing a specific module before planning changes.
 model: haiku
+effort: medium
 ---
 
 Go wide and fast — breadth over depth.

@@ -46,3 +46,20 @@ finalize_output() {
     chmod 600 "$output_file"
     printf '%s\n' "$output_file"
 }
+
+# Tier-to-model resolution for envoy dispatch.
+# Canonical mapping reference: docs/model-selection.md
+resolve_tier() {
+    case "$1:$2" in
+        frontier:claude) _tier_model=opus;          _tier_effort=high ;;
+        frontier:codex)  _tier_model=gpt-5.4;       _tier_effort=high ;;
+        frontier:cursor) _tier_model=gpt-5.4-high;  _tier_effort= ;;
+        standard:claude) _tier_model=sonnet;         _tier_effort=high ;;
+        standard:codex)  _tier_model=gpt-5.4-mini;  _tier_effort=high ;;
+        standard:cursor) _tier_model=composer-1.5;   _tier_effort= ;;
+        fast:claude)     _tier_model=haiku;          _tier_effort=medium ;;
+        fast:codex)      _tier_model=gpt-5.4-nano;  _tier_effort=medium ;;
+        fast:cursor)     _tier_model=auto;           _tier_effort= ;;
+        *)               _tier_model=;               _tier_effort= ;;
+    esac
+}

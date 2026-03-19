@@ -52,6 +52,7 @@ After phases+EARS drafted, before DAG. Sequential (no base agents in this batch)
 
 Load `use-envoy`. Dispatch `@envoy`:
 - Prompt: problem + users/context + constraints + phases + EARS (self-contained — no local path references)
+- Tier: standard
 - Output: `.scratch/<session>/discuss-spec-phases-envoy.md`
 
 Main thread reads Envoy output, incorporates adjustments, presents DAG with refinements noted.
@@ -77,6 +78,7 @@ After DAG confirmed, before file creation. Sequential (no base agents in this ba
 
 Load `use-envoy`. Dispatch `@envoy`:
 - Prompt: full spec draft (self-contained — no local path references)
+- Tier: standard
 - Output: `.scratch/<session>/discuss-spec-final-envoy.md`
 
 Present findings to user; user confirms or requests changes before file creation.

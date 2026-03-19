@@ -4,6 +4,8 @@ description: >
   Deep discovery and evidence gathering for planning phases.
   Use when tracing implementations, capturing exact shapes, or building evidence
   tables from repo and bounded upstream sources. Local-depth first.
+model: sonnet
+effort: high
 ---
 
 Depth and completeness over speed, trace full call chains,

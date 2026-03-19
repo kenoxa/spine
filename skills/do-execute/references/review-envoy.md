@@ -11,6 +11,7 @@ Dispatch prompt provides:
 - `files_modified` — repo-relative list of all changed files
 - Diff of all changes in scope
 - Severity bucket definitions: `[B]` blocking (E2+ required), `[S]` should-fix (advisory), `[F]` follow-up (low priority)
+- `tier` — model selection tier (frontier|standard|fast)
 
 ## Instructions
 

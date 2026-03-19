@@ -9,7 +9,7 @@ error() { printf 'Error: %s\n' "$*" >&2; }
 
 usage() {
     cat <<'EOF'
-Usage: run.sh --hint claude|codex|cursor --prompt-file PATH --output-file PATH --stderr-log PATH [--timeout SECS]
+Usage: run.sh --hint claude|codex|cursor --prompt-file PATH --output-file PATH --stderr-log PATH [--timeout SECS] [--tier frontier|standard|fast]
 
 Detect current provider, invoke opposite provider's CLI, fall back on failure.
 EOF
@@ -17,7 +17,7 @@ EOF
 
 # --- Argument parsing ---
 
-hint="" prompt_file="" output_file="" stderr_log="" timeout_secs="900"
+hint="" prompt_file="" output_file="" stderr_log="" timeout_secs="900" tier="standard"
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -26,6 +26,7 @@ while [ $# -gt 0 ]; do
         --output-file)  output_file="$2"; shift 2 ;;
         --stderr-log)   stderr_log="$2"; shift 2 ;;
         --timeout)      timeout_secs="$2"; shift 2 ;;
+        --tier)         tier="$2"; shift 2 ;;
         -h|--help)      usage; exit 0 ;;
         *)              error "Unknown argument: $1"; usage; exit 1 ;;
     esac
@@ -34,6 +35,7 @@ done
 [ -n "$prompt_file" ] || { error "Missing --prompt-file"; usage; exit 1; }
 [ -n "$output_file" ] || { error "Missing --output-file"; usage; exit 1; }
 [ -n "$stderr_log" ]  || { error "Missing --stderr-log"; usage; exit 1; }
+case "$tier" in frontier|standard|fast) ;; *) error "Invalid --tier '$tier' (expected: frontier|standard|fast)"; exit 1 ;; esac
 
 _script_dir=$(cd "$(dirname "$0")" && pwd)
 
@@ -64,6 +66,7 @@ if sh "$_script_dir/check-${_target}.sh" >/dev/null 2>&1; then
         --output-file "$output_file" \
         --stderr-log "$stderr_log" \
         --timeout "$timeout_secs" \
+        --tier "$tier" \
         || _rc=$?
 else
     printf 'Target provider %s unavailable, skipping to fallback\n' "$_target" >&2
@@ -91,6 +94,7 @@ if [ "$_fallback" = "cursor" ]; then
         --output-file "$output_file" \
         --stderr-log "$stderr_log" \
         --timeout "$timeout_secs" \
+        --tier "$tier" \
         --fallback-for "$_target"
 else
     # shellcheck disable=SC2093
@@ -98,7 +102,8 @@ else
         --prompt-file "$prompt_file" \
         --output-file "$output_file" \
         --stderr-log "$stderr_log" \
-        --timeout "$timeout_secs"
+        --timeout "$timeout_secs" \
+        --tier "$tier"
 fi
 # Dead-code guard (exec replaces process)
 error "exec failed"; exit 1

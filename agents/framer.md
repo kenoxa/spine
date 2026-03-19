@@ -4,6 +4,8 @@ description: >
   Perspective-committed problem framing for explore phases.
   Use when assigned a viewpoint to analyze a problem from — produces
   one-perspective analysis for synthesis.
+model: sonnet
+effort: high
 skills:
   - do-discuss
 ---

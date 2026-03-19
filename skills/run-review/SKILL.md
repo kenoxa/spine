@@ -47,7 +47,7 @@ Dispatch `@inspector` in parallel + `@envoy`:
 - `spec-reviewer` (`@inspector`) → `references/inspect-spec-reviewer.md`
 - `correctness-reviewer` (`@inspector`) → `references/inspect-correctness-reviewer.md`
 - `risk-reviewer` (`@inspector`) → `references/inspect-risk-reviewer.md`
-- `@envoy` → `references/inspect-envoy.md`
+- `@envoy` → `references/inspect-envoy.md` (tier: frontier)
 
 At `deep` depth: +augmented `@inspector` per variance lens (cap 6 total).
 

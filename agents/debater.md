@@ -4,6 +4,8 @@ description: >
   Adversarial Socratic dialogue for plan challenge phases.
   Use when assigned a position to defend, attack, or weigh tradeoffs
   against a canonical plan.
+model: opus
+effort: high
 skills:
   - run-review
 ---

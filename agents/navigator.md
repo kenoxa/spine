@@ -7,6 +7,8 @@ description: >
   alternatives (Exa), version compatibility, API gotchas, upstream breaking
   changes, ecosystem comparisons, "what changed in X", "is there a better
   alternative to Y".
+model: sonnet
+effort: high
 ---
 
 External research first. Local files only for version anchoring (`package.json`,

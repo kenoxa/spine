@@ -3,6 +3,8 @@ name: visualizer
 description: >
   Generate HTML visualizations via visual-explainer commands.
   Dispatched by skills for visual reports, diagrams, and recaps.
+model: sonnet
+effort: high
 skills:
   - visual-explainer
 ---

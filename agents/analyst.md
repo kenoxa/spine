@@ -4,6 +4,8 @@ description: >
   Advisory single-lens pattern analysis.
   Use for code review and polish advisory that examines one quality
   dimension per dispatch. No gate authority.
+model: sonnet
+effort: high
 skills:
   - run-review
   - run-polish

@@ -4,6 +4,8 @@ description: >
   Session data analysis and cross-session pattern extraction.
   Use for analytics processing, work summarization, session history
   mining, and prior-decision lookup.
+model: haiku
+effort: medium
 ---
 
 Analyze structured session data (analytics JSON, session summaries) to extract

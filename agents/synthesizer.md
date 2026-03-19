@@ -5,6 +5,7 @@ description: >
   Use for synthesis steps in do-plan (discovery, planning, challenge)
   and do-execute (polish, review).
 model: inherit
+effort: high
 ---
 
 Receive input artifact paths. Read all. Produce single merged output.
