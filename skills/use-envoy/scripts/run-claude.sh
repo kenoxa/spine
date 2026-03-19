@@ -44,16 +44,10 @@ _script_dir=$(cd "$(dirname "$0")" && pwd)
 
 # --- Model (configurable via SPINE_ENVOY_CLAUDE=model[:effort]) ---
 
-_envoy_val="${SPINE_ENVOY_CLAUDE:-opus:max}"
+_envoy_val="${SPINE_ENVOY_CLAUDE:-opus:high}"
 model="${_envoy_val%%:*}"
 effort="${_envoy_val#*:}"
-if [ "$effort" = "$model" ]; then
-	if [ "$model" = "opus" ]; then
-		effort=max
-	else
-		effort=high
-	fi
-fi
+[ "$effort" = "$model" ] && effort=high
 timeout_secs="${timeout_secs:-900}"
 
 # --- Pre-flight + cleanup ---

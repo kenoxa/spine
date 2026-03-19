@@ -44,10 +44,10 @@ _script_dir=$(cd "$(dirname "$0")" && pwd)
 
 # --- Model (configurable via SPINE_ENVOY_CODEX=model[:effort]) ---
 
-_envoy_val="${SPINE_ENVOY_CODEX:-gpt-5.4:xhigh}"
+_envoy_val="${SPINE_ENVOY_CODEX:-gpt-5.4:high}"
 model="${_envoy_val%%:*}"
 effort="${_envoy_val#*:}"
-[ "$effort" = "$model" ] && effort=xhigh
+[ "$effort" = "$model" ] && effort=high
 timeout_secs="${timeout_secs:-900}"
 
 # --- Pre-flight + cleanup ---
