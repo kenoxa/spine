@@ -652,7 +652,7 @@ map_model_for_provider() {
     opus:codex)    _mapped_model="gpt-5.4" ;;
     opus:cursor)   _mapped_model="gpt-5.4-high" ;;
     sonnet:codex)  _mapped_model="gpt-5.4-mini" ;;
-    sonnet:cursor) _mapped_model="composer-1.5" ;;
+    sonnet:cursor) _mapped_model="composer-2" ;;
     haiku:codex)   _mapped_model="gpt-5.4-nano" ;;
     haiku:cursor)  _mapped_model="fast" ;;
     inherit:*|"":*) _mapped_model="" ;;

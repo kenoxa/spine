@@ -56,7 +56,7 @@ resolve_tier() {
         frontier:cursor) _tier_model=gpt-5.4-high;  _tier_effort= ;;
         standard:claude) _tier_model=sonnet;         _tier_effort=high ;;
         standard:codex)  _tier_model=gpt-5.4-mini;  _tier_effort=high ;;
-        standard:cursor) _tier_model=composer-1.5;   _tier_effort= ;;
+        standard:cursor) _tier_model=composer-2;     _tier_effort= ;;
         fast:claude)     _tier_model=haiku;          _tier_effort=medium ;;
         fast:codex)      _tier_model=gpt-5.4-nano;  _tier_effort=medium ;;
         fast:cursor)     _tier_model=auto;           _tier_effort= ;;

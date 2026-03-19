@@ -16,7 +16,7 @@
 | Tier | Claude alias | Claude Code | Codex TOML | Cursor subagent | Cursor CLI (envoy) |
 |------|-------------|-------------|------------|-----------------|-------------------|
 | Frontier | `opus` | opus (native) | gpt-5.4 | gpt-5.4-high | gpt-5.4-high |
-| Standard | `sonnet` | sonnet (native) | gpt-5.4-mini | composer-1.5 | composer-1.5 |
+| Standard | `sonnet` | sonnet (native) | gpt-5.4-mini | composer-2 | composer-2 |
 | Fast | `haiku` | haiku (native) | gpt-5.4-nano | fast | auto |
 | Adaptive | `inherit` | inherit | (omit) | inherit | -- |
 
@@ -110,7 +110,11 @@ Example: `SPINE_ENVOY_FRONTIER_CLAUDE=opus:high` overrides the frontier tier for
 
 **Cursor models**:
 
-| Model | Terminal-Bench | Notes |
-|-------|----------------|-------|
-| Composer 1.5 | 47.9% | Cursor-proprietary; separate usage pool |
-| Auto | — | Routing mode, not a model — no benchmarks |
+> Cursor has two usage pools, each with its own monthly allowance. **Auto+Composer pool**: more included usage, covers Auto and all Composer models. **API pool**: models like GPT-5.4 and Claude, charged at the provider's API price. Both pools reset monthly.
+
+| Model | Terminal-Bench | Pricing (in/out per M) | Notes |
+|-------|----------------|----------------------|-------|
+| Composer 2 | 61.7% | $0.50 / $2.50 | Composer pool; Standard tier default |
+| Composer 2 Fast | 61.7% | $1.50 / $7.50 | Composer pool; same quality, higher speed |
+| Composer 1.5 | 47.9% | $3.50 / $17.50 | Composer pool; legacy |
+| Auto | — | $1.25 / $6.00 | Routing mode — Auto+Composer pool |
