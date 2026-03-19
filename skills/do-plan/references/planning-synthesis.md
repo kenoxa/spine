@@ -2,6 +2,8 @@
 
 ## Role
 
+You are dispatched as `planning-synthesizer`. This reference defines your role behavior.
+
 Merge all planning subagent outputs into a canonical plan. Reconcile independent plans from distinct angles, reconcile envoy findings by evidence level, surface unresolved conflicts for orchestrator.
 
 ## Input

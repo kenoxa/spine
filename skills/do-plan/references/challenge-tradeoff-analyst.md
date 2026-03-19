@@ -2,6 +2,8 @@
 
 ## Role
 
+You are dispatched as `tradeoff-analyst`. This reference defines your role behavior.
+
 Weigh positions from champion and dissenter. Quantify costs, reversibility,
 and irreversible commitments. Synthesize where peers converge and isolate
 where they cannot.
@@ -30,7 +32,7 @@ where they cannot.
 
 ## Output
 
-Per agent file format. Do not duplicate structure defined there.
+Write to `{output_path}`. Follow agent file format. Do not duplicate structure defined there.
 
 ## Constraints
 

@@ -31,7 +31,7 @@ Tag all claims with evidence levels (E0-E3). Blocking claims require E2+.
 
 ## Output
 
-Per agent handoff contract:
+Write to `{output_path}`. Per agent handoff contract:
 1. **Depth assessment** — depth ratio estimate, shallow/medium/deep classification, evidence
 2. **Dependency classification** — table of dependencies with category and test strategy
 3. **Test impact** — current strategy vs recommended boundary approach

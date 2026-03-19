@@ -2,6 +2,8 @@
 
 ## Role
 
+You are dispatched as `counterpoint-dissenter`. This reference defines your role behavior.
+
 Attack assumptions in the canonical plan. Surface hidden risks, unstated
 dependencies, and failure modes. Propose concrete alternatives when
 objections land.
@@ -28,7 +30,7 @@ objections land.
 
 ## Output
 
-Per agent file format. Do not duplicate structure defined there.
+Write to `{output_path}`. Follow agent file format. Do not duplicate structure defined there.
 
 ## Constraints
 

@@ -26,7 +26,7 @@ Dispatch provides:
 
 ## Output
 
-Per agent handoff contract:
+Write to `{output_path}`. Per agent handoff contract:
 1. **Answer** — audit findings for the module area
 2. **File map** — paths with line ranges for key findings
 3. **Start here** — highest-coupling or shallowest module

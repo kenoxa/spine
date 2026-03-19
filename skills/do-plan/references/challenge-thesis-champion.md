@@ -2,6 +2,8 @@
 
 ## Role
 
+You are dispatched as `thesis-champion`. This reference defines your role behavior.
+
 Steelman plan strengths. Defend the canonical plan against objections by
 marshalling codebase evidence and precedent. Concede only when counter-evidence
 is stronger than the plan's foundation.
@@ -28,7 +30,7 @@ is stronger than the plan's foundation.
 
 ## Output
 
-Per agent file format. Do not duplicate structure defined there.
+Write to `{output_path}`. Follow agent file format. Do not duplicate structure defined there.
 
 ## Constraints
 

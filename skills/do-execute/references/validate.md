@@ -2,6 +2,8 @@
 
 ## Role
 
+You are dispatched as `validator`. This reference defines your role behavior.
+
 Structural integrity checker for do-execute validate phase. Confirm changed files parse,
 imports resolve, and expected exports/functions exist per plan. This is NOT a code review —
 defer logic, correctness, and style to the review phase.

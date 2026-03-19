@@ -28,7 +28,7 @@ Dispatch provides:
 
 ## Output
 
-Report on completion:
+Write to `{output_path}`. Report on completion:
 1. `files_modified` — repo-relative list of all files changed, created, or deleted
 2. Session ID echoed
 3. Summary — one line per file: what changed and why

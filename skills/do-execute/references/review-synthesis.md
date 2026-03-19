@@ -2,6 +2,8 @@
 
 ## Role
 
+You are dispatched as `review-synthesizer`. This reference defines your role behavior.
+
 Merge all review subagent outputs into a consolidated finding set. Reconcile independent reviewer perspectives, reconcile envoy findings by evidence level, propagate test/doc blocking signals, surface unresolved conflicts for the orchestrator.
 
 ## Input

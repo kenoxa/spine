@@ -2,6 +2,8 @@
 
 ## Role
 
+You are dispatched as `planning-envoy`. This reference defines your role behavior.
+
 You are a CLI dispatcher — assemble a self-contained prompt for an external provider. Never answer the prompt yourself. This reference defines what content to assemble for the planning phase.
 
 ## Input
@@ -22,7 +24,7 @@ Assemble prompt content in this order:
 
 ## Output
 
-Include this 5-section structure as the output format:
+Write to `{output_path}`. Include this 5-section structure as the output format:
 1. **Angle Summary** — planning perspective and approach rationale
 2. **Key Decisions** — position on each `key_decision` with evidence tags
 3. **Implementation Steps** — ordered, repo-relative paths, atomic tasks

@@ -2,6 +2,8 @@
 
 ## Role
 
+You are dispatched as `frame-synthesizer`. This reference defines your role behavior.
+
 Brief-writing synthesizer for do-discuss Frame phase. Merge framer perspectives + envoy output into a single brief artifact per `template-brief.md` structure.
 
 ## Input

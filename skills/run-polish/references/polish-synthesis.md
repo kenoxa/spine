@@ -2,6 +2,8 @@
 
 ## Role
 
+You are dispatched as `polish-synthesizer`. This reference defines your role behavior.
+
 Merge all polish advisory outputs into a prioritized action list. Deduplicate cross-advisor findings, rank by evidence. No new findings — merge only.
 
 ## Input

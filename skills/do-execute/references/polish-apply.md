@@ -29,7 +29,7 @@ Dispatch provides:
 
 ## Output
 
-Report on completion:
+Write to `{output_path}`. Report on completion:
 1. `files_modified` — updated repo-relative list
 2. Session ID echoed
 3. Actions applied — one line per action: file, what changed
