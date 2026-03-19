@@ -2,7 +2,7 @@
 name: use-writing
 description: >
   Documentation and prose quality standards.
-  Use when creating or editing docs, READMEs, changelogs, ADRs, or user-facing text.
+  Use when creating or editing docs, READMEs, changelogs, or user-facing text.
   Do NOT use for code comments or commit messages — commit skill handles commits.
 argument-hint: "[artifact type or document to write/edit]"
 ---
@@ -14,7 +14,6 @@ Route writing tasks to correct artifact structure. Classify first, then write.
 | Artifact | Key structure |
 |----------|--------------|
 | Docs (public/internal) | Diataxis: one mode per section — tutorial, how-to, reference, or explanation. Never mix. |
-| ADR / decisions | See [references/decision-template.md](references/decision-template.md); numbered, immutable once accepted |
 | Changelog / release notes | User-facing impact grouped by type (added, changed, fixed, removed) |
 | README | Purpose → quick start → usage → contributing; scannable, no walls of text |
 | Runbook | Trigger → steps → verification → rollback; executable by someone unfamiliar |
@@ -32,7 +31,7 @@ Classify scope before writing:
 
 1. **Classify** — artifact type and docs impact lane before writing.
 2. **Structure first** — headings and sections matching artifact type, then fill.
-3. **Write concretely** — every how-to includes a runnable example; every reference section uses consistent field table.
+3. **Write concretely** — for human-facing prose, follow `references/prose-quality.md`. Every how-to includes a runnable example; every reference section uses consistent field table.
 4. **Verify completeness** — required sections exist for artifact type.
 
 ## Changelog Rules
