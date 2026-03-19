@@ -58,6 +58,7 @@ npx skills add mcollina/skills -s typescript-magician -a '*' -g -y
 npx skills add trailofbits/skills -s differential-review -a '*' -g -y
 npx skills add trailofbits/skills -s fp-check -a '*' -g -y
 npx skills add mattpocock/skills -s ubiquitous-language -a '*' -g -y
+npx skills add vercel-labs/agent-browser -s agent-browser -a '*' -g -y
 ```
 
 Public manual examples intentionally use `npx skills add` to match [`skills.sh`](https://skills.sh/). The installer may bootstrap the same CLI through another launcher.

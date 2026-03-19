@@ -33,6 +33,7 @@ GLOBAL_SKILLS=(
   "trailofbits/skills -s differential-review"
   "trailofbits/skills -s fp-check"
   "mattpocock/skills -s ubiquitous-language"
+  "vercel-labs/agent-browser -s agent-browser"
 )
 
 # MCP servers previously installed by Spine — removed on next run.
@@ -133,6 +134,7 @@ ensure_system_deps() {
     shellcheck
     shfmt
     tokenizer
+    agent-browser
   )
 
   local use_brew=false
@@ -157,6 +159,10 @@ ensure_system_deps() {
     for dep in "${missing[@]}"; do
       brew_install_if_missing "$dep" || true
     done
+    # agent-browser requires Chrome for Testing (~500MB one-time download)
+    if [[ " ${missing[*]} " == *" agent-browser "* ]]; then
+      info "Run 'agent-browser install' to download Chrome for Testing (~500MB)"
+    fi
   else
     warn "Missing tools: ${missing[*]}"
     if [ "$os" = "Darwin" ]; then

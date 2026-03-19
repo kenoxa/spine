@@ -17,6 +17,7 @@ npx skills add mcollina/skills -s typescript-magician -a '*' -g -y
 npx skills add trailofbits/skills -s differential-review -a '*' -g -y
 npx skills add trailofbits/skills -s fp-check -a '*' -g -y
 npx skills add mattpocock/skills -s ubiquitous-language -a '*' -g -y
+npx skills add vercel-labs/agent-browser -s agent-browser -a '*' -g -y
 ```
 
 ## Referenced by local skills
@@ -40,3 +41,4 @@ Useful across all coding tasks without needing a local skill reference.
 | Skill | Repo | Value |
 |-------|------|-------|
 | `typescript-magician` | `mcollina/skills` | Advanced type-system mastery: 14 modular rule files covering generics, conditional types, branded types, inference patterns, error diagnosis |
+| `agent-browser` | `vercel-labs/agent-browser` | Browser automation for web interaction, testing, and debugging via headless Chrome |

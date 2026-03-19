@@ -307,6 +307,27 @@ See [claude/README.md](claude/README.md) for plugin details and fallback install
 
 </details>
 
+<details>
+<summary>Browser access (agent-browser)</summary>
+
+Spine installs [agent-browser](https://github.com/vercel-labs/agent-browser) via Homebrew and the `agent-browser` skill via the skills CLI. Agents can use browser automation for web interaction, testing, and debugging.
+
+After installation, download Chrome for Testing (~500MB, one-time):
+
+```sh
+agent-browser install
+```
+
+Manual skill install:
+
+```sh
+npx skills add vercel-labs/agent-browser -s agent-browser -a '*' -g -y
+```
+
+**Note:** Browser automation is not available in Codex sandboxed mode. Enable `danger-full-access` mode if required.
+
+</details>
+
 For subagent model tiers, provider mappings, and effort configuration, see [docs/model-selection.md](docs/model-selection.md).
 
 ## Troubleshooting And Updates
