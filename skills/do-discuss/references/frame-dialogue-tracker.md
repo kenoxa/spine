@@ -9,13 +9,13 @@ evolving understanding, agreements, disagreements, unstated assumptions.
 
 Dispatch provides:
 - Session log with phase boundaries and decisions
-- `known`/`unknown` inventory (evolution across rounds if available)
-- Clarify-round history: questions asked, user responses, inventory changes
+- `known`/`unknown` inventory (evolution across the interview if available)
+- Clarify interview history: questions asked, recommendations given, user responses, inventory changes
 - `key_decisions` with door-type classifications
 
 ## Instructions
 
-- Trace how user understanding evolved across clarify rounds.
+- Trace how user understanding evolved across the clarify interview.
 - Identify stated positions vs inferred positions — label clearly.
 - Surface unstated assumptions: things treated as given but never explicitly confirmed.
 - Track agreement trajectory: what started disputed and converged, what remains divergent.

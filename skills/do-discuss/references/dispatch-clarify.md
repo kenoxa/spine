@@ -1,21 +1,40 @@
 # Clarify Phase
 
-Socratic dialogue. Main thread only — user interaction loop. Subagent dispatches between rounds only.
+Convergence-driven interview. Main thread only — user interaction loop. Proactive subagent dispatches for factual questions.
 
-Challenge stated requirements, probe assumptions, actively push back on "obvious" answers. This is the default style for all discussions.
+Relentless interview until shared understanding. Resolve decision dependencies one-by-one. Challenge stated requirements, probe assumptions, push back on "obvious" answers.
 
 Seed `known` from `codebase_signals` when non-empty. Seed `external_signals` from navigator. Do not re-ask already-answered questions.
 
-**Between-round @scout assists**: user introduces named codebase reference not covered → dispatch `@scout` + `run-explore/references/explore-scout.md`. Output: `.scratch/<session>/discuss-clarify-assist-<round>.md`. Track dispatched references.
+## Question Taxonomy
 
-**Between-round @navigator assists**: user introduces library/dependency not covered → dispatch `@navigator` + `run-explore/references/explore-navigator.md`. Output: `.scratch/<session>/discuss-clarify-nav-<round>.md`. Append to `external_signals`.
+Before asking the user, classify each question:
 
-**Round budget**: base 5. orient Answer non-empty → -1. `external_signals` non-empty → -1. Minimum 3.
+| Question type | Action |
+|---|---|
+| Factual/codebase ("does X exist?", "how does Y work?") | Dispatch `@scout` + `run-explore/references/explore-scout.md` proactively. Do not ask user. |
+| Factual/external ("how does library Z handle this?") | Dispatch `@navigator` + `run-explore/references/explore-navigator.md` proactively. Do not ask user. |
+| Preferential/business ("which approach do you prefer?", "what are the business constraints?") | Ask user with recommended answer. |
+| Mixed (technical + business constraints) | Explore technical constraints via dispatch; ask user for business constraints. |
+
+**Proactive @scout assists**: output `.scratch/<session>/discuss-clarify-assist-<N>.md` (sequential counter). Track dispatched references.
+
+**Proactive @navigator assists**: output `.scratch/<session>/discuss-clarify-nav-<N>.md` (sequential counter). Append to `external_signals`.
+
+## Recommended Answers
+
+Every question includes a labeled recommendation with rationale. For one-way-door decisions, surface alternatives alongside.
+
+## Convergence
+
+Interview continues until: all `key_decisions` resolved or deferred AND `frame_question` answerable. User override: "just plan it" or equivalent signals early exit.
+
+**Stall detection**: 3 exchanges (one user turn + one assistant turn; proactive dispatches don't count) with no `key_decisions` status changes across any item. Resets globally on any status change. On stall: surface remaining gaps, recommend next step.
 
 **Frame question**: single question unblocking planning. Specific (names system/behavior), answerable (finite options), scoped (enables planning).
 
-Ambiguity buckets: **goal**, **scope**, **constraints**, **stakeholder**. Batch 2-4 independent questions per round; sequential dependents one at a time. Track `known`/`unknown`; check frame question answerability after each round.
+Ambiguity buckets: **goal**, **scope**, **constraints**, **stakeholder**. Batch 2-4 independent questions per exchange; sequential dependents one at a time. Track `known`/`unknown`; check convergence after each exchange.
 
-Blocking unknowns requiring codebase depth — behavior, side effects, data flow — beyond scout orient or clarify-assists signal readiness for investigate phase.
+Blocking unknowns requiring codebase depth — behavior, side effects, data flow — beyond scout orient or proactive assists signal readiness for investigate phase.
 
-> Anti-patterns: (1) Leading questions embedding solutions. (2) Solution-choice framing instead of diagnostic. (3) Dispatching subagents for user-answerable questions. (4) Agent dispatch during clarify (between-round assists are the only exception).
+> Anti-patterns: (1) Leading questions embedding solutions. (2) Solution-choice framing instead of diagnostic. (3) Asking user factual questions answerable by codebase/internet exploration.

@@ -28,13 +28,11 @@ Socratic dialogue: intake → orient → clarify → investigate → explore →
 | Phase | Dispatch ref | Agent type | Subagent refs |
 |-------|-------------|-----------|---------------|
 | Orient | `references/dispatch-orient.md` | `@scout` + `@navigator` | `run-explore/references/explore-scout.md`, `run-explore/references/explore-navigator.md` |
-| Clarify | `references/dispatch-clarify.md` | mainthread | `run-explore/references/explore-scout.md`, `run-explore/references/explore-navigator.md` (between-round assists) |
+| Clarify | `references/dispatch-clarify.md` | mainthread | `run-explore/references/explore-scout.md`, `run-explore/references/explore-navigator.md` (proactive assists) |
 | Investigate | `references/dispatch-investigate.md` | `@scout` / `@researcher` / `@navigator` | `run-explore/references/explore-scout.md`, `references/investigate-researcher.md`, `run-explore/references/explore-navigator.md` |
 | Explore | `references/dispatch-explore.md` | `@framer` + `@navigator` + `@envoy` | `references/explore-*.md` |
 | Frame | `references/dispatch-frame.md` | `@framer` + `@envoy` + `@synthesizer` | `references/frame-*.md` |
 | Spec Create | — | `@envoy` | `references/orchestrate-spec-creation.md` |
-
-Note: `dispatch-{phase}.md` is a local naming convention for mainthread-loaded phase refs in do-discuss. Not a repo-wide standard.
 
 ## State Protocol
 
@@ -43,9 +41,8 @@ Note: `dispatch-{phase}.md` is a local naming convention for mainthread-loaded p
 | `codebase_signals` | create: orient; append: investigate | append-only |
 | `external_signals` | create: orient/research-override; append: clarify-nav, investigate | append-only |
 | `known` / `unknown` | create: orient/clarify-start; mutate: clarify, investigate | mutable — items move between them |
-| `key_decisions` | create: clarify; accumulate: investigate, explore | accumulate-only |
+| `key_decisions` | create: clarify; accumulate: investigate, explore | accumulate-only; per-item status: `open → exploring → resolved / deferred` |
 | `frame_question` | derive: clarify | immutable after derivation |
-| `round_budget` | set: clarify entry (base 5); reduce: orient/external findings | conditional reduction, hard minimum 3 |
 
 ## Intake
 
@@ -68,7 +65,7 @@ Confidence-gated. Main thread = sole handoff authority.
 | low | "Needs further exploration. Consider `/brainstorming`." |
 | `spec-creation` | "Scope exceeds single session. Proceed with spec creation." Carry all state to `references/orchestrate-spec-creation.md`. |
 
-Termination: frame question answered → `complete`. "just plan it" + acknowledged unknowns → `complete` with risk. 5 iteration cap → freeze + surface gaps. Wrong tool → redirect.
+Termination: all `key_decisions` resolved/deferred + frame question answerable → `complete`. "just plan it" + acknowledged unknowns → `complete` with risk. Stall (3 exchanges with no status changes) → surface gaps + recommend next step. Wrong tool → redirect.
 
 Emit `discussion_learnings` proposals (never auto-applied). STOP after declaration. User decides next step.
 
