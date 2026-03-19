@@ -19,12 +19,30 @@ Provide to `@envoy`:
 
 | Field | Content |
 |-------|---------|
-| Prompt content | Task-specific context. Reference files by repo-relative path — do not inline contents. |
+| Prompt content | Subject context (payload, not directive). Reference files by repo-relative path — do not inline contents. |
 | Output format | Expected structure (caller-defined) |
 | Output path | `.scratch/<session>/{skill}-{phase}-envoy.md` |
 | Tier | frontier\|standard\|fast — determines envoy model selection. Default: standard. |
 
 Callers must NOT gate findings by source, inline severity overrides, cap priority rules, or pre-dispatch size checks — owned by `use-envoy`.
+
+## Dispatch Prompt Framing
+
+The Agent tool prompt that dispatches `@envoy` must open with an assembly directive, not a task description. Task content is payload for the assembled prompt, not a directive for `@envoy` to act on.
+
+Template:
+
+```
+Assemble a self-contained prompt for external CLI review of:
+- Subject: {one-line description}
+- Reference: {per-phase envoy ref path}
+- Artifacts: {repo-relative paths to planning brief, discovery synthesis, etc.}
+- Output format: {section structure from the envoy ref}
+- Output path: {.scratch/<session>/ path}
+- Tier: {frontier|standard|fast}
+```
+
+BROKEN: `"Provide an independent perspective on {topic}"` — task-shaped; envoy self-answers instead of dispatching.
 
 Pre-dispatch size check: if assembled prompt exceeds 100KB, truncate diff to first 50KB and summarize fields exceeding 2KB. When truncation was applied, annotate envoy output header with `[TRUNCATED_CONTEXT]`. If still over budget, skip dispatch with skip notice.
 

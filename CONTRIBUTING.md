@@ -98,6 +98,12 @@ Keep subagent bodies focused — they should define constraints and output forma
 
 For Codex, the installer generates TOML role configs (including `model` and `effort` fields) from markdown source automatically — no manual TOML authoring needed.
 
+### Dispatching @envoy
+
+The Agent tool prompt must frame `@envoy` as a CLI assembler, not a task performer. Open with: `"Assemble a self-contained prompt for external CLI review of..."` Never open with task language (`"Analyze..."`, `"Review..."`, `"Plan..."`) — this causes envoy to self-answer instead of dispatching to the external CLI.
+
+Task-specific content (planning briefs, review contexts, code references) is payload — pass it as prompt content for envoy to assemble into the CLI prompt file, not as a directive for envoy to act on. See `skills/use-envoy/SKILL.md` for the full dispatch template.
+
 ### Renaming an Agent
 
 1. `git mv agents/old.md agents/new.md` and update `name:` in frontmatter
