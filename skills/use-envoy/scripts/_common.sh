@@ -34,9 +34,15 @@ handle_exit_code() {
 }
 
 validate_output() {
+    # Codex internal timeout: exits 0 with partial/no stdout, only stderr signal.
+    # Pattern is observed behavior (not contracted) — defense-in-depth, not primary gate.
+    if [ -f "$stderr_log" ] && grep -q 'ended without review output' "$stderr_log" 2>/dev/null; then
+        error "Provider reported internal timeout (output unreliable)"; exit 3
+    fi
     [ -f "$output_file" ] || { error "Output file not created"; exit 3; }
     _output_size=$(wc -c < "$output_file" | tr -d ' ')
-    [ "$_output_size" -ge 200 ] || { error "Output too small (${_output_size} bytes, minimum 200)"; exit 3; }
+    # 300 = raw output before assemble_output adds trust-boundary header (~250-370 bytes).
+    [ "$_output_size" -ge 300 ] || { error "Output too small (${_output_size} bytes, minimum 300)"; exit 3; }
     _sanitize_tmp="${output_file}.sanitize"
     # shellcheck source=sanitize.sh
     . "$_script_dir/sanitize.sh"
