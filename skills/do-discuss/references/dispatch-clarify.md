@@ -4,6 +4,12 @@ Convergence-driven interview. Main thread only — user interaction loop. Proact
 
 Relentless interview until shared understanding. Resolve decision dependencies one-by-one. Challenge stated requirements, probe assumptions, push back on "obvious" answers.
 
+## Opening
+
+When input classified as solution-as-problem: open with a focused question to surface the underlying goal before starting convergence interview. Either: "What outcome does [solution] serve?" or name the hidden assumption: "[Solution] assumes [X] — is that the constraint or the approach you tried?" Seed `known` with both: original solution statement AND surfaced goal. Seed `key_decisions` with "approach: [proposed solution] vs alternatives" (status: open). If user confirms the solution IS the requirement, resolve to "[solution] (confirmed)" — do not re-challenge.
+
+When classified absent or upstream-validated: skip. Proceed directly to convergence interview.
+
 Seed `known` from `codebase_signals` when non-empty. Seed `external_signals` from navigator. Do not re-ask already-answered questions.
 
 ## Question Taxonomy
@@ -37,4 +43,4 @@ Ambiguity buckets: **goal**, **scope**, **constraints**, **stakeholder**. Batch 
 
 Blocking unknowns requiring codebase depth — behavior, side effects, data flow — beyond scout orient or proactive assists signal readiness for investigate phase.
 
-> Anti-patterns: (1) Leading questions embedding solutions. (2) Solution-choice framing instead of diagnostic. (3) Asking user factual questions answerable by codebase/internet exploration.
+> Anti-patterns: (1) Leading questions embedding solutions. (2) Solution-choice framing instead of diagnostic. (3) Asking user factual questions answerable by codebase/internet exploration. (4) Interrogating the user about their solution choice — offer the canonical approach alongside, don't cross-examine.

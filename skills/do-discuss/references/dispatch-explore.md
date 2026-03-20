@@ -12,6 +12,8 @@ Concurrent with framers:
 - `@navigator` + `run-explore/references/explore-alternatives.md` → `.scratch/<session>/discuss-explore-navigator.md`
 - `@envoy` (via `use-envoy`) → `.scratch/<session>/discuss-explore-envoy.md`. Tier: standard. Not re-dispatched for peer-reaction (single-pass CLI). Output feeds Frame synthesis as peer input. Prompt: `problem_frame` + `known`/`unknown` + `key_decisions` + `codebase_signals` + `external_signals` (self-contained).
 
+**Reframed problems**: When Clarify surfaced a goal behind the stated technique (`key_decisions` contains approach alternatives with status: open), dispatch skeptic with both framings (original request + underlying goal). Navigator searches canonical approaches to the *goal*, not the stated technique. Include user's proposal as one option, not the default.
+
 All dispatches parallel → wait → re-invoke framers + navigator to read peers + append `## Peer Reactions` → synthesize. Irreconcilable positions → `key_decisions`. Augmented `@framer` + `explore-augmented-framer.md` with variance lens from investigate (or select per `do-plan/references/variance-lenses.md`). Output: `.scratch/<session>/discuss-explore-augmented-{lens}.md`. Included in peer reaction.
 
 Cap: base framers (3) + navigator (1) + envoy (1) + augmented <= 6.

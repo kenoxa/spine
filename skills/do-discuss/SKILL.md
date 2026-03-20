@@ -48,6 +48,8 @@ Socratic dialogue: intake → orient → clarify → investigate → explore →
 
 Redirects: plan-ready → `do-plan`, reproducible defect → `run-debug`, pure ideation → `brainstorming`, < 1 sentence → grounding question. Detect upstream handoff (brainstorming selected direction, run-debug root cause). Seed known inventory.
 
+Decompose input: identify `stated_problem` (outcome/symptom) vs `proposed_solution` (technique/implementation). Classifications — solution-as-problem: technique dominates the framing (input leads with implementation choice, regardless of whether a problem is also stated); upstream-validated: upstream brainstorming selected this direction (run-debug root-cause handoffs are NOT upstream-validated — they may need premise challenge); absent: no embedded solution detected, proceed normally.
+
 Spec routing: @-referenced spec file → Read `references/spec-mode.md`. Explicit "write a spec" → Read `references/orchestrate-spec-creation.md`.
 
 **Session ID**: per SPINE.md. Carry into do-plan. Log at phase boundaries.

@@ -23,8 +23,8 @@ claude/agents/run-skill-eval/runner.md: 1423
 claude/skills/run-skill-eval/SKILL.md: 3230
 skills/catchup/SKILL.md: 554
 skills/commit/SKILL.md: 539
-skills/do-discuss/references/dispatch-clarify.md: 594
-skills/do-discuss/references/dispatch-explore.md: 493
+skills/do-discuss/references/dispatch-clarify.md: 757
+skills/do-discuss/references/dispatch-explore.md: 561
 skills/do-discuss/references/dispatch-frame.md: 319
 skills/do-discuss/references/dispatch-investigate.md: 413
 skills/do-discuss/references/dispatch-orient.md: 717
@@ -40,7 +40,7 @@ skills/do-discuss/references/orchestrate-spec-creation.md: 979
 skills/do-discuss/references/spec-mode.md: 379
 skills/do-discuss/references/template-brief.md: 1022
 skills/do-discuss/references/template-spec.md: 630
-skills/do-discuss/SKILL.md: 1155
+skills/do-discuss/SKILL.md: 1261
 skills/do-execute/references/finalize.md: 781
 skills/do-execute/references/implement.md: 399
 skills/do-execute/references/polish-apply.md: 409
