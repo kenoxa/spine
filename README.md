@@ -285,8 +285,8 @@ export SPINE_ENVOY_CLAUDE=opus:high
 export SPINE_ENVOY_CODEX=gpt-5.4:high
 
 # Cursor-agent fallback models (used when primary provider is unavailable)
-export SPINE_ENVOY_CLAUDE_CURSOR_FALLBACK=sonnet-4.6-thinking
-export SPINE_ENVOY_CODEX_CURSOR_FALLBACK=gpt-5.4-high
+export SPINE_ENVOY_CLAUDE_CURSOR_FALLBACK=composer-2
+export SPINE_ENVOY_CODEX_CURSOR_FALLBACK=composer-2
 ```
 
 See [`env.example`](env.example) for the full template.
@@ -330,7 +330,16 @@ npx skills add vercel-labs/agent-browser -s agent-browser -a '*' -g -y
 
 </details>
 
-For subagent model tiers, provider mappings, and effort configuration, see [docs/model-selection.md](docs/model-selection.md).
+<details>
+<summary>Model selection</summary>
+
+**Standard tier is the recommended default** (sonnet / gpt-5.4-mini / auto). Subagents use specialized models by tier automatically — frontier for gate authority, fast for recon — regardless of your session choice.
+
+Upgrade to Frontier for ambiguous requirements, cascading architectural decisions, or elusive root causes. Claude Code and Codex have generous rolling budgets (5h/7d); Cursor has a tighter monthly cap — stay on auto, upgrade selectively.
+
+For the full guide — tier mapping, provider pricing, env overrides, and benchmarks — see [docs/model-selection.md](docs/model-selection.md).
+
+</details>
 
 ## Troubleshooting And Updates
 

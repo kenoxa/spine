@@ -9,7 +9,7 @@ error() { printf 'Error: %s\n' "$*" >&2; }
 
 usage() {
     cat <<'EOF'
-Usage: run.sh --hint claude|codex|cursor --prompt-file PATH --output-file PATH --stderr-log PATH [--timeout SECS] [--tier frontier|standard|fast]
+Usage: run.sh --hint claude|codex|cursor --prompt-file PATH --output-file PATH --stderr-log PATH [--timeout SECS] [--tier frontier|standard|fast] [--target <provider>]
 
 Detect current provider, invoke opposite provider's CLI, fall back on failure.
 EOF
@@ -17,7 +17,7 @@ EOF
 
 # --- Argument parsing ---
 
-hint="" prompt_file="" output_file="" stderr_log="" timeout_secs="900" tier="standard"
+hint="" prompt_file="" output_file="" stderr_log="" timeout_secs="900" tier="standard" target=""
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -27,6 +27,7 @@ while [ $# -gt 0 ]; do
         --stderr-log)   stderr_log="$2"; shift 2 ;;
         --timeout)      timeout_secs="$2"; shift 2 ;;
         --tier)         tier="$2"; shift 2 ;;
+        --target)       target="$2"; shift 2 ;;
         -h|--help)      usage; exit 0 ;;
         *)              error "Unknown argument: $1"; usage; exit 1 ;;
     esac
@@ -46,8 +47,23 @@ if printenv CLAUDECODE >/dev/null 2>&1; then
     _self=claude
 elif [ "${CURSOR_AGENT:-}" = "1" ]; then
     _self=cursor
+elif printenv CODEX_SANDBOX >/dev/null 2>&1; then
+    _self=codex
 fi
 _self="${_self:-${hint:-codex}}"
+
+# --- Direct target (--target flag bypasses cascade) ---
+
+if [ -n "$target" ]; then
+    [ "$target" != "$_self" ] || { error "--target '$target' matches self '$_self'"; exit 1; }
+    if ! sh "$_script_dir/check-${target}.sh" >/dev/null 2>&1; then
+        error "Target provider $target unavailable"; exit 1
+    fi
+    sh "$_script_dir/run-${target}.sh" \
+        --prompt-file "$prompt_file" --output-file "$output_file" \
+        --stderr-log "$stderr_log" --timeout "$timeout_secs" --tier "$tier"
+    exit $?
+fi
 
 # --- Pick target and fallback (never target or fall back to self) ---
 
@@ -73,12 +89,12 @@ else
     _rc=1
 fi
 
-# Exit 0 (success) or 3 (output validation failure) → propagate, no fallback
-if [ "$_rc" -eq 0 ] || [ "$_rc" -eq 3 ]; then
-    exit "$_rc"
+# Exit 0 (success) → propagate, no fallback
+if [ "$_rc" -eq 0 ]; then
+    exit 0
 fi
 
-# --- Fallback on exit 1 (invocation failed) or 2 (timeout) ---
+# --- Fallback on exit 1 (invocation failed), 2 (timeout), or 3 (output validation failed) ---
 
 if ! sh "$_script_dir/check-${_fallback}.sh" >/dev/null 2>&1; then
     error "Fallback provider $_fallback also unavailable"

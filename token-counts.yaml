@@ -3,7 +3,7 @@
 AGENTS.md: 359
 agents/analyst.md: 178
 agents/debater.md: 278
-agents/envoy.md: 630
+agents/envoy.md: 739
 agents/framer.md: 407
 agents/implementer.md: 323
 agents/inspector.md: 483
@@ -114,7 +114,7 @@ skills/run-review/references/scope-context.md: 804
 skills/run-review/references/security-probe.md: 1002
 skills/run-review/references/template-review-brief.md: 344
 skills/run-review/SKILL.md: 1176
-skills/use-envoy/SKILL.md: 675
+skills/use-envoy/SKILL.md: 740
 skills/use-js/SKILL.md: 714
 skills/use-shell/references/ast-grep.md: 998
 skills/use-shell/SKILL.md: 568

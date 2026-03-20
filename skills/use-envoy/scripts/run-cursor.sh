@@ -51,8 +51,8 @@ _script_dir=$(cd "$(dirname "$0")" && pwd)
 
 resolve_tier "$tier" cursor
 case "$fallback_for" in
-    claude) _base="${SPINE_ENVOY_CLAUDE_CURSOR_FALLBACK:-sonnet-4.6-thinking}" ;;
-    codex)  _base="${SPINE_ENVOY_CODEX_CURSOR_FALLBACK:-gpt-5.4-high}" ;;
+    claude) _base="${SPINE_ENVOY_CLAUDE_CURSOR_FALLBACK:-composer-2}" ;;
+    codex)  _base="${SPINE_ENVOY_CODEX_CURSOR_FALLBACK:-composer-2}" ;;
     *)      _base="$_tier_model" ;;  # Direct target (not fallback) — use tier default
 esac
 case "$tier" in
@@ -104,6 +104,24 @@ timeout --kill-after=10 "$timeout_secs" env \
         -- "$_prompt_arg" \
         > "$output_file" 2>"$stderr_log" \
     || _rc=$?
+
+# Model-level fallback: non-timeout failure + model != auto → retry with auto
+if [ "$_rc" -ne 0 ] && [ "$_rc" -ne 124 ] && [ "$_rc" -ne 137 ] && [ "$model" != "auto" ]; then
+    printf 'cursor-agent model %s failed (exit %s), retrying with auto\n' "$model" "$_rc" >&2
+    _rc=0
+    timeout --kill-after=10 "$timeout_secs" env \
+        -u CLAUDECODE -u CURSOR_AGENT -u CODEX_SANDBOX \
+        PATH="$HOME/.local/bin:$PATH" \
+        "$_binary" -p \
+            --output-format text \
+            --trust \
+            --force \
+            --model auto \
+            -- "$_prompt_arg" \
+            > "$output_file" 2>>"$stderr_log" \
+        || _rc=$?
+    model=auto  # reflect in trust-boundary marker
+fi
 
 _cleanup
 handle_exit_code "cursor-agent CLI"

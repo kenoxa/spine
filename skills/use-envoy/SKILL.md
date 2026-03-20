@@ -2,16 +2,14 @@
 name: use-envoy
 description: >
   Cross-provider envoy via headless CLI invocation.
-  Use when a skill needs an independent perspective from a different AI provider.
+  Use when a skill needs an independent perspective from a different AI provider,
+  or multi-provider parallel dispatch for broader coverage.
   Composable — load alongside do-plan, run-review, or any skill that benefits
   from cross-model diversity. Do NOT use standalone.
-argument-hint: "[prompt-content output-format output-path]"
 ---
 
-Dispatch `@envoy` concurrently with base subagents.
-Await all dispatched agents (envoy + base) before synthesis.
-When no base agents exist in the dispatch batch, dispatch sequentially before synthesis.
-When a skill's phase table lists `@envoy`, callers always attempt dispatch. Envoy's own pre-dispatch size check (below) is the sole skip mechanism — callers do not pre-filter.
+Dispatch `@envoy` concurrently with base subagents; await all before synthesis. Sequential when no base agents in batch.
+Callers always attempt dispatch when listed — size check below is the sole skip gate.
 
 ## Caller Interface
 
@@ -23,12 +21,27 @@ Provide to `@envoy`:
 | Output format | Expected structure (caller-defined) |
 | Output path | `.scratch/<session>/{skill}-{phase}-envoy.md` |
 | Tier | frontier\|standard\|fast — determines envoy model selection. Default: standard. |
+| Mode | single (default) or multi — single uses first available provider; multi iterates all available |
 
 Callers must NOT gate findings by source, inline severity overrides, cap priority rules, or pre-dispatch size checks — owned by `use-envoy`.
 
+## Multi-Provider Dispatch
+
+Pass `Mode: multi` in the dispatch to get output from all available providers in parallel.
+
+**Output contract:**
+- Single: caller's output path as-is (one file, first available provider)
+- Multi: strip `.md`, append `-<provider>.md` per available provider (0-N files)
+
+**Recommended phases:**
+- Multi for gate-authority phases (plan, challenge, review, inspect)
+- Single for exploration/recon
+
+Uses 1 agent cap slot regardless of mode. Synthesizer receives 0-N envoy output paths.
+
 ## Dispatch Prompt Framing
 
-The Agent tool prompt that dispatches `@envoy` must open with an assembly directive, not a task description. Task content is payload for the assembled prompt, not a directive for `@envoy` to act on.
+Dispatch prompt must open with assembly directive — task content is payload, not directive.
 
 Template:
 
@@ -40,6 +53,7 @@ Assemble a self-contained prompt for external CLI review of:
 - Output format: {section structure from the envoy ref}
 - Output path: {.scratch/<session>/ path}
 - Tier: {frontier|standard|fast}
+- Mode: {single|multi} (default: single)
 ```
 
 BROKEN: `"Provide an independent perspective on {topic}"` — task-shaped; envoy self-answers instead of dispatching.
@@ -55,8 +69,6 @@ If envoy output exists and is not a skip notice:
 4. Evidence-weighted parity: E2+ required for blocking regardless of source. Equal evidence at same level = `[CONFLICT]` with provenance.
 
 Skip notice → note `[COVERAGE_GAP: envoy — {reason}]` in synthesis output header.
-
-Envoy is dispatched when configured. Absence = reduced coverage, not review failure.
 
 ## Cap Accounting
 

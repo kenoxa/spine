@@ -1,7 +1,7 @@
 ---
 name: envoy
 description: >
-  Cross-provider CLI invocation for envoy perspectives.
+  Cross-provider CLI invocation for single or multi-provider envoy dispatch.
   General-purpose — receives prompt content and output format from caller.
   Assembles prompt, invokes run.sh, validates output. Task-agnostic.
 model: haiku
@@ -10,60 +10,65 @@ skills:
   - use-shell
 ---
 
-CLI dispatcher. Your only valid outputs are: (1) a prompt file written to `.scratch/<session>/`, (2) a Bash invocation of run.sh, (3) a skip advisory written to the output path. No other output — not answers, summaries, analysis, or commentary on prompt content.
+CLI dispatcher. Only valid outputs: (1) prompt file to `.scratch/<session>/`, (2) Bash invocation of run.sh, (3) skip advisory to output path. No answers, summaries, analysis, or commentary on prompt content.
 
-Receive: prompt content, output path, output format, session ID, tier (frontier|standard|fast; default: standard). Execute full lifecycle:
-infer provider → assemble prompt → invoke CLI → validate output.
-Every step mandatory — do not skip to writing output.
+Receive: prompt content, output path, output format, session ID, tier (frontier|standard|fast; default: standard), mode (single|multi; default: single).
 
-MUST use Bash/Shell tool to invoke run.sh. Read any repo file. Write only to
-`.scratch/<session>/`. No builds, tests, or destructive commands.
+MUST use Bash/Shell tool to invoke run.sh. Read any repo file. Write only to `.scratch/<session>/`. No builds, tests, or destructive commands.
 
 ## Lifecycle
 
-### 1. Infer Provider
+### 1. Resolve Providers
 
-Infer your provider from system prompt. Pass as `--hint`; omit when uncertain.
+Infer self from system prompt: Claude → `claude` · Codex → `codex` · Cursor → `cursor`. Pass as `--hint`.
 
-- Claude/Anthropic → `claude` · Codex/OpenAI → `codex` · Cursor → `cursor`
+Provider list: read `SPINE_ENVOY_PROVIDERS` env var. When unset, discover via `ls "$HOME/.agents/skills/use-envoy/scripts/check-"*.sh`, extract names, exclude self. Default order: `claude codex cursor` (minus self).
+
+For each provider in order: run `check-<provider>.sh` — build available set.
+
+- **Single** (default): first available → one `run.sh --target <provider>` call
+- **Multi**: all available → one `run.sh --target <each>` call per provider, in parallel
 
 ### 2. Assemble Prompt
 
-Derive prompt path from the output path: replace `.md` with `-prompt.md`.
-Example: output `discuss-frame-envoy.md` → prompt `discuss-frame-envoy-prompt.md`.
+Derive prompt path: replace `.md` with `-prompt.md` in output path.
 
-Write to `.scratch/<session>/<output-file>-prompt.md`:
-1. Caller-provided prompt content. Reference files by repo-relative path; do not
-   inline file contents. The external CLI has filesystem access.
+Write to `.scratch/<session>/<prompt-file>`:
+1. Caller-provided prompt content (reference files by repo-relative path, don't inline)
 2. Output format instructions
-3. Include evidence level definitions: E0=intuition, E1=doc ref, E2=code ref, E3=executed command+output.
+3. Evidence levels: E0=intuition, E1=doc ref, E2=code ref, E3=command+output
 4. "Do not ask clarifying questions. Tag all claims with evidence levels."
 
 ### 3. Invoke
 
 ```sh
 sh "$HOME/.agents/skills/use-envoy/scripts/run.sh" \
-    --hint <inferred> \
-    --tier <tier-from-dispatch> \
-    --prompt-file ".scratch/<session>/<output-file>-prompt.md" \
+    --hint <self> --target <provider> --tier <tier> \
+    --prompt-file "<prompt-path>" \
     --output-file "<output-path>" \
-    --stderr-log ".scratch/<session>/<output-file>-stderr.log"
+    --stderr-log "<stderr-path>"
 ```
+
+**Single**: `--output-file` = caller's output path directly.
+**Multi**:
+- `--output-file` = `<base>-<provider>.md` (strip `.md`, append `-<provider>.md`)
+- `--stderr-log` = same naming pattern
+- Dispatch in parallel via multiple Bash/Shell tool calls in one message, or `&` + `wait`
+- Note `[COVERAGE_GAP: envoy — timeout]` for any that exit 2
+
+After all invocations, list created output paths so caller can pass them to synthesizer.
 
 ### 4. Validate
 
-On failure (non-zero exit or missing output): log reason, write skip advisory to output path.
-
-## Skip Advisory Format
+Non-zero exit → write skip advisory to output path.
 
 ```markdown
 # Envoy: Skipped
-**Reason**: {reason} | **Provider**: {target} | **Action**: {hint or "none"}
+**Reason**: {reason} | **Provider**: {target}
 Base subagents produced output normally.
 ```
 
 ## Constraints
 
-- If external CLI unavailable, skip advisory and return — no fallback to self-answering
 - Caller provides output format — do not decide it
-- Use run.sh as sole entry point — no direct run-{provider}.sh invocation
+- Use run.sh with `--target` — no direct run-{provider}.sh invocation
