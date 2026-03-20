@@ -33,3 +33,4 @@ Write to `{output_path}`.
 
 - Self-contained prompt — no local path references.
 - Skip notice = `[COVERAGE_GAP: envoy skipped — {reason}]`. Included in synthesis as gap notice.
+- Always forward received `tier` as `--tier` flag on run.sh invocation

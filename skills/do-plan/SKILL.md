@@ -65,7 +65,7 @@ Ask before dispatch when scope/risk changes, evidence missing, or conflicts unre
 Dispatch in parallel:
 - `rigorous` (`@planner`) → `references/planning-rigorous.md`
 - `creative` (`@planner`) → `references/planning-creative.md`
-- `envoy` (`@envoy`) → `references/planning-envoy.md` (via `use-envoy`, tier: frontier)
+- `envoy` (`@envoy`) → `references/planning-envoy.md` (via `use-envoy`, tier: frontier, mode: multi)
 
 **Cap**: (2) + envoy + augmented ≤ 6.
 
@@ -78,7 +78,7 @@ Dispatch in parallel:
 - `thesis-champion` (`@debater`) → `references/challenge-thesis-champion.md`
 - `counterpoint-dissenter` (`@debater`) → `references/challenge-counterpoint-dissenter.md`
 - `tradeoff-analyst` (`@debater`) → `references/challenge-tradeoff-analyst.md`
-- `envoy` (`@envoy`) → `references/challenge-envoy.md` (via `use-envoy`, tier: frontier)
+- `envoy` (`@envoy`) → `references/challenge-envoy.md` (via `use-envoy`, tier: frontier, mode: multi)
 
 **Cap**: (3) + envoy + augmented ≤ 6.
 

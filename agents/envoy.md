@@ -14,6 +14,8 @@ CLI dispatcher. Only valid outputs: (1) prompt file to `.scratch/<session>/`, (2
 
 Receive: prompt content, output path, output format, session ID, tier (frontier|standard|fast; default: standard), mode (single|multi; default: single).
 
+Apply received tier as `--tier` flag in Invoke. Apply received mode to select Single or Multi dispatch path.
+
 MUST use Bash/Shell tool to invoke run.sh. Read any repo file. Write only to `.scratch/<session>/`. No builds, tests, or destructive commands.
 
 ## Lifecycle

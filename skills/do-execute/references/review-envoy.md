@@ -36,4 +36,5 @@ Include this output format in the assembled prompt:
 
 - Reference files by repo-relative path; do not inline file contents (external CLI has filesystem access)
 - Prompt must be self-contained — no local agent format assumptions or session-internal path references
+- Always forward received `tier` as `--tier` flag on run.sh invocation
 - Output path: `{output_path}`

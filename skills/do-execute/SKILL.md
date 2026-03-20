@@ -77,7 +77,7 @@ Main thread. Read plan, classify depth, partition work. Output `scope_artifact`:
    - `spec-reviewer` → `references/review-spec-reviewer.md`
    - `correctness-reviewer` → `references/review-correctness-reviewer.md`
    - `risk-reviewer` → `references/review-risk-reviewer.md`
-   - `envoy` (`@envoy`) → `references/review-envoy.md` (tier: frontier)
+   - `envoy` (`@envoy`) → `references/review-envoy.md` (tier: frontier, mode: multi)
    - +augmented per variance lens
 3. **Synthesis**: `@synthesizer` → `references/review-synthesis.md`. Blocking (E2+) → re-enter polish. Advisory → proceed.
 
