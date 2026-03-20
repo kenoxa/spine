@@ -58,7 +58,7 @@ resolve_tier() {
         standard:codex)  _tier_model=gpt-5.4-mini;  _tier_effort=high ;;
         standard:cursor) _tier_model=composer-2;     _tier_effort= ;;
         fast:claude)     _tier_model=haiku;          _tier_effort=medium ;;
-        fast:codex)      _tier_model=gpt-5.4-nano;  _tier_effort=medium ;;
+        fast:codex)      _tier_model=gpt-5.4-mini;  _tier_effort=medium ;;  # ideal: gpt-5.4-nano (unavailable on current Codex subscription)
         fast:cursor)     _tier_model=auto;           _tier_effort= ;;
         *)               _tier_model=;               _tier_effort= ;;
     esac

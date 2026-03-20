@@ -16,8 +16,10 @@
 |------|---------|--------|-------|--------|
 | Frontier | Complex reasoning, gate authority | opus | gpt-5.4 | composer-2 |
 | Standard | Advisory, research, pattern matching | sonnet | gpt-5.4-mini | composer-2 |
-| Fast | Reconnaissance, extraction | haiku | gpt-5.4-nano | auto |
+| Fast | Reconnaissance, extraction | haiku | gpt-5.4-mini¹ | auto |
 | Adaptive | Tracks your session model | — | — | — |
+
+¹ Ideal mapping is gpt-5.4-nano — using mini until nano is available on the Codex subscription.
 
 ## Session Model
 
@@ -64,7 +66,7 @@ Heavy multi-agent sessions can exhaust Claude Code Max 5x Opus hours in 2-3 days
 |------|--------|-------|--------|
 | Frontier | opus ($5/$25) | gpt-5.4 ($2.50/$15) | composer-2 ($0.50/$2.50) |
 | Standard | sonnet ($3/$15) | gpt-5.4-mini ($0.75/$4.50) | composer-2 ($0.50/$2.50) |
-| Fast | haiku ($1/$5) | gpt-5.4-nano ($0.20/$1.25) | auto ($1.25/$6) |
+| Fast | haiku ($1/$5) | gpt-5.4-mini¹ ($0.75/$4.50) | auto ($1.25/$6) |
 
 > Cursor models draw from the Auto+Composer pool with a monthly allowance. Per-token cost matters less than staying within your monthly budget. Composer 2 Fast ($1.50/$7.50) offers the same quality at higher speed but 3× the cost — use selectively when latency matters. For higher quality beyond the pool, override to API-pool models (e.g., gpt-5.4) at provider pricing.
 
