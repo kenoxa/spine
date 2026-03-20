@@ -60,7 +60,7 @@ case "$tier" in
     fast)     model="${SPINE_ENVOY_FAST_CURSOR:-${SPINE_ENVOY_CURSOR:-$_tier_model}}" ;;
     *)        model="${SPINE_ENVOY_STANDARD_CURSOR:-${SPINE_ENVOY_CURSOR:-$_base}}" ;;
 esac
-timeout_secs="${timeout_secs:-900}"
+timeout_secs="${timeout_secs:-540}"
 
 # --- Binary resolution ---
 

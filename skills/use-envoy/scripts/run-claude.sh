@@ -56,7 +56,7 @@ esac
 model="${_envoy_val%%:*}"
 effort="${_envoy_val#*:}"
 [ "$effort" = "$model" ] && effort=high
-timeout_secs="${timeout_secs:-900}"
+timeout_secs="${timeout_secs:-540}"
 
 # --- Pre-flight + cleanup ---
 
