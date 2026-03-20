@@ -10,25 +10,23 @@ description: >
 argument-hint: "[shell task or command]"
 ---
 
-Prefer native tools (Grep, Glob, Read, Edit) over shell equivalents. Shell is the fallback.
-
-## Safe Deletion
-
-Use `trash`, never `rm`, for file deletion.
+Prefer native tools (Grep, Glob, Read, Edit) over shell equivalents. Shell is the fallback. Use `trash`, never `rm`.
 
 ## Tool Preferences
 
-| Instead of | Use | Why |
-|------------|-----|-----|
-| `grep` | `rg` | faster, respects .gitignore |
-| `find` | `fd` | simpler syntax, respects .gitignore |
-| grepping JSON | `jq` | structured parsing |
-| `perl`/`sed` | `sd` | simpler in-place replacement |
-| regex for code | `ast-grep` (`sg`) | AST-aware search and rewrite |
+| Instead of | Use |
+|------------|-----|
+| `grep` | `rg` |
+| `find` | `fd` |
+| grepping JSON | `jq` |
+| `perl`/`sed` | `sd` |
+| regex for code | `ast-grep` (`sg`) |
+
+Lint shell scripts with `shellcheck`; format with `shfmt`. Include a short description (4–7 words) on every shell command.
 
 ## ast-grep (sg)
 
-`sg -r` supersedes `rg + sd` for structural code replacements; `sd` stays for text/config. For pattern syntax, flags, and examples → `references/ast-grep.md`.
+`sg -r` supersedes `rg + sd` for structural code replacements; `sd` stays for text/config. Use `--debug-query ast` when patterns don't match as expected. For pattern syntax, flags, and examples → `references/ast-grep.md`.
 
 ## Quoting
 
@@ -36,15 +34,6 @@ Always quote glob and regex arguments to prevent shell expansion:
 - `rg 'pattern'`, not `rg pattern`
 - `fd '*.ts'`, not `fd *.ts`
 - `sg -p '$EXPR'`, not `sg -p "$EXPR"` (metavar `$` expansion)
-
-## Quality
-
-- Lint shell scripts with `shellcheck`; format with `shfmt`.
-- Include a short description (4–7 words) on every shell command.
-
-## JS/Node Crossover
-
-Use `ni` for JS/Node package management — never detect or hardcode package manager. See `use-js` skill for command reference.
 
 ## Anti-Patterns
 

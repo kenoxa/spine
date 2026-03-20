@@ -47,11 +47,6 @@ sg -p 'import $NAME from "$SRC"' -l ts
 # Find named imports
 sg -p 'import { $$$NAMES } from "$SRC"' -l ts
 
-# Find useState hooks (note: -l tsx, not -l ts)
-sg -p 'useState($INIT)' -l tsx
-
-# JSON output piped to jq
-sg -p 'router.$METHOD($PATH, $$$)' -l ts --json=stream | jq '.[].file'
 ```
 
 ## Key flags
