@@ -9,6 +9,7 @@
 - auto-loading per glob like min description?
 - https://github.com/SocketDev/sfw-free
 - merge/resolve merge conflict
+- Re-check if cursor-agent CLI re-adds `auto` model support (removed March 2026). If restored: consider re-adding model-level retry in run-cursor.sh and differentiating fast tier. Users with `SPINE_ENVOY_FAST_CURSOR=auto` in .env should update to `composer-2`.
 - Sematic Search
 	- https://github.com/tobi/qmd
 	- https://github.com/cocoindex-io/cocoindex-code, https://github.com/cocoindex-io/cocoindex-code/issues/20

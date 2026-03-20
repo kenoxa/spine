@@ -106,23 +106,9 @@ timeout --kill-after=10 "$timeout_secs" env \
         > "$output_file" 2>"$stderr_log" \
     || _rc=$?
 
-# Model-level fallback: non-timeout failure + model != auto → retry with auto
-if [ "$_rc" -ne 0 ] && [ "$_rc" -ne 124 ] && [ "$_rc" -ne 137 ] && [ "$model" != "auto" ]; then
-    printf 'cursor-agent model %s failed (exit %s), retrying with auto\n' "$model" "$_rc" >&2
-    _rc=0
-    timeout --kill-after=10 "$timeout_secs" env \
-        -u CLAUDECODE -u CURSOR_AGENT -u CODEX_SANDBOX \
-        PATH="$HOME/.local/bin:$PATH" \
-        "$_binary" -p \
-            --output-format text \
-            --trust \
-            --force \
-            --model auto \
-            -- "$_prompt_arg" \
-            > "$output_file" 2>>"$stderr_log" \
-        || _rc=$?
-    model=auto  # reflect in trust-boundary marker
-fi
+# No model-level retry — all Cursor tiers resolve to composer-2; auto removed from cursor-agent CLI March 2026.
+# Provider-level fallback handled by run.sh cascade. Direct-target (--target cursor) has no retry by design.
+# Re-check if cursor-agent CLI re-adds auto model support.
 
 _cleanup
 handle_exit_code "cursor-agent CLI"

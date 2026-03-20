@@ -141,12 +141,12 @@ Env var changes take effect immediately (runtime). Model mapping changes require
 |-------|----------------|----------------------|------|
 | Composer 2 | 61.7% | $0.50 / $2.50 | Composer |
 | Composer 2 Fast | 61.7% | $1.50 / $7.50 | Composer |
-| Composer 1.5 | 47.9% | $3.50 / $17.50 | Composer |
+| Composer 1.5 | 47.9% | $3.50 / $17.50 | API |
 | Auto | — | $1.25 / $6.00 | Auto+Composer |
 
 ## Implementation Notes
 
-Envoy CLI dispatch uses the same tier mapping except Cursor fast: `auto` instead of `fast` (works under pool pressure).
+Envoy CLI dispatch maps all Cursor tiers to `composer-2`. The `install.sh` frontmatter mapping uses `fast` for subagent dispatch (a different API surface — Cursor's native subagent model field vs the CLI `--model` flag).
 
 Two mapping points encode the tier tables:
 
