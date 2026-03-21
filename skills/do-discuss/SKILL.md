@@ -32,7 +32,7 @@ Socratic dialogue: intake → orient → clarify → investigate → explore →
 | Investigate | `references/dispatch-investigate.md` | `@scout` / `@researcher` / `@navigator` | `run-explore/references/explore-scout.md`, `references/investigate-researcher.md`, `run-explore/references/explore-navigator.md` |
 | Explore | `references/dispatch-explore.md` | `@framer` + `@navigator` + `@envoy` | `references/explore-*.md` |
 | Frame | `references/dispatch-frame.md` | `@framer` + `@envoy` + `@synthesizer` | `references/frame-*.md` |
-| Spec Create | — | `@envoy` | `references/orchestrate-spec-creation.md` |
+| Spec Create | — | `@framer` + `@inspector` + `@envoy` + `@synthesizer` | `references/orchestrate-spec-creation.md` |
 
 ## State Protocol
 

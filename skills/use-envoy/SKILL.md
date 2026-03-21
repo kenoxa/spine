@@ -43,9 +43,13 @@ Pass `Mode: multi` in the dispatch to get output from all available providers in
 | `{base}.md` | single | Output |
 | `{base}.log` | single | Stderr/diagnostics |
 
-**Recommended phases:**
-- Multi for gate-authority phases (plan, challenge, review, inspect)
-- Single for exploration/recon
+**Mode decision rule:** `multi` when output gates a decision or produces a one-way-door artifact; `single` otherwise.
+
+| Criterion | Mode | Examples |
+|-----------|------|----------|
+| Gate-authority phase | multi | plan, challenge, review, inspect |
+| One-way-door artifact | multi | spec-creation |
+| Exploratory / advisory | single | explore, frame, recon |
 
 Uses 1 agent cap slot regardless of mode. Synthesizer receives 0-N envoy output paths.
 

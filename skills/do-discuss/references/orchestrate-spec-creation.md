@@ -23,27 +23,37 @@ Sequential. Do not skip or reorder.
 | **Constraints** | Out-of-scope, hard limits (perf/compat/security), non-goals. | "No constraints" — ask: "What would you reject if someone added it?" |
 | **Phases** | 3-6 phases. Title, scope (concrete file/component names), 2-5 EARS criteria per [template-spec.md](template-spec.md), out-of-scope. | < 3 → suggest do-plan. > 6 → decompose into separate specs or collapse. |
 
-## 3. Envoy Injection Point A
+## 3. Phase Review
 
-After phases+EARS drafted, before DAG. Load `use-envoy`. Dispatch `@envoy`:
-- Prompt: problem + users/context + constraints + phases + EARS (self-contained)
-- Tier: standard → `.scratch/<session>/discuss-spec-phases-envoy.md`
+After phases+EARS drafted, before DAG. Dispatch in parallel:
+- `@framer` + `spec-phases-reviewer.md`: problem + phases + EARS → `.scratch/<session>/discuss-spec-phases-review.md`
+- `@envoy` (via `use-envoy`): prompt = problem + users/context + constraints + phases + EARS (self-contained). Tier: standard. Mode: multi → `.scratch/<session>/discuss-spec-phases-envoy.md`
 
-Main thread reads output, incorporates adjustments. Skip on failure: `[COVERAGE_GAP: envoy — provider unavailable]`.
+Then sequential:
+- `@synthesizer` + `spec-phases-synthesis.md`: all review outputs → `.scratch/<session>/discuss-spec-phases-synthesis.md`
+
+Main thread reads synthesis, incorporates adjustments. Envoy skip/partial: `[COVERAGE_GAP: envoy — {provider} unavailable]`.
+
+Cap: framer(1) + envoy(1) + synthesizer(1) ≤ 3.
 
 ## 4. DAG Elicitation
 
 Infer dependencies conservatively (more = safer). Populate `Depends on:` per phase — phase numbers or `none` for roots. Present graph to user for confirmation. Cycles = phase boundaries need adjustment.
 
-User must confirm before output. Rejection → revise, re-present. Do NOT re-dispatch Envoy-A after rejection.
+User must confirm before output. Rejection → revise, re-present. Do NOT re-dispatch Phase Review after rejection.
 
-## 5. Envoy Injection Point B
+## 5. Spec Review
 
-After DAG confirmed. Load `use-envoy`. Dispatch `@envoy`:
-- Prompt: full spec draft (self-contained)
-- Tier: standard → `.scratch/<session>/discuss-spec-final-envoy.md`
+After DAG confirmed. Dispatch in parallel:
+- `@inspector` + `spec-final-reviewer.md`: full spec draft (self-contained) → `.scratch/<session>/discuss-spec-final-review.md`
+- `@envoy` (via `use-envoy`): prompt = full spec draft (self-contained). Tier: standard. Mode: multi → `.scratch/<session>/discuss-spec-final-envoy.md`
 
-Present findings; user confirms before file creation. Skip on failure: `[COVERAGE_GAP: envoy — provider unavailable]`.
+Then sequential:
+- `@synthesizer` + `spec-final-synthesis.md`: all review outputs → `.scratch/<session>/discuss-spec-final-synthesis.md`
+
+Main thread reads synthesis. Blocking findings (E2+) require user resolution before file creation. Envoy skip/partial: `[COVERAGE_GAP: envoy — {provider} unavailable]`.
+
+Cap: inspector(1) + envoy(1) + synthesizer(1) ≤ 3.
 
 ## 6. Output
 
@@ -55,13 +65,15 @@ Create `docs/specs/{YY}{WW}-<slug>/spec.md` per [template-spec.md](template-spec
 
 `@`-referenced spec.md + explicit "rewrite"/"recreate": edit in-place, re-run relevant steps, preserve unchanged phase status. Slug collision (dir exists, no spec.md) → warn user.
 
+Review pipeline scaling: revision touching ≤1 phase → skip Phase Review (section 3), re-run Spec Review (section 5) only. Changes to ≥2 phases or DAG structure → full pipeline (both sections 3 and 5).
+
 ## 8. Handoff
 
 Suggest `/do-discuss @docs/specs/{YY}{WW}-<slug>/spec.md`. Do NOT suggest `/do-plan` directly.
 
 ## 9. Session Log
 
-Append to existing if mid-clarify; generate new if intake activation. Log at: problem defined, constraints elicited, phases drafted, Envoy-A, DAG confirmed, Envoy-B, files created.
+Append to existing if mid-clarify; generate new if intake activation. Log at: problem defined, constraints elicited, phases drafted, Phase Review, DAG confirmed, Spec Review, files created.
 
 ## 10. Anti-Patterns
 
