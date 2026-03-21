@@ -16,7 +16,7 @@ Expected files matching `{file_pattern}`:
 - `plan-challenge-thesis-champion.md`
 - `plan-challenge-counterpoint-dissenter.md`
 - `plan-challenge-tradeoff-analyst.md`
-- `plan-challenge-envoy.md` or `plan-challenge-envoy-<provider>.md` per mode (when present; may be skip advisory)
+- `plan-challenge-envoy.md` or `plan-challenge-envoy.<provider>.md` per mode (when present; may be skip advisory)
 - Any `plan-challenge-augmented-*.md` from variance lenses
 
 **Existence verification**: Before merging, confirm every expected input file exists and is non-empty. If any file is missing or empty, report which files are absent in the output header. Do not proceed with partial merge without flagging gaps.

@@ -15,7 +15,7 @@ Dispatch provides:
 Expected files matching `{file_pattern}`:
 - `plan-planning-rigorous.md`
 - `plan-planning-creative.md`
-- `plan-planning-envoy.md` or `plan-planning-envoy-<provider>.md` per mode (when present; may be skip advisory)
+- `plan-planning-envoy.md` or `plan-planning-envoy.<provider>.md` per mode (when present; may be skip advisory)
 - Any `plan-planning-augmented-*.md` from variance lenses
 
 **Existence verification**: Before merging, confirm every expected input file exists and is non-empty. If any file is missing or empty, report which files are absent in the output header. Do not proceed with partial merge without flagging gaps.

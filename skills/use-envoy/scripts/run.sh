@@ -9,7 +9,7 @@ error() { printf 'Error: %s\n' "$*" >&2; }
 
 usage() {
     cat <<'EOF'
-Usage: run.sh --hint claude|codex|cursor --prompt-file PATH --output-file PATH --stderr-log PATH [--timeout SECS] [--tier frontier|standard|fast] [--target <provider>]
+Usage: run.sh --hint claude|codex|cursor --prompt-file PATH --output-file PATH --stderr-log PATH [--timeout SECS] [--tier frontier|standard|fast] [--target <provider>] [--mode single|multi]
 
 Detect current provider, invoke opposite provider's CLI, fall back on failure.
 EOF
@@ -17,7 +17,7 @@ EOF
 
 # --- Argument parsing ---
 
-hint="" prompt_file="" output_file="" stderr_log="" timeout_secs="540" tier="standard" target=""
+hint="" prompt_file="" output_file="" stderr_log="" timeout_secs="540" tier="standard" target="" mode="single"
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -28,6 +28,7 @@ while [ $# -gt 0 ]; do
         --timeout)      timeout_secs="$2"; shift 2 ;;
         --tier)         tier="$2"; shift 2 ;;
         --target)       target="$2"; shift 2 ;;
+        --mode)         mode="$2"; shift 2 ;;
         -h|--help)      usage; exit 0 ;;
         *)              error "Unknown argument: $1"; usage; exit 1 ;;
     esac
@@ -37,6 +38,13 @@ done
 [ -n "$output_file" ] || { error "Missing --output-file"; usage; exit 1; }
 [ -n "$stderr_log" ]  || { error "Missing --stderr-log"; usage; exit 1; }
 case "$tier" in frontier|standard|fast) ;; *) error "Invalid --tier '$tier' (expected: frontier|standard|fast)"; exit 1 ;; esac
+case "$mode" in single|multi) ;; *) error "Invalid --mode '$mode' (expected: single|multi)"; exit 1 ;; esac
+if [ "$mode" = "multi" ] && [ -n "$target" ]; then
+    error "--mode multi and --target are mutually exclusive"; exit 1
+fi
+if [ "$mode" = "multi" ]; then
+    case "$output_file" in *.md) ;; *) error "--mode multi requires --output-file ending in .md"; exit 1 ;; esac
+fi
 
 _script_dir=$(cd "$(dirname "$0")" && pwd)
 
@@ -51,6 +59,78 @@ elif printenv CODEX_SANDBOX >/dev/null 2>&1; then
     _self=codex
 fi
 _self="${_self:-${hint:-codex}}"
+
+# --- Multi-mode: parallel dispatch to all available providers ---
+
+if [ "$mode" = "multi" ]; then
+    # --- Provider discovery ---
+    if [ -n "${SPINE_ENVOY_PROVIDERS:-}" ]; then
+        _providers=$(printf '%s' "$SPINE_ENVOY_PROVIDERS" | tr ',' ' ')
+    else
+        _providers="claude codex cursor"
+    fi
+
+    # --- Normalize: validate, deduplicate, exclude self ---
+    _seen="" _launched=""
+    for _p in $_providers; do
+        # Unknown provider guard
+        if [ ! -f "$_script_dir/run-${_p}.sh" ]; then
+            printf 'Warning: unknown provider "%s", skipping\n' "$_p" >&2
+            continue
+        fi
+        # Deduplicate
+        case " $_seen " in *" $_p "*) continue ;; esac
+        _seen="$_seen $_p"
+        # Exclude self
+        [ "$_p" = "$_self" ] && continue
+        _launched="$_launched $_p"
+    done
+
+    # --- Zero-provider guard ---
+    if [ -z "$_launched" ]; then
+        error "No providers available (self=$_self, candidates:$_seen)"
+        exit 1
+    fi
+
+    _base="${output_file%.md}"
+
+    # --- Kill children on interrupt (NOT EXIT — fires during normal completion) ---
+    _child_pids=""
+    # shellcheck disable=SC2329  # invoked via trap
+    _kill_children() {
+        for _kill_pid in $_child_pids; do
+            kill "$_kill_pid" 2>/dev/null || true
+        done
+    }
+    trap '_kill_children' INT TERM
+
+    # --- Parallel dispatch ---
+    for _p in $_launched; do
+        sh "$_script_dir/run-${_p}.sh" \
+            --prompt-file "$prompt_file" \
+            --output-file "${_base}.${_p}.md" \
+            --stderr-log "${_base}.${_p}.log" \
+            --timeout "$timeout_secs" \
+            --tier "$tier" \
+            >/dev/null &
+        _child_pids="$_child_pids $!"
+    done
+
+    # --- Wait + collect exit codes (first-nonzero propagation) ---
+    _aggregate=0
+    for _pid in $_child_pids; do
+        _rc=0
+        wait "$_pid" || _rc=$?
+        [ "$_aggregate" -eq 0 ] && _aggregate="$_rc"
+    done
+
+    # --- Manifest: print paths for successfully created output files ---
+    for _p in $_launched; do
+        [ -f "${_base}.${_p}.md" ] && printf '%s\n' "${_base}.${_p}.md"
+    done
+
+    exit "$_aggregate"
+fi
 
 # --- Direct target (--target flag bypasses cascade) ---
 

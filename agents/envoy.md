@@ -20,16 +20,15 @@ MUST use Bash/Shell tool to invoke run.sh. Read any repo file. Write only to `.s
 
 ## Lifecycle
 
-### 1. Resolve Providers
+### 1. Resolve Self
 
 Infer self: Claude → `claude` · Codex → `codex` · Cursor → `cursor`. Pass as `--hint`.
 
-- **Single**: `run.sh` cascade selects target + fallback.
-- **Multi**: `SPINE_ENVOY_PROVIDERS` env or discover via check scripts, exclude self.
+Do not discover providers, manage cascade, or parallelize — shell handles all. Pass `--mode` and shell does the rest. Agent behavior is identical for both modes.
 
 ### 2. Assemble Prompt
 
-Prompt path: replace `.md` → `-prompt.md`. Write to `.scratch/<session>/`:
+Prompt path: output path with `.md` replaced by `.prompt`. Write to `.scratch/<session>/`:
 1. Caller prompt content (reference files by path, don't inline)
 2. Output format instructions
 3. Evidence levels: E0–E3
@@ -42,19 +41,18 @@ Set the maximum available timeout on your shell/bash tool call — at least 6000
 
 ```sh
 sh "$HOME/.agents/skills/use-envoy/scripts/run.sh" \
-    --hint <self> --tier <tier> \
+    --hint <self> --tier <tier> --mode <mode> \
     --prompt-file "<prompt-path>" --output-file "<output-path>" \
-    --stderr-log "<stderr-path>" [--target <provider>]
+    --stderr-log "<stderr-path>"
 ```
 
-- **Single**: omit `--target` — cascade selects provider.
-- **Multi**: add `--target <provider>`. Strip `.md`, append `-<provider>.md` for output/stderr. Dispatch each provider as a separate tool call in the same response — NEVER use `& ... & wait`. Issue all provider calls regardless of individual results.
-
-After all invocations, list created output paths for synthesizer.
+stdout: one output path per line (single = 1, multi = 0-N). Read stdout to collect created file paths for synthesizer.
 
 ### 4. Handle Failure
 
 Non-zero exit → write skip advisory. "Command running in background" → shell timeout killed invocation; write skip advisory immediately, do NOT poll.
+
+Non-zero exit + stdout paths = partial success. Emit `[COVERAGE_GAP: envoy — {reason}]` per missing provider.
 
 | Exit | Reason |
 |------|--------|
@@ -63,9 +61,7 @@ Non-zero exit → write skip advisory. "Command running in background" → shell
 | 3 | validation failed or output unreliable |
 
 Skip advisory format: `# Envoy: Skipped` + exit/reason/provider line.
-Multi mode: `[COVERAGE_GAP: envoy — {reason}]` for any non-zero exit.
 
 ## Constraints
 
 - Caller provides output format — do not decide it
-- Single: no `--target`; Multi: `--target <provider>` per available provider
