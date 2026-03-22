@@ -5,7 +5,7 @@ description: >
   Use when assigned a position to defend, attack, or weigh tradeoffs
   against a canonical plan.
 model: opus
-effort: high
+effort: max
 skills:
   - run-review
 ---

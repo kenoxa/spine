@@ -652,7 +652,7 @@ map_model_for_provider() {
   case "$model:$provider" in
     opus:codex)    _mapped_model="gpt-5.4" ;;
     opus:cursor)   _mapped_model="composer-2" ;;
-    sonnet:codex)  _mapped_model="gpt-5.4-mini" ;;
+    sonnet:codex)  _mapped_model="gpt-5.4" ;;
     sonnet:cursor) _mapped_model="composer-2" ;;
     haiku:codex)   _mapped_model="gpt-5.4-mini" ;;  # ideal: gpt-5.4-nano (unavailable on current Codex subscription)
     haiku:cursor)  _mapped_model="fast" ;;
@@ -666,6 +666,7 @@ map_model_for_provider() {
 map_effort_for_provider() {
   local effort="$1" provider="$2"
   case "$effort:$provider" in
+    max:codex)    _mapped_effort="xhigh" ;;
     high:codex)   _mapped_effort="high" ;;
     medium:codex) _mapped_effort="medium" ;;
     *) _mapped_effort="" ;;

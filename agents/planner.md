@@ -5,7 +5,7 @@ description: >
   Use when assigned a planning angle — produces a single-perspective
   plan for synthesis.
 model: opus
-effort: high
+effort: max
 skills:
   - do-plan
 ---

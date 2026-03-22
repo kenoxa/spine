@@ -15,8 +15,8 @@
 | Tier | Purpose | Claude | Codex | Cursor |
 |------|---------|--------|-------|--------|
 | Frontier | Complex reasoning, gate authority | opus | gpt-5.4 | composer-2 |
-| Standard | Advisory, research, pattern matching | sonnet | gpt-5.4-mini | composer-2 |
-| Fast | Reconnaissance, extraction | haiku | gpt-5.4-mini¹ | auto |
+| Standard | Advisory, research, pattern matching | sonnet | gpt-5.4 | composer-2 |
+| Fast | Reconnaissance, extraction | haiku | gpt-5.4-mini¹ | composer-2 |
 | Adaptive | Tracks your session model | — | — | — |
 
 ¹ Ideal mapping is gpt-5.4-nano — using mini until nano is available on the Codex subscription.
@@ -42,7 +42,7 @@ For day-to-day work, each provider has different strengths:
 | **Strength** | Code reasoning (SWE-Bench) | Agentic tool use (Terminal-Bench 75.1%) | IDE integration, cheapest agentic model |
 | **Budget** | 5h / 7-day rolling (generous) | 5h / 7-day rolling (generous) | ~$20-30 / month (tight) |
 | **Best for** | Planning, debugging, complex reasoning | Sandboxed execution, tool-heavy tasks | Focused implementation, inline edits |
-| **Default model** | sonnet | gpt-5.4-mini | auto |
+| **Default model** | sonnet | gpt-5.4 | composer-2 |
 
 **Recommended primary**: Claude Code — highest code quality benchmarks, generous rolling budget, full Spine skill and subagent support. Use Standard (sonnet) as daily driver.
 
@@ -57,16 +57,16 @@ Heavy multi-agent sessions can exhaust Claude Code Max 5x Opus hours in 2-3 days
 | Provider | Budget model | Default | Recommendation |
 |----------|-------------|---------|----------------|
 | Claude Code | 5h / 7-day rolling | sonnet | Generous budget — upgrade to opus freely for complex phases |
-| Codex | 5h / 7-day rolling | gpt-5.4-mini | Generous budget — upgrade to gpt-5.4 for complex phases |
-| Cursor | ~$20-30 / month | auto | Tight monthly cap — stay on auto, upgrade to composer-2 selectively |
+| Codex | 5h / 7-day rolling | gpt-5.4 | Generous budget — upgrade to gpt-5.4 freely for complex phases |
+| Cursor | ~$20-30 / month | composer-2 | Tight monthly cap — stay on composer-2, upgrade selectively |
 
 ### Cost per million tokens
 
 | Tier | Claude | Codex | Cursor |
 |------|--------|-------|--------|
 | Frontier | opus ($5/$25) | gpt-5.4 ($2.50/$15) | composer-2 ($0.50/$2.50) |
-| Standard | sonnet ($3/$15) | gpt-5.4-mini ($0.75/$4.50) | composer-2 ($0.50/$2.50) |
-| Fast | haiku ($1/$5) | gpt-5.4-mini¹ ($0.75/$4.50) | auto ($1.25/$6) |
+| Standard | sonnet ($3/$15) | gpt-5.4 ($2.50/$15) | composer-2 ($0.50/$2.50) |
+| Fast | haiku ($1/$5) | gpt-5.4-mini¹ ($0.75/$4.50) | composer-2 ($0.50/$2.50) |
 
 > Cursor models draw from the Auto+Composer pool with a monthly allowance. Per-token cost matters less than staying within your monthly budget. Composer 2 Fast ($1.50/$7.50) offers the same quality at higher speed but 3× the cost — use selectively when latency matters. For higher quality beyond the pool, override to API-pool models (e.g., gpt-5.4) at provider pricing.
 
@@ -93,6 +93,8 @@ Example: `SPINE_ENVOY_FRONTIER_CLAUDE=opus:high` overrides the frontier tier for
 | Claude Code | Session-level only (ignored per-agent) | — |
 | Codex | Per-role in TOML | minimal, low, medium, high, xhigh |
 | Cursor | None | — |
+
+Agent frontmatter `effort:` is not consumed by Claude Code directly. However, `run-claude.sh` reads the tier's effort value from `resolve_tier()` and sets `CLAUDE_CODE_EFFORT_LEVEL` at runtime for envoy dispatch. This means effort values in agent files ARE effective for Claude envoy calls — the runtime script bridges the gap.
 
 See [`env.example`](../env.example) for the full override template.
 
@@ -146,18 +148,18 @@ Env var changes take effect immediately (runtime). Model mapping changes require
 
 ## Implementation Notes
 
-Envoy CLI dispatch maps all Cursor tiers to `composer-2`. The `install.sh` frontmatter mapping uses `fast` for subagent dispatch (a different API surface — Cursor's native subagent model field vs the CLI `--model` flag).
-
 Two mapping points encode the tier tables:
 
 - **`install.sh`** `map_model_for_provider()` — maps tiers to provider models at install time, generating agent frontmatter for Codex TOML and Cursor `.md` files.
 - **`_common.sh`** `resolve_tier()` — maps tier + provider to model at runtime for envoy CLI dispatch.
+
+Both agree on all tier:provider mappings. The one intentional surface difference: Cursor Fast uses `fast` in install-time frontmatter (Cursor's native subagent model field) but `composer-2` in envoy CLI dispatch (the `--model` flag) — different API surfaces for the same tier.
 
 ### Agent Tier Assignments
 
 | Agent | Tier |
 |-------|------|
 | planner, debater, inspector, verifier | Frontier |
-| analyst, researcher, navigator, framer, visualizer | Standard |
+| analyst, researcher, navigator, framer, visualizer, envoy | Standard |
 | implementer, synthesizer | Adaptive |
-| scout, miner, envoy | Fast |
+| scout, miner | Fast |

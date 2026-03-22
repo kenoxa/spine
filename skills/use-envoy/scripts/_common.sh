@@ -1,6 +1,6 @@
 #!/bin/sh
 # _common.sh — shared functions for Envoy provider scripts.
-# Caller-provided vars: $prompt_file, $output_file, $stderr_log, $timeout_secs, $_rc, $_script_dir.
+# Caller-provided vars: $prompt_file, $output_file, $stderr_log, $_rc, $_script_dir.
 # Caller-provided function: error().
 # Reserved prefixes: _meta_* (assemble_output), _timer_* (timer helpers).
 # Ordering: call finalize_output() AFTER trust-boundary marker assembly (which reads $_sanitize_tmp).
@@ -25,9 +25,7 @@ _cleanup() {
 init_cleanup() { trap _cleanup EXIT INT TERM; }
 
 handle_exit_code() {
-    if [ "$_rc" -eq 124 ] || [ "$_rc" -eq 137 ]; then
-        error "$1 timed out after ${timeout_secs}s"; exit 2
-    fi
+    # Exit 124/137 (timeout) handled per-provider where applicable.
     if [ "$_rc" -ne 0 ]; then
         error "$1 invocation failed (exit $_rc)"; exit 1
     fi
@@ -58,14 +56,14 @@ finalize_output() {
 # Canonical mapping reference: docs/model-selection.md
 resolve_tier() {
     case "$1:$2" in
-        frontier:claude) _tier_model=opus;          _tier_effort=high ;;
-        frontier:codex)  _tier_model=gpt-5.4;       _tier_effort=high ;;
+        frontier:claude) _tier_model=opus;          _tier_effort=max ;;
+        frontier:codex)  _tier_model=gpt-5.4;       _tier_effort=xhigh ;;
         frontier:cursor) _tier_model=composer-2;     _tier_effort= ;;
         standard:claude) _tier_model=sonnet;         _tier_effort=high ;;
-        standard:codex)  _tier_model=gpt-5.4-mini;  _tier_effort=high ;;
+        standard:codex)  _tier_model=gpt-5.4;       _tier_effort=medium ;;
         standard:cursor) _tier_model=composer-2;     _tier_effort= ;;
-        fast:claude)     _tier_model=haiku;          _tier_effort=medium ;;
-        fast:codex)      _tier_model=gpt-5.4-mini;  _tier_effort=medium ;;  # ideal: gpt-5.4-nano (unavailable on current Codex subscription)
+        fast:claude)     _tier_model=haiku;          _tier_effort=high ;;
+        fast:codex)      _tier_model=gpt-5.4-mini;  _tier_effort=high ;;  # ideal: gpt-5.4-nano (unavailable on current Codex subscription)
         fast:cursor)     _tier_model=composer-2;     _tier_effort= ;;  # all Cursor tiers = composer-2; auto removed from cursor-agent CLI March 2026
         *)               _tier_model=;               _tier_effort= ;;
     esac
@@ -88,7 +86,6 @@ assemble_output() {
         _header_fields="$_header_fields | Resolved-Model: $_meta_resolved_model"
     [ -n "${_meta_effort:-}" ] && \
         _header_fields="$_header_fields | Effort: $_meta_effort"
-    _header_fields="$_header_fields | Timeout: ${timeout_secs}s"
     [ -n "${_meta_elapsed:-}" ] && \
         _header_fields="$_header_fields | Elapsed: ${_meta_elapsed}s"
     [ -n "${_meta_session_id:-}" ] && \

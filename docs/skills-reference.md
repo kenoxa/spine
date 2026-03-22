@@ -154,7 +154,7 @@ Canonical entry: [`skills/run-recap/SKILL.md`](../skills/run-recap/SKILL.md).
 | `miner` | Fast | haiku | medium | Session data analysis and cross-session pattern extraction |
 | `visualizer` | Standard | sonnet | high | HTML visualization via visual-explainer commands, preloads `visual-explainer` |
 | `implementer` | Adaptive | inherit | high | Read-write implementation for plan-driven code changes |
-| `envoy` | Fast | haiku | medium | Cross-provider CLI invocation for independent perspectives |
+| `envoy` | Standard | sonnet | high | Cross-provider CLI invocation for independent perspectives |
 | `synthesizer` | Adaptive | inherit | high | Aggregation proxy — tracks session model quality |
 
 See [model-selection.md](model-selection.md) for provider mappings and tier details.

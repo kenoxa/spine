@@ -333,7 +333,7 @@ npx skills add vercel-labs/agent-browser -s agent-browser -a '*' -g -y
 <details>
 <summary>Model selection</summary>
 
-**Standard tier is the recommended default** (sonnet / gpt-5.4-mini / composer-2). Subagents use specialized models by tier automatically — frontier for gate authority, fast for recon — regardless of your session choice.
+**Standard tier is the recommended default** (sonnet / gpt-5.4 / composer-2). Subagents use specialized models by tier automatically — frontier for gate authority, fast for recon — regardless of your session choice.
 
 Upgrade to Frontier for ambiguous requirements, cascading architectural decisions, or elusive root causes. Claude Code and Codex have generous rolling budgets (5h/7d); Cursor has a tighter monthly cap — stay on composer-2, upgrade selectively.
 

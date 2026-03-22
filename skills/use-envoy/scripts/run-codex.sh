@@ -1,6 +1,6 @@
 #!/bin/sh
 # Invoke Codex CLI headlessly for cross-provider envoy.
-# Exit: 0=success, 1=invocation failed, 2=timeout, 3=output validation failed
+# Exit: 0=success, 1=invocation failed, 2=interrupted (provider-specific), 3=output validation failed
 
 set -eu
 umask 077
@@ -9,7 +9,7 @@ error() { printf 'Error: %s\n' "$*" >&2; }
 
 usage() {
     cat <<'EOF'
-Usage: run-codex.sh --prompt-file PATH --output-file PATH --stderr-log PATH [--timeout SECS] [--tier frontier|standard|fast]
+Usage: run-codex.sh --prompt-file PATH --output-file PATH --stderr-log PATH [--tier frontier|standard|fast]
 
 Invoke Codex CLI headlessly with sanitized environment.
 EOF
@@ -17,14 +17,13 @@ EOF
 
 # --- Argument parsing ---
 
-prompt_file="" output_file="" stderr_log="" timeout_secs="" tier="standard"
+prompt_file="" output_file="" stderr_log="" tier="standard"
 
 while [ $# -gt 0 ]; do
     case "$1" in
         --prompt-file)  prompt_file="$2"; shift 2 ;;
         --output-file)  output_file="$2"; shift 2 ;;
         --stderr-log)   stderr_log="$2"; shift 2 ;;
-        --timeout)      timeout_secs="$2"; shift 2 ;;
         --tier)         tier="$2"; shift 2 ;;
         -h|--help)      usage; exit 0 ;;
         *)              error "Unknown argument: $1"; usage; exit 1 ;;
@@ -54,7 +53,7 @@ esac
 model="${_envoy_val%%:*}"
 effort="${_envoy_val#*:}"
 [ "$effort" = "$model" ] && effort=high
-timeout_secs="${timeout_secs:-540}"
+_codex_timeout=3600  # liveness safety net
 
 # --- Pre-flight + cleanup ---
 
@@ -64,8 +63,9 @@ start_timer
 
 # --- Invoke (coreutils timeout handles process group kill + SIGKILL escalation) ---
 
+printf 'envoy: invoking codex (model=%s, effort=%s)...\n' "$model" "$effort" >&2
 _rc=0
-timeout --kill-after=10 "$timeout_secs" env \
+timeout --kill-after=10 "$_codex_timeout" env \
     -u CLAUDECODE -u CURSOR_AGENT -u CODEX_SANDBOX \
     PATH="$HOME/.local/bin:$PATH" \
     CODEX_HOME="${CODEX_HOME:-$HOME/.codex}" \
@@ -78,7 +78,11 @@ timeout --kill-after=10 "$timeout_secs" env \
         > "$output_file" 2>"$stderr_log" \
     || _rc=$?
 
+printf 'envoy: codex completed (exit=%s), validating...\n' "$_rc" >&2
 _cleanup
+if [ "$_rc" -eq 124 ] || [ "$_rc" -eq 137 ]; then
+    error "Codex CLI timed out after ${_codex_timeout}s"; exit 2
+fi
 handle_exit_code "Codex CLI"
 stop_timer
 

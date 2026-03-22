@@ -9,7 +9,7 @@ error() { printf 'Error: %s\n' "$*" >&2; }
 
 usage() {
     cat <<'EOF'
-Usage: run.sh --hint claude|codex|cursor --prompt-file PATH --output-file PATH --stderr-log PATH [--timeout SECS] [--tier frontier|standard|fast] [--target <provider>] [--mode single|multi]
+Usage: run.sh --hint claude|codex|cursor --prompt-file PATH --output-file PATH --stderr-log PATH [--tier frontier|standard|fast] [--target <provider>] [--mode single|multi]
 
 Detect current provider, invoke opposite provider's CLI, fall back on failure.
 EOF
@@ -17,7 +17,7 @@ EOF
 
 # --- Argument parsing ---
 
-hint="" prompt_file="" output_file="" stderr_log="" timeout_secs="540" tier="standard" target="" mode="single"
+hint="" prompt_file="" output_file="" stderr_log="" tier="standard" target="" mode="single"
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -25,7 +25,6 @@ while [ $# -gt 0 ]; do
         --prompt-file)  prompt_file="$2"; shift 2 ;;
         --output-file)  output_file="$2"; shift 2 ;;
         --stderr-log)   stderr_log="$2"; shift 2 ;;
-        --timeout)      timeout_secs="$2"; shift 2 ;;
         --tier)         tier="$2"; shift 2 ;;
         --target)       target="$2"; shift 2 ;;
         --mode)         mode="$2"; shift 2 ;;
@@ -47,6 +46,28 @@ if [ "$mode" = "multi" ]; then
 fi
 
 _script_dir=$(cd "$(dirname "$0")" && pwd)
+
+# --- Strip assembly directive header from prompt file (defense-in-depth) ---
+# Ref: use-envoy/SKILL.md "Dispatch Prompt Framing" template defines this header.
+# The envoy agent should omit it (agents/envoy.md step 2), but strip if leaked.
+if [ -f "$prompt_file" ]; then
+    _first_line=$(head -n 1 "$prompt_file")
+    case "$_first_line" in
+        "Assemble a self-contained prompt"*)
+            _sep_line=$(grep -n '^---[[:space:]]*$' "$prompt_file" | head -n 1 | cut -d: -f1)
+            if [ -n "$_sep_line" ]; then
+                tail -n +"$((_sep_line + 1))" "$prompt_file" > "${prompt_file}.tmp"
+            else
+                # No separator — strip just the directive line
+                tail -n +2 "$prompt_file" > "${prompt_file}.tmp"
+                printf 'Warning: assembly directive found without --- separator, stripped line 1 only\n' >&2
+            fi
+            mv "${prompt_file}.tmp" "$prompt_file"
+            printf 'Notice: stripped assembly directive header from prompt file\n' >&2
+            [ -s "$prompt_file" ] || { error "Prompt file empty after assembly-directive strip"; exit 1; }
+            ;;
+    esac
+fi
 
 # --- Detect self (env vars → hint → default) ---
 
@@ -110,7 +131,6 @@ if [ "$mode" = "multi" ]; then
             --prompt-file "$prompt_file" \
             --output-file "${_base}.${_p}.md" \
             --stderr-log "${_base}.${_p}.log" \
-            --timeout "$timeout_secs" \
             --tier "$tier" \
             >/dev/null &
         _child_pids="$_child_pids $!"
@@ -141,7 +161,7 @@ if [ -n "$target" ]; then
     fi
     sh "$_script_dir/run-${target}.sh" \
         --prompt-file "$prompt_file" --output-file "$output_file" \
-        --stderr-log "$stderr_log" --timeout "$timeout_secs" --tier "$tier"
+        --stderr-log "$stderr_log" --tier "$tier"
     exit $?
 fi
 
@@ -161,7 +181,6 @@ if sh "$_script_dir/check-${_target}.sh" >/dev/null 2>&1; then
         --prompt-file "$prompt_file" \
         --output-file "$output_file" \
         --stderr-log "$stderr_log" \
-        --timeout "$timeout_secs" \
         --tier "$tier" \
         || _rc=$?
 else
@@ -189,7 +208,6 @@ if [ "$_fallback" = "cursor" ]; then
         --prompt-file "$prompt_file" \
         --output-file "$output_file" \
         --stderr-log "$stderr_log" \
-        --timeout "$timeout_secs" \
         --tier "$tier" \
         --fallback-for "$_target"
 else
@@ -198,7 +216,6 @@ else
         --prompt-file "$prompt_file" \
         --output-file "$output_file" \
         --stderr-log "$stderr_log" \
-        --timeout "$timeout_secs" \
         --tier "$tier"
 fi
 # Dead-code guard (exec replaces process)

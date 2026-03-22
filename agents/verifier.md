@@ -4,7 +4,7 @@ description: >
   Adversarial verification for do-execute verify phase.
   Use to probe implementations for failures the implementer did not test. All claims require E3 evidence.
 model: opus
-effort: high
+effort: max
 skills:
   - with-testing
   - use-shell

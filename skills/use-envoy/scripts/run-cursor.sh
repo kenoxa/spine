@@ -1,6 +1,6 @@
 #!/bin/sh
 # Invoke cursor-agent CLI headlessly for cross-provider envoy.
-# Exit: 0=success, 1=invocation failed, 2=timeout, 3=output validation failed
+# Exit: 0=success, 1=invocation failed, 2=interrupted (provider-specific), 3=output validation failed
 
 set -eu
 umask 077
@@ -9,7 +9,7 @@ error() { printf 'Error: %s\n' "$*" >&2; }
 
 usage() {
     cat <<'EOF'
-Usage: run-cursor.sh --prompt-file PATH --output-file PATH --stderr-log PATH [--timeout SECS] [--tier frontier|standard|fast] [--fallback-for claude|codex]
+Usage: run-cursor.sh --prompt-file PATH --output-file PATH --stderr-log PATH [--tier frontier|standard|fast] [--fallback-for claude|codex]
 
 Invoke cursor-agent CLI headlessly with sanitized environment.
 EOF
@@ -17,14 +17,13 @@ EOF
 
 # --- Argument parsing ---
 
-prompt_file="" output_file="" stderr_log="" timeout_secs="" tier="standard" fallback_for=""
+prompt_file="" output_file="" stderr_log="" tier="standard" fallback_for=""
 
 while [ $# -gt 0 ]; do
     case "$1" in
         --prompt-file)    prompt_file="$2"; shift 2 ;;
         --output-file)    output_file="$2"; shift 2 ;;
         --stderr-log)     stderr_log="$2"; shift 2 ;;
-        --timeout)        timeout_secs="$2"; shift 2 ;;
         --tier)           tier="$2"; shift 2 ;;
         --fallback-for)   fallback_for="$2"; shift 2 ;;
         -h|--help)        usage; exit 0 ;;
@@ -60,7 +59,7 @@ case "$tier" in
     fast)     model="${SPINE_ENVOY_FAST_CURSOR:-${SPINE_ENVOY_CURSOR:-$_tier_model}}" ;;
     *)        model="${SPINE_ENVOY_STANDARD_CURSOR:-${SPINE_ENVOY_CURSOR:-$_base}}" ;;
 esac
-timeout_secs="${timeout_secs:-540}"
+_cursor_timeout=1800  # cursor-agent hang bug (GH #3588)
 
 # --- Binary resolution ---
 
@@ -93,8 +92,9 @@ start_timer
 # --- Invoke (coreutils timeout handles process group kill + SIGKILL escalation) ---
 # --force: consistency with --dangerously-skip-permissions (Claude) and codex exec defaults
 
+printf 'envoy: invoking cursor (model=%s)...\n' "$model" >&2
 _rc=0
-timeout --kill-after=10 "$timeout_secs" env \
+timeout --kill-after=10 "$_cursor_timeout" env \
     -u CLAUDECODE -u CURSOR_AGENT -u CODEX_SANDBOX \
     PATH="$HOME/.local/bin:$PATH" \
     "$_binary" -p \
@@ -110,7 +110,11 @@ timeout --kill-after=10 "$timeout_secs" env \
 # Provider-level fallback handled by run.sh cascade. Direct-target (--target cursor) has no retry by design.
 # Re-check if cursor-agent CLI re-adds auto model support.
 
+printf 'envoy: cursor completed (exit=%s), validating...\n' "$_rc" >&2
 _cleanup
+if [ "$_rc" -eq 124 ] || [ "$_rc" -eq 137 ]; then
+    error "cursor-agent CLI timed out after ${_cursor_timeout}s"; exit 2
+fi
 handle_exit_code "cursor-agent CLI"
 stop_timer
 
