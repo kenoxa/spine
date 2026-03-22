@@ -33,7 +33,7 @@ done your job.
 
 Select 2+ applicable probes based on change surface:
 
-- **`boundary`** — edge values (0, -1, empty string, very long input, unicode, MAX_INT) at system boundaries
+- **`boundary`** — edge values (0, -1, empty string, very long input, unicode, MAX_INT) at system boundaries; consult the test boundary map for which collaborators are real vs. mocked
 - **`concurrency`** — parallel requests to mutation paths, shared state under simultaneous access
 - **`idempotency`** — same mutation twice; verify no duplicate side effects or data corruption
 - **`resource-lifecycle`** — orphan handles, leaked connections, unclosed streams after error paths

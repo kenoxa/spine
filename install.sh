@@ -33,6 +33,7 @@ GLOBAL_SKILLS=(
   "trailofbits/skills -s differential-review"
   "trailofbits/skills -s fp-check"
   "mattpocock/skills -s ubiquitous-language"
+  "mattpocock/skills -s tdd"
   "vercel-labs/agent-browser -s agent-browser"
 )
 

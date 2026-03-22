@@ -3,7 +3,7 @@
 AGENTS.md: 359
 agents/analyst.md: 178
 agents/debater.md: 278
-agents/envoy.md: 638
+agents/envoy.md: 643
 agents/framer.md: 407
 agents/implementer.md: 323
 agents/inspector.md: 483
@@ -13,7 +13,7 @@ agents/planner.md: 391
 agents/researcher.md: 343
 agents/scout.md: 365
 agents/synthesizer.md: 289
-agents/verifier.md: 581
+agents/verifier.md: 595
 agents/visualizer.md: 227
 claude/agents/run-skill-eval/designer.md: 677
 claude/agents/run-skill-eval/grader.md: 1099
@@ -131,5 +131,5 @@ skills/use-writing/SKILL.md: 457
 skills/with-backend/SKILL.md: 132
 skills/with-frontend/SKILL.md: 276
 skills/with-terminology/SKILL.md: 314
-skills/with-testing/SKILL.md: 481
+skills/with-testing/SKILL.md: 418
 SPINE.md: 1789

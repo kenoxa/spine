@@ -58,6 +58,7 @@ npx skills add mcollina/skills -s typescript-magician -a '*' -g -y
 npx skills add trailofbits/skills -s differential-review -a '*' -g -y
 npx skills add trailofbits/skills -s fp-check -a '*' -g -y
 npx skills add mattpocock/skills -s ubiquitous-language -a '*' -g -y
+npx skills add mattpocock/skills -s tdd -a '*' -g -y
 npx skills add vercel-labs/agent-browser -s agent-browser -a '*' -g -y
 ```
 
@@ -102,7 +103,7 @@ For Codex, the installer generates TOML role configs (including `model` and `eff
 
 The Agent tool prompt must frame `@envoy` as a CLI assembler, not a task performer. Open with: `"Assemble a self-contained prompt for external CLI review of..."` Never open with task language (`"Analyze..."`, `"Review..."`, `"Plan..."`) — this causes envoy to self-answer instead of dispatching to the external CLI.
 
-Task-specific content (planning briefs, review contexts, code references) is payload — pass it as prompt content for envoy to assemble into the CLI prompt file, not as a directive for envoy to act on. See `skills/use-envoy/SKILL.md` for the full dispatch template.
+Task-specific content (planning briefs, review contexts, code references) is payload — pass it as prompt content for envoy to assemble into the CLI prompt file, not as a directive for envoy to act on. The assembly directive is a meta-instruction for `@envoy` — it must NOT appear in the `.prompt` file sent to external providers. `run.sh` strips it as a safeguard. See `skills/use-envoy/SKILL.md` for the full dispatch template.
 
 ### Renaming an Agent
 

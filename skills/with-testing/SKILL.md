@@ -1,52 +1,46 @@
 ---
 name: with-testing
 description: >
-  Risk-based testing standards with structured test design.
-  Use when adding tests, evaluating coverage, or validating edge cases.
+  Test boundary decisions and risk-based testing strategy.
+  Use when deciding what to mock, planning test strategy, evaluating coverage,
+  or before writing tests for a new feature.
   Do NOT use for test execution during do-execute — that skill has its own test gates.
-argument-hint: "[feature or area to test]"
+argument-hint: "[feature, module, or function under test]"
 ---
 
-Risk-based test strategy with perspective tables, structured case design, coverage evidence.
+Map test boundaries before writing tests — classify each collaborator as real or stubbed, then let risk set depth.
 
-## Workflow
+## Test Boundary Map
 
-1. **Classify risk** — low / medium / high based on blast radius and failure cost.
-2. **Build perspective table** — define case IDs and expected behavior before writing tests
-   (required medium/high; recommended low).
-3. **Choose test mix** — unit for logic branches, integration for boundary contracts,
-   E2E when user-flow risk high.
-4. **Design cases** — equivalence classes, boundary values, failure-mode checks.
-5. **Implement and run** — execute relevant suites, collect coverage evidence.
-6. **Report** — protected behavior, known gaps, commands run, coverage data.
+Before writing tests, classify each collaborator of the unit under test:
 
-## Test Perspective Table
+| Collaborator | Category | Decision |
+|---|---|---|
+| HTTP / external API | External | Mock — network is variable, not intention |
+| Filesystem | External | Mock — side-effect producer |
+| Date / RNG | Nondeterministic | Mock — breaks reproducibility |
+| DOM side effects | External | Mock — environment dependency |
+| Database | External | Context-dependent — prefer test DB when available |
+| Internal module | Owned | Keep real — mocking what you own verifies nothing |
 
-| Case ID | Input / Precondition | Perspective | Expected Result |
-|---------|---------------------|-------------|-----------------|
-| TC-N-01 | Valid input | Equivalence — normal | Success |
-| TC-A-01 | Null input | Boundary — null | Validation error |
-| TC-B-01 | Max + 1 | Boundary — overflow | Validation error |
+The heuristic: if a collaborator can fail the test for reasons unrelated to the code's intention, mock it.
 
-Case ID format: `TC-{N|A|B}-{number}` (N=normal, A=abnormal, B=boundary).
-Minimum boundaries: `0`, min, max, `±1`, empty, null.
+For mock implementation rules and TDD workflow, use the `tdd` skill.
 
-## Risk Heuristics
+## Depth & Coverage
 
 | Risk | Test expectations |
-|------|------------------|
-| Low | Unit coverage around changed logic + one failure/boundary case |
-| Medium | Unit + integration for interaction boundaries; perspective table required |
-| High | + security/failure-path scenarios, stronger coverage evidence |
+|---|---|
+| Low | Unit coverage on changed logic; one failure case |
+| Medium | + integration tests at mock seams; perspective table recommended |
+| High | + security/failure-path scenarios; perspective table required |
 
-## Coverage Expectations
-
-- Minimum: 90% branch coverage for changed behavior.
-- Target: 100% for security code, complex business logic, public APIs.
-- Always report execution command and coverage method.
+Minimum: **90%** branch coverage. Target: **100%** for security, complex business logic, public APIs.
+Edge values: 0, min, max, +-1, empty, null.
 
 ## Anti-Patterns
 
+- Mocking what you own — stubbing internal collaborators produces tests that verify wiring, not behavior
 - Vacuous assertions (`>= 0`, `length >= 0`)
 - Claiming coverage without execution evidence
 - Skipping perspective table for medium/high risk changes

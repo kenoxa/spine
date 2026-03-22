@@ -150,7 +150,7 @@ Canonical entry: [`skills/run-recap/SKILL.md`](../skills/run-recap/SKILL.md).
 | `inspector` | Frontier | opus | high | Verdict-focused code review, preloads `run-review` |
 | `analyst` | Standard | sonnet | high | Advisory pattern analysis, preloads `run-review` and `run-polish` |
 | `framer` | Standard | sonnet | high | Perspective-committed problem framing |
-| `verifier` | Frontier | opus | high | Adversarial verification with E3 evidence, preloads `with-testing` |
+| `verifier` | Frontier | opus | high | Adversarial verification with E3 evidence, preloads `with-testing` (test boundary decisions + mock strategy) |
 | `miner` | Fast | haiku | medium | Session data analysis and cross-session pattern extraction |
 | `visualizer` | Standard | sonnet | high | HTML visualization via visual-explainer commands, preloads `visual-explainer` |
 | `implementer` | Adaptive | inherit | high | Read-write implementation for plan-driven code changes |
