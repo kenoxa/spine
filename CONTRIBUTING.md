@@ -105,6 +105,8 @@ The Agent tool prompt must frame `@envoy` as a CLI assembler, not a task perform
 
 Task-specific content (planning briefs, review contexts, code references) is payload — pass it as prompt content for envoy to assemble into the CLI prompt file, not as a directive for envoy to act on. The assembly directive is a meta-instruction for `@envoy` — it must NOT appear in the `.prompt` file sent to external providers. `run.sh` strips it as a safeguard. See `skills/use-envoy/SKILL.md` for the full dispatch template.
 
+**Output path routing.** `{output_path}` in envoy refs is routing metadata: dispatch prompt → `agents/envoy.md` → `run.sh --output-file`. It must NOT appear in the `.prompt` body sent to external providers — agentic providers (Codex, Cursor) will attempt file writes to the embedded path, causing race conditions in multi-mode. Envoy refs describe output *format* in `## Output`, not file destination. `run.sh` strips leaked `Write to` / `Output path:` lines as defense-in-depth.
+
 ### Renaming an Agent
 
 1. `git mv agents/old.md agents/new.md` and update `name:` in frontmatter

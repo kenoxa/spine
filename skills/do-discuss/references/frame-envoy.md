@@ -29,10 +29,6 @@ Assemble prompt content in this order:
 5. Signals — inline
 6. Instruction: "Review this problem framing for completeness. Flag gaps in the brief that would block planning. Tag claims with evidence levels."
 
-## Output
-
-Write to `{output_path}`.
-
 ## Constraints
 
 - Use `mode` and `tier` from `## Dispatch Parameters` as `--mode` and `--tier` flags on `run.sh` invocation

@@ -28,10 +28,6 @@ Assemble prompt in order:
 
 Output format in prompt: findings (`[B]`/`[S]`/`[F]`-prefixed), correctness assessment (correct/issues, confidence), evidence summary table.
 
-## Output
-
-Write to `{output_path}`.
-
 ## Constraints
 
 - Self-contained prompt — no local path references.

@@ -61,7 +61,7 @@ For multi-phase workflow skills: see `references/workflow-patterns.md` — patte
 **Dispatch visibility.** Every dispatched agent appears in both the phase table AND inline dispatch list. Bold standalone paragraphs read as annotations — inline as list items.
 **Cross-skill refs.** Skills cross-reference sibling refs via `../` paths. When renaming/moving reference files, check downstream consumers.
 **Retired names.** When renaming agents/skills/MCP servers, add old name to the retired array in `install.sh`.
-**Declare, don't branch.** Reference files describe what they consume and produce. No caller-identity conditionals; parameterize I/O paths.
+**Declare, don't branch.** Reference files describe what they consume and produce. No caller-identity conditionals; parameterize I/O paths. **Exception**: envoy refs must NOT include `Write to {output_path}` — their `## Output` describes format only, because the content is forwarded to external providers via `run.sh`, not consumed by the envoy agent itself.
 **Reference naming.** `{phase}-{role}.md`, `orchestrate-{mode}.md`, `template-{artifact}.md`, `{concept}.md`.
 **Phases are mandatory, fanout is adaptive.** Every phase executes unless the skill explicitly gates it (e.g., depth classification). Zero-dispatch (phase executes, dispatches no subagents) is valid — not skip or fast-exit. Phase execution must be auditable: see `references/phase-audit.md` for logging, completion gates, and dispatch taxonomy.
 

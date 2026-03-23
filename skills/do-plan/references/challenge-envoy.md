@@ -28,7 +28,7 @@ Assemble prompt content in this order:
 
 ## Output
 
-Write to `{output_path}`. Include this 4-section structure as the output format:
+Include this 4-section structure as the output format:
 1. **Opening Position** — overall assessment and stance on plan viability
 2. **Challenges** — specific weaknesses, assumption gaps, missed edge cases (each with evidence tag)
 3. **Irreducible Objections** — findings that survive steelmanning; must include alternative

@@ -35,11 +35,11 @@ From the output path (`<base>.md`), derive:
 
 Write ONLY to `<base>.prompt`:
 
-1. Task content from your dispatch — exclude the dispatch routing header.
+1. Task content from your dispatch — exclude the dispatch routing header and any file-write path instructions (e.g., `Write to ...`, `Output path: ...`).
 2. Output format (as specified in your dispatch)
 3. Evidence levels: E0–E3
 4. `Do not ask clarifying questions. Tag all claims with evidence levels.`
-5. Final line: `Write your complete response now.`
+5. Final line: `Respond with your complete response as plain text. Do not write files.`
 
 ### 3. Invoke — this is the core action
 

@@ -27,7 +27,7 @@ Assemble prompt content in this order:
 
 ## Output
 
-Write to `{output_path}`. Include this 5-section structure as the output format:
+Include this 5-section structure as the output format:
 1. **Angle Summary** — planning perspective and approach rationale
 2. **Key Decisions** — position on each `key_decision` with evidence tags
 3. **Implementation Steps** — ordered, repo-relative paths, atomic tasks

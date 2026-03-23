@@ -27,10 +27,6 @@ Assemble prompt content in this order:
 4. Signals summary — inline
 5. Instruction: "Provide an independent perspective on this problem framing. Surface assumptions, missed angles, and alternative framings. Tag claims with evidence levels."
 
-## Output
-
-Write to `{output_path}`.
-
 ## Constraints
 
 - Use `mode` and `tier` from `## Dispatch Parameters` as `--mode` and `--tier` flags on `run.sh` invocation
