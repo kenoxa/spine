@@ -245,6 +245,7 @@ The installer manages one list of CLI tools. On macOS, it uses Homebrew to insta
 |------|---------|
 | `git` | Version control |
 | `jq` | JSON processing |
+| `yq` | YAML processing |
 | `node` | JavaScript runtime for `skills` tooling and public `npx skills` commands |
 | `python3` | Python 3.9+ runtime in Spine's managed Python toolchain; needed on `PATH` for session-history and reporting skills such as `run-insights` and `run-recap` |
 | `uv` | Python package and project manager in Spine's managed Python toolchain; not a direct runtime requirement of `run-insights` or `run-recap` today |

@@ -19,6 +19,7 @@ Prefer native tools (Grep, Glob, Read, Edit) over shell equivalents. Shell is th
 | `grep` | `rg` |
 | `find` | `fd` |
 | grepping JSON | `jq` |
+| grepping YAML | `yq` |
 | `perl`/`sed` | `sd` |
 | regex for code | `ast-grep` (`sg`) |
 

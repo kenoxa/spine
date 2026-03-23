@@ -134,6 +134,7 @@ ensure_system_deps() {
     sd
     shellcheck
     shfmt
+    yq
     tokenizer
     agent-browser
   )
@@ -175,7 +176,7 @@ ensure_system_deps() {
       echo "    brew install ${brew_missing[*]}" >&2
     else
       echo "  Install via your package manager, e.g.:" >&2
-      echo "    sudo apt install ${missing[*]}  # Debian/Ubuntu (fd→fd-find, node→nodejs, coreutils is preinstalled)" >&2
+      echo "    sudo apt install ${missing[*]}  # Debian/Ubuntu (fd→fd-find, node→nodejs, yq→snap or github.com/mikefarah/yq, coreutils is preinstalled)" >&2
       echo "    sudo dnf install ${missing[*]}  # Fedora/RHEL" >&2
     fi
     echo "" >&2
