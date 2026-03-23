@@ -65,7 +65,7 @@ resolve_tier() {
         standard:cursor) _tier_model=composer-2;     _tier_effort= ;;
         fast:claude)     _tier_model=haiku;          _tier_effort=high ;;
         fast:codex)      _tier_model=gpt-5.4-mini;  _tier_effort=high ;;  # ideal: gpt-5.4-nano (unavailable on current Codex subscription)
-        fast:cursor)     _tier_model=composer-2;     _tier_effort= ;;  # all Cursor tiers = composer-2; auto removed from cursor-agent CLI March 2026
+        fast:cursor)     _tier_model=composer-2;     _tier_effort= ;;  # all Cursor tiers = composer-2; auto used as rate-limit fallback in invoke-cursor.sh
         frontier:qwen)   _tier_model=qwen3.5-plus;   _tier_effort= ;;
         standard:qwen)   _tier_model=qwen3-coder-plus; _tier_effort= ;;
         fast:qwen)       _tier_model=coder-model;     _tier_effort= ;;  # OAuth free tier resolves all to coder-model; Dashscope API keys can override via env
