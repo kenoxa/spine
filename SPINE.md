@@ -49,7 +49,7 @@ Context7 → Exa → built-in web tools. If Context7 returns no results, fall ba
 
 When shell is unavoidable:
 - Use `trash`, never `rm`, for file deletion.
-- Use `rg` (not `grep`), `fd` (not `find`), `jq` (not grepping JSON), `sd` (not `perl`/`sed`) for text replacement, `ast-grep`/`sg` (not regex) for structural search and rewrite.
+- Use `rg` (not `grep`), `fd` (not `find`), `jq` (not grepping JSON), `yq` (not grepping YAML), `sd` (not `perl`/`sed`) for text replacement, `ast-grep`/`sg` (not regex) for structural search and rewrite.
 - Always quote glob and regex arguments to prevent shell expansion (`rg 'pattern'`, not `rg pattern`; `fd '*.ts'`, not `fd *.ts`).
 - Lint shell scripts with `shellcheck`; format with `shfmt`
 - Include a short description (4–7 words) on every shell command.
