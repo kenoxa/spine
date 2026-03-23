@@ -108,6 +108,10 @@ skills/run-recap/references/template-recap.md: 179
 skills/run-recap/references/template-standup.md: 192
 skills/run-recap/references/template-timesheet.md: 390
 skills/run-recap/SKILL.md: 803
+skills/run-research/references/gather-researcher.md: 407
+skills/run-research/references/gather-scout.md: 318
+skills/run-research/references/template-prompt.md: 843
+skills/run-research/SKILL.md: 664
 skills/run-review/references/inspect-correctness-reviewer.md: 348
 skills/run-review/references/inspect-envoy.md: 286
 skills/run-review/references/inspect-risk-reviewer.md: 489
