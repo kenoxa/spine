@@ -13,6 +13,7 @@ Dispatch prompt provides:
 - `{canonical_plan_path}` -- path to canonical plan file
 - Unresolved blocking findings (E2+ only)
 - `evidence_manifest` — artifact paths with provenance and conflict status
+- `mode` — dispatch mode (single|multi)
 - `tier` — model selection tier (frontier|standard|fast)
 
 ## Instructions
@@ -35,4 +36,5 @@ Write to `{output_path}`. Include this 4-section structure as the output format:
 
 - Reference files by repo-relative path; do not inline file contents (external CLI has filesystem access)
 - Prompt must be self-contained — no local agent format assumptions or session-internal references
+- Always forward received `mode` as `--mode` flag on run.sh invocation
 - Always forward received `tier` as `--tier` flag on run.sh invocation

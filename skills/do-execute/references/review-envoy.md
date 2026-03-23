@@ -13,6 +13,7 @@ Dispatch prompt provides:
 - `files_modified` — repo-relative list of all changed files
 - Diff of all changes in scope
 - Severity bucket definitions: `[B]` blocking (E2+ required), `[S]` should-fix (advisory), `[F]` follow-up (low priority)
+- `mode` — dispatch mode (single|multi)
 - `tier` — model selection tier (frontier|standard|fast)
 
 ## Instructions
@@ -36,5 +37,6 @@ Include this output format in the assembled prompt:
 
 - Reference files by repo-relative path; do not inline file contents (external CLI has filesystem access)
 - Prompt must be self-contained — no local agent format assumptions or session-internal path references
+- Always forward received `mode` as `--mode` flag on run.sh invocation
 - Always forward received `tier` as `--tier` flag on run.sh invocation
 - Output path: `{output_path}`

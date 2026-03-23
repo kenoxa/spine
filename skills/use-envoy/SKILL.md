@@ -21,7 +21,7 @@ Provide to `@envoy`:
 | Output format | Expected structure (caller-defined) |
 | Output path | `.scratch/<session>/{skill}-{phase}-envoy.md` |
 | Tier | frontier\|standard\|fast — determines envoy model selection. Default: standard. |
-| Mode | single (default) or multi — single uses first available provider; multi iterates all available |
+| Mode | single or multi — single uses first available provider; multi iterates all available |
 
 Callers must NOT gate findings by source, inline severity overrides, cap priority rules, or pre-dispatch size checks — owned by `use-envoy`.
 
@@ -67,7 +67,7 @@ Assemble a self-contained prompt for external CLI review of:
 - Output format: {section structure from the envoy ref}
 - Output path: {.scratch/<session>/ path}
 - Tier: {frontier|standard|fast}
-- Mode: {single|multi} (default: single)
+- Mode: {single|multi}
 ```
 
 BROKEN: `"Provide an independent perspective on {topic}"` — task-shaped; envoy self-answers instead of dispatching.

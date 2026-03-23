@@ -3,7 +3,7 @@
 AGENTS.md: 359
 agents/analyst.md: 178
 agents/debater.md: 278
-agents/envoy.md: 616
+agents/envoy.md: 699
 agents/framer.md: 407
 agents/implementer.md: 323
 agents/inspector.md: 483
@@ -49,7 +49,7 @@ skills/do-execute/references/finalize.md: 781
 skills/do-execute/references/implement.md: 399
 skills/do-execute/references/polish-apply.md: 409
 skills/do-execute/references/review-correctness-reviewer.md: 616
-skills/do-execute/references/review-envoy.md: 467
+skills/do-execute/references/review-envoy.md: 497
 skills/do-execute/references/review-fix.md: 350
 skills/do-execute/references/review-risk-reviewer.md: 637
 skills/do-execute/references/review-spec-reviewer.md: 587
@@ -58,13 +58,13 @@ skills/do-execute/references/validate.md: 506
 skills/do-execute/references/verify.md: 690
 skills/do-execute/SKILL.md: 1409
 skills/do-plan/references/challenge-counterpoint-dissenter.md: 345
-skills/do-plan/references/challenge-envoy.md: 374
+skills/do-plan/references/challenge-envoy.md: 404
 skills/do-plan/references/challenge-synthesis.md: 469
 skills/do-plan/references/challenge-thesis-champion.md: 353
 skills/do-plan/references/challenge-tradeoff-analyst.md: 380
 skills/do-plan/references/deep-modules.md: 445
 skills/do-plan/references/planning-creative.md: 379
-skills/do-plan/references/planning-envoy.md: 387
+skills/do-plan/references/planning-envoy.md: 417
 skills/do-plan/references/planning-rigorous.md: 363
 skills/do-plan/references/planning-synthesis.md: 421
 skills/do-plan/references/spec-mode.md: 653
@@ -109,7 +109,7 @@ skills/run-recap/references/template-standup.md: 192
 skills/run-recap/references/template-timesheet.md: 390
 skills/run-recap/SKILL.md: 803
 skills/run-review/references/inspect-correctness-reviewer.md: 348
-skills/run-review/references/inspect-envoy.md: 256
+skills/run-review/references/inspect-envoy.md: 286
 skills/run-review/references/inspect-risk-reviewer.md: 489
 skills/run-review/references/inspect-spec-reviewer.md: 399
 skills/run-review/references/inspect-synthesis.md: 368
@@ -118,7 +118,7 @@ skills/run-review/references/scope-context.md: 804
 skills/run-review/references/security-probe.md: 1002
 skills/run-review/references/template-review-brief.md: 344
 skills/run-review/SKILL.md: 1186
-skills/use-envoy/SKILL.md: 1048
+skills/use-envoy/SKILL.md: 1040
 skills/use-js/SKILL.md: 714
 skills/use-shell/references/ast-grep.md: 932
 skills/use-shell/SKILL.md: 498

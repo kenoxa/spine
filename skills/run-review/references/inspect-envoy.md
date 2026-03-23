@@ -13,6 +13,7 @@ Dispatch provides:
 - Diff/file list
 - Severity bucket definitions
 - Noise filtering rules
+- `mode` — dispatch mode (single|multi)
 - `tier` — model selection tier (frontier|standard|fast)
 
 ## Instructions
@@ -33,4 +34,5 @@ Write to `{output_path}`.
 
 - Self-contained prompt — no local path references.
 - Skip notice = `[COVERAGE_GAP: envoy skipped — {reason}]`. Included in synthesis as gap notice.
+- Always forward received `mode` as `--mode` flag on run.sh invocation
 - Always forward received `tier` as `--tier` flag on run.sh invocation
