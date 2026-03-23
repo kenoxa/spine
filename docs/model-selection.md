@@ -8,18 +8,19 @@
 
 **Subagents** — dispatched by skills for specific tasks (planning, reviewing, debugging). Each has an assigned tier that determines its model automatically. You don't configure these — a planner always uses a frontier model, a scout always uses a fast model, regardless of your session choice.
 
-**Providers** — Claude Code, Codex, and Cursor each have their own model names. Spine maps tiers to the right model for whichever provider you use.
+**Providers** — Claude Code, Codex, Cursor, and Qwen Code each have their own model names. Spine maps tiers to the right model for whichever provider you use.
 
 **Tiers** — four quality levels, from highest to lowest:
 
-| Tier | Purpose | Claude | Codex | Cursor |
-|------|---------|--------|-------|--------|
-| Frontier | Complex reasoning, gate authority | opus | gpt-5.4 | composer-2 |
-| Standard | Advisory, research, pattern matching | sonnet | gpt-5.4 | composer-2 |
-| Fast | Reconnaissance, extraction | haiku | gpt-5.4-mini¹ | composer-2 |
-| Adaptive | Tracks your session model | — | — | — |
+| Tier | Purpose | Claude | Codex | Cursor | Qwen |
+|------|---------|--------|-------|--------|------|
+| Frontier | Complex reasoning, gate authority | opus | gpt-5.4 | composer-2 | qwen3.5-plus |
+| Standard | Advisory, research, pattern matching | sonnet | gpt-5.4 | composer-2 | qwen3-coder-plus |
+| Fast | Reconnaissance, extraction | haiku | gpt-5.4-mini¹ | composer-2 | coder-model |
+| Adaptive | Tracks your session model | — | — | — | — |
 
 ¹ Ideal mapping is gpt-5.4-nano — using mini until nano is available on the Codex subscription.
+² Qwen OAuth free tier resolves all models to coder-model; Dashscope API keys required for actual tier differentiation.
 
 ## Session Model
 
@@ -148,12 +149,13 @@ Env var changes take effect immediately (runtime). Model mapping changes require
 
 ## Implementation Notes
 
-Two mapping points encode the tier tables:
+Three mapping points encode the tier tables:
 
-- **`install.sh`** `map_model_for_provider()` — maps tiers to provider models at install time, generating agent frontmatter for Codex TOML and Cursor `.md` files.
+- **`install.sh`** `map_model_for_provider()` — maps tiers to provider models at install time, generating agent frontmatter for Codex TOML, Cursor `.md`, and Qwen `.md` files.
 - **`_common.sh`** `resolve_tier()` — maps tier + provider to model at runtime for envoy CLI dispatch.
+- **`install.sh`** `generate_qwen_agent_md()` — Qwen agents use only `name` + `description` frontmatter (no model/effort fields).
 
-Both agree on all tier:provider mappings. The one intentional surface difference: Cursor Fast uses `fast` in install-time frontmatter (Cursor's native subagent model field) but `composer-2` in envoy CLI dispatch (the `--model` flag) — different API surfaces for the same tier.
+All mapping points agree on tier:provider mappings. Intentional surface differences: Cursor Fast uses `fast` in install-time frontmatter but `composer-2` in envoy CLI dispatch. Qwen has no effort parameter — all tiers use empty effort. Qwen OAuth free tier resolves all models to `coder-model`; Dashscope API keys required for actual model differentiation.
 
 ### Agent Tier Assignments
 

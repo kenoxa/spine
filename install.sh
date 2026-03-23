@@ -209,7 +209,7 @@ detect_tools() {
   [ -d "$HOME/.cursor" ] && tools+=("cursor")
 
   # Claude Code / Codex: require CLI binary on PATH
-  for tool in claude codex; do
+  for tool in claude codex qwen; do
     if command -v "$tool" >/dev/null 2>&1; then
       tools+=("$tool")
     elif [ -d "$HOME/.$tool" ]; then
@@ -218,7 +218,7 @@ detect_tools() {
   done
 
   if [ ${#tools[@]} -eq 0 ]; then
-    warn "No AI coding tools found (cursor, claude, codex)"
+    warn "No AI coding tools found (cursor, claude, codex, qwen)"
     warn "Install at least one, then re-run this installer"
   fi
 
@@ -282,11 +282,11 @@ install_tool() {
 
   # Guardrails: write @reference to provider root file
   local root_file
-  if [ "$tool" = "claude" ]; then
-    root_file="$target/CLAUDE.md"
-  else
-    root_file="$target/AGENTS.md"
-  fi
+  case "$tool" in
+    claude) root_file="$target/CLAUDE.md" ;;
+    qwen)   root_file="$target/QWEN.md" ;;
+    *)      root_file="$target/AGENTS.md" ;;
+  esac
 
   if [ ! -f "$root_file" ]; then
     # Fresh install
@@ -346,6 +346,19 @@ install_tool() {
       [ -f "$agent" ] || continue
       generate_cursor_agent_md "$agent" "$target/agents"
     done
+  elif [ "$tool" = "qwen" ]; then
+    # Remove old symlinks (spine-managed only) — upgrade from symlink to generated .md
+    for md in "$target/agents/"*.md; do
+      [ -L "$md" ] || continue
+      local dest
+      dest=$(readlink "$md")
+      [[ "$dest" == *".config/spine/"* ]] && rm "$md"
+    done
+    # Generate Qwen agent .md files
+    for agent in "$spine_dir/agents/"*.md; do
+      [ -f "$agent" ] || continue
+      generate_qwen_agent_md "$agent" "$target/agents"
+    done
   else
     for agent in "$spine_dir/agents/"*.md; do
       [ -f "$agent" ] || continue
@@ -359,6 +372,25 @@ install_tool() {
   fi
 
   done_msg "$tool: guardrails, agents"
+
+  # Qwen Code extras: configure context.fileName to load both QWEN.md and AGENTS.md
+  if [ "$tool" = "qwen" ] && command -v jq &>/dev/null; then
+    local qwen_settings="$target/settings.json"
+    if [ -f "$qwen_settings" ]; then
+      local tmp
+      tmp=$(mktemp)
+      if jq '.context.fileName = ["QWEN.md", "AGENTS.md"]' "$qwen_settings" > "$tmp" 2>/dev/null; then
+        mv "$tmp" "$qwen_settings"
+        done_msg "qwen: context.fileName configured"
+      else
+        rm -f "$tmp"
+        warn "Failed to patch $qwen_settings — set context.fileName manually"
+      fi
+    else
+      printf '{"context":{"fileName":["QWEN.md","AGENTS.md"]}}\n' > "$qwen_settings"
+      done_msg "qwen: settings.json created with context.fileName"
+    fi
+  fi
 
   # Claude Code extras: plugin (hooks + skills)
   if [ "$tool" = "claude" ]; then
@@ -477,6 +509,21 @@ mcp_add_codex() {
   fi
 }
 
+mcp_add_qwen() {
+  local name="$1" url="$2"; shift 2
+  # Remove first for idempotency — qwen mcp add may fail if entry already exists
+  quiet qwen mcp remove "$name" --scope user 2>/dev/null || true
+  # Strip MCP API key env vars so qwen stores ${VAR} references for runtime resolution
+  # instead of resolving them at add-time (qwen expands env vars in -H values if set)
+  if quiet env -u CONTEXT7_API_KEY -u EXA_API_KEY \
+      qwen mcp add --transport http --scope user --trust "$name" "$url" "$@"; then
+    done_msg "qwen: MCP server $name"
+  else
+    warn "Failed to add MCP server $name to qwen"
+    echo "  Run manually: qwen mcp add --transport http --scope user --trust $name $url $*" >&2
+  fi
+}
+
 mcp_add_cursor() {
   local c7_url="$1" c7_key="$2" exa_url="$3" exa_key="$4"
   local mcp_file="$HOME/.cursor/mcp.json"
@@ -558,6 +605,20 @@ install_mcp_servers() {
           done_msg "cursor: MCP servers approved via agent CLI"
         fi
         ;;
+      qwen)
+        # Qwen uses same -H flag pattern as Claude for auth headers
+        local c7_qwen_auth=() exa_qwen_auth=()
+        if [ -n "${CONTEXT7_API_KEY:-}" ]; then
+          # shellcheck disable=SC2016
+          c7_qwen_auth=(-H 'Authorization: Bearer ${CONTEXT7_API_KEY}')
+        fi
+        if [ -n "${EXA_API_KEY:-}" ]; then
+          # shellcheck disable=SC2016
+          exa_qwen_auth=(-H 'Authorization: Bearer ${EXA_API_KEY}')
+        fi
+        mcp_add_qwen "context7" "$c7_url" "${c7_qwen_auth[@]}"
+        mcp_add_qwen "exa" "$exa_url" "${exa_qwen_auth[@]}"
+        ;;
     esac
   done
 
@@ -568,6 +629,7 @@ install_mcp_servers() {
         case "$tool" in
           claude) quiet claude mcp remove "$name" --scope user 2>/dev/null || true ;;
           codex)  quiet codex mcp remove "$name" 2>/dev/null || true ;;
+          qwen)   quiet qwen mcp remove "$name" --scope user 2>/dev/null || true ;;
           cursor)
             if [ -f "$HOME/.cursor/mcp.json" ] && command -v jq &>/dev/null; then
               local tmp
@@ -656,6 +718,9 @@ map_model_for_provider() {
     sonnet:cursor) _mapped_model="composer-2" ;;
     haiku:codex)   _mapped_model="gpt-5.4-mini" ;;  # ideal: gpt-5.4-nano (unavailable on current Codex subscription)
     haiku:cursor)  _mapped_model="fast" ;;
+    opus:qwen)     _mapped_model="qwen3.5-plus" ;;
+    sonnet:qwen)   _mapped_model="qwen3-coder-plus" ;;
+    haiku:qwen)    _mapped_model="coder-model" ;;
     inherit:*|"":*) _mapped_model="" ;;
     *) warn "Unknown model '$model' for provider '$provider'"; _mapped_model="" ;;
   esac
@@ -750,6 +815,47 @@ $_agent_body"
     # effort: omitted — Cursor has no effort parameter (subagent or CLI)
     # skills: omitted — Cursor ignores frontmatter skills; embedded in body above
     [ "$_agent_readonly" = "true" ] && echo 'readonly: true'
+    echo '---'
+    echo ""
+    printf '%s\n' "$body"
+  } > "$tmp"
+
+  if [ -f "$out_file" ] && [ ! -L "$out_file" ]; then
+    backup_if_exists "$out_file"
+  fi
+  mv "$tmp" "$out_file"
+}
+
+# --- Qwen agent generation ---
+
+# Generate a Qwen Code agent .md from an agent markdown file.
+# Qwen agents use name + description frontmatter only (no model, effort, readonly, tools).
+# Usage: generate_qwen_agent_md <agent.md> <output-dir>
+generate_qwen_agent_md() {
+  local md_file="$1" out_dir="$2"
+  parse_agent_frontmatter "$md_file"
+
+  if [ -z "$_agent_body" ]; then
+    warn "No body in $(basename "$md_file") — skipping Qwen agent generation"
+    return 0
+  fi
+
+  # Build body with optional skills preamble (Qwen ignores skills: frontmatter)
+  local body="$_agent_body"
+  if [ -n "$_agent_skills" ]; then
+    body="Load the following skill(s): $_agent_skills
+
+$_agent_body"
+  fi
+
+  local tmp out_file="$out_dir/$_agent_name.md"
+  tmp=$(mktemp "$out_dir/spine-tmp.XXXXXX")
+
+  {
+    echo '---'
+    echo '# spine:managed — do not edit'
+    echo "name: $_agent_name"
+    printf 'description: >-\n  %s\n' "$_agent_description"
     echo '---'
     echo ""
     printf '%s\n' "$body"
@@ -908,6 +1014,7 @@ install_skills() {
   for tool in "${detected_tools[@]}"; do
     case "$tool" in
       claude) agent_flags+=(-a "claude-code") ;;
+      qwen)   agent_flags+=(-a "qwen-code") ;;
       *)      agent_flags+=(-a "$tool") ;;
     esac
   done
@@ -1080,8 +1187,8 @@ cleanup_stale_files() {
       done
     fi
 
-    # Cursor: remove stale spine-managed .md agent files
-    if [ "$tool" = "cursor" ] && [ -d "$target/agents" ]; then
+    # Cursor/Qwen: remove stale spine-managed .md agent files
+    if { [ "$tool" = "cursor" ] || [ "$tool" = "qwen" ]; } && [ -d "$target/agents" ]; then
       for md in "$target/agents/"*.md; do
         [ -f "$md" ] || continue
         [ -L "$md" ] && continue  # skip symlinks

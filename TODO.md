@@ -1,5 +1,9 @@
 # TODO
 
+- Re-check if cursor-agent CLI re-adds `auto` model support (removed March 2026). If restored: consider re-adding model-level retry in run-cursor.sh and differentiating fast tier. Users with `SPINE_ENVOY_FAST_CURSOR=auto` in .env should update to `composer-2`.
+- gemini envoy:
+	- `brew install gemini-cli`
+	- `gemini -p "Explain the architecture of this codebase"`
 - verify cross-skill references work, or move to ~/.agents/skills/run-explore/references/explore-scout.md
 - run-skill-eval: on rewritten skills, reference files, and agents
 	- run-insight is suspicous
@@ -9,7 +13,6 @@
 - auto-loading per glob like min description?
 - https://github.com/SocketDev/sfw-free
 - merge/resolve merge conflict
-- Re-check if cursor-agent CLI re-adds `auto` model support (removed March 2026). If restored: consider re-adding model-level retry in run-cursor.sh and differentiating fast tier. Users with `SPINE_ENVOY_FAST_CURSOR=auto` in .env should update to `composer-2`.
 - Sematic Search
 	- https://github.com/tobi/qmd
 	- https://github.com/cocoindex-io/cocoindex-code, https://github.com/cocoindex-io/cocoindex-code/issues/20

@@ -78,6 +78,8 @@ elif [ "${CURSOR_AGENT:-}" = "1" ]; then
     _self=cursor
 elif printenv CODEX_SANDBOX >/dev/null 2>&1; then
     _self=codex
+elif [ "${QWEN_CODE:-}" = "1" ]; then
+    _self=qwen
 fi
 _self="${_self:-${hint:-codex}}"
 
@@ -88,7 +90,7 @@ if [ "$mode" = "multi" ]; then
     if [ -n "${SPINE_ENVOY_PROVIDERS:-}" ]; then
         _providers=$(printf '%s' "$SPINE_ENVOY_PROVIDERS" | tr ',' ' ')
     else
-        _providers="claude codex cursor"
+        _providers="claude codex cursor qwen"
     fi
 
     # --- Normalize: validate, deduplicate, exclude self ---
@@ -170,6 +172,7 @@ fi
 case "$_self" in
     claude) _target=codex;  _fallback=cursor ;;
     cursor) _target=claude; _fallback=codex ;;
+    qwen)   _target=claude; _fallback=codex ;;
     *)      _target=claude; _fallback=cursor ;;
 esac
 

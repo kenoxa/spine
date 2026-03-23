@@ -1,5 +1,5 @@
 #!/bin/sh
-# Invoke Claude Code CLI headlessly for cross-provider envoy.
+# Invoke Qwen Code CLI headlessly for cross-provider envoy.
 # Exit: 0=success, 1=invocation failed, 2=interrupted (provider-specific), 3=output validation failed
 
 set -eu
@@ -9,9 +9,9 @@ error() { printf 'Error: %s\n' "$*" >&2; }
 
 usage() {
     cat <<'EOF'
-Usage: run-claude.sh --prompt-file PATH --output-file PATH --stderr-log PATH [--tier frontier|standard|fast]
+Usage: run-qwen.sh --prompt-file PATH --output-file PATH --stderr-log PATH [--tier frontier|standard|fast]
 
-Invoke Claude Code CLI headlessly with sanitized environment.
+Invoke Qwen Code CLI headlessly with sanitized environment.
 EOF
 }
 
@@ -44,68 +44,61 @@ _script_dir=$(cd "$(dirname "$0")" && pwd)
 
 command -v jq >/dev/null 2>&1 || { error "jq required but not found"; exit 1; }
 
-# --- Tier-aware model selection (configurable via SPINE_ENVOY_{TIER_}CLAUDE=model[:effort]) ---
+# --- Tier-aware model selection (configurable via SPINE_ENVOY_{TIER_}QWEN=model) ---
+# Qwen has no effort parameter; env var overrides are model-only (no :effort suffix).
 
-resolve_tier "$tier" claude
+resolve_tier "$tier" qwen
 case "$tier" in
-    frontier) _envoy_val="${SPINE_ENVOY_FRONTIER_CLAUDE:-${SPINE_ENVOY_CLAUDE:-$_tier_model:$_tier_effort}}" ;;
-    fast)     _envoy_val="${SPINE_ENVOY_FAST_CLAUDE:-${SPINE_ENVOY_CLAUDE:-$_tier_model:$_tier_effort}}" ;;
-    *)        _envoy_val="${SPINE_ENVOY_STANDARD_CLAUDE:-${SPINE_ENVOY_CLAUDE:-$_tier_model:$_tier_effort}}" ;;
+    frontier) model="${SPINE_ENVOY_FRONTIER_QWEN:-${SPINE_ENVOY_QWEN:-$_tier_model}}" ;;
+    fast)     model="${SPINE_ENVOY_FAST_QWEN:-${SPINE_ENVOY_QWEN:-$_tier_model}}" ;;
+    *)        model="${SPINE_ENVOY_STANDARD_QWEN:-${SPINE_ENVOY_QWEN:-$_tier_model}}" ;;
 esac
-model="${_envoy_val%%:*}"
-effort="${_envoy_val#*:}"
-[ "$effort" = "$model" ] && effort=high
-_claude_timeout=3600  # liveness safety net
+_qwen_timeout=3600  # liveness safety net
 
 # --- Pre-flight + cleanup ---
 
 preflight_check
 init_cleanup
 
-# --- Invoke (coreutils timeout handles process group kill + SIGKILL escalation) ---
+# --- Invoke (stdin pipe bypasses ARG_MAX; no --yolo — envoy is review-only) ---
 
 _json_tmp="${output_file}.json"
 start_timer
 
-printf 'envoy: invoking claude (model=%s, effort=%s)...\n' "$model" "$effort" >&2
+printf 'envoy: invoking qwen (model=%s)...\n' "$model" >&2
 _rc=0
-timeout --kill-after=10 "$_claude_timeout" env \
+timeout --kill-after=10 "$_qwen_timeout" env \
     -u CLAUDECODE -u CURSOR_AGENT -u CODEX_SANDBOX \
     -u QWEN_CODE -u QWEN_CODE_NO_RELAUNCH \
     PATH="$HOME/.local/bin:$PATH" \
-    CLAUDE_CODE_DISABLE_AUTO_MEMORY=1 \
-    CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1 \
-    CLAUDE_CODE_EFFORT_LEVEL="$effort" \
-    CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 \
-    claude --print \
-        --no-session-persistence \
+    qwen -p \
         --model "$model" \
         --output-format json \
-        --dangerously-skip-permissions \
         < "$prompt_file" \
         > "$_json_tmp" 2>"$stderr_log" \
     || _rc=$?
 
-printf 'envoy: claude completed (exit=%s), validating...\n' "$_rc" >&2
+printf 'envoy: qwen completed (exit=%s), validating...\n' "$_rc" >&2
 _cleanup
 if [ "$_rc" -eq 124 ] || [ "$_rc" -eq 137 ]; then
-    error "Claude CLI timed out after ${_claude_timeout}s"; exit 2
+    error "Qwen CLI timed out after ${_qwen_timeout}s"; exit 2
 fi
-handle_exit_code "Claude CLI"
+handle_exit_code "Qwen CLI"
 stop_timer
 
-# --- Extract body and metadata from JSON output ---
+# --- Extract body and metadata from JSON array output ---
+# Qwen outputs a JSON array; the final element has type "result" with .result field.
+# Init element (.[0]) has session_id and model. Result element (.[-1]) has duration_ms.
 
-if [ -f "$_json_tmp" ] && jq -e '.result' "$_json_tmp" >/dev/null 2>&1; then
-    jq -r '.result // ""' "$_json_tmp" > "$output_file"
-    _meta_session_id=$(jq -r '.session_id // "none"' "$_json_tmp")
-    _duration_ms=$(jq -r '.duration_ms // empty' "$_json_tmp")
-    _meta_resolved_model=$(jq -r '(.modelUsage | keys[0]) // empty' "$_json_tmp")
+if [ -f "$_json_tmp" ] && jq -e '.[-1].result' "$_json_tmp" >/dev/null 2>&1; then
+    jq -r '.[-1].result // ""' "$_json_tmp" > "$output_file"
+    _meta_session_id=$(jq -r '.[0].session_id // "none"' "$_json_tmp")
+    _duration_ms=$(jq -r '.[-1].duration_ms // empty' "$_json_tmp")
+    _meta_resolved_model=$(jq -r '.[0].model // empty' "$_json_tmp")
 else
-    # JSON extraction failed — cannot deliver valid output
     rm -f "$_json_tmp"
     _json_tmp=""
-    error "JSON extraction failed from Claude output"
+    error "JSON extraction failed from Qwen output"
     exit 3
 fi
 rm -f "$_json_tmp"
@@ -119,9 +112,9 @@ _meta_elapsed="${_meta_elapsed:-$_timer_elapsed}"
 
 validate_output
 
-_meta_provider="Claude Code"
+_meta_provider="Qwen Code"
 _meta_model="$model"
-_meta_effort="$effort"
+_meta_effort=""
 _meta_fallback_note=""
 
 assemble_output

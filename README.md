@@ -2,7 +2,7 @@
 
 > **Same skills, same workflow, every provider.**
 
-Spine is a shared AI coding setup for Cursor, Claude Code, and Codex. It gives each tool the same workflow skills, subagents, guardrails, and MCP defaults so you can move between providers without rebuilding your operating model.
+Spine is a shared AI coding setup for Cursor, Claude Code, Codex, and Qwen Code. It gives each tool the same workflow skills, subagents, guardrails, and MCP defaults so you can move between providers without rebuilding your operating model.
 
 ## Contents
 
@@ -19,7 +19,7 @@ Spine is a shared AI coding setup for Cursor, Claude Code, and Codex. It gives e
 
 > **If it's worth changing, it's worth planning.**
 
-Install and sign in to the provider tools you want Spine to configure first. Spine does not install Cursor, Claude Code, or Codex for you.
+Install and sign in to the provider tools you want Spine to configure first. Spine does not install Cursor, Claude Code, Codex, or Qwen Code for you.
 
 **Provider Prerequisites**
 
@@ -202,7 +202,7 @@ Public manual examples use `npx skills add` to match [skills.sh](https://skills.
 Fresh-setup example:
 
 ```sh
-mkdir -p ~/.config/spine/agents ~/.cursor/agents ~/.claude/agents ~/.codex/agents
+mkdir -p ~/.config/spine/agents ~/.cursor/agents ~/.claude/agents ~/.codex/agents ~/.qwen/agents
 cp SPINE.md ~/.config/spine/SPINE.md
 touch ~/.config/spine/AGENTS.md
 cp agents/*.md ~/.config/spine/agents/
