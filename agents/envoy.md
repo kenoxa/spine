@@ -43,10 +43,7 @@ Write ONLY to `<base>.prompt`:
 
 ### 3. Invoke — this is the core action
 
-Prevent the host from killing the invocation early. In priority order, set on the Bash/Shell tool call:
-1. `run_in_background: true` (preferred — no ceiling)
-2. `timeout: 3600000`, `timeout_ms: 3600000`, or `block_until_ms: 3600000` (if background unavailable)
-3. `timeout: 600000` (last resort — 10 min foreground ceiling)
+Set `timeout: 600000` (`timeout_ms`/`block_until_ms`) on the Bash/Shell tool call.
 
 ```sh
 sh "$HOME/.agents/skills/use-envoy/scripts/run.sh" \
@@ -76,4 +73,4 @@ stdout: one output path per line (single = 1, multi = 0-N). Collect for synthesi
 
 Non-zero + stdout paths = partial success → `[COVERAGE_GAP: envoy — {reason}]` per missing provider.
 
-If Bash returns `Command running in background` → the invocation was interrupted. Write skip advisory immediately. Do NOT poll.
+If Bash returns `Command running in background` → invocation escaped foreground. Write skip advisory: `interrupted (backgrounded before completion)`.

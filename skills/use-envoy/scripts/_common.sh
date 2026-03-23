@@ -15,6 +15,7 @@ preflight_check() {
 
 _sanitize_tmp=""
 _cleanup() {
+    [ -n "${_json_tmp:-}" ] && rm -f "$_json_tmp"
     [ -n "$_sanitize_tmp" ] && rm -f "$_sanitize_tmp" "${_sanitize_tmp}.2" "${_sanitize_tmp}.cap"
     if [ -f "$stderr_log" ]; then
         sed -E 's/(sk-|key-|AKIA|ghp_|gho_|xai-|ant-|github_pat_|ghu_|ghs_|ghr_|eyJ|xoxb-|xoxp-|glpat-|npm_|pypi-)[A-Za-z0-9_-]{16,}/[REDACTED]/g' \
