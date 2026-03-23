@@ -27,7 +27,7 @@ Sequential. Do not skip or reorder.
 
 After phases+EARS drafted, before DAG. Dispatch in parallel:
 - `@framer` + `spec-phases-reviewer.md`: problem + phases + EARS → `.scratch/<session>/discuss-spec-phases-review.md`
-- `@envoy` (via `use-envoy`): prompt = problem + users/context + constraints + phases + EARS (self-contained). Tier: standard. Mode: multi → `.scratch/<session>/discuss-spec-phases-envoy.md`
+- `@envoy` (via `use-envoy`) → `references/spec-envoy.md`: prompt = problem + users/context + constraints + phases + EARS (self-contained) → `.scratch/<session>/discuss-spec-phases-envoy.md`
 
 Then sequential:
 - `@synthesizer` + `spec-phases-synthesis.md`: all review outputs → `.scratch/<session>/discuss-spec-phases-synthesis.md`
@@ -46,7 +46,7 @@ User must confirm before output. Rejection → revise, re-present. Do NOT re-dis
 
 After DAG confirmed. Dispatch in parallel:
 - `@inspector` + `spec-final-reviewer.md`: full spec draft (self-contained) → `.scratch/<session>/discuss-spec-final-review.md`
-- `@envoy` (via `use-envoy`): prompt = full spec draft (self-contained). Tier: standard. Mode: multi → `.scratch/<session>/discuss-spec-final-envoy.md`
+- `@envoy` (via `use-envoy`) → `references/spec-envoy.md`: prompt = full spec draft (self-contained) → `.scratch/<session>/discuss-spec-final-envoy.md`
 
 Then sequential:
 - `@synthesizer` + `spec-final-synthesis.md`: all review outputs → `.scratch/<session>/discuss-spec-final-synthesis.md`

@@ -45,6 +45,14 @@ Write ONLY to `<base>.prompt`:
 
 Set `timeout: 600000` (`timeout_ms`/`block_until_ms`) on the Bash/Shell tool call.
 
+Read the reference file path from your dispatch prompt (`Reference:` field).
+If that file contains a `## Dispatch Parameters` section, use the `mode` and
+`tier` values declared there for the run.sh invocation. When `## Dispatch
+Parameters` is present, ignore any `Tier:` or `Mode:` lines elsewhere in the
+dispatch prompt. If the reference has no `## Dispatch Parameters`, use `Tier:`
+and `Mode:` from the dispatch prompt. If neither source provides a value, omit
+the flag (run.sh defaults: `--mode single`, `--tier standard`).
+
 ```sh
 sh "$HOME/.agents/skills/use-envoy/scripts/run.sh" \
     --hint <self> --tier <tier> --mode <mode> \

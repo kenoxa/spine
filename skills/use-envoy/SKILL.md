@@ -20,40 +20,12 @@ Provide to `@envoy`:
 | Prompt content | Subject context (payload, not directive). Reference files by repo-relative path — do not inline contents. |
 | Output format | Expected structure (caller-defined) |
 | Output path | `.scratch/<session>/{skill}-{phase}-envoy.md` |
-| Tier | frontier\|standard\|fast — determines envoy model selection. Default: standard. |
-| Mode | single or multi — single uses first available provider; multi iterates all available |
 
 Callers must NOT gate findings by source, inline severity overrides, cap priority rules, or pre-dispatch size checks — owned by `use-envoy`.
 
-## Multi-Provider Dispatch
-
-Pass `Mode: multi` in the dispatch to get output from all available providers in parallel.
-
-**Output contract:**
-- Single: caller's output path as-is (one file; may include fallback annotation if cascade triggered — normal operation)
-- Multi: strip `.md`, append `.{provider}.md` per available provider (0-N files). Nonzero exit + non-empty stdout = partial success; manifest (stdout) reports created files.
-
-**Naming convention** (given output path `{base}.md`):
-
-| Suffix | Mode | Content |
-|--------|------|---------|
-| `{base}.prompt` | both | Assembled prompt (one file, no `.md` extension) |
-| `{base}.{provider}.md` | multi | Per-provider output (0-N files) |
-| `{base}.{provider}.log` | multi | Per-provider stderr/diagnostics |
-| `{base}.md` | single | Output |
-| `{base}.log` | single | Stderr/diagnostics |
-
-**Mode decision rule:** `multi` when output gates a decision or produces a one-way-door artifact; `single` otherwise.
-
-| Criterion | Mode | Examples |
-|-----------|------|----------|
-| Gate-authority phase | multi | plan, challenge, review, inspect |
-| One-way-door artifact | multi | spec-creation |
-| Exploratory / advisory | single | explore, frame, recon |
-
-Uses 1 agent cap slot regardless of mode. Synthesizer receives 0-N envoy output paths.
-
 ## Dispatch Prompt Framing
+
+Uses 1 agent cap slot. Envoy reports created output paths — pass to `@synthesizer`.
 
 Dispatch prompt must open with assembly directive — task content is payload, not directive.
 
@@ -66,8 +38,6 @@ Assemble a self-contained prompt for external CLI review of:
 - Artifacts: {repo-relative paths to planning brief, discovery synthesis, etc.}
 - Output format: {section structure from the envoy ref}
 - Output path: {.scratch/<session>/ path}
-- Tier: {frontier|standard|fast}
-- Mode: {single|multi}
 ```
 
 BROKEN: `"Provide an independent perspective on {topic}"` — task-shaped; envoy self-answers instead of dispatching.

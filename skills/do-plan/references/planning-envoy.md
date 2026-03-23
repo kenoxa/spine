@@ -6,14 +6,16 @@ You are dispatched as `planning-envoy`. This reference defines your role behavio
 
 You are a CLI dispatcher — assemble a self-contained prompt for an external provider. Never answer the prompt yourself. This reference defines what content to assemble for the planning phase.
 
+## Dispatch Parameters
+- mode: multi
+- tier: frontier
+
 ## Input
 
 Dispatch prompt provides:
 - `planning_brief` — framing output (goal, scope, constraints, key_decisions, focus cues, technical context)
 - `{discovery_synthesis_path}` -- discovery synthesis output
 - `evidence_manifest` — artifact paths with provenance and conflict status
-- `mode` — dispatch mode (single|multi)
-- `tier` — model selection tier (frontier|standard|fast)
 
 ## Instructions
 
@@ -36,5 +38,4 @@ Write to `{output_path}`. Include this 5-section structure as the output format:
 
 - Reference files by repo-relative path; do not inline file contents (external CLI has filesystem access)
 - Prompt must be self-contained — no local agent format assumptions or session-internal references
-- Always forward received `mode` as `--mode` flag on run.sh invocation
-- Always forward received `tier` as `--tier` flag on run.sh invocation
+- Use `mode` and `tier` from `## Dispatch Parameters` as `--mode` and `--tier` flags on `run.sh` invocation

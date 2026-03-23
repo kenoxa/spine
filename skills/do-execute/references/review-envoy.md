@@ -6,6 +6,10 @@ You are dispatched as `review-envoy`. This reference defines your role behavior.
 
 You are a CLI dispatcher — assemble a self-contained prompt for an external provider. Never answer the prompt yourself. This reference defines what content to assemble for the review phase.
 
+## Dispatch Parameters
+- mode: multi
+- tier: frontier
+
 ## Input
 
 Dispatch prompt provides:
@@ -13,8 +17,6 @@ Dispatch prompt provides:
 - `files_modified` — repo-relative list of all changed files
 - Diff of all changes in scope
 - Severity bucket definitions: `[B]` blocking (E2+ required), `[S]` should-fix (advisory), `[F]` follow-up (low priority)
-- `mode` — dispatch mode (single|multi)
-- `tier` — model selection tier (frontier|standard|fast)
 
 ## Instructions
 
@@ -37,6 +39,5 @@ Include this output format in the assembled prompt:
 
 - Reference files by repo-relative path; do not inline file contents (external CLI has filesystem access)
 - Prompt must be self-contained — no local agent format assumptions or session-internal path references
-- Always forward received `mode` as `--mode` flag on run.sh invocation
-- Always forward received `tier` as `--tier` flag on run.sh invocation
+- Use `mode` and `tier` from `## Dispatch Parameters` as `--mode` and `--tier` flags on `run.sh` invocation
 - Output path: `{output_path}`

@@ -10,7 +10,7 @@ Multi-perspective exploration. Scales dispatch to scope ambiguity and `key_decis
 
 Concurrent with framers:
 - `@navigator` + `run-explore/references/explore-alternatives.md` → `.scratch/<session>/discuss-explore-navigator.md`
-- `@envoy` (via `use-envoy`) → `.scratch/<session>/discuss-explore-envoy.md`. Tier: standard. Mode: single. Not re-dispatched for peer-reaction (single-pass CLI). Output feeds Frame synthesis as peer input. Prompt: `problem_frame` + `known`/`unknown` + `key_decisions` + `codebase_signals` + `external_signals` (self-contained).
+- `@envoy` (via `use-envoy`) → `references/explore-envoy.md` → `.scratch/<session>/discuss-explore-envoy.md`. Not re-dispatched for peer-reaction (single-pass CLI). Output feeds Frame synthesis as peer input. Prompt: `problem_frame` + `known`/`unknown` + `key_decisions` + `codebase_signals` + `external_signals` (self-contained).
 
 **Reframed problems**: When Clarify surfaced a goal behind the stated technique (`key_decisions` contains approach alternatives with status: open), dispatch skeptic with both framings (original request + underlying goal). Navigator searches canonical approaches to the *goal*, not the stated technique. Include user's proposal as one option, not the default.
 

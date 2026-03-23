@@ -5,7 +5,7 @@ Concurrent dispatch: 2 `@framer` agents + `@envoy`, then sequential `@synthesize
 **Concurrent** (3 agents):
 - `@framer` + `frame-evidence-mapper.md` → `.scratch/<session>/discuss-frame-evidence-mapper.md`
 - `@framer` + `frame-dialogue-tracker.md` → `.scratch/<session>/discuss-frame-dialogue-tracker.md`
-- `@envoy` (via `use-envoy`): prompt = problem framing + final inventory + `key_decisions` + explore summary + signals (self-contained). Tier: standard. Mode: single → `.scratch/<session>/discuss-frame-envoy.md`
+- `@envoy` (via `use-envoy`) → `references/frame-envoy.md`: prompt = problem framing + final inventory + `key_decisions` + explore summary + signals (self-contained) → `.scratch/<session>/discuss-frame-envoy.md`
 
 **Then sequential** (1 agent):
 - `@synthesizer` + `frame-synthesis.md`: all frame outputs + session state + explore envoy if exists → `.scratch/<session>/brief.md` per `template-brief.md`.
