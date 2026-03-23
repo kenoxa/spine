@@ -739,36 +739,24 @@ parse_agent_frontmatter() {
   local md_file="$1"
   _agent_name="" _agent_description="" _agent_model="" _agent_effort=""
   _agent_readonly="" _agent_skills="" _agent_body=""
-  local in_fm=false fm_done=false in_desc=false in_skills=false
 
+  # Fields via yq (--front-matter=extract strips body, outputs frontmatter as YAML)
+  _agent_name=$(yq --front-matter=extract '.name // ""' "$md_file")
+  _agent_description=$(yq --front-matter=extract '.description // "" | sub("\n$", "")' "$md_file")
+  _agent_model=$(yq --front-matter=extract '.model // ""' "$md_file")
+  _agent_effort=$(yq --front-matter=extract '.effort // ""' "$md_file")
+  _agent_readonly=$(yq --front-matter=extract '.readonly // ""' "$md_file")
+  _agent_skills=$(yq --front-matter=extract '.skills // [] | join(", ")' "$md_file")
+
+  # Body: while-read loop preserved (yq cannot extract post-frontmatter text;
+  # awk alternatives break leading-blank-line parity — see challenge BF-1)
+  local in_fm=false fm_done=false
   while IFS= read -r line || [ -n "$line" ]; do
     if ! $fm_done; then
       if [ "$line" = "---" ]; then
-        if $in_fm; then fm_done=true; else in_fm=true; fi
-        continue
+        if $in_fm; then fm_done=true; fi
+        in_fm=true
       fi
-      $in_fm || continue
-      # Continuation lines (indented)
-      if [[ "$line" =~ ^[[:space:]] ]]; then
-        if $in_desc; then
-          local trimmed="${line#"${line%%[![:space:]]*}"}"
-          _agent_description="${_agent_description:+$_agent_description }$trimmed"
-        elif $in_skills && [[ "$line" =~ ^[[:space:]]+-[[:space:]]+(.+) ]]; then
-          _agent_skills="${_agent_skills:+$_agent_skills, }${BASH_REMATCH[1]}"
-        fi
-        continue
-      fi
-      in_desc=false; in_skills=false
-      case "$line" in
-        name:*)       _agent_name="${line#name:}"; _agent_name="${_agent_name# }" ;;
-        description:*)
-          local val="${line#description:}"; val="${val# }"
-          case "$val" in ">"|">-") in_desc=true ;; *) _agent_description="$val" ;; esac ;;
-        model:*)      _agent_model="${line#model:}"; _agent_model="${_agent_model# }" ;;
-        effort:*)     _agent_effort="${line#effort:}"; _agent_effort="${_agent_effort# }" ;;
-        readonly:*)   _agent_readonly="${line#readonly:}"; _agent_readonly="${_agent_readonly# }" ;;
-        skills:*)     in_skills=true ;;
-      esac
     else
       _agent_body="${_agent_body:+$_agent_body
 }$line"
