@@ -1,6 +1,5 @@
 # TODO
 
-- Re-check if cursor-agent CLI re-adds `auto` model support (removed March 2026). If restored: consider re-adding model-level retry in invoke-cursor.sh and differentiating fast tier. Users with `SPINE_ENVOY_FAST_CURSOR=auto` in .env should update to `composer-2`.
 - gemini envoy:
 	- `brew install gemini-cli`
 	- `gemini -p "Explain the architecture of this codebase"`
