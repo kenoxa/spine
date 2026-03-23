@@ -86,6 +86,18 @@ claude auth login
 
 </details>
 
+<details>
+<summary>Copilot CLI</summary>
+
+```sh
+brew install copilot-cli
+copilot login
+```
+
+Requires GitHub Copilot Pro or higher (free tier cannot use the CLI).
+
+</details>
+
 ### Install Spine
 
 ```sh
@@ -97,6 +109,7 @@ The installer configures every supported tool it can detect:
 - Cursor via `~/.cursor/`
 - Claude Code via the `claude` CLI on `PATH`
 - Codex via the `codex` CLI on `PATH`
+- Copilot CLI via the `copilot` CLI on `PATH`
 
 For Claude Code, the installer also attempts to install the [Spine plugin](claude/README.md).
 

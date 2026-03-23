@@ -29,7 +29,7 @@ From the output path (`<base>.md`), derive:
 |------|-------|
 | Prompt | `<base>.prompt` |
 | Log | `<base>.log` |
-| Self | Claude/Anthropic → `claude` · Codex/OpenAI → `codex` · Cursor/Composer → `cursor` · Qwen/Alibaba → `qwen` |
+| Self | Claude/Anthropic → `claude` · Codex/OpenAI → `codex` · Cursor/Composer → `cursor` · Qwen/Alibaba → `qwen` · Copilot/GitHub → `copilot` |
 
 ### 2. Write `.prompt`
 
@@ -60,7 +60,7 @@ sh "$HOME/.agents/skills/use-envoy/scripts/run.sh" \
     --stderr-log "<log-path>"
 ```
 
-stdout: one output path per line (single = 1, multi = 0-N). Collect for synthesizer.
+stdout: actual output paths, one per line (`<base>.<provider>.md`). Collect these for synthesizer — output path differs from the `<base>.md` you passed in.
 
 ### 4. Report
 

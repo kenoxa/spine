@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Spine installer — AI coding setup for Cursor, Claude Code, and Codex.
+# Spine installer — AI coding setup for Cursor, Claude Code, Codex, and Copilot.
 # https://github.com/kenoxa/spine
 #
 # Usage:
@@ -209,7 +209,7 @@ detect_tools() {
   [ -d "$HOME/.cursor" ] && tools+=("cursor")
 
   # Claude Code / Codex: require CLI binary on PATH
-  for tool in claude codex qwen; do
+  for tool in claude codex qwen copilot; do
     if command -v "$tool" >/dev/null 2>&1; then
       tools+=("$tool")
     elif [ -d "$HOME/.$tool" ]; then
@@ -218,7 +218,7 @@ detect_tools() {
   done
 
   if [ ${#tools[@]} -eq 0 ]; then
-    warn "No AI coding tools found (cursor, claude, codex, qwen)"
+    warn "No AI coding tools found (cursor, claude, codex, qwen, copilot)"
     warn "Install at least one, then re-run this installer"
   fi
 
@@ -281,14 +281,18 @@ install_tool() {
   mkdir -p "$target"
 
   # Guardrails: write @reference to provider root file
-  local root_file
+  # Copilot loads AGENTS.md natively — no root file needed
+  local root_file=""
   case "$tool" in
-    claude) root_file="$target/CLAUDE.md" ;;
-    qwen)   root_file="$target/QWEN.md" ;;
-    *)      root_file="$target/AGENTS.md" ;;
+    claude)  root_file="$target/CLAUDE.md" ;;
+    qwen)    root_file="$target/QWEN.md" ;;
+    copilot) ;;  # skip — Copilot loads AGENTS.md natively
+    *)       root_file="$target/AGENTS.md" ;;
   esac
 
-  if [ ! -f "$root_file" ]; then
+  if [ -z "$root_file" ]; then
+    : # no root file for this tool
+  elif [ ! -f "$root_file" ]; then
     # Fresh install
     printf '%s\n' "$spine_ref" "$custom_ref" > "$root_file"
   elif head -1 "$root_file" | grep -q '^@.*SPINE\.md$'; then
@@ -358,6 +362,19 @@ install_tool() {
     for agent in "$spine_dir/agents/"*.md; do
       [ -f "$agent" ] || continue
       generate_qwen_agent_md "$agent" "$target/agents"
+    done
+  elif [ "$tool" = "copilot" ]; then
+    # Remove old symlinks (spine-managed only) — upgrade from symlink to generated .md
+    for md in "$target/agents/"*.md; do
+      [ -L "$md" ] || continue
+      local dest
+      dest=$(readlink "$md")
+      [[ "$dest" == *".config/spine/"* ]] && rm "$md"
+    done
+    # Generate Copilot agent .md files
+    for agent in "$spine_dir/agents/"*.md; do
+      [ -f "$agent" ] || continue
+      generate_copilot_agent_md "$agent" "$target/agents"
     done
   else
     for agent in "$spine_dir/agents/"*.md; do
@@ -564,6 +581,46 @@ mcp_add_cursor() {
   fi
 }
 
+mcp_add_copilot() {
+  local c7_url="$1" c7_key="$2" exa_url="$3" exa_key="$4"
+  local mcp_file="$HOME/.copilot/mcp-config.json"
+
+  if ! command -v jq &>/dev/null; then
+    warn "jq not found — cannot configure Copilot MCP servers"
+    return 0
+  fi
+
+  if [ -f "$mcp_file" ] && ! jq empty "$mcp_file" 2>/dev/null; then
+    warn "Invalid JSON in $mcp_file — skipping Copilot MCP configuration"
+    return 0
+  fi
+
+  [ -f "$mcp_file" ] || { mkdir -p "$(dirname "$mcp_file")"; echo '{}' > "$mcp_file"; }
+
+  local tmp
+  tmp=$(mktemp)
+  # Copilot supports ${env:NAME} interpolation in headers — use runtime references, not baked values
+  jq --arg c7url "$c7_url" --arg c7key "$c7_key" \
+     --arg exaurl "$exa_url" --arg exakey "$exa_key" '
+    .mcpServers //= {} |
+    .mcpServers.context7 = (
+      {url: $c7url} + if $c7key != "" then {headers: {"Authorization": "Bearer ${env:CONTEXT7_API_KEY}"}} else {} end
+    ) |
+    .mcpServers.exa = (
+      {url: $exaurl} + if $exakey != "" then {headers: {"Authorization": "Bearer ${env:EXA_API_KEY}"}} else {} end
+    )
+  ' "$mcp_file" > "$tmp"
+
+  if jq empty "$tmp" 2>/dev/null; then
+    mv "$tmp" "$mcp_file"
+    done_msg "copilot: MCP servers (context7, exa)"
+  else
+    warn "Generated invalid JSON — $mcp_file left unchanged"
+    rm -f "$tmp"
+    return 0
+  fi
+}
+
 install_mcp_servers() {
   local detected_tools=("$@")
 
@@ -619,6 +676,9 @@ install_mcp_servers() {
         mcp_add_qwen "context7" "$c7_url" "${c7_qwen_auth[@]}"
         mcp_add_qwen "exa" "$exa_url" "${exa_qwen_auth[@]}"
         ;;
+      copilot)
+        mcp_add_copilot "$c7_url" "${CONTEXT7_API_KEY:-}" "$exa_url" "${EXA_API_KEY:-}"
+        ;;
     esac
   done
 
@@ -641,6 +701,17 @@ install_mcp_servers() {
               fi
             fi
             command -v agent &>/dev/null && quiet agent mcp disable "$name" 2>/dev/null || true
+            ;;
+          copilot)
+            if [ -f "$HOME/.copilot/mcp-config.json" ] && command -v jq &>/dev/null; then
+              local tmp
+              tmp=$(mktemp)
+              if jq --arg n "$name" 'del(.mcpServers[$n])' "$HOME/.copilot/mcp-config.json" > "$tmp"; then
+                mv "$tmp" "$HOME/.copilot/mcp-config.json"
+              else
+                rm -f "$tmp"
+              fi
+            fi
             ;;
         esac
       done
@@ -721,6 +792,9 @@ map_model_for_provider() {
     opus:qwen)     _mapped_model="qwen3.5-plus" ;;
     sonnet:qwen)   _mapped_model="qwen3-coder-plus" ;;
     haiku:qwen)    _mapped_model="coder-model" ;;
+    opus:copilot)    _mapped_model="gpt-5.4" ;;
+    sonnet:copilot)  _mapped_model="gpt-5.4" ;;
+    haiku:copilot)   _mapped_model="gpt-5.4-mini" ;;
     inherit:*|"":*) _mapped_model="" ;;
     *) warn "Unknown model '$model' for provider '$provider'"; _mapped_model="" ;;
   esac
@@ -734,6 +808,10 @@ map_effort_for_provider() {
     max:codex)    _mapped_effort="xhigh" ;;
     high:codex)   _mapped_effort="high" ;;
     medium:codex) _mapped_effort="medium" ;;
+    max:copilot)    _mapped_effort="xhigh" ;;
+    high:copilot)   _mapped_effort="high" ;;
+    medium:copilot) _mapped_effort="medium" ;;
+    low:copilot)    _mapped_effort="low" ;;
     *) _mapped_effort="" ;;
   esac
 }
@@ -841,6 +919,47 @@ generate_qwen_agent_md() {
   fi
 
   # Build body with optional skills preamble (Qwen ignores skills: frontmatter)
+  local body="$_agent_body"
+  if [ -n "$_agent_skills" ]; then
+    body="Load the following skill(s): $_agent_skills
+
+$_agent_body"
+  fi
+
+  local tmp out_file="$out_dir/$_agent_name.md"
+  tmp=$(mktemp "$out_dir/spine-tmp.XXXXXX")
+
+  {
+    echo '---'
+    echo '# spine:managed — do not edit'
+    echo "name: $_agent_name"
+    printf 'description: >-\n  %s\n' "$_agent_description"
+    echo '---'
+    echo ""
+    printf '%s\n' "$body"
+  } > "$tmp"
+
+  if [ -f "$out_file" ] && [ ! -L "$out_file" ]; then
+    backup_if_exists "$out_file"
+  fi
+  mv "$tmp" "$out_file"
+}
+
+# --- Copilot agent generation ---
+
+# Generate a Copilot CLI agent .md from an agent markdown file.
+# Copilot agents use name + description frontmatter only (no model, effort, readonly, tools).
+# Usage: generate_copilot_agent_md <agent.md> <output-dir>
+generate_copilot_agent_md() {
+  local md_file="$1" out_dir="$2"
+  parse_agent_frontmatter "$md_file"
+
+  if [ -z "$_agent_body" ]; then
+    warn "No body in $(basename "$md_file") — skipping Copilot agent generation"
+    return 0
+  fi
+
+  # Build body with optional skills preamble (Copilot ignores skills: frontmatter)
   local body="$_agent_body"
   if [ -n "$_agent_skills" ]; then
     body="Load the following skill(s): $_agent_skills
@@ -1013,9 +1132,10 @@ install_skills() {
   local agent_flags=()
   for tool in "${detected_tools[@]}"; do
     case "$tool" in
-      claude) agent_flags+=(-a "claude-code") ;;
-      qwen)   agent_flags+=(-a "qwen-code") ;;
-      *)      agent_flags+=(-a "$tool") ;;
+      claude)  agent_flags+=(-a "claude-code") ;;
+      qwen)    agent_flags+=(-a "qwen-code") ;;
+      copilot) agent_flags+=(-a "github-copilot") ;;
+      *)       agent_flags+=(-a "$tool") ;;
     esac
   done
 
@@ -1188,7 +1308,7 @@ cleanup_stale_files() {
     fi
 
     # Cursor/Qwen: remove stale spine-managed .md agent files
-    if { [ "$tool" = "cursor" ] || [ "$tool" = "qwen" ]; } && [ -d "$target/agents" ]; then
+    if { [ "$tool" = "cursor" ] || [ "$tool" = "qwen" ] || [ "$tool" = "copilot" ]; } && [ -d "$target/agents" ]; then
       for md in "$target/agents/"*.md; do
         [ -f "$md" ] || continue
         [ -L "$md" ] && continue  # skip symlinks

@@ -69,6 +69,9 @@ resolve_tier() {
         frontier:qwen)   _tier_model=qwen3.5-plus;   _tier_effort= ;;
         standard:qwen)   _tier_model=qwen3-coder-plus; _tier_effort= ;;
         fast:qwen)       _tier_model=coder-model;     _tier_effort= ;;  # OAuth free tier resolves all to coder-model; Dashscope API keys can override via env
+        frontier:copilot) _tier_model=gpt-5.4;        _tier_effort=xhigh ;;
+        standard:copilot) _tier_model=gpt-5.4;        _tier_effort=medium ;;
+        fast:copilot)     _tier_model=gpt-5.4-mini;   _tier_effort=high ;;
         *)               _tier_model=;               _tier_effort= ;;
     esac
 }

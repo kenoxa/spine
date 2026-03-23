@@ -12,12 +12,12 @@
 
 **Tiers** — four quality levels, from highest to lowest:
 
-| Tier | Purpose | Claude | Codex | Cursor | Qwen |
-|------|---------|--------|-------|--------|------|
-| Frontier | Complex reasoning, gate authority | opus | gpt-5.4 | composer-2 | qwen3.5-plus |
-| Standard | Advisory, research, pattern matching | sonnet | gpt-5.4 | composer-2 | qwen3-coder-plus |
-| Fast | Reconnaissance, extraction | haiku | gpt-5.4-mini¹ | composer-2 | coder-model |
-| Adaptive | Tracks your session model | — | — | — | — |
+| Tier | Purpose | Claude | Codex | Cursor | Qwen | Copilot |
+|------|---------|--------|-------|--------|------|---------|
+| Frontier | Complex reasoning, gate authority | opus | gpt-5.4 | composer-2 | qwen3.5-plus | gpt-5.4 |
+| Standard | Advisory, research, pattern matching | sonnet | gpt-5.4 | composer-2 | qwen3-coder-plus | gpt-5.4 |
+| Fast | Reconnaissance, extraction | haiku | gpt-5.4-mini¹ | composer-2 | coder-model | gpt-5.4-mini |
+| Adaptive | Tracks your session model | — | — | — | — | — |
 
 ¹ Ideal mapping is gpt-5.4-nano — using mini until nano is available on the Codex subscription.
 ² Qwen OAuth free tier resolves all models to coder-model; Dashscope API keys required for actual tier differentiation.
@@ -38,12 +38,12 @@ Standard is safe because the quality gap is small: Sonnet 4.6 scores 79.6% on SW
 
 For day-to-day work, each provider has different strengths:
 
-| | Claude Code | Codex | Cursor |
-|---|------------|-------|--------|
-| **Strength** | Code reasoning (SWE-Bench) | Agentic tool use (Terminal-Bench 75.1%) | IDE integration, cheapest agentic model |
-| **Budget** | 5h / 7-day rolling (generous) | 5h / 7-day rolling (generous) | ~$20-30 / month (tight) |
-| **Best for** | Planning, debugging, complex reasoning | Sandboxed execution, tool-heavy tasks | Focused implementation, inline edits |
-| **Default model** | sonnet | gpt-5.4 | composer-2 |
+| | Claude Code | Codex | Cursor | Copilot |
+|---|------------|-------|--------|---------|
+| **Strength** | Code reasoning (SWE-Bench) | Agentic tool use (Terminal-Bench 75.1%) | IDE integration, cheapest agentic model | Multi-model via GitHub Pro+ (300 req/month) |
+| **Budget** | 5h / 7-day rolling (generous) | 5h / 7-day rolling (generous) | ~$20-30 / month (tight) | Tight (fallback only) |
+| **Best for** | Planning, debugging, complex reasoning | Sandboxed execution, tool-heavy tasks | Focused implementation, inline edits | Fallback coverage, separate rate-limit pool |
+| **Default model** | sonnet | gpt-5.4 | composer-2 | gpt-5.4 |
 
 **Recommended primary**: Claude Code — highest code quality benchmarks, generous rolling budget, full Spine skill and subagent support. Use Standard (sonnet) as daily driver.
 
@@ -63,11 +63,11 @@ Heavy multi-agent sessions can exhaust Claude Code Max 5x Opus hours in 2-3 days
 
 ### Cost per million tokens
 
-| Tier | Claude | Codex | Cursor |
-|------|--------|-------|--------|
-| Frontier | opus ($5/$25) | gpt-5.4 ($2.50/$15) | composer-2 ($0.50/$2.50) |
-| Standard | sonnet ($3/$15) | gpt-5.4 ($2.50/$15) | composer-2 ($0.50/$2.50) |
-| Fast | haiku ($1/$5) | gpt-5.4-mini¹ ($0.75/$4.50) | composer-2 ($0.50/$2.50) |
+| Tier | Claude | Codex | Cursor | Copilot |
+|------|--------|-------|--------|---------|
+| Frontier | opus ($5/$25) | gpt-5.4 ($2.50/$15) | composer-2 ($0.50/$2.50) | premium requests (not per-token) |
+| Standard | sonnet ($3/$15) | gpt-5.4 ($2.50/$15) | composer-2 ($0.50/$2.50) | premium requests (not per-token) |
+| Fast | haiku ($1/$5) | gpt-5.4-mini¹ ($0.75/$4.50) | composer-2 ($0.50/$2.50) | premium requests (not per-token) |
 
 > Cursor models draw from the Auto+Composer pool with a monthly allowance. Per-token cost matters less than staying within your monthly budget. Composer 2 Fast ($1.50/$7.50) offers the same quality at higher speed but 3× the cost — use selectively when latency matters. For higher quality beyond the pool, override to API-pool models (e.g., gpt-5.4) at provider pricing.
 
@@ -81,7 +81,7 @@ Env var cascade for envoy model selection:
 SPINE_ENVOY_{TIER}_{PROVIDER} > SPINE_ENVOY_{PROVIDER} > built-in default
 ```
 
-Example: `SPINE_ENVOY_FRONTIER_CLAUDE=opus:high` overrides the frontier tier for Claude envoy calls.
+Example: `SPINE_ENVOY_FRONTIER_CLAUDE=opus:high` overrides the frontier tier for Claude envoy calls. Full cascade includes `SPINE_ENVOY_{TIER}_COPILOT` for Copilot.
 
 ### Multi-Provider Dispatch
 
@@ -94,8 +94,9 @@ Example: `SPINE_ENVOY_FRONTIER_CLAUDE=opus:high` overrides the frontier tier for
 | Claude Code | Session-level only (ignored per-agent) | — |
 | Codex | Per-role in TOML | minimal, low, medium, high, xhigh |
 | Cursor | None | — |
+| Copilot | Yes | low, medium, high, xhigh |
 
-Agent frontmatter `effort:` is not consumed by Claude Code directly. However, `run-claude.sh` reads the tier's effort value from `resolve_tier()` and sets `CLAUDE_CODE_EFFORT_LEVEL` at runtime for envoy dispatch. This means effort values in agent files ARE effective for Claude envoy calls — the runtime script bridges the gap.
+Agent frontmatter `effort:` is not consumed by Claude Code directly. However, `invoke-claude.sh` reads the tier's effort value from `resolve_tier()` and sets `CLAUDE_CODE_EFFORT_LEVEL` at runtime for envoy dispatch. This means effort values in agent files ARE effective for Claude envoy calls — the runtime script bridges the gap.
 
 See [`env.example`](../env.example) for the full override template.
 
@@ -152,8 +153,9 @@ Env var changes take effect immediately (runtime). Model mapping changes require
 Three mapping points encode the tier tables:
 
 - **`install.sh`** `map_model_for_provider()` — maps tiers to provider models at install time, generating agent frontmatter for Codex TOML, Cursor `.md`, and Qwen `.md` files.
-- **`_common.sh`** `resolve_tier()` — maps tier + provider to model at runtime for envoy CLI dispatch.
+- **`_common.sh`** `resolve_tier()` — maps tier + provider to model at runtime for envoy CLI dispatch via `invoke-{provider}.sh`.
 - **`install.sh`** `generate_qwen_agent_md()` — Qwen agents use only `name` + `description` frontmatter (no model/effort fields).
+- **`install.sh`** `generate_copilot_agent_md()` — Copilot agents use only `name` + `description` frontmatter (same as Qwen).
 
 All mapping points agree on tier:provider mappings. Intentional surface differences: Cursor Fast uses `fast` in install-time frontmatter but `composer-2` in envoy CLI dispatch. Qwen has no effort parameter — all tiers use empty effort. Qwen OAuth free tier resolves all models to `coder-model`; Dashscope API keys required for actual model differentiation.
 

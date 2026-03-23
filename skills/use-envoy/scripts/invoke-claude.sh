@@ -9,7 +9,7 @@ error() { printf 'Error: %s\n' "$*" >&2; }
 
 usage() {
     cat <<'EOF'
-Usage: run-claude.sh --prompt-file PATH --output-file PATH --stderr-log PATH [--tier frontier|standard|fast]
+Usage: invoke-claude.sh --prompt-file PATH --output-file PATH --stderr-log PATH [--tier frontier|standard|fast]
 
 Invoke Claude Code CLI headlessly with sanitized environment.
 EOF
@@ -87,8 +87,9 @@ timeout --kill-after=10 "$_claude_timeout" env \
     || _rc=$?
 
 printf 'envoy: claude completed (exit=%s), validating...\n' "$_rc" >&2
-_cleanup
+# Defer _cleanup until after JSON extraction — _cleanup deletes $_json_tmp
 if [ "$_rc" -eq 124 ] || [ "$_rc" -eq 137 ]; then
+    _cleanup
     error "Claude CLI timed out after ${_claude_timeout}s"; exit 2
 fi
 handle_exit_code "Claude CLI"
@@ -102,14 +103,13 @@ if [ -f "$_json_tmp" ] && jq -e '.result' "$_json_tmp" >/dev/null 2>&1; then
     _duration_ms=$(jq -r '.duration_ms // empty' "$_json_tmp")
     _meta_resolved_model=$(jq -r '(.modelUsage | keys[0]) // empty' "$_json_tmp")
 else
-    # JSON extraction failed — cannot deliver valid output
-    rm -f "$_json_tmp"
-    _json_tmp=""
+    _cleanup
     error "JSON extraction failed from Claude output"
     exit 3
 fi
 rm -f "$_json_tmp"
 _json_tmp=""
+_cleanup
 
 # Prefer API-reported duration if available, otherwise shell timing
 _meta_elapsed="${_duration_ms:+$(( _duration_ms / 1000 ))}"

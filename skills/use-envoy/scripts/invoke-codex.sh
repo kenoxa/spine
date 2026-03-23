@@ -9,7 +9,7 @@ error() { printf 'Error: %s\n' "$*" >&2; }
 
 usage() {
     cat <<'EOF'
-Usage: run-codex.sh --prompt-file PATH --output-file PATH --stderr-log PATH [--tier frontier|standard|fast]
+Usage: invoke-codex.sh --prompt-file PATH --output-file PATH --stderr-log PATH [--tier frontier|standard|fast]
 
 Invoke Codex CLI headlessly with sanitized environment.
 EOF

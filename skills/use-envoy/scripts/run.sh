@@ -1,6 +1,6 @@
 #!/bin/sh
 # Cross-provider envoy dispatcher.
-# Detects current provider, picks target, delegates, handles fallback.
+# Detects current provider, picks target, delegates via fallback wrapper.
 # Exit: propagates exit code from provider script.
 
 set -eu
@@ -80,6 +80,8 @@ elif printenv CODEX_SANDBOX >/dev/null 2>&1; then
     _self=codex
 elif [ "${QWEN_CODE:-}" = "1" ]; then
     _self=qwen
+elif [ "${SPINE_ENVOY_COPILOT:-}" = "1" ]; then
+    _self=copilot
 fi
 _self="${_self:-${hint:-codex}}"
 
@@ -97,7 +99,7 @@ if [ "$mode" = "multi" ]; then
     _seen="" _launched=""
     for _p in $_providers; do
         # Unknown provider guard
-        if [ ! -f "$_script_dir/run-${_p}.sh" ]; then
+        if [ ! -f "$_script_dir/invoke-${_p}.sh" ]; then
             printf 'Warning: unknown provider "%s", skipping\n' "$_p" >&2
             continue
         fi
@@ -127,13 +129,14 @@ if [ "$mode" = "multi" ]; then
     }
     trap '_kill_children' INT TERM
 
-    # --- Parallel dispatch ---
+    # --- Parallel dispatch with per-slot fallback ---
     for _p in $_launched; do
-        sh "$_script_dir/run-${_p}.sh" \
+        sh "$_script_dir/fallback.sh" \
+            --self "$_self" --tier "$tier" --chain "copilot,cursor" \
             --prompt-file "$prompt_file" \
             --output-file "${_base}.${_p}.md" \
             --stderr-log "${_base}.${_p}.log" \
-            --tier "$tier" \
+            -- "$_script_dir/invoke-${_p}.sh" \
             >/dev/null &
         _child_pids="$_child_pids $!"
     done
@@ -156,70 +159,45 @@ fi
 
 # --- Direct target (--target flag bypasses cascade) ---
 
+_base="${output_file%.md}"
+
 if [ -n "$target" ]; then
     [ "$target" != "$_self" ] || { error "--target '$target' matches self '$_self'"; exit 1; }
     if ! sh "$_script_dir/check-${target}.sh" >/dev/null 2>&1; then
         error "Target provider $target unavailable"; exit 1
     fi
-    sh "$_script_dir/run-${target}.sh" \
-        --prompt-file "$prompt_file" --output-file "$output_file" \
+    _out="${_base}.${target}.md"
+    sh "$_script_dir/invoke-${target}.sh" \
+        --prompt-file "$prompt_file" --output-file "$_out" \
         --stderr-log "$stderr_log" --tier "$tier"
-    exit $?
-fi
-
-# --- Pick target and fallback (never target or fall back to self) ---
-
-case "$_self" in
-    claude) _target=codex;  _fallback=cursor ;;
-    cursor) _target=claude; _fallback=codex ;;
-    qwen)   _target=claude; _fallback=codex ;;
-    *)      _target=claude; _fallback=cursor ;;
-esac
-
-# --- Invoke target ---
-
-_rc=0
-if sh "$_script_dir/check-${_target}.sh" >/dev/null 2>&1; then
-    sh "$_script_dir/run-${_target}.sh" \
-        --prompt-file "$prompt_file" \
-        --output-file "$output_file" \
-        --stderr-log "$stderr_log" \
-        --tier "$tier" \
-        || _rc=$?
-else
-    printf 'Target provider %s unavailable, skipping to fallback\n' "$_target" >&2
-    _rc=1
-fi
-
-# Exit 0 (success) → propagate, no fallback
-if [ "$_rc" -eq 0 ]; then
-    exit 0
-fi
-
-# --- Fallback on exit 1 (invocation failed), 2 (timeout), or 3 (output validation failed) ---
-
-if ! sh "$_script_dir/check-${_fallback}.sh" >/dev/null 2>&1; then
-    error "Fallback provider $_fallback also unavailable"
+    _rc=$?
+    # stdout: actual output path
+    [ "$_rc" -eq 0 ] && [ -f "$_out" ] && printf '%s\n' "$_out"
     exit "$_rc"
 fi
 
-printf '%s failed (exit %s), attempting %s fallback\n' "$_target" "$_rc" "$_fallback" >&2
+# --- Pick target and fallback chain (never target self) ---
 
-if [ "$_fallback" = "cursor" ]; then
-    # shellcheck disable=SC2093
-    exec sh "$_script_dir/run-cursor.sh" \
-        --prompt-file "$prompt_file" \
-        --output-file "$output_file" \
-        --stderr-log "$stderr_log" \
-        --tier "$tier" \
-        --fallback-for "$_target"
-else
-    # shellcheck disable=SC2093
-    exec sh "$_script_dir/run-${_fallback}.sh" \
-        --prompt-file "$prompt_file" \
-        --output-file "$output_file" \
-        --stderr-log "$stderr_log" \
-        --tier "$tier"
-fi
+case "$_self" in
+    claude)  _target=codex;  _chain="copilot,cursor" ;;
+    codex)   _target=claude; _chain="copilot,cursor" ;;
+    cursor)  _target=codex;  _chain="copilot,cursor" ;;
+    qwen)    _target=codex;  _chain="copilot,cursor" ;;
+    copilot) _target=claude; _chain="cursor,codex" ;;
+    *)       _target=codex; _chain="copilot,cursor" ;;
+esac
+
+# --- Invoke via fallback wrapper ---
+# Output naming: single-mode now uses {base}.{target}.md for consistency with multi-mode.
+
+_out="${_base}.${_target}.md"
+
+# shellcheck disable=SC2093
+exec sh "$_script_dir/fallback.sh" \
+    --self "$_self" --tier "$tier" --chain "$_chain" \
+    --prompt-file "$prompt_file" \
+    --output-file "$_out" \
+    --stderr-log "$stderr_log" \
+    -- "$_script_dir/invoke-${_target}.sh"
 # Dead-code guard (exec replaces process)
 error "exec failed"; exit 1
