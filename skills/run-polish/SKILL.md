@@ -56,6 +56,7 @@ Output: `polish_findings`, updated `files_modified`.
 - Introduced or worsened by change? Skip pre-existing unless interacting with new code.
 - Fixable in same scope? Skip if separate effort required.
 - Material impact on correctness or reviewability? Skip style-only preferences.
+- Consistent with project intent — deliberate tradeoffs documented in plan or spec are not defects
 
 ## Anti-Patterns
 

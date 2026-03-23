@@ -62,7 +62,7 @@ Use when scope warrants. When present, each section's MUST-when-present rules ap
 | **Approach** | Key decisions and tradeoffs; written for human reader, not executor. Diagram for non-trivial flows | NEVER duplicate Implementation Intent — different readers |
 | **Decisions** | Material decisions with options and rationale | NEVER include unresolved placeholders (TBD); all decisions resolved, defaulted, or user-deferred with evidence |
 | **Phased Plan** | Multi-phase sequencing for work spanning distinct phases | — |
-| **Risks and Rollback** | Notable risks and rollback strategy | — |
+| **Risks and Rollback** | Notable risks with likelihood, impact, and mitigation | MUST use risk / likelihood / impact / mitigation structure per entry |
 | **Implementation Intent** | `code_intent` (pattern-level what/how), `acceptance_criteria` (testable per-task). MAY include `reference_anchors` | Outcome-focused "what" over "how" |
 | **Code Anchors** | Existing code to align with or modify | MUST list explicit paths |
 | **Draft Artifacts** | Pre-written text for docs, config, schema. Workers refine rather than create | MUST be non-placeholder |

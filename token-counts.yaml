@@ -42,7 +42,7 @@ skills/do-discuss/references/spec-final-synthesis.md: 391
 skills/do-discuss/references/spec-mode.md: 379
 skills/do-discuss/references/spec-phases-reviewer.md: 386
 skills/do-discuss/references/spec-phases-synthesis.md: 398
-skills/do-discuss/references/template-brief.md: 1022
+skills/do-discuss/references/template-brief.md: 1048
 skills/do-discuss/references/template-spec.md: 630
 skills/do-discuss/SKILL.md: 1271
 skills/do-execute/references/finalize.md: 781
@@ -68,7 +68,7 @@ skills/do-plan/references/planning-envoy.md: 417
 skills/do-plan/references/planning-rigorous.md: 363
 skills/do-plan/references/planning-synthesis.md: 421
 skills/do-plan/references/spec-mode.md: 653
-skills/do-plan/references/template-plan.md: 826
+skills/do-plan/references/template-plan.md: 841
 skills/do-plan/references/variance-lenses.md: 813
 skills/do-plan/references/vertical-slices.md: 241
 skills/do-plan/SKILL.md: 1390
@@ -100,7 +100,7 @@ skills/run-polish/references/advisory-conventions.md: 371
 skills/run-polish/references/advisory-efficiency.md: 397
 skills/run-polish/references/polish-apply.md: 309
 skills/run-polish/references/polish-synthesis.md: 440
-skills/run-polish/SKILL.md: 590
+skills/run-polish/SKILL.md: 609
 skills/run-recap/references/collect-miner.md: 455
 skills/run-recap/references/dispatch-preamble.md: 586
 skills/run-recap/references/present-visualizer.md: 174
@@ -117,7 +117,7 @@ skills/run-review/references/review-output.md: 525
 skills/run-review/references/scope-context.md: 804
 skills/run-review/references/security-probe.md: 1002
 skills/run-review/references/template-review-brief.md: 344
-skills/run-review/SKILL.md: 1186
+skills/run-review/SKILL.md: 1205
 skills/use-envoy/SKILL.md: 1040
 skills/use-js/SKILL.md: 714
 skills/use-shell/references/ast-grep.md: 932

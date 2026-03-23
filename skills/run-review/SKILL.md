@@ -98,6 +98,7 @@ Before raising any finding, verify:
 - Discrete and actionable — not general codebase observations
 - Does not demand rigor absent from rest of codebase
 - Security findings at high risk: apply exclusion rules from [references/security-probe.md](references/security-probe.md)
+- Consistent with project intent — deliberate tradeoffs documented in plan or spec are not defects
 
 ### Anti-Patterns
 

@@ -111,6 +111,9 @@ Proposals — never auto-applied, user approves.
 ### Docs Impact
 Early classification: `customer-facing`, `internal`, `both`, or `none`. Advisory — do-plan reclassifies after discovery.
 
+### Hypothesis
+Falsifiable claim about root cause or solution direction. State the belief and what observation would disprove it.
+
 ## Evidence Expectations
 
 | Claim type | Required level |
