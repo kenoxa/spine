@@ -1,4 +1,4 @@
-# Scope + Context (Phases 1-2)
+# Scope + Context (Phase 1)
 
 ## Role
 
@@ -18,9 +18,9 @@ Classify and lock at end of Phase 1. May upgrade during Phase 2 on strong eviden
 
 | Depth | Risk | Behavior |
 |-------|------|----------|
-| `focused` | Low | Phases 1-2 inline -> skip to Phase 6. No dispatch, no session ID, no scratch artifacts (except @visualizer, non-blocking). |
-| `standard` | Medium | Session ID generated. Phases 1-2 inline -> review_brief (Gate A) -> dispatch phases. |
-| `deep` | High | Same as `standard` + expanded security probe + augmented @inspector (cap 6 total). |
+| `focused` | Low | Phase 1 inline -> skip to Phase 4. No dispatch, no session ID, no scratch artifacts (except @visualizer, non-blocking). |
+| `standard` | Medium | Session ID generated. Phase 1 inline -> review_brief (Gate A) -> dispatch phases. |
+| `deep` | High | Same as `standard` + expanded security probe + augmented @inspector (cap 5 total). |
 
 **Default standalone: `standard`.**
 
@@ -34,7 +34,7 @@ At `focused`: no session ID.
 
 Main thread (all depths). Confirm what was requested and what changed. Classify depth. Lock risk level.
 
-### Phase 2: Context (passes 1-4)
+### Context (passes 1-4)
 
 Main thread (all depths). Build understanding before judging. Four passes:
 
@@ -46,7 +46,7 @@ Main thread (all depths). Build understanding before judging. Four passes:
 3. **Evidence check** — validate claims against current code and requirements.
 4. **Spec compliance** — verify built behavior matches requested behavior.
 
-At `focused` depth: after pass 4, skip directly to Phase 6.
+At `focused` depth: after pass 4, skip directly to Phase 4.
 
 At `standard`/`deep` depth: after pass 4, emit `review_brief` per [template-review-brief.md](template-review-brief.md) (Gate A) before proceeding.
 
@@ -64,7 +64,7 @@ When reviewing docs, READMEs, or user-facing text:
 
 ### Gate A: review_brief
 
-After writing review_brief, read it back and confirm all 7 fields present. Dispatch must not begin in the same orchestration turn as the write. If any mandatory field is absent: do NOT proceed to Phase 3. Fall back to inline execution of remaining phases. Log to user: "review_brief incomplete after pass 4; proceeding inline at focused depth."
+After writing review_brief, read it back and confirm all 7 fields present. Dispatch must not begin in the same orchestration turn as the write. If any mandatory field is absent: do NOT proceed to Phase 2. Fall back to inline execution of remaining phases. Log to user: "review_brief incomplete after pass 4; proceeding inline at focused depth."
 
 ## Output
 
@@ -72,6 +72,6 @@ After writing review_brief, read it back and confirm all 7 fields present. Dispa
 
 ## Constraints
 
-- Read-only — no file writes except review_brief, no test execution.
+- Read-only — no file writes except review_brief. `@verifier` may run non-destructive commands (build, test, lint, type-check) for E3 probes. All other agents: no test execution.
 - Emitting a `review_brief` without `noise_context` is an error — inspectors will flag pre-existing issues as findings.
 - At `focused` depth, skip dispatch entirely — proceed inline to output phase.

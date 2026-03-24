@@ -36,13 +36,12 @@ When risk is high: auth boundary regressions, privilege escalation paths, inject
 
 ### Disambiguation
 
-Each inspector applies ONLY its assigned lens.
+Two-agent model — each applies ONLY its assigned lens.
 
-- **spec-reviewer**: NOT logic, risk, or quality — only plan↔code structural alignment
-- **correctness-reviewer**: NOT plan coverage or security — only logic soundness under adversarial inputs
-- **risk-reviewer**: NOT plan fidelity or isolated logic — only production survivability (security, perf, scale)
+- **verifier**: plan/spec compliance + logic correctness + E3 probes
+- **risk-reviewer**: production survivability (security, perf, scale)
 
-Tiebreaker: plan requirement gap → spec-reviewer. Logic defect → correctness-reviewer. Missing control/resource bound → risk-reviewer.
+Tiebreaker: requirement gap or logic defect → verifier. Missing control, resource bound, trust boundary → risk-reviewer.
 
 ## Output
 

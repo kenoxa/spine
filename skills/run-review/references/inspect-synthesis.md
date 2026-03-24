@@ -10,6 +10,7 @@ Merge inspector outputs into consolidated finding set. Deduplicate, rank, flag c
 
 Dispatch provides:
 - `{inspector_output_paths}` -- non-empty inspector output files
+- `{verifier_output_path}` -- verifier output file
 - `{envoy_output_path}` -- envoy output file (may not exist)
 - `{review_brief_path}` -- review brief
 - `{output_path}` -- write synthesis here
@@ -27,6 +28,14 @@ Merge procedure:
 6. **Assign final severity** — E2+ required for blocking. For any blocking finding, verify cited file+symbol references exist; unverifiable references demote to `should_fix`.
 7. **Correctness assessment** — categorical confidence (high/med/low) + 1-2 sentence justification. Note envoy agreement/disagreement when present.
 
+**Verifier VERDICT**: if verifier output contains VERDICT:
+- PASS: findings merge normally, no header flag
+- FAIL: flag as blocking in output header ("Verifier found blocking issues")
+- PARTIAL: flag in header ("Verifier coverage incomplete: {stated reason}")
+Unlike do-execute, run-review has no re-entry — blocking findings surface to user for resolution.
+
+**Probe integration**: failed probe without corresponding Part 1 finding emits as `[B]` finding. E3 probe supporting E2 Part 1 finding upgrades evidence to E3.
+
 ## Output
 
 Write to `{output_path}`.
@@ -35,5 +44,5 @@ Write to `{output_path}`.
 
 - Flag conflicts, never resolve them.
 - Missing/empty inputs = reportable gap in output header, not a failure.
-- Preserve per-inspector provenance on every finding.
+- Preserve per-agent provenance on every finding (inspector(s), verifier, envoy).
 - No file writes beyond the output artifact.

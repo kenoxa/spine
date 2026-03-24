@@ -47,17 +47,14 @@ Canonical entry: [`skills/do-execute/SKILL.md`](../skills/do-execute/SKILL.md).
 
 ### run-review
 
-Structured code review with severity-bucketed findings:
+Structured code review with severity-bucketed findings and evidence-level gating. Four phases:
 
-1. **Scope check** — confirm what was requested and what changed.
-2. **Context building** — build understanding before judging. Scale depth by risk.
-3. **Evidence check** — validate claims against current code and requirements.
-4. **Spec compliance** — verify built behavior matches requested behavior.
-5. **Risk pass** — correctness, security, performance, maintainability (scaled by risk level: low → spec + quality; medium → + testing depth; high → + security probe).
-6. **Quality pass** — readability, cohesion, duplication, test adequacy, edge/failure coverage.
-7. **Output** — return findings using severity buckets.
+1. **Scope + Context** — classify depth, build understanding, emit review brief (Gate A).
+2. **Inspect** — parallel dispatch: `@verifier` (plan/spec compliance + logic correctness + E3 probes) + `@inspector` (risk lens: security, perf, scale) + cross-provider `@envoy`. Verifier runs at standard and deep depth; focused depth is inline-only.
+3. **Synthesis** — `@synthesizer` merges verifier VERDICT, inspector findings, and envoy output. VERDICT propagation: FAIL/PARTIAL → blocking flag in synthesis header.
+4. **Output** — conflict resolution, severity re-sort, user-facing findings, visual diff report.
 
-Findings are bucketed as `blocking` (must fix, E2+ required), `should_fix` (recommended, blocks unless deferred), or `follow_up` (tracked debt). At standard/deep depth, dispatches parallel @inspector agents (spec, correctness, risk lenses) plus cross-provider envoy; synthesis includes a correctness assessment with categorical confidence. All passes inline at focused depth. Review is read-only — no file writes.
+Findings are bucketed as `blocking` (must fix, E2+ required), `should_fix` (recommended, blocks unless deferred), or `follow_up` (tracked debt). Review is read-only — `@verifier` may run non-destructive commands (build, test, lint) for E3 probes; all other agents are read-only.
 
 Canonical entry: [`skills/run-review/SKILL.md`](../skills/run-review/SKILL.md).
 
@@ -80,7 +77,7 @@ Periodic cross-tool session analysis. Python scripts parse raw session data from
 
 1. **Collect** — run parser scripts to extract and normalize session data from all three tools into `analytics.json`.
 2. **Analyze** — dispatch source-expert `@miner` subagents in parallel (one per provider with sessions) to identify provider-specific patterns.
-3. **Synthesize** — a synthesizer `@miner` merges all expert outputs into recommendations across 7 categories: skills, hooks, MCP servers, plugins, agents, CLAUDE.md rules, and anti-patterns.
+3. **Synthesize** — `@synthesizer` merges all expert outputs into recommendations across 7 categories: skills, hooks, MCP servers, plugins, agents, CLAUDE.md rules, and anti-patterns.
 4. **Present** — activity stats table and prioritized recommendations in the terminal. HTML dashboard via `@visualizer`.
 
 Every recommendation includes evidence (session counts, specific examples) and a concrete action. Cross-tool patterns — the same workflow repeated across multiple tools — are the highest-value findings.
@@ -107,7 +104,7 @@ Canonical entry: [`skills/run-research/SKILL.md`](../skills/run-research/SKILL.m
 
 ### run-polish
 
-Advisory code polish with conventions, complexity, and efficiency lenses.
+Advisory code polish with 2-3 conditional lenses: conventions + complexity default; performance-sensitive scopes swap conventions for efficiency (hot-path loops, async/concurrency, N+1, explicit perf requirements). All 3 lenses at deep depth.
 
 Canonical entry: [`skills/run-polish/SKILL.md`](../skills/run-polish/SKILL.md).
 
@@ -137,7 +134,7 @@ Summarize work done across AI agent sessions for standups, timesheets, and activ
 - **timesheet** — billable hour blocks in a 9-17 window, copy-pasteable into time tracking tools
 - **recap** — narrative summary with per-project sections and metrics
 
-Reuses `run-insights/scripts/` for session collection. Dispatches a single `@miner` subagent to synthesize task descriptions and estimate durations from session metadata across Claude Code, Codex, and Cursor.
+Reuses `run-insights/scripts/` for session collection. Two phases: a single `@miner` dispatch collects session data and formats the report per template, then mainthread presents the output with optional `@visualizer` HTML dashboard.
 
 Requires Python 3.9+ on `PATH`. On supported Homebrew setups, Spine can install Python 3 as part of its installer-managed host CLI tools. Otherwise, provide a compatible interpreter yourself.
 
@@ -155,7 +152,7 @@ Canonical entry: [`skills/run-recap/SKILL.md`](../skills/run-recap/SKILL.md).
 | `inspector` | Frontier | opus | high | Verdict-focused code review, preloads `run-review` |
 | `analyst` | Standard | sonnet | high | Advisory pattern analysis, preloads `run-review` and `run-polish` |
 | `framer` | Standard | sonnet | high | Perspective-committed problem framing |
-| `verifier` | Frontier | opus | high | Correctness, spec compliance, and E3 verification probes in quality phase; preloads `with-testing` (test boundary decisions + mock strategy) |
+| `verifier` | Frontier | opus | high | Correctness, spec compliance, and E3 verification probes in quality phase and standalone run-review; preloads `with-testing` (test boundary decisions + mock strategy) |
 | `miner` | Fast | haiku | medium | Session data analysis and cross-session pattern extraction |
 | `visualizer` | Standard | sonnet | high | HTML visualization via visual-explainer commands, preloads `visual-explainer` |
 | `implementer` | Adaptive | inherit | high | Read-write implementation for plan-driven code changes |

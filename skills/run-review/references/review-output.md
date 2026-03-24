@@ -1,6 +1,6 @@
 # Review: Output
 
-Mainthread-loaded reference for Phases 5-6. Conflict resolution, severity re-sort, output assembly.
+Mainthread-loaded reference for Phase 4. Conflict resolution, severity re-sort, output assembly.
 
 ## Input
 
@@ -16,7 +16,7 @@ Mainthread-loaded reference for Phases 5-6. Conflict resolution, severity re-sor
 2. **Equal evidence** — higher severity bucket wins. Demotion requires explicit written justification.
 3. **Irresolvable** — retain BOTH labeled "(unresolved — user decision required)" at top of severity bucket. Never silently drop.
 
-### Phase 5: Re-sort
+### Output: Re-sort
 
 Primary sort ALWAYS severity bucket. Evidence level secondary within bucket only.
 
@@ -26,7 +26,7 @@ Primary sort ALWAYS severity bucket. Evidence level secondary within bucket only
 
 A `follow_up` at E3 comes after a `blocking` at E2. Re-sorting by evidence instead of severity is an error.
 
-### Phase 6: Output
+### Output: Assembly
 
 Per finding: severity bucket, target file(s), remediation path, evidence level.
 

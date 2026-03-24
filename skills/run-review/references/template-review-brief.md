@@ -1,6 +1,6 @@
 # Review Brief Schema (Gate A)
 
-Mandatory 7-field schema — all fields required. Written to `.scratch/<session>/review-brief.md` after Phase 2 pass 4, before any Phase 3 dispatch.
+Mandatory 7-field schema — all fields required. Written to `.scratch/<session>/review-brief.md` after Phase 1 pass 4, before any Phase 2 dispatch.
 
 | Field | Source | Content |
 |-------|--------|---------|
@@ -14,7 +14,7 @@ Mandatory 7-field schema — all fields required. Written to `.scratch/<session>
 
 ## Gate Check
 
-After writing review_brief, read it back and confirm all 7 fields present. Dispatch must not begin in the same orchestration turn as the write. If any mandatory field is absent: do NOT proceed to Phase 3. Fall back to inline execution of remaining phases. Log to user: "review_brief incomplete after pass 4; proceeding inline at focused depth."
+After writing review_brief, read it back and confirm all 7 fields present. Dispatch must not begin in the same orchestration turn as the write. If any mandatory field is absent: do NOT proceed to Phase 2. Fall back to inline execution of remaining phases. Log to user: "review_brief incomplete after pass 4; proceeding inline at focused depth."
 
 ## Inspector Requirement
 
