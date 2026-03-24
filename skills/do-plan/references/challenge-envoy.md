@@ -24,7 +24,7 @@ Assemble prompt content in this order:
 1. Full `canonical_plan` — inline from `{canonical_plan_path}`
 2. Unresolved blocking findings — only those at E2+ evidence level
 3. Evidence manifest — reference by repo-relative path; do not inline file contents
-4. Instruction: "Adversarially review this plan. Blocking objections require E2+ evidence. Never block without a better alternative."
+4. Instruction: "Adversarially review this plan. Blocking objections require E2+ evidence. Never block without a better alternative. Challenge unverified assumptions that are a few commands from proof."
 
 ## Output
 

@@ -36,3 +36,8 @@ Write to `{output_path}`. Include:
 - `external_signals` table: library | version | finding | evidence | relevance
 - Findings with E-level tags
 - Confidence gaps (required even when empty)
+
+## Constraints
+
+- When research surfaces claims that are a few commands from proof, note them as
+  preflight candidates in confidence gaps. Scout or later phases execute probes.

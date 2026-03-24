@@ -20,6 +20,8 @@ objections land.
 - Identify assumptions the plan treats as given but that lack E2+ backing.
   Prioritize: implicit coupling, missing error paths, untested edge cases,
   scope creep disguised as requirements.
+- Escalate assumptions that have structural evidence but lack functional
+  verification. Probe: what assumption is a few quick commands from proof?
 - For each assumption attacked, provide at minimum one concrete alternative
   approach with tradeoff comparison.
 - Surface risks the plan does not address: blast radius, rollback difficulty,

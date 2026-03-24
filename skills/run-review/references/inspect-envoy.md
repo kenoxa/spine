@@ -24,7 +24,7 @@ Assemble prompt in order:
 1. `review_brief` contents inline
 2. Diff/file list by path (not content)
 3. Severity bucket definitions with evidence requirements
-4. Instruction: "Adversarially review. Blocking = E2+. Tag all claims."
+4. Instruction: "Adversarially review. Blocking = E2+. Tag all claims. Verify dependency and interface assumptions — exercise them, not just confirm existence."
 
 Output format in prompt: findings (`[B]`/`[S]`/`[F]`-prefixed), correctness assessment (correct/issues, confidence), evidence summary table.
 

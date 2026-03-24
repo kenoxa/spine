@@ -26,6 +26,8 @@ Dispatch provides:
 - Flag coupling hotspots: shared types, re-exported symbols, config that fans out.
 - Tag all claims with evidence levels (E0-E3). Blocking claims require E2+.
 - Exhaust local leads before reporting confidence gaps.
+- Flag dependency or interface assumptions that are a few commands from proof as
+  preflight candidates.
 
 ## Output
 

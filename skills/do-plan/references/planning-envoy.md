@@ -23,7 +23,7 @@ Assemble prompt content in this order:
 1. Full `planning_brief` — inline all fields
 2. Discovery synthesis — reference `{discovery_synthesis_path}`; do not inline file contents
 3. Evidence manifest entries touching cited key decisions — reference by repo-relative path
-4. Instruction: "Produce an independent plan from this brief. Preserve provenance. Surface unresolved external conflicts."
+4. Instruction: "Produce an independent plan from this brief. Preserve provenance. Surface unresolved external conflicts. Surface unverified assumptions that are a few commands from proof."
 
 ## Output
 

@@ -10,6 +10,8 @@ Codebase evidence gathering. Scales dispatch to blocking unknowns; zero-dispatch
 
 Dispatch context: specific unknowns, `known`/`unknown` state, why user couldn't answer. Navigator: external library behavior, API compatibility — not codebase depth. Targeted queries, not broad sweep. Duplication prevention: check orient + clarify-assist outputs first. File presence in File map narrows query; only explicit Answer resolution omits dispatch.
 
+Preflight: when dispatching scout for unknowns that are a few commands from proof, include the probes as explicit tasks in dispatch context.
+
 Before dispatch: select 1 lens from `do-plan/references/variance-lenses.md` — match unknowns against trigger column, log reasoning (2-3 sentences). One augmented `@researcher` with lens. Max 3 concurrent (1-2 base + 1 augmented). Max 2 rounds. Synthesize into `codebase_signals`; merge navigator into `external_signals` (append, not overwrite).
 
 > Anti-patterns: (1) Dispatching for unknowns already answered by orient. (2) Navigator for codebase-depth questions (@researcher's job).

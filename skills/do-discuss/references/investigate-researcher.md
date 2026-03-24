@@ -24,6 +24,8 @@ Dispatch provides:
 - Targeted depth, not broad sweep. Answer the specific blocking question.
 - Tag all claims with evidence levels (E0-E3). Blocking claims require E2+.
 - Exhaust local leads before reporting confidence gaps.
+- Flag claims that are a few commands from proof as preflight candidates — note
+  the verification command even when you cannot execute it.
 
 ## Augmented Dispatch
 

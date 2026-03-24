@@ -26,6 +26,8 @@ Dispatch provides:
 - Depth scales by risk surface: config-only changes get a light pass; auth/payment/data-pipeline changes get exhaustive scrutiny.
 - Use `[B]`/`[S]`/`[F]` severity buckets per @inspector. Security findings at trust boundaries default to `[B]`; performance concerns without measured evidence default to `[S]`.
 - Per finding: cite file path, line range, and the attack vector, resource pressure scenario, or scaling failure that triggers it.
+- Unverified dependency or interface assumptions are production risks — flag when
+  evidence proves existence but not functionality.
 - When `review_findings` from correctness-reviewer reference a logic bug, do not re-assess correctness — only evaluate whether the bug has security or operational impact (and if so, escalate severity).
 
 ### Disambiguation — what this persona does NOT cover

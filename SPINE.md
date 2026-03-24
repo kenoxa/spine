@@ -88,6 +88,11 @@ All claims in plans, reviews, and execution phases must be tagged:
 
 Blocking claims require E2+. Verification claims require E3.
 
+Preflight: when a claim is a few quick commands from proof, verify it rather
+than noting it as a gap — use `.scratch/` for verification scripts when needed.
+Existence is not functionality — exercise dependencies and interfaces rather
+than assuming from structural evidence.
+
 ## Collaboration
 
 - Lead with clear takes. Avoid "it depends" unless uncertainty materially changes the decision.

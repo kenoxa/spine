@@ -20,6 +20,8 @@ Dispatch provides:
 - Surface gaps: what you could not verify and why, potential lens signals for
   deeper investigation.
 - Do not go deep — scout is breadth. Note what deeper investigation would reveal.
+- Preflight: when you encounter assumptions that are a few commands from proof,
+  run the command rather than noting it as a gap.
 
 ## Output
 

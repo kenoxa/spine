@@ -25,6 +25,7 @@ Dispatch provides:
   stay visible; never flatten to generic citations.
 - Surface unresolved external conflicts as open items. Do not resolve them silently.
 - When risk is ambiguous and no codebase precedent exists, recommend no-change with rationale.
+- Surface assumptions that are a few commands from proof as preflight candidates.
 
 ## Output
 

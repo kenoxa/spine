@@ -25,7 +25,7 @@ Assemble prompt content in this order:
 2. `files_modified` list — repo-relative paths; reference files by path; do not inline file contents
 3. Diff — include in full; this is the primary review surface
 4. Severity bucket definitions — inline the `[B]`/`[S]`/`[F]` definitions with evidence requirements
-5. Instruction: "Adversarially review this diff. Blocking findings require E2+ evidence. Include a correctness assessment. Tag all claims with evidence levels."
+5. Instruction: "Adversarially review this diff. Blocking findings require E2+ evidence. Include a correctness assessment. Tag all claims with evidence levels. Verify dependency and interface assumptions — exercise them, not just confirm existence."
 
 ## Output
 

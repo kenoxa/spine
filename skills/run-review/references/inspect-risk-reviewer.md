@@ -22,6 +22,7 @@ Examine three axes:
 - **Scalability** — contention points, missing backpressure, absent timeouts.
 
 Severity: trust boundary violations = `[B]`. Unmeasured perf concerns = `[S]`.
+Unverified dependency or interface assumptions are production risks — flag existence-only evidence.
 
 ### Variant Hunting
 

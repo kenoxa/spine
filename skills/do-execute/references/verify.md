@@ -27,6 +27,8 @@ Dispatch provides:
 - If execution is infeasible (no runtime, hypothetical code): use E2 code-trace reasoning,
   state the constraint explicitly, and cap verdict at PARTIAL.
 - Do NOT re-run the implementer's own smoke test as your primary probe — that is not adversarial.
+- Probe dependency and interface assumptions — verify they work as claimed, not
+  just that the code compiles against them.
 
 ## Output
 

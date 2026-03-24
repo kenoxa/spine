@@ -28,6 +28,7 @@ Dispatch provides:
   refactors that require follow-up work beyond the plan boundary.
 - Quantify benefit where possible: fewer files touched, reduced cyclomatic complexity,
   eliminated duplication, narrower API surface.
+- Surface assumptions that are a few commands from proof as preflight candidates.
 
 ## Output
 

@@ -27,6 +27,8 @@ is stronger than the plan's foundation.
 - Strengthen weak plan sections proactively: if a plan choice lacks cited
   precedent, find it or flag the gap.
 - Do not invent evidence. Missing evidence is a gap, not a concession.
+- When defending E3 evidence, verify it exercises functionality — not just
+  existence.
 
 ## Output
 

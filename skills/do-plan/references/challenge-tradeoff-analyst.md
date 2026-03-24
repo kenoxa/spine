@@ -28,6 +28,8 @@ where they cannot.
   disagreements.
 - Surface irreversible commitments the plan makes implicitly — lock-in that
   neither champion nor dissenter may have flagged.
+- Count unverified assumptions a few commands from proof as deferred risk —
+  quantify the blast radius if they fail during execution.
 - Do not pick sides without evidence. Neutral framing unless E2+ tips the balance.
 
 ## Output
