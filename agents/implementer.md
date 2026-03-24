@@ -3,7 +3,7 @@ name: implementer
 description: >
   Read-write implementation within a scoped file partition.
   Use when editing project source files per plan tasks, polish actions,
-  or review-fix directives.
+  or quality-fix directives.
 model: inherit
 effort: high
 skills:

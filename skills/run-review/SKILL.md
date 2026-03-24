@@ -7,7 +7,7 @@ description: >
   (2) agent preload — shared review rules (severity buckets, risk scaling, noise filtering)
   for @inspector, @analyst, @debater. Use after code changes or when the user asks for
   review, code audit, or thorough/deep review. Do NOT use during active implementation —
-  use the review phase in do-execute instead.
+  use the quality phase in do-execute instead.
 argument-hint: "[file, PR, or scope]"
 ---
 

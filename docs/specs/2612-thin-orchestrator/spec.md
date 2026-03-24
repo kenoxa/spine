@@ -155,11 +155,11 @@ skills/do-execute/
     orchestrate-standard.md         # NEW — standard dispatch sequence
     orchestrate-deep.md             # NEW — expanded fanout dispatch
     implement.md                    # NEW — implementer role
-    validate.md                     # NEW — inspector validate role
-    polish-advisory.md              # NEW — analyst advisory roles
-    polish-apply.md                 # NEW — implementer polish-apply
-    review.md                       # NEW — inspector review role
-    verify.md                       # NEW — verifier role
+    quality-verifier.md             # NEW — verifier: correctness + spec compliance + E3 probes
+    quality-risk-reviewer.md        # NEW — analyst risk review in quality phase
+    quality-synthesis.md            # NEW — synthesizer merge for quality phase
+    quality-envoy.md                # NEW — envoy dispatch for quality phase
+    quality-fix.md                  # NEW — implementer fix from quality findings
     finalize.md                     # NEW — completion gates
 ```
 
@@ -209,7 +209,7 @@ Terminal phase — runs after all skill migrations complete. Agents become pure 
 
 | Agent | Current modes | Type | Action |
 |-------|--------------|------|--------|
-| implementer | implement, polish-apply, review-fix | explicit `## Mode Routing` | Extract bullets → skill refs |
+| implementer | implement, polish-apply, quality-fix | explicit `## Mode Routing` | Extract bullets → skill refs |
 | framer | stakeholder-advocate, systems-thinker, skeptic | explicit `## Mode Routing` | Extract bullets → skill refs |
 | analyst | conventions-advisor, complexity-advisor, efficiency-advisor | explicit `## Mode Routing` | Extract bullets → skill refs |
 | navigator | raw-docs, alternatives, synthesis | explicit `## Mode Routing` | Extract bullets → skill refs |

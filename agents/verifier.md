@@ -1,8 +1,7 @@
 ---
 name: verifier
 description: >
-  Adversarial verification for do-execute verify phase.
-  Use to probe implementations for failures the implementer did not test. All claims require E3 evidence.
+  Adversarial verification — probes implementations for failures the implementer did not test. All claims require E3 evidence.
 model: opus
 effort: max
 skills:

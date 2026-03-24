@@ -25,7 +25,7 @@ Five phases produce a self-sufficient, executable implementation plan:
 1. **Discovery** — map the codebase: file scouting, docs exploration, bounded upstream lookup inside `researcher`, and external-first research through `navigator`. All claims tagged with evidence levels (E0–E3).
 2. **Framing** — distill discoveries into a planning brief: goal, scope, constraints, key decisions, provenance-tagged evidence manifest, and docs impact classification.
 3. **Planning** — dispatch planners with distinct approach angles (rigorous, creative) plus cross-provider envoy. Merge via consensus; rank by evidence level.
-4. **Challenge** — adversarial review exposing hidden assumptions, underestimated risks, and unnecessary abstraction. Blocking findings require E2+ evidence and a better alternative.
+4. **Challenge** — multi-perspective review exposing hidden assumptions, underestimated risks, and unnecessary abstraction. Blocking findings require E2+ evidence and a better alternative.
 5. **Synthesis** — assemble the final plan using the plan template. Validate self-sufficiency, test tasks, edge coverage, docs tasks, and completion criteria.
 
 All 5 phases always execute; phase coverage verified via Phase Trace before readiness. Ask checkpoints after discovery and after challenge ensure ambiguity is resolved before proceeding.
@@ -34,17 +34,14 @@ Canonical entry: [`skills/do-plan/SKILL.md`](../skills/do-plan/SKILL.md).
 
 ### do-execute
 
-Seven phases with built-in quality gates:
+Four phases: scope, implement, quality, finalize.
 
 1. **Scope** — read the approved plan, classify depth (`focused`/`standard`/`deep`), partition work into independent and dependent groups.
 2. **Implement** — one `@implementer` per partition. Parallel for independent groups; sequential for dependent. No overlapping writes. Implementer self-review before reporting.
-3. **Validate** — structural integrity check: do changed files parse, do imports resolve, do expected exports exist per plan.
-4. **Polish** — advisory pass (read-only reviewers produce findings) → apply pass (implementers fix). Every E2+ finding acknowledged or explicitly rejected.
-5. **Review** — two stages: tests & docs (skip when no behavior changes and docs_impact is `none`), then adversarial review with multiple lenses and cross-provider envoy. Blocking findings re-enter polish.
-6. **Verify** — single verifier instance. All claims require E3 evidence (executed command + observed output).
-7. **Finalize** — content gates check for test evidence, edge coverage, and docs. Learnings captured as proposals (never auto-applied).
+3. **Quality** — multi-perspective review and verification in a single phase. Composition: 2 `@analyst` (advisory) + 1 `@inspector` (correctness + spec compliance) + 1 `@verifier` (E3 probes) + 1 `@envoy` = 5 dispatches, followed by sequential `@synthesizer` merge. Mainthread gate on synthesized output; blocking findings re-enter implement. Capped at 5 iterations.
+4. **Finalize** — content gates check for test evidence, edge coverage, and docs. Learnings captured as proposals (never auto-applied).
 
-All 7 phases always execute; phase coverage verified via Phase Trace before finalize. Re-entry loop: blocking review findings → polish → review → verify. Capped at 5 iterations.
+All 4 phases always execute; phase coverage verified via Phase Trace before finalize.
 
 Canonical entry: [`skills/do-execute/SKILL.md`](../skills/do-execute/SKILL.md).
 
@@ -154,11 +151,11 @@ Canonical entry: [`skills/run-recap/SKILL.md`](../skills/run-recap/SKILL.md).
 | `researcher` | Standard | sonnet | high | Deep discovery and evidence gathering; local-depth first, may do bounded plan-specific upstream lookup |
 | `navigator` | Standard | sonnet | high | External-first research specialist for broad, ambiguous, comparative, or current external work |
 | `planner` | Frontier | opus | high | Angle-committed planning, preloads `do-plan` |
-| `debater` | Frontier | opus | high | Adversarial Socratic dialogue |
+| `debater` | Frontier | opus | high | Multi-perspective Socratic dialogue |
 | `inspector` | Frontier | opus | high | Verdict-focused code review, preloads `run-review` |
 | `analyst` | Standard | sonnet | high | Advisory pattern analysis, preloads `run-review` and `run-polish` |
 | `framer` | Standard | sonnet | high | Perspective-committed problem framing |
-| `verifier` | Frontier | opus | high | Adversarial verification with E3 evidence, preloads `with-testing` (test boundary decisions + mock strategy) |
+| `verifier` | Frontier | opus | high | Correctness, spec compliance, and E3 verification probes in quality phase; preloads `with-testing` (test boundary decisions + mock strategy) |
 | `miner` | Fast | haiku | medium | Session data analysis and cross-session pattern extraction |
 | `visualizer` | Standard | sonnet | high | HTML visualization via visual-explainer commands, preloads `visual-explainer` |
 | `implementer` | Adaptive | inherit | high | Read-write implementation for plan-driven code changes |

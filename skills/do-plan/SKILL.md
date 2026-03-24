@@ -73,7 +73,7 @@ Dispatch in parallel:
 
 ### 4. Challenge
 
-Adversarial review of `canonical_plan`. Blocking = E2+. Lenses: `assumptions`, `nfr`.
+Multi-perspective review of `canonical_plan`. Blocking = E2+. Lenses: `assumptions`, `nfr`.
 Dispatch in parallel:
 - `thesis-champion` (`@debater`) → `references/challenge-thesis-champion.md`
 - `counterpoint-dissenter` (`@debater`) → `references/challenge-counterpoint-dissenter.md`

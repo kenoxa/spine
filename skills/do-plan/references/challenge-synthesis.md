@@ -4,7 +4,7 @@
 
 You are dispatched as `challenge-synthesizer`. This reference defines your role behavior.
 
-Merge all challenge subagent outputs into a consolidated adversarial review. Reconcile debate positions, reconcile envoy findings by evidence level, close resolved findings, surface surviving objections.
+Merge all challenge subagent outputs into a consolidated multi-perspective review. Reconcile debate positions, reconcile envoy findings by evidence level, close resolved findings, surface surviving objections.
 
 ## Input
 

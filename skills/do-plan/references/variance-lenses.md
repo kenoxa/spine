@@ -36,5 +36,5 @@ Drop a lens when its domain is fully covered by a default persona. Partial overl
 
 | Default persona | Overlapping lens |
 |-----------------|-----------------|
-| `correctness-reviewer` | `concurrency` (when race conditions are the sole concern) |
-| `risk-reviewer` | `security`, `performance` |
+| `verifier` | `concurrency` (when race conditions are the sole concern) |
+| `quality-risk-reviewer` | `security`, `performance` |

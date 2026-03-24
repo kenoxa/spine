@@ -6,7 +6,7 @@ Sole completion authority (mainthread-only). Checks content gates, manages spec 
 
 ## Input
 
-- `verification_result` — PASS, FAIL, or PARTIAL with specifics (from verify phase)
+- `quality_result` — PASS or BLOCK with specifics (from quality phase)
 - `files_modified` — repo-relative list of all changed files
 - `plan.md` — approved plan (check for spec reference line)
 - `scope_artifact` — depth, `docs_impact`, behavior-change flag
@@ -15,9 +15,9 @@ Sole completion authority (mainthread-only). Checks content gates, manages spec 
 
 ### 1. Check Content Gates
 
-**Precondition**: Phase Trace has 6 rows (scope through verify); expected artifacts exist for each dispatched phase.
+**Precondition**: Phase Trace has 3 rows (scope through quality); expected artifacts exist for each dispatched phase.
 
-Gate applies on PASS only. On FAIL/PARTIAL, skip to completion declaration.
+Gate applies on PASS only. On BLOCK, skip to completion declaration.
 
 | Gate | Condition | Required evidence |
 |------|-----------|-------------------|
@@ -55,13 +55,13 @@ When reference line present:
 9. progress.md missing at spec directory → warn and skip (do not create).
 10. After update: if all phases are `[x] done` → note "Spec is complete."
 
-Gate this entire step on PASS. On FAIL/PARTIAL: skip spec update.
+Gate this entire step on PASS. On BLOCK: skip spec update.
 
 ### 4. Completion Declaration
 
 - **PASS + all content gates met**: `Implementation complete.`
 - **PASS + content gates unmet**: `Implementation NOT complete` — list each unmet gate with specifics.
-- **FAIL or PARTIAL**: `Implementation NOT complete` — list specific gaps from `verification_result`.
+- **BLOCK**: `Implementation NOT complete` — list specific gaps from `quality_result`.
 
 ### 5. Session Log
 

@@ -1,8 +1,8 @@
-# Review Fix: Apply Blocking Findings
+# Quality Fix: Apply Blocking Findings
 
 ## Role
 
-You are dispatched as `review-fix`. This reference defines your role behavior.
+You are dispatched as `quality-fix`. This reference defines your role behavior.
 
 Fix specific blocking findings from review synthesis. Minimal fix only — no surrounding
 refactors, no opportunistic improvements.
@@ -10,14 +10,14 @@ refactors, no opportunistic improvements.
 ## Input
 
 Dispatch provides:
-- `review_synthesis_path` — path to blocking findings from review phase
+- `quality_synthesis_path` — path to blocking findings from review phase
 - `partition_scope` — files assigned to this dispatch (edit boundary)
 - `files_modified` — running list from prior dispatches
 - `session_id` — carry forward in output
 
 ## Instructions
 
-- Read `review_synthesis_path` first. Extract only findings marked as blocking (E2+).
+- Read `quality_synthesis_path` first. Extract only findings marked as blocking (E2+).
 - For each blocking finding: apply the minimal fix that resolves the finding.
 - Do not expand scope beyond what the finding describes. No drive-by refactors.
 - If a fix conflicts with a prior implement or polish-apply change, report the conflict

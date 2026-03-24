@@ -7,7 +7,7 @@ description: >
 argument-hint: "[plan reference or task]"
 ---
 
-Seven phases: scope → implement → validate → polish → review → verify → finalize.
+Four phases: scope → implement → quality → finalize.
 
 ## Entry Gate
 
@@ -17,7 +17,7 @@ No approved plan → run do-plan first. Never edit the plan file for status trac
 
 ## Depth
 
-Classify at entry. Controls fanout, not which phases run — all seven always execute. Default to `standard`.
+Classify at entry. Controls fanout, not which phases run — all four always execute. Default to `standard`.
 
 | Level | Heuristic | Behavior |
 |-------|-----------|----------|
@@ -37,18 +37,18 @@ Classify at entry. Controls fanout, not which phases run — all seven always ex
 
 | Phase | Agent | Reference |
 |-------|-------|-----------|
+| Scope | mainthread | — |
 | Implement | `@implementer` | `references/implement.md` |
-| Validate | `@inspector` | `references/validate.md` |
-| Polish | `@analyst` | `run-polish/references/advisory-*.md`, `references/polish-apply.md` |
-| Review | `@inspector`, `@envoy` | `references/review-*.md` |
-| Verify | `@verifier` | `references/verify.md` |
+| Quality | `@analyst`, `@inspector`, `@verifier`, `@envoy` | see quality section |
+| Quality synthesis | `@synthesizer` | `references/quality-synthesis.md` |
 | Finalize | mainthread | [finalize.md](references/finalize.md) |
 
-| Phase | Base | Envoy | Max Augmented (f/s/d) | Cap |
-|-------|------|-------|-----------------------|-----|
-| Polish | 3 | 0 | 0 / 2 / 3 | 6 |
-| Review | 3 | 1 | 0 / 1 / 2 | 6 |
-Invariant: sum every row ≤ 6.
+| Depth | Analysts | Inspector | Verifier | Envoy | Total (batch) | Then Synthesizer |
+|-------|----------|-----------|----------|-------|---------------|------------------|
+| focused | 0 | 0 | 0 | 0 | 0 (inline) | — |
+| standard | 2 | 1 | 1 | 1 | 5 | +1 sequential |
+| deep | 2 | 1 | 1 | 1 | 5 + 1 augmented | +1 sequential |
+Invariant: batch ≤ 6.
 
 ### 1. Scope
 
@@ -57,42 +57,31 @@ Main thread. Read plan, classify depth, partition work. Output `scope_artifact`:
 ### 2. Implement
 `@implementer` → `references/implement.md`: one per partition. Parallel for independent; sequential for dependent. Output: `files_modified`.
 
-### 3. Validate
-`@inspector` → `references/validate.md`. PASS → polish. BLOCK → re-enter implement. 2 consecutive BLOCKs → escalate.
+### 3. Quality
 
-### 4. Polish
+Single parallel batch, then sequential synthesis.
 
-1. **Advisory**: `@analyst` in parallel:
-   - `conventions-advisor` → `run-polish/references/advisory-conventions.md`
-   - `complexity-advisor` → `run-polish/references/advisory-complexity.md`
-   - `efficiency-advisor` → `run-polish/references/advisory-efficiency.md`
+1. **Batch**: in parallel:
+   - `conventions-advisor` (`@analyst`) → `run-polish/references/advisory-conventions.md`
+   - `complexity-advisor` (`@analyst`) → `run-polish/references/advisory-complexity.md`
+   - `risk-reviewer` (`@inspector`) → `references/quality-risk-reviewer.md`
+   - `verifier` (`@verifier`) → `references/quality-verifier.md`
+   - `envoy` (`@envoy`) → `references/quality-envoy.md` (via `use-envoy`)
    - +augmented per variance lens
-2. **Synthesis**: `@synthesizer` → `run-polish/references/polish-synthesis.md`
-3. **Apply**: `@implementer` → `references/polish-apply.md`. Skip when no actions.
 
-### 5. Review
+Analyst selection: 2 of 3 advisory lenses (conventions, complexity, efficiency) based on change type. Default: conventions + complexity. Performance-sensitive: swap conventions for efficiency.
 
-1. **Tests & docs**: skip when no behavior-changing code AND `docs_impact` = `none`. Otherwise: tests (E3), docs per impact. Missing = blocking.
-2. **Adversarial**: `@inspector` in parallel:
-   - `spec-reviewer` → `references/review-spec-reviewer.md`
-   - `correctness-reviewer` → `references/review-correctness-reviewer.md`
-   - `risk-reviewer` → `references/review-risk-reviewer.md`
-   - `envoy` (`@envoy`) → `references/review-envoy.md` (via `use-envoy`)
-   - +augmented per variance lens
-3. **Synthesis**: `@synthesizer` → `references/review-synthesis.md`. Blocking (E2+) → re-enter polish. Advisory → proceed.
+2. **Synthesis**: `@synthesizer` → `references/quality-synthesis.md`. Gate: mainthread reads synthesis, PASS/BLOCK.
 
-### 6. Verify
-`@verifier` → `references/verify.md`. Output: PASS, FAIL, or PARTIAL with `failure_class`.
+**Tests & docs**: skip when no behavior-changing code AND `docs_impact` = `none`. Otherwise: tests (E3), docs per impact. Missing = blocking.
 
-### 7. Finalize
+### 4. Finalize
 Main thread. Load [finalize.md](references/finalize.md) unconditionally. Sole completion authority.
 
 ## Re-entry
 
-- **Validate BLOCK** → implement with `validation_brief`
-- **Blocking review** → polish (`@implementer` → `references/review-fix.md` applies fixes)
-- **Verify semantic** → polish → review → verify
-- **Verify non-semantic** → `@implementer` → `references/review-fix.md` → re-verify only
+- **Quality BLOCK (semantic)** → implement with `quality_brief` → re-run quality (full)
+- **Quality BLOCK (non-semantic)** → `@implementer` + `references/quality-fix.md` → re-run quality (inspector + verifier + envoy only, skip analysts)
 Re-entry brief: blocker, what was attempted, what changed. Shared counter, cap **5**, freeze on cap.
 
 ## Completion
@@ -107,7 +96,7 @@ Otherwise: `Implementation NOT complete` — followed by specific gaps.
 ## Anti-Patterns
 
 - Advisory analyst writing to codebase files (scratch only)
-- Blocking on E2- verifier output (advisory, not gate)
+- Treating E2- findings as blocking (E2+ required for all blocking findings)
 - Overlapping concurrent writes to same file
 - Skipping tests-and-docs without checking `docs_impact`
 - Updating spec status without user confirmation

@@ -28,7 +28,7 @@ Terminal phase. Removed `## Mode Routing` / `## Thoroughness` from 9 agents; cre
 | analyst | 298 | 168 | 0 | Below 250 floor — all role behavior in refs |
 | miner | 450 | 133 | 0 | Below 250 floor — all role behavior in refs |
 | framer | 525 | 397 | 4 | explore-{stakeholder-advocate,systems-thinker,skeptic,augmented-framer} |
-| implementer | 462 | 314 | 1 | review-fix.md |
+| implementer | 462 | 314 | 1 | quality-fix.md |
 | scout | 461 | 368 | 2 | orient-scout.md, audit-scout.md |
 | navigator | 835 | 687 | 3 | navigator-{synthesis,alternatives}.md, discovery-navigator.md |
 | researcher | 359 | 341 | 2 | investigate-researcher.md, analyze-researcher.md |
@@ -131,14 +131,11 @@ Measured via `tokenizer -f <file> -m gpt-4.1` (o200k_base encoding). 2026-03-17.
 | do-discuss/spec-mode | 379 | pass |
 | do-execute/finalize | 778 | pass |
 | do-execute/implement | 407 | pass |
-| do-execute/polish-apply | 427 | pass |
-| do-execute/review-correctness-reviewer | 608 | pass |
-| do-execute/review-envoy | 430 | pass |
-| do-execute/review-risk-reviewer | 628 | pass |
-| do-execute/review-spec-reviewer | 578 | pass |
-| do-execute/review-synthesis | 613 | pass |
-| do-execute/validate | 486 | pass |
-| do-execute/verify | 714 | pass |
+| do-execute/quality-verifier | — | pending |
+| do-execute/quality-risk-reviewer | — | pending |
+| do-execute/quality-synthesis | — | pending |
+| do-execute/quality-envoy | — | pending |
+| do-execute/quality-fix | — | pending |
 | do-plan/challenge-counterpoint-dissenter | 320 | pass |
 | do-plan/challenge-envoy | 318 | pass |
 | do-plan/challenge-synthesis | 411 | pass |
