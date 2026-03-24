@@ -17,7 +17,7 @@ EOF
 
 # --- Argument parsing ---
 
-hint="" prompt_file="" output_file="" stderr_log="" tier="standard" target="" mode="single"
+hint="" prompt_file="" output_file="" stderr_log="" tier="standard" target="" mode="multi"
 
 while [ $# -gt 0 ]; do
     case "$1" in

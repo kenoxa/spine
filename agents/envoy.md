@@ -51,7 +51,7 @@ If that file contains a `## Dispatch Parameters` section, use the `mode` and
 Parameters` is present, ignore any `Tier:` or `Mode:` lines elsewhere in the
 dispatch prompt. If the reference has no `## Dispatch Parameters`, use `Tier:`
 and `Mode:` from the dispatch prompt. If neither source provides a value, omit
-the flag (run.sh defaults: `--mode single`, `--tier standard`).
+the flag (run.sh defaults: `--mode multi`, `--tier standard`).
 
 ```sh
 sh "$HOME/.agents/skills/use-envoy/scripts/run.sh" \
