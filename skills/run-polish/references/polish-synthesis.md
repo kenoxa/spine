@@ -8,7 +8,7 @@ Merge all polish advisory outputs into a prioritized action list. Deduplicate cr
 
 ## Input
 
-Advisory output files as provided in dispatch context. May include augmented lens outputs beyond base 3.
+Advisory output files as provided in dispatch context. May include augmented lens outputs beyond base 2-3.
 
 Before merging, confirm every provided input file exists and is non-empty. Report absent or empty files in the output header. Proceed with available inputs and flag gaps.
 
@@ -17,7 +17,7 @@ Before merging, confirm every provided input file exists and is non-empty. Repor
 - Deduplicate findings by meaning — same insight from multiple advisors collapses to one entry citing all sources.
 - Rank by evidence level: E3 > E2 > E1 > E0.
 - Conflicting findings at same evidence level: flag with `[CONFLICT]` label. Do not resolve.
-- Preserve per-advisor provenance (conventions-advisor, complexity-advisor, efficiency-advisor, augmented lens name when present).
+- Preserve per-advisor provenance (conventions-advisor, complexity-advisor, efficiency-advisor [conditional], augmented lens name when present). Efficiency lens is conditional — absent when scope is not performance-sensitive. Missing efficiency output is NOT a coverage gap unless scope is performance-sensitive.
 - Every E2+ finding MUST appear as an explicit action or explicit rejection with rationale. Silent drops prohibited.
 - Apply noise filtering: introduced/worsened by change? Fixable in same scope? Material impact on correctness or reviewability? Fail any criterion → downgrade or drop with rationale.
 

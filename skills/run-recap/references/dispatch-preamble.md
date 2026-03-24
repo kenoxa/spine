@@ -1,11 +1,22 @@
 # Dispatch Preamble
 
-Shared preamble for `@miner` dispatch — not a standalone role, prepended to every format template.
+You are dispatched as `miner`. This reference defines your role behavior.
+
+Collect session data, then format per template.
 
 ## Input
 
-- `{scratch_dir}` — session scratch directory path
-- `{project_filter}` — substituted filter instruction or "No filter. Include all sessions."
+`{days}` (default 7), `{format}` (`standup|timesheet|recap`, default `standup`), `{project_filter}`, `{scratch_dir}`
+
+## Collection
+
+Defaults: `days=7`, `format=standup`. Validate format.
+
+**Scripts**: `$HOME/.agents/skills/run-insights/scripts/collect_sessions.sh --days "${DAYS:-7}" --session "<session>"`. Verify `analytics.json` exists. Zero sessions → report "No AI sessions found in the last N days. Try increasing --days." and stop.
+
+**Git log**: extract unique `project` from `*_sessions.json`. Per project: resolve path (`~/Projects/{project}` or cwd), read `SINCE` from `collect.env`, `git log --oneline --since="$SINCE"`, write `git_log.json` as `{project: [commit_lines]}`. Skip unresolvable/empty. Best-effort.
+
+Complete collection before formatting. Evidence from generated data, not guesses.
 
 ## Instructions
 
@@ -34,25 +45,17 @@ Post-process: round to whole hours (min 1h), cap 8h/session + 8h/day, prefix `~`
 `brief_summary` > `title` > `thread_name` > `summary` > first `user_prompt` (truncated 80 chars) > `files_touched` paths > `"unspecified task"`
 
 ### Edge Cases
-- `duration_minutes: 0` — treat as unknown, use estimation chain
-- No task description — use "unspecified task", note session ID
-- Empty `user_prompts` AND no summary — fall back to `files_touched`; if also empty, "unspecified task"
-- Git log supplements session data; if no session description, use most relevant commit message
+- `duration_minutes: 0` → unknown, use estimation chain
+- No description → "unspecified task" (note session ID)
+- No prompts/summary → `files_touched` → "unspecified task"
+- No session description → use most relevant git commit message
 
 ### Session Data
-Scratch dir; skip missing files. Structure: `{"provider": "name", "sessions": [...]}`.
-- `{scratch_dir}/claude_sessions.json`
-- `{scratch_dir}/codex_sessions.json`
-- `{scratch_dir}/cursor_sessions.json`
-- `{scratch_dir}/git_log.json` — commit log keyed by project (supplementary)
+`{scratch_dir}/{claude,codex,cursor}_sessions.json` + `git_log.json`. Skip missing. Structure: `{"provider": "name", "sessions": [...]}`.
 
 ### Project Filter
-{project_filter} — match against each session's `project` field (e.g., `kenoxa/spine`).
-
-## Output
-
-N/A — preamble only. Combined with format template at dispatch time.
+{project_filter}
 
 ## Constraints
 
-Substitute `{scratch_dir}` and `{project_filter}` before combining with format-specific template.
+Substitute `{scratch_dir}` and `{project_filter}` before combining with format template.

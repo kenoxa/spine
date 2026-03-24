@@ -1,4 +1,4 @@
-# Synthesize: Cross-Tool Miner
+# Synthesize: Cross-Tool Synthesizer
 
 ## Role
 

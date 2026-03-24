@@ -1,14 +1,15 @@
 ---
 name: run-polish
 description: >
-  Advisory code polish with parallel lenses: conventions, complexity, efficiency.
-  Use after implementation or for standalone cleanup on recently modified code.
+  Advisory code polish with parallel lenses: conventions + complexity (default),
+  efficiency (performance-sensitive scope). Use after implementation or for
+  standalone cleanup on recently modified code.
 argument-hint: "[files or scope]"
 ---
 
 Advisory-only — produces suggestions, not rewrites. Read-only — no file writes during advisory. Findings use `[S]`/`[F]` prefixes only (no `[B]` — no gate authority).
 
-When dispatched with depth context, additional augmented `@analyst` per variance lens (cap: base 3 + augmented ≤ 6).
+When dispatched with depth context, additional augmented `@analyst` per variance lens (cap: base 2-3 + augmented ≤ 6).
 
 **Session**: Generate per SPINE.md; reuse across phases. When invoked from a skill with active session, inherit the calling session's ID.
 
@@ -20,7 +21,7 @@ When dispatched with depth context, additional augmented `@analyst` per variance
 
 | Phase | Agent type | Reference |
 |-------|-----------|-----------|
-| Advisory | `@analyst` (x3 parallel) | advisory-*.md |
+| Advisory | `@analyst` (x2-3 parallel) | advisory-*.md |
 | Synthesis | `@synthesizer` | polish-synthesis.md |
 | Apply | `@implementer` | polish-apply.md |
 
@@ -30,10 +31,17 @@ Main thread — changed files from git diff or dispatch context. No transitive d
 
 ### 2. Advisory
 
-Dispatch 3 `@analyst` instances in parallel:
+**Default (2 dispatches):**
 - `@analyst` → `references/advisory-conventions.md`
 - `@analyst` → `references/advisory-complexity.md`
+
+**Performance-sensitive (swap conventions for efficiency):**
+- `@analyst` → `references/advisory-complexity.md`
 - `@analyst` → `references/advisory-efficiency.md`
+
+Performance-sensitive heuristic: scope includes hot-path loops, async/concurrency, N+1, or explicit perf requirements.
+
+All 3 lenses may dispatch at `deep` depth or when change surface spans both naming-heavy and perf-sensitive code.
 
 Each writes findings to `.scratch/<session>/polish-advisory-{lens}.md`.
 

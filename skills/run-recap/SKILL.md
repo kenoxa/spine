@@ -23,28 +23,19 @@ Every subagent prompt MUST be self-contained — include all prior-phase context
 
 **Session**: per SPINE.md; reuse across phases.
 
-**Phase Trace**: Log row at collect, dispatch, present. Include format.
+**Phase Trace**: Log row at dispatch, present. Include format.
 
 | Phase | Agent | Reference |
 |-------|-------|-----------|
-| Collect | `@miner` | `references/collect-miner.md` |
 | Dispatch | `@miner` (`recap`) | [dispatch-preamble.md](references/dispatch-preamble.md), [template-*.md](references/) |
 | Present | `@visualizer` | `references/present-visualizer.md` |
 
-### 1. Collect
+### 1. Dispatch
 
-Dispatch `@miner` (`collector`) → `references/collect-miner.md`.
-
-Generate session ID. Pass `{days}`, `{format}`, `{project_filter}`, `{session}`.
-
-Output: `.scratch/<session>/recap-collect.md`
-
-### 2. Dispatch
-
-Single `@miner` subagent dispatch. Mode: `recap`.
+Generate session ID. Single `@miner` subagent dispatch — collects data then formats report. Mode: `recap`.
 
 Construct prompt by combining:
-1. [dispatch-preamble.md](references/dispatch-preamble.md) — substitute `{scratch_dir}` and `{project_filter}`
+1. [dispatch-preamble.md](references/dispatch-preamble.md) — substitute `{days}`, `{scratch_dir}`, and `{project_filter}`
 2. Select template by `--format`:
    - `standup` → [template-standup.md](references/template-standup.md)
    - `timesheet` → [template-timesheet.md](references/template-timesheet.md)
@@ -55,7 +46,7 @@ Construct prompt by combining:
 |------|-----------|-------|--------|
 | `report-{format}` | `@miner` | Scratch dir path + format-specific prompt | `.scratch/<session>/report-{format}.md` |
 
-### 3. Present
+### 2. Present
 
 Read `.scratch/<session>/report-{format}.md`. Display directly as markdown.
 

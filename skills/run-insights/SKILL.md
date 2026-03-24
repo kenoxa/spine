@@ -31,7 +31,7 @@ Every subagent prompt MUST be self-contained — include all prior-phase context
 |-------|-----------|-----------|
 | Collect | `@miner` | `references/collect-miner.md` |
 | Analyze | `@miner` (source-expert) | `references/analyze-source-expert.md` |
-| Synthesize | `@miner` (synthesizer) | `references/synthesize-miner.md` |
+| Synthesize | `@synthesizer` | `references/synthesize-synthesizer.md` |
 | Present | `@visualizer` | `references/present-visualizer.md` |
 
 ### 1. Collect
@@ -54,7 +54,7 @@ Include relevant analytics data inline in each dispatch prompt.
 
 ### 3. Synthesize
 
-Dispatch 1 `@miner` → `references/synthesize-miner.md`.
+Dispatch 1 `@synthesizer` → `references/synthesize-synthesizer.md`.
 
 Input: all `insights-analyze-*.md` files + `cross_tool` + `sample_prompts` sections from `analytics.json`.
 
