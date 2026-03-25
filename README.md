@@ -262,7 +262,7 @@ The installer manages one list of CLI tools. On macOS, it uses Homebrew to insta
 
 `pip` is not installed as a separate tool. It comes from Python 3 as `pip3` or `python3 -m pip`.
 
-`probe` has no Homebrew formula — the installer uses a curl-based installer (`curl -fsSL ... | bash`) and runs it on every install to keep the binary current.
+`probe` has no Homebrew formula — the installer downloads the binary directly from GitHub Releases to `~/.local/bin/probe` and caches the installed version in `~/.config/spine/tool-versions` to skip redundant downloads.
 
 If your environment exposes only `python`, Spine treats it as satisfying the managed `python3` requirement only when it is Python 3.9 or newer.
 

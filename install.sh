@@ -146,13 +146,8 @@ ensure_system_deps() {
     warn "Homebrew not found — install it from https://brew.sh"
   fi
 
-  # probe: no Homebrew formula — always install/update via project curl installer
-  info "Installing/updating probe (semantic code search)..."
-  if curl -fsSL https://raw.githubusercontent.com/probelabs/probe/main/install.sh | bash; then
-    done_msg "probe installed/updated"
-  else
-    warn "Failed to install probe — install manually: curl -fsSL https://raw.githubusercontent.com/probelabs/probe/main/install.sh | bash"
-  fi
+  # probe: direct binary install to ~/.local/bin (no Homebrew formula)
+  install_probe
 
   # Collect missing deps (brew-managed tools only)
   for dep in "${installed_tools[@]}"; do
@@ -209,6 +204,127 @@ download_source() {
     rm -rf "$tmpdir"
     return 1
   fi
+}
+
+# --- Install probe (direct binary, no Homebrew formula) ---
+
+install_probe() {
+  local PROBE_REPO="probelabs/probe"
+  local INSTALL_DIR="$HOME/.local/bin"
+  local MANIFEST="$HOME/.config/spine/tool-versions"
+
+  # Platform guard — mac only
+  local os; os="$(uname -s)"
+  if [ "$os" != "Darwin" ]; then
+    warn "probe: unsupported OS $os — skipping"
+    return 0
+  fi
+  local arch; arch="$(uname -m)"
+  local PLATFORM
+  case "$arch" in
+    arm64|aarch64) PLATFORM="aarch64-apple-darwin" ;;
+    x86_64)        PLATFORM="x86_64-apple-darwin" ;;
+    *)             warn "probe: unsupported architecture $arch — skipping"; return 0 ;;
+  esac
+
+  mkdir -p "$INSTALL_DIR"
+
+  # Get latest release tag — gh CLI primary, curl fallback
+  local latest_tag=""
+  if command -v gh &>/dev/null && gh auth status &>/dev/null; then
+    latest_tag=$(gh release view --repo "$PROBE_REPO" --json tagName --jq '.tagName' 2>/dev/null) || true
+  fi
+  if [ -z "$latest_tag" ]; then
+    local api_response
+    api_response=$(curl -sS "https://api.github.com/repos/$PROBE_REPO/releases/latest" 2>/dev/null) || true
+    if [ -n "$api_response" ]; then
+      latest_tag=$(echo "$api_response" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    fi
+  fi
+  if [ -z "$latest_tag" ]; then
+    warn "probe: could not determine latest version — skipping"
+    return 0
+  fi
+
+  # Version skip — check manifest + binary existence
+  local installed_tag
+  installed_tag=$(grep "^probe=" "$MANIFEST" 2>/dev/null | cut -d= -f2 | head -1) || true
+  if [ "${installed_tag:-}" = "$latest_tag" ] && [ -x "$INSTALL_DIR/probe" ]; then
+    return 0
+  fi
+
+  # Download
+  info "Installing probe $latest_tag..."
+  local tmpdir
+  tmpdir=$(mktemp -d)
+
+  local download_ok=false
+  if command -v gh &>/dev/null && gh auth status &>/dev/null; then
+    if quiet gh release download "$latest_tag" --repo "$PROBE_REPO" \
+        --pattern "probe-*-${PLATFORM}.tar.gz" \
+        --pattern "probe-*-${PLATFORM}.tar.gz.sha256" \
+        --dir "$tmpdir"; then
+      download_ok=true
+    fi
+  fi
+  if ! $download_ok; then
+    # Discover asset URLs from release API
+    local release_json asset_url sha_url
+    release_json=$(curl -sS "https://api.github.com/repos/$PROBE_REPO/releases/tags/$latest_tag" 2>/dev/null) || true
+    if [ -n "$release_json" ]; then
+      asset_url=$(echo "$release_json" | grep "browser_download_url" | grep "${PLATFORM}.tar.gz\"" | grep -v '.sha256"' | sed -E 's/.*"(https[^"]+)".*/\1/' | head -1)
+      sha_url=$(echo "$release_json" | grep "browser_download_url" | grep "${PLATFORM}.tar.gz.sha256\"" | sed -E 's/.*"(https[^"]+)".*/\1/' | head -1)
+    fi
+    if [ -n "${asset_url:-}" ] && [ -n "${sha_url:-}" ]; then
+      if curl -fsSL -o "$tmpdir/$(basename "$asset_url")" "$asset_url" && \
+         curl -fsSL -o "$tmpdir/$(basename "$sha_url")" "$sha_url"; then
+        download_ok=true
+      fi
+    fi
+  fi
+  if ! $download_ok; then
+    warn "probe: download failed — skipping"
+    rm -rf "$tmpdir"
+    return 0
+  fi
+
+  # Checksum verification
+  if ! (cd "$tmpdir" && shasum -a 256 -c ./*.sha256 >/dev/null 2>&1); then
+    warn "probe: checksum verification failed — skipping"
+    rm -rf "$tmpdir"
+    return 0
+  fi
+
+  # Extract and install
+  tar -xzf "$tmpdir"/probe-*-"${PLATFORM}".tar.gz -C "$tmpdir"
+  local extracted
+  extracted=$(find "$tmpdir" -name probe -type f -not -name '*.gz' | head -1)
+  if [ -z "$extracted" ]; then
+    warn "probe: binary not found in archive — skipping"
+    rm -rf "$tmpdir"
+    return 0
+  fi
+  mv "$extracted" "$INSTALL_DIR/probe"
+  chmod +x "$INSTALL_DIR/probe"
+
+  # Write manifest — atomic tmpfile+mv
+  local manifest_tmp
+  manifest_tmp=$(mktemp)
+  [ -f "$MANIFEST" ] && grep -v "^probe=" "$MANIFEST" > "$manifest_tmp" || true
+  echo "probe=$latest_tag" >> "$manifest_tmp"
+  mv "$manifest_tmp" "$MANIFEST"
+
+  # Migration: remove old probe from /usr/local/bin
+  if [ -f /usr/local/bin/probe ]; then
+    if [ -O /usr/local/bin/probe ]; then
+      rm /usr/local/bin/probe
+    else
+      warn "Old probe at /usr/local/bin/probe not user-owned — remove manually: sudo rm /usr/local/bin/probe"
+    fi
+  fi
+
+  rm -rf "$tmpdir"
+  done_msg "probe $latest_tag"
 }
 
 # --- Detect installed tools ---
@@ -1353,12 +1469,8 @@ main() {
   echo "" >&2
   info "Spine installer — AI coding setup"
 
-  # Step 1: System dependencies
-  step "1/8" "Checking system dependencies..."
-  ensure_system_deps
-
-  # Step 2: Resolve source
-  step "2/8" "Resolving source..."
+  # Step 1: Resolve source
+  step "1/8" "Resolving source..."
   local src script_dir
   script_dir="$(cd "$(dirname "${BASH_SOURCE[0]:-/dev/stdin}")" && pwd)"
   if [ -f "$script_dir/SPINE.md" ] && [ -d "$script_dir/skills" ]; then
@@ -1374,9 +1486,13 @@ main() {
     done_msg "Downloaded $REPO"
   fi
 
-  # Step 3: Set up central directory
-  step "3/8" "Setting up central directory..."
+  # Step 2: Set up central directory
+  step "2/8" "Setting up central directory..."
   setup_central_dir "$src"
+
+  # Step 3: System dependencies
+  step "3/8" "Checking system dependencies..."
+  ensure_system_deps
 
   # Step 4: Detect tools
   step "4/8" "Detecting installed tools..."
