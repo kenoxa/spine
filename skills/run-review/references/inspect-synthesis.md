@@ -11,7 +11,7 @@ Merge inspector outputs into consolidated finding set. Deduplicate, rank, flag c
 Dispatch provides:
 - `{inspector_output_paths}` -- non-empty inspector output files
 - `{verifier_output_path}` -- verifier output file
-- `{envoy_output_path}` -- envoy output file (may not exist)
+- `{envoy_output_paths}` -- 0-N envoy output files (collected via `{base}.*.md` glob per use-envoy)
 - `{review_brief_path}` -- review brief
 - `{output_path}` -- write synthesis here
 

@@ -15,7 +15,7 @@ Dispatch provides:
 Expected files matching `{file_pattern}`:
 - `discuss-frame-evidence-mapper.md` — from @framer
 - `discuss-frame-dialogue-tracker.md` — from @framer
-- `discuss-frame-envoy.md` — from @envoy (may not exist)
+- `discuss-frame-envoy.*.md` — from @envoy, per-provider (0-N files)
 
 Accumulated session state: `known`/`unknown` inventory, `key_decisions`, `codebase_signals`, `external_signals`, evidence manifest (paths to orient/investigate/explore artifacts), session ID.
 

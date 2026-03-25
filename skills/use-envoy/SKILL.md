@@ -46,7 +46,7 @@ Pre-dispatch size check: if assembled prompt exceeds 100KB, truncate diff to fir
 
 ## Synthesis
 
-Validate envoy output before including in synthesis. Collect output files matching `{base}*.md` (base = output path with `.md` stripped). Check ordering matters — skip check MUST precede self-answer check.
+Validate envoy output before including in synthesis. The filesystem glob `{base}.*.md` (base = output path with `.md` stripped) is the authoritative source — always collect from filesystem, never rely solely on stdout paths. Stdout manifest is a progressive signal; it may be incomplete on timeout or signal interruption. Check ordering matters — skip check MUST precede self-answer check.
 
 1. No files matching `{base}*.md` → `[COVERAGE_GAP: envoy — no output]`
 2. Per file: starts with `# Envoy: Skipped` → skip notice: `[COVERAGE_GAP: envoy — {reason from file}]`

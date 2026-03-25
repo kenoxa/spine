@@ -10,7 +10,7 @@ Merge inspector verdict + 0-N envoy outputs into consolidated finding set for fi
 
 Dispatch provides:
 - `{inspector_output_path}` -- inspector review output
-- `{envoy_output_path}` -- envoy output (may not exist)
+- `{envoy_output_paths}` -- 0-N envoy output files (collected via `{base}.*.md` glob per use-envoy)
 - `{output_path}` -- write synthesis here
 
 ## Instructions

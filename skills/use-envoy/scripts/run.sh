@@ -150,17 +150,15 @@ if [ "$mode" = "multi" ]; then
         _child_pids="$_child_pids $!"
     done
 
-    # --- Wait + collect exit codes (first-nonzero propagation) ---
+    # --- Wait + progressive manifest (emit each path as its provider completes) ---
     _aggregate=0
+    set -- $_launched
     for _pid in $_child_pids; do
         _rc=0
         wait "$_pid" || _rc=$?
         [ "$_aggregate" -eq 0 ] && _aggregate="$_rc"
-    done
-
-    # --- Manifest: print paths for successfully created output files ---
-    for _p in $_launched; do
-        [ -f "${_base}.${_p}.md" ] && printf '%s\n' "${_base}.${_p}.md"
+        [ -s "${_base}.${1}.md" ] && printf '%s\n' "${_base}.${1}.md"
+        shift
     done
 
     exit "$_aggregate"

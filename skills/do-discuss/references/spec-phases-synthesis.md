@@ -10,7 +10,7 @@ Merge framer review + 0-N envoy outputs into unified adjustment recommendations 
 
 Dispatch provides:
 - `{reviewer_output_path}` -- framer review output
-- `{envoy_output_path}` -- envoy output (may not exist)
+- `{envoy_output_paths}` -- 0-N envoy output files (collected via `{base}.*.md` glob per use-envoy)
 - `{output_path}` -- write synthesis here
 
 ## Instructions

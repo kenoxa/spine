@@ -60,7 +60,7 @@ sh "$HOME/.agents/skills/use-envoy/scripts/run.sh" \
     --stderr-log "<log-path>"
 ```
 
-stdout: actual output paths, one per line (`<base>.<provider>.md`). Collect these for synthesizer — output path differs from the `<base>.md` you passed in.
+stdout: actual output paths, one per line (`<base>.<provider>.md`). These are a progressive signal — callers must always collect from filesystem via `<base>.*.md` glob (see use-envoy SKILL.md Synthesis). Output path differs from the `<base>.md` you passed in.
 
 ### 4. Report
 

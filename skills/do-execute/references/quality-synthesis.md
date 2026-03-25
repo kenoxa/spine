@@ -15,7 +15,7 @@ Reviewer output files from dispatch context:
 - analyst (complexity-advisor or efficiency-advisor) — structural complexity or performance
 - inspector (risk-reviewer) — security, performance, scalability
 - verifier VERDICT — plan compliance + logic correctness + E3 probes
-- envoy (when present; may be skip advisory) — holistic cross-provider review
+- envoy (0-N per-provider files collected via `{base}.*.md` glob; may be skip advisory) — holistic cross-provider review
 
 **Existence verification**: Before merging, confirm every provided input file exists and is non-empty. Report absent or empty files in the output header. Do not proceed with partial merge without flagging gaps.
 
