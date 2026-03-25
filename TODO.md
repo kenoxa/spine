@@ -11,11 +11,6 @@
 - auto-loading per glob like min description?
 - https://github.com/SocketDev/sfw-free
 - merge/resolve merge conflict
-- Sematic Search
-	- https://github.com/tobi/qmd
-	- https://github.com/cocoindex-io/cocoindex-code, https://github.com/cocoindex-io/cocoindex-code/issues/20
-	- https://github.com/tirth8205/code-review-graph
-	- https://github.com/thedotmack/claude-mem
 
 ## Provide Shared System Setup for MacOS dotfiles
 
@@ -26,6 +21,7 @@
 - auto-upgrade using topgrade: https://github.com/topgrade-rs/topgrade
 	- scripts and launcher/cron
 - nvm default-packages
+- lsp server: typescript-language-server (.nvm/default-packages), jdtls (brew and ~/.zshenv)
 - ni: https://github.com/antfu-collective/ni
 - taze: https://github.com/antfu-collective/taze
 - Portless: https://github.com/vercel-labs/portless

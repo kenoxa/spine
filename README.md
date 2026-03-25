@@ -254,12 +254,15 @@ The installer manages one list of CLI tools. On macOS, it uses Homebrew to insta
 | `coreutils` | GNU core utilities on macOS |
 | `fd` | Fast file finder |
 | `ni` | Universal JavaScript package manager wrapper |
+| `probe` | Semantic code search (BM25 + tree-sitter AST) |
 | `ripgrep` | Fast text search |
 | `sd` | In-place pattern replacement |
 | `shellcheck` | Shell script linter |
 | `shfmt` | Shell script formatter |
 
 `pip` is not installed as a separate tool. It comes from Python 3 as `pip3` or `python3 -m pip`.
+
+`probe` has no Homebrew formula — the installer uses a curl-based installer (`curl -fsSL ... | bash`) and runs it on every install to keep the binary current.
 
 If your environment exposes only `python`, Spine treats it as satisfying the managed `python3` requirement only when it is Python 3.9 or newer.
 

@@ -146,7 +146,15 @@ ensure_system_deps() {
     warn "Homebrew not found — install it from https://brew.sh"
   fi
 
-  # Collect missing deps
+  # probe: no Homebrew formula — always install/update via project curl installer
+  info "Installing/updating probe (semantic code search)..."
+  if curl -fsSL https://raw.githubusercontent.com/probelabs/probe/main/install.sh | bash; then
+    done_msg "probe installed/updated"
+  else
+    warn "Failed to install probe — install manually: curl -fsSL https://raw.githubusercontent.com/probelabs/probe/main/install.sh | bash"
+  fi
+
+  # Collect missing deps (brew-managed tools only)
   for dep in "${installed_tools[@]}"; do
     dep_present "$dep" || missing+=("$dep")
   done
@@ -165,7 +173,9 @@ ensure_system_deps() {
     if [[ " ${missing[*]} " == *" agent-browser "* ]]; then
       info "Run 'agent-browser install' to download Chrome for Testing (~500MB)"
     fi
-  else
+  fi
+
+  if ! $use_brew; then
     warn "Missing tools: ${missing[*]}"
     if [ "$os" = "Darwin" ]; then
       local brew_missing=()

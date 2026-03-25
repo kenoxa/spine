@@ -28,32 +28,30 @@
 
 ## Tools
 
-Use native tools: Grep not `rg`/`grep`, Glob not `find`/`ls`, Read not `cat`/`head`/`tail`, Edit not `sed`/`awk`.
+Prefer native tools over shell: Grep not `rg`, Glob not `find`, Read not `cat`, Edit not `sed`. Prefer MCP tools over WebFetch/WebSearch. One search tool per question.
 
-**Batch replacements** — prefer `sd 'old' 'new' file1 file2 ...` for text/config; `sg -r` for structural code (see use-shell). Scope with `rg` before, verify after. `fd` for file lists.
+**Routing**
 
-**GitHub file URLs** — rewrite `github.com/.../blob/...` to `raw.githubusercontent.com` before fetching. Only applies to `/blob/` paths (single files).
+Context7  →  library docs, API references
+Exa       →  code patterns, web search, alternatives
+probe     →  ranked semantic search, AST extraction (see use-shell `references/probe.md`)
+rg        →  exact text/regex search
+sg        →  structural search and rewrite
+fd        →  find files by name/pattern
+sd        →  text/config replacement
+jq / yq   →  JSON / YAML processing
+ni        →  JS/Node tooling — install, run, execute (see use-js)
 
-Prefer MCP tools over WebFetch/WebSearch. One search tool per question.
+Context7 → Exa → built-in web tools. Resolve library ID first; prefer Context7 for specific libraries. Include language + framework + version in Exa queries. Prefer subagent dispatch for Exa — results are verbose.
 
-**Context7** — library/framework docs, version-specific API references
-- Resolve library ID first, then query specific topics
-- Prefer over Exa for any question about a specific library
+**Shell conventions** — when shell is unavoidable:
+- `sd` for text/config replacements; `sg -r` for structural code. Scope with `rg` before, verify after.
+- `trash` not `rm`.
+- Quote glob/regex args: `rg 'pattern'`, `fd '*.ts'`, `sg -p '$EXPR'`.
+- `shellcheck` + `shfmt` on shell scripts.
+- Short description (4–7 words) on every command.
 
-**Exa** — code patterns, implementation examples, general web search, dev research
-- `get_code_context_exa` for code pattern searches; `web_search_exa` for general web lookups
-- Include language + framework + version in queries to reduce noise (e.g., "Next.js 14 app router caching")
-- Prefer subagent dispatch — Exa results are verbose; keep main context clean
-
-Context7 → Exa → built-in web tools. If Context7 returns no results, fall back to Exa without asking.
-
-When shell is unavoidable:
-- Use `trash`, never `rm`, for file deletion.
-- Use `rg` (not `grep`), `fd` (not `find`), `jq` (not grepping JSON), `yq` (not grepping YAML), `sd` (not `perl`/`sed`) for text replacement, `ast-grep`/`sg` (not regex) for structural search and rewrite.
-- Always quote glob and regex arguments to prevent shell expansion (`rg 'pattern'`, not `rg pattern`; `fd '*.ts'`, not `fd *.ts`).
-- Lint shell scripts with `shellcheck`; format with `shfmt`
-- Include a short description (4–7 words) on every shell command.
-- Use `ni` for JS/Node package management — never detect or hardcode package manager. See `use-js` skill for command reference.
+**GitHub file URLs** — rewrite `github.com/.../blob/...` to `raw.githubusercontent.com`.
 
 ## Workflow
 
