@@ -15,11 +15,12 @@ Callers always attempt dispatch when listed — size check below is the sole ski
 
 Provide to `@envoy`:
 
-| Field | Content |
-|-------|---------|
-| Prompt content | Subject context (payload, not directive). Reference files by repo-relative path — do not inline contents. |
-| Output format | Expected structure (caller-defined) |
-| Output path | `.scratch/<session>/{skill}-{phase}-envoy.md` |
+| Field | Required | Content |
+|-------|----------|---------|
+| Prompt content | Always | Subject context (payload, not directive). Reference files by repo-relative path — do not inline contents. |
+| Reference | Always | Per-phase envoy ref path |
+| Output format | Always | Expected structure (caller-defined) |
+| Output path | Always | `.scratch/<session>/{skill}-{phase}-envoy.md` |
 
 Callers must NOT gate findings by source, inline severity overrides, cap priority rules, or pre-dispatch size checks — owned by `use-envoy`.
 
