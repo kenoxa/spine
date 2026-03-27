@@ -70,11 +70,13 @@ if [ -f "$prompt_file" ]; then
 fi
 
 # --- Strip file-write path instructions from prompt (defense-in-depth) ---
-# Patterns frozen to current convention; CONTRIBUTING.md is the primary control.
+# Patterns frozen to current SPINE.md convention; update in lockstep with SPINE.md.
 if [ -f "$prompt_file" ]; then
     sed -E \
       -e 's/^Write to `[^`]+`\.? ?//' \
       -e '/^- Output path: `[^`]+`$/d' \
+      -e '/^- Scratchspace: `[^`]+`$/d' \
+      -e 's/^Scratchspace: `[^`]+`\.? ?//' \
       "$prompt_file" > "${prompt_file}.tmp" && mv "${prompt_file}.tmp" "$prompt_file"
 fi
 

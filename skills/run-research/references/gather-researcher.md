@@ -33,7 +33,7 @@ Ceiling: ~5000 tokens. Trim: Code Patterns first, then Architecture. Preserve Ev
 
 ## Constraints
 
-- Read-only — no writes outside `{output_path}`
+- Read-only — no writes outside `{output_path}` and its derived scratchspace directory
 - No implementation suggestions — context extraction only
 - No answering the research question — enrich the prompt, don't preempt it
 - Focus on facts the external AI cannot see (internal architecture, actual versions, real constraints)

@@ -28,6 +28,6 @@ Write complete HTML dashboard to `{output_path}`.
 
 ## Constraints
 
-- Read-only presentation — no edits outside `{output_path}`
+- Read-only presentation — no edits outside `{output_path}` and its derived scratchspace directory
 - Preserve project grouping and hour estimates from report
 - Do not add recommendations or analysis beyond what the report contains

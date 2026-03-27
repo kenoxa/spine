@@ -29,6 +29,6 @@ Write complete HTML dashboard to `{output_path}`.
 
 ## Constraints
 
-- Read-only presentation step — no edits outside `{output_path}`
+- Read-only presentation step — no edits outside `{output_path}` and its derived scratchspace directory
 - Do not invent recommendations absent from synthesizer output
 - Preserve recommendation priority ordering

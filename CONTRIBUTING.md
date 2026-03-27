@@ -99,6 +99,18 @@ Keep subagent bodies focused — they should define constraints and output forma
 
 For Codex, the installer generates TOML role configs (including `model` and `effort` fields) from markdown source automatically — no manual TOML authoring needed.
 
+### Scratchspace Convention
+
+Subagents may create a scratchspace directory alongside their output file for intermediate work (verification scripts, draft analysis, evidence traces). Derive the directory path by stripping the file extension:
+
+- `plan-discovery-researcher.md` → `plan-discovery-researcher/`
+- `plan-review.html` → `plan-review/`
+- `plan-planning-envoy.codex.md` → `plan-planning-envoy.codex/`
+
+Scratchspace is inspectable (orchestrators and downstream agents may read it) but not formal output — synthesizer reads prescribed paths only. Agents create the directory on demand via `mkdir -p`; session cleanup handles deletion. The derivation rule lives in SPINE.md; do not repeat it in agent files or reference files.
+
+**Envoy exclusion**: `@envoy` is a dispatcher with a hard "ONLY write to `.prompt`" constraint — it does not get scratchspace.
+
 ### Dispatching @envoy
 
 The Agent tool prompt must frame `@envoy` as a CLI assembler, not a task performer. Open with: `"Assemble a self-contained prompt for external CLI review of..."` Never open with task language (`"Analyze..."`, `"Review..."`, `"Plan..."`) — this causes envoy to self-answer instead of dispatching to the external CLI.

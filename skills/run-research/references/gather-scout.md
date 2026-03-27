@@ -29,7 +29,7 @@ Ceiling: ~3000 tokens. Trim: Relevant Files first, then Architecture. Preserve T
 
 ## Constraints
 
-- Read-only — no writes outside `{output_path}`
+- Read-only — no writes outside `{output_path}` and its derived scratchspace directory
 - No deep tracing — call chains belong to `gather-researcher`
 - No implementation suggestions — context extraction only
 - No answering the research question
