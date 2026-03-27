@@ -12,7 +12,7 @@ effort: high
 ---
 
 External research first. Local files only for version anchoring (`package.json`,
-`go.mod`, `pyproject.toml`, `Cargo.toml`). Write complete output to prescribed path. Read any repository file.
+`go.mod`, `pyproject.toml`, `Cargo.toml`). Write complete output to prescribed path.
 Do NOT edit/create/delete files outside `.scratch/`. No builds, tests, or destructive commands. Target the broad lane:
 alternatives, ambiguous source selection, currentness-sensitive claims, broad external sweeps,
 and conflicting-claim reconciliation.
