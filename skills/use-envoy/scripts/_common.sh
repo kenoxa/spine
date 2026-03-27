@@ -57,8 +57,8 @@ finalize_output() {
 # Canonical mapping reference: docs/model-selection.md
 resolve_tier() {
     case "$1:$2" in
-        frontier:claude) _tier_model=opus;          _tier_effort=max ;;
-        frontier:codex)  _tier_model=gpt-5.4;       _tier_effort=xhigh ;;
+        frontier:claude) _tier_model=opus;          _tier_effort=high ;;
+        frontier:codex)  _tier_model=gpt-5.4;       _tier_effort=high ;;
         frontier:cursor) _tier_model=composer-2;     _tier_effort= ;;
         standard:claude) _tier_model=sonnet;         _tier_effort=high ;;
         standard:codex)  _tier_model=gpt-5.4;       _tier_effort=medium ;;
@@ -69,7 +69,7 @@ resolve_tier() {
         frontier:qwen)   _tier_model=qwen3.5-plus;   _tier_effort= ;;
         standard:qwen)   _tier_model=qwen3-coder-plus; _tier_effort= ;;
         fast:qwen)       _tier_model=coder-model;     _tier_effort= ;;  # OAuth free tier resolves all to coder-model; Dashscope API keys can override via env
-        frontier:copilot) _tier_model=gpt-5.4;        _tier_effort=xhigh ;;
+        frontier:copilot) _tier_model=gpt-5.4;        _tier_effort=high ;;
         standard:copilot) _tier_model=gpt-5.4;        _tier_effort=medium ;;
         fast:copilot)     _tier_model=gpt-5.4-mini;   _tier_effort=high ;;
         *)               _tier_model=;               _tier_effort= ;;
