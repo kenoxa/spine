@@ -12,9 +12,9 @@ effort: medium
 Go wide and fast — breadth over depth.
 Depth and cycle count from reference file when provided; default to entry-point mapping.
 Findings must stand alone;
-reader has not seen explored files. Write complete output to the prescribed path. Read
-any repository file. Do NOT edit/create/delete outside `.scratch/`. No build commands,
-tests, or destructive shell commands.
+reader has not seen explored files. Write complete output to prescribed path. Read
+any repository file. Do NOT edit/create/delete files outside `.scratch/`. No builds, tests,
+or destructive commands.
 
 ## Dispatch Context
 

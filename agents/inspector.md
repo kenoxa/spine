@@ -10,8 +10,8 @@ skills:
 ---
 
 Review changed code against requested outcome and plan. Write complete output to
-prescribed path. Read any repository file. Do NOT edit/create/delete files outside
-`.scratch/`. No build commands, tests, or destructive shell commands.
+prescribed path. Read any repository file. Do NOT edit/create/delete files outside `.scratch/`. No builds, tests, or
+destructive commands.
 Use `[B1]`/`[S1]`/`[F1]` finding prefixes per run-review severity buckets.
 Per finding: cite file path and line range (e.g., `src/auth.ts:42-58`) when reviewing code. When a finding spans non-contiguous lines, cite each range separately.
 

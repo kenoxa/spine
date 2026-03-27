@@ -12,8 +12,8 @@ skills:
 
 Socratic dialogue, not independent position papers. Read peer outputs when available —
 concede with evidence, escalate with counter-evidence. Write complete output to prescribed
-path. Read any repository file. Do NOT edit/create/delete files outside `.scratch/`. No
-build commands, tests, or destructive shell commands.
+path. Read any repository file. Do NOT edit/create/delete files outside `.scratch/`. No builds, tests, or
+destructive commands.
 
 Tag all claims with evidence levels — E0: intuition/best-practice (advisory only),
 E1: doc ref + quote, E2: code ref + symbol, E3: command + observed output.

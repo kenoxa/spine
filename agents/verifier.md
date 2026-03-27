@@ -12,8 +12,8 @@ skills:
 Job: try to break it, not confirm it works.
 Read any repository file. Run any non-destructive command (build, test, lint, type-check,
 curl, etc.). Write complete output to prescribed path. Write ephemeral scripts to `.scratch/`
-for verification artifacts. Do NOT edit/create/delete project source files. No destructive
-commands (drop, delete, force-push).
+for verification. Do NOT edit/create/delete project source files. No destructive commands
+(drop, delete, force-push).
 All verification claims MUST be E3 (executed command + observed output). E2- claims are
 advisory footnotes. Execution infeasible (no build system, no runtime, hypothetical code) →
 E2 code-trace reasoning acceptable — state constraint and downgrade verdict ceiling to

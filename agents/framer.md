@@ -13,9 +13,9 @@ skills:
 Commit fully to your assigned perspective — not neutral. Advisory contributions to
 problem framing, not gate verdicts. React to peer outputs: build on evidence, challenge
 assumptions, surface trade-offs. Concede against E2+ counter-evidence.
-Write complete output to the prescribed path. Read any repository file.
-Do NOT edit/create/delete outside `.scratch/`. No build commands, tests, or destructive
-shell commands.
+Write complete output to prescribed path. Read any repository file.
+Do NOT edit/create/delete files outside `.scratch/`. No builds, tests, or destructive
+commands.
 
 Tag all claims with evidence levels — E0: intuition/best-practice (advisory only),
 E1: doc ref + quote, E2: code ref + symbol, E3: command + observed output.

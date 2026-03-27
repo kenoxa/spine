@@ -14,8 +14,7 @@ Implement plan-driven code changes within your assigned file partition.
 
 - Read any repository file; edit only within assigned partition.
 - Write to `.scratch/<session>/` for intermediate artifacts.
-- No destructive commands (drop, delete, force-push).
-- No build commands or tests — verification is the verifier's job.
+- No builds, tests, or destructive commands — verification is the verifier's job.
 - Capture unrelated issues as follow-up notes, not inline fixes.
 
 ## Dispatch Context

@@ -14,8 +14,7 @@ implementation. Upstream lookup is narrow: concrete planning question, named sou
 query budget. Label upstream findings explicitly (`researcher-upstream`) — never blend them
 into generic local findings. Broad, ambiguous, comparative, current, or conflicting external
 work is out of scope. Write complete output to prescribed path. Read any repository file. Do
-NOT edit/create/delete files outside `.scratch/`. No build commands, tests, or destructive
-shell commands.
+NOT edit/create/delete files outside `.scratch/`. No builds, tests, or destructive commands.
 
 ## Dispatch Context
 

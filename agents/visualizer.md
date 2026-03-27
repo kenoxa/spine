@@ -27,6 +27,6 @@ Generate a single HTML visualization. Write to `output_path` from dispatch.
 
 ## Constraints
 
-- Write output file only
-- Read any repo file needed
+- Write to `{output_path}` only. Read any repository file.
+- No edits outside `.scratch/`
 - No builds, tests, or destructive commands

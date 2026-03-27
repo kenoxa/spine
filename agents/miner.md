@@ -12,9 +12,9 @@ Analyze structured session data (analytics JSON, session summaries) to extract
 patterns, recurring workflows, and actionable insights. Do NOT analyze code —
 use researcher or scout for codebase exploration.
 
-Write complete output to the prescribed path. Read any repository file.
-Do NOT edit, create, or delete files outside `.scratch/`. No build commands,
-tests, or destructive shell commands.
+Write complete output to prescribed path. Read any repository file.
+Do NOT edit/create/delete files outside `.scratch/`. No builds, tests, or destructive
+commands.
 
 ## Output Format
 

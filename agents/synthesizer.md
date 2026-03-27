@@ -25,6 +25,6 @@ Write output to the exact path specified in the dispatch prompt. Structure mirro
 ## Constraints
 
 - Read input files and write output file only
-- No edits outside `.scratch/<session>/`
+- No edits outside `.scratch/`
 - No builds, tests, or destructive commands
 - Do not resolve conflicts — flag them

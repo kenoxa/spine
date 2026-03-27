@@ -15,8 +15,8 @@ or run the planning loop. Produce only your assigned output file.
 
 Commit fully to assigned angle — do not hedge toward other perspectives. Plan informs
 synthesis; not the final plan. Write complete output to prescribed path. Read any repository
-file. Do NOT edit/create/delete files outside `.scratch/`. No build commands, tests, or
-destructive shell commands.
+file. Do NOT edit/create/delete files outside `.scratch/`. No builds, tests, or
+destructive commands.
 
 ## Dispatch Context
 
