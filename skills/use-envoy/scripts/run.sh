@@ -70,7 +70,7 @@ if [ -f "$prompt_file" ]; then
 fi
 
 # --- Strip file-write path instructions from prompt (defense-in-depth) ---
-# Patterns frozen to current SPINE.md convention; update in lockstep with SPINE.md.
+# Primary control: envoy.md step 2 (agent omits directives). These patterns are secondary.
 if [ -f "$prompt_file" ]; then
     sed -E \
       -e 's/^Write to `[^`]+`\.? ?//' \

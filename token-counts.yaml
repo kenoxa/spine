@@ -12,7 +12,7 @@ agents/navigator.md: 700
 agents/planner.md: 389
 agents/researcher.md: 340
 agents/scout.md: 363
-agents/synthesizer.md: 284
+agents/synthesizer.md: 280
 agents/verifier.md: 584
 agents/visualizer.md: 236
 claude/agents/run-skill-eval/designer.md: 677
