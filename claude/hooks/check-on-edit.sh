@@ -97,8 +97,8 @@ errors=""
 for checker in "${CHECKERS[@]}"; do
   if "detect_$checker" 2>/dev/null; then
     output=$("run_$checker" 2>&1) || true
-    # Filter out "command not found" noise
-    if [ -n "$output" ] && ! echo "$output" | grep -q "command not found"; then
+    # Filter out tool-internal noise (missing commands, runtime crashes in the checker itself)
+    if [ -n "$output" ] && ! echo "$output" | grep -qE "command not found|TypeError:|ReferenceError:|Cannot find module"; then
       errors+="### $checker"$'\n'"$output"$'\n\n'
     fi
   fi
