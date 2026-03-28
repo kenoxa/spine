@@ -7,7 +7,7 @@ description: >
   (2) agent preload — shared review rules (severity buckets, risk scaling, noise filtering)
   for @inspector, @analyst, @debater. Use after code changes or when the user asks for
   review, code audit, or thorough/deep review. Do NOT use during active implementation —
-  use the quality phase in do-execute instead.
+  use the review phase in do-build instead.
 argument-hint: "[file, PR, or scope]"
 ---
 
@@ -52,7 +52,7 @@ At `deep` depth: +augmented `@inspector` per variance lens (cap 5 total).
 
 Do NOT run Phase 2 inline at `standard` or `deep` depth. Dispatch is mandatory. Inline execution only when Gate A fails (fallback to focused depth).
 
-**Gate B**: verifier: VERDICT present (FAIL/PARTIAL → note for synthesis; output without VERDICT → treat as PARTIAL). risk-reviewer: ≥1 finding entry (`[B`/`[S`/`[F`). Absent → inject blocking. envoy: absent → `[COVERAGE_GAP: envoy absent]`. Verifier absent → inject blocking.
+**Gate B**: verifier: VERDICT present (FAIL/PARTIAL → note for synthesis; output without VERDICT → treat as PARTIAL). risk-reviewer: ≥1 finding entry (`[B`/`[S`/`[F`) OR explicit per-category clearance with rationale. Absent → inject blocking. envoy: absent → `[COVERAGE_GAP: envoy absent]`. Verifier absent → inject blocking.
 
 ### Phase 3: Synthesis
 

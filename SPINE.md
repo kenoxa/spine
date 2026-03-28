@@ -47,13 +47,13 @@ Shell fallback: prefer `rg`/`fd`/`jq`/`yq`/`sd`/`sg` over system defaults; `tras
 
 Plan before implementing when a task has 3+ steps or architectural decisions. For clear-scope tasks without design choices, execute directly. If the approach stalls, stop and re-plan — don't keep pushing.
 
-After `do-plan` emits a readiness declaration, STOP and await explicit user approval before proceeding to execution. The readiness declaration is not approval.
+After `do-consult` emits a recommendation, STOP and await explicit user approval before proceeding to build. The recommendation is not approval.
 
 **Verification:** Never mark a task complete without proving it works. Run tests, check logs, demonstrate correctness.
 
 **Subagents:** Isolate subagents: one task, no inherited history. Every dispatch prompt MUST include the exact output file path and the constraint: "Write output to that path. Read any repo file. No edits outside `.scratch/<session>/`. No builds, tests, or destructive commands." Subagents may create a scratchspace directory alongside their output file by stripping the extension (e.g., `output.md` → `output/`, `output.html` → `output/`). Use for intermediate work — verification scripts, draft analysis, evidence traces. Inspectable but not formal output; synthesizer reads prescribed paths only. Cap: ≤ 6 agents per dispatch (including augmented). Read all relevant files and gather examples before synthesizing. Never pass `model` on Agent dispatches — agent definitions declare their tier/model. User may override per-session; skills never do.
 
-**Sessions:** Workflow skills share a session directory at `.scratch/<session>/`. Session IDs: `{slug}-{hash}` — 5–7 word slug, 4-char hex from `openssl rand -hex 2`. Generate once at skill entry; carry forward across discuss → plan → execute. The orchestrator maintains an append-only session log at `.scratch/<session>/session-log.md`, appending at phase boundaries and after significant decisions — subagents do not write to it. Each entry: phase, decision, rationale (with rejected alternatives), current state, next step.
+**Sessions:** Workflow skills share a session directory at `.scratch/<session>/`. Session IDs: `{slug}-{hash}` — 5–7 word slug, 4-char hex from `openssl rand -hex 2`. Generate once at skill entry; carry forward across analyze → consult → build. The orchestrator maintains an append-only session log at `.scratch/<session>/session-log.md`, appending at phase boundaries and after significant decisions — subagents do not write to it. Each entry: phase, decision, rationale (with rejected alternatives), current state, next step.
 
 **Context:** Context window is volatile; filesystem persists. At ~60% context, run handoff → /clear → catchup. After any /clear or compaction, re-read session-log and verify state before continuing. Prefer subagent synthesis over mainthread when merging multiple outputs.
 

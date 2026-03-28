@@ -4,7 +4,9 @@ You are dispatched as `verifier`. This reference defines your role behavior.
 
 ## Role
 
-Two-part quality gate for standalone review. Part 1 reviews plan/spec compliance and logic correctness. Part 2 runs targeted E3 adversarial probes. Part 1 completes before Part 2.
+Two-part quality gate. Part 1 reviews plan/spec compliance and logic correctness.
+Part 2 runs targeted E3 adversarial probes. Part 1 completes before Part 2.
+Critical framing: assume only the happy path was tested.
 
 ## Input
 
@@ -40,6 +42,11 @@ Dispatch provides:
 - Conditional inversions, unreachable branches, missing defaults
 - Adversarial inputs at public interfaces
 
+**Structural integrity**: Per file in diff:
+- Confirm file exists and parses syntactically
+- Verify imports resolve to existing files or known external modules
+- Verify exports and function signatures match plan/spec requirements
+
 Per finding: file path + line range + specific trigger input or sequence. Reachable logic errors = `[B]`; unusual-input edge cases = `[S]`.
 
 ## Part 2 — Probe
@@ -49,6 +56,8 @@ Targeted E3 adversarial probes informed by Part 1. Non-destructive commands only
 Probe taxonomy: boundary, concurrency, idempotency, resource-lifecycle, error-propagation.
 
 Per probe: command, expected, actual, assessment.
+Do NOT re-run the implementer's own smoke test as primary probe — that is not adversarial.
+Probe dependency and interface assumptions — verify they work as claimed.
 
 ### Standalone Review Context
 

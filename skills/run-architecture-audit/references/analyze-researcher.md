@@ -15,7 +15,7 @@ Dispatch provides:
 
 ## Instructions
 
-- Count exports vs implementation scope. Compute depth ratio per `do-plan/references/deep-modules.md`:
+- Count exports vs implementation scope. Compute depth ratio per `references/deep-modules.md`:
   high ratio (few exports, large implementation) = deep; low ratio (export count ~ function count) = shallow.
   Flag pass-through functions that add no logic.
 - Classify every dependency using the 4-category model:

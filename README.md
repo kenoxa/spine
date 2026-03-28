@@ -124,12 +124,12 @@ Use your provider in its most autonomous mode:
 Then start from the workflow:
 
 ```text
-/do-discuss -> /do-plan -> /do-execute -> /commit
+/do -> /do-analyze -> /do-consult -> /do-build -> /commit
 ```
 
 ## What You Get
 
-- A shared workflow: `do-discuss`, `do-plan`, `do-execute`, `commit`
+- A shared workflow: `do-analyze`, `do-consult`, `do-build`, `commit` (or `/do` as single entry point)
 - Utility skills for review, debugging, polish, insights, and recap
 - Shared guardrails through `SPINE.md` and your own global overrides through `AGENTS.md`
 - Shared subagents in `agents/`
@@ -160,10 +160,12 @@ If `~/.config/spine/.env` exists, the installer reads it for MCP authentication.
 
 ## Workflow
 
-1. **[Discuss](docs/skills-reference.md#do-discuss)** with `/do-discuss` to frame the problem. Handles vague inputs, multi-session scoping, and per-phase discussion when a spec exists.
-2. **[Plan](docs/skills-reference.md#do-plan)** with `/do-plan` to produce an executable implementation plan.
-3. **[Execute](docs/skills-reference.md#do-execute)** with `/do-execute` once the plan is approved.
+1. **[Analyze](docs/skills-reference.md#do-analyze)** with `/do-analyze` to frame the problem. Socratic WHAT-focused dialogue composing `run-explore`.
+2. **[Consult](docs/skills-reference.md#do-consult)** with `/do-consult` to gather multi-model advisory on approach.
+3. **[Build](docs/skills-reference.md#do-build)** with `/do-build` to prototype, review, and polish.
 4. **[Commit](docs/skills-reference.md#commit)** with `/commit` when the change is ready to stage and ship.
+
+Or use `/do` as a single entry point that routes through all three phases.
 
 Skills write session artifacts to `.scratch/` during planning and execution. Keep `.scratch/` in your project `.gitignore`.
 
@@ -201,7 +203,7 @@ cd spine
 <summary>Install individual skills</summary>
 
 ```sh
-npx skills add kenoxa/spine -s do-plan -a '*' -g -y
+npx skills add kenoxa/spine -s do-build -a '*' -g -y
 npx skills add kenoxa/spine -s run-review -a '*' -g -y
 ```
 

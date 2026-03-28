@@ -9,6 +9,7 @@ Scope and context building for standalone review — main thread phases. Classif
 - User request (file, PR, scope, or free-form review ask)
 - Diff or file list to review
 - Active session ID (if invoked from another skill — inherit; otherwise generate)
+- Caller-supplied `risk_level` (optional — from do-build scope or other invoker)
 
 ## Instructions
 
@@ -33,6 +34,8 @@ At `focused`: no session ID.
 ### Phase 1: Scope
 
 Main thread (all depths). Confirm what was requested and what changed. Classify depth. Lock risk level.
+
+When a caller supplies `risk_level`, use it as the floor — may upgrade on evidence, never downgrade below caller's classification. This ensures do-build's risk assessment (e.g., `high` for auth changes) is not silently reduced.
 
 ### Context (passes 1-4)
 

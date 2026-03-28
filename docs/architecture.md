@@ -98,16 +98,16 @@ Provider-specific mappings are documented in [model-selection.md](model-selectio
 
 ## Adaptive Routing
 
-The discuss phase classifies task complexity at intake and routes accordingly.
+The `/do` orchestrator classifies task complexity at intake and routes accordingly.
 
-- **Routine tasks** (clear requirements, small scope, no ambiguity) skip discuss and go directly to `do-plan`.
-- **Ambiguous tasks** (vague problem statements, novel domains, multiple valid approaches) run the full discuss workflow.
+- **Routine tasks** (clear requirements, small scope, no ambiguity) skip analyze and go directly to `do-consult` or `do-build`.
+- **Ambiguous tasks** (vague problem statements, novel domains, multiple valid approaches) run the full analyze → consult workflow.
 
 **Routing by complexity reduces cost without sacrificing quality.** Google's hybrid SAS-MAS study (2025) found that routing simple tasks to single agents and complex tasks to multi-agent pipelines improved accuracy by 1--12% while reducing costs by up to 20%. The insight: not every task needs multi-agent coordination. Routine single-file edits with clear specifications gain nothing from a seven-phase discussion --- they need a plan and an implementation.
 
 **Capability saturation limits multi-agent value.** Kim et al. (2025) established a capability saturation threshold at approximately 45% single-agent accuracy, beyond which adding agents yields diminishing or negative returns. Frontier models now achieve 78--81% on SWE-Bench Verified with minimal scaffolding --- well past the saturation point for most coding tasks. Multi-agent coordination adds the most value for tasks where a single agent struggles, which increasingly means novel architectural decisions rather than routine implementation.
 
-**The discuss phase handles the long tail.** The roughly 20% of tasks that are genuinely ambiguous --- unclear requirements, competing architectural approaches, unfamiliar codebases --- benefit from structured exploration before planning. Busemeyer's deliberation research confirms that exploration adds maximal value when prior knowledge is low. Spine's adaptive intake preserves this value without imposing the cost on every task.
+**The analyze phase handles the long tail.** The roughly 20% of tasks that are genuinely ambiguous --- unclear requirements, competing architectural approaches, unfamiliar codebases --- benefit from structured exploration before consulting. Busemeyer's deliberation research confirms that exploration adds maximal value when prior knowledge is low. Spine's adaptive intake preserves this value without imposing the cost on every task.
 
 ## Research Context
 

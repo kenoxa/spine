@@ -4,46 +4,29 @@
 
 ## Workflow Skills
 
-### do-discuss
+### do (orchestrator)
 
-Structured problem framing through Socratic dialogue. Use when the problem is vague, ambiguous, or too broad for direct planning. Also handles spec creation for multi-session features — activated via Handoff routing when the brief recommends it.
+Single entry point that chains `do-analyze` → `do-consult` → `do-build`. Stateful coordinator using redirect model — suggests next phase skill, tracks state in session-log.md. Supports skip validation (skip analyze if problem is clear, skip consult if direction is clear). Catch-all for features, bugs, issues, ideas, questions.
 
-All phases always execute; the agent scales dispatch within each:
-- **Orient** — breadth-first codebase context via `@scout` + `@navigator`; zero-dispatch when not codebase-adjacent.
-- **Clarify** — Socratic dialogue: batch questions, track known/unknown inventory, converge on the core problem.
-- **Investigate** — `@scout` / `@researcher` / `@navigator` for codebase evidence on blocking unknowns.
-- **Explore** — multi-perspective `@framer` team (stakeholder-advocate, systems-thinker, skeptic) for ambiguous scope with one-way-door decisions.
+Canonical entry: [`skills/do/SKILL.md`](../skills/do/SKILL.md).
 
-Produces a `brief` artifact (goal, scope, constraints, key decisions, unknowns) and a confidence-gated handoff recommendation. Discuss preserves `external_signals` for planning handoff; the bounded `researcher` upstream-lookup exception lives in `do-plan`, not discuss routing.
+### do-analyze
 
-Canonical entry: [`skills/do-discuss/SKILL.md`](../skills/do-discuss/SKILL.md).
+Socratic WHAT-focused dialogue composing `run-explore`. Phases: orient (invoke `/run-explore`) → clarify (mainthread + `/run-explore` on demand) → investigate (invoke `/run-explore`) → handoff. Produces `analysis_artifact` with problem statement, constraints, blast radius, success criteria, key unknowns. Forbidden from prescribing HOW. WHAT/HOW escape hatch redirects to `/do-consult` when feasibility knowledge is needed.
 
-### do-plan
+Canonical entry: [`skills/do-analyze/SKILL.md`](../skills/do-analyze/SKILL.md).
 
-Five phases produce a self-sufficient, executable implementation plan:
+### do-consult
 
-1. **Discovery** — map the codebase: file scouting, docs exploration, bounded upstream lookup inside `researcher`, and external-first research through `navigator`. All claims tagged with evidence levels (E0–E3).
-2. **Framing** — distill discoveries into a planning brief: goal, scope, constraints, key decisions, provenance-tagged evidence manifest, and docs impact classification.
-3. **Planning** — dispatch planners with distinct approach angles (rigorous, creative) plus cross-provider envoy. Merge via consensus; rank by evidence level.
-4. **Challenge** — multi-perspective review exposing hidden assumptions, underestimated risks, and unnecessary abstraction. Blocking findings require E2+ evidence and a better alternative.
-5. **Synthesis** — assemble the final plan using the plan template. Validate self-sufficiency, test tasks, edge coverage, docs tasks, and completion criteria.
+Multi-model HOW direction composing `run-advise`. Thin orchestrator: intake (mainthread) → invoke `/run-advise` (batch dispatch + synthesis) → user decision gate. Disagreement-as-signal. User decision gate: approve → `/do-build`, push back → re-dispatch, reject → `/do-analyze`. Cap 3 re-dispatch rounds.
 
-All 5 phases always execute; phase coverage verified via Phase Trace before readiness. Ask checkpoints after discovery and after challenge ensure ambiguity is resolved before proceeding.
+Canonical entry: [`skills/do-consult/SKILL.md`](../skills/do-consult/SKILL.md).
 
-Canonical entry: [`skills/do-plan/SKILL.md`](../skills/do-plan/SKILL.md).
+### do-build
 
-### do-execute
+Automated build-review-polish loop composing `run-implement`, `run-review`, `run-polish`. Scope → `/run-implement` → `/run-review` ↔ `/run-implement` (fix) → `/run-polish` → finalize. Correctness loop (implement↔review, cap 3) then maintainability loop (polish until no E2+ findings, cap 3). Prototype completion gates (no mandatory test/doc gates).
 
-Four phases: scope, implement, quality, finalize.
-
-1. **Scope** — read the approved plan, classify depth (`focused`/`standard`/`deep`), partition work into independent and dependent groups.
-2. **Implement** — one `@implementer` per partition. Parallel for independent groups; sequential for dependent. No overlapping writes. Implementer self-review before reporting.
-3. **Quality** — multi-perspective review and verification in a single phase. Composition: 2 `@analyst` (advisory) + 1 `@inspector` (correctness + spec compliance) + 1 `@verifier` (E3 probes) + 1 `@envoy` = 5 dispatches, followed by sequential `@synthesizer` merge. Mainthread gate on synthesized output; blocking findings re-enter implement. Capped at 5 iterations.
-4. **Finalize** — content gates check for test evidence, edge coverage, and docs. Learnings captured as proposals (never auto-applied).
-
-All 4 phases always execute; phase coverage verified via Phase Trace before finalize.
-
-Canonical entry: [`skills/do-execute/SKILL.md`](../skills/do-execute/SKILL.md).
+Canonical entry: [`skills/do-build/SKILL.md`](../skills/do-build/SKILL.md).
 
 ### run-review
 
@@ -88,9 +71,9 @@ Canonical entry: [`skills/run-insights/SKILL.md`](../skills/run-insights/SKILL.m
 
 ### run-explore
 
-Bounded codebase exploration and architecture mapping. Answers "what's there?" — single-pass reconnaissance. For "what should we do about it?" use `do-discuss` instead.
+Bounded codebase exploration and architecture mapping. Answers "what's there?" — single-pass reconnaissance. For "what should we do about it?" use `do-analyze` instead.
 
-Standalone invocation dispatches role-specific subagents (scout for breadth, researcher for depth, navigator for external research), synthesizes findings, and optionally generates visual recaps via `@visualizer`. Also serves as the canonical reference source: `do-discuss` and `do-plan` cross-reference exploration references from `run-explore/references/` for their orient, investigate, and discovery phases — the same composition pattern `do-execute` uses for `run-polish` advisory refs.
+Standalone invocation dispatches role-specific subagents (scout for breadth, researcher for depth, navigator for external research), synthesizes findings, and optionally generates visual recaps via `@visualizer`. Also invoked as a phase skill by `do-analyze` (orient, clarify probes, investigate).
 
 Canonical entry: [`skills/run-explore/SKILL.md`](../skills/run-explore/SKILL.md).
 
@@ -101,6 +84,18 @@ Compile structured research prompts for external deep research UIs (ChatGPT Deep
 Three-outcome gather gate: zero-dispatch for purely external goals with no codebase dependency, `@scout` (Fast/haiku) for standard breadth-first context, or `@researcher` (Standard/sonnet) for `--depth deep` with call chains and evidence tables. Single adaptive template with inline UI adaptation table handles per-provider formatting differences. Compile-only in v1; paste-back ingest deferred to v2.
 
 Canonical entry: [`skills/run-research/SKILL.md`](../skills/run-research/SKILL.md).
+
+### run-implement
+
+Scoped code implementation with partition-parallel dispatch. Works standalone ("implement this") and as an embedded phase in `do-build`. Three phases: scope (mainthread) → implement (`@implementer` per partition) → report (mainthread). Fix mode: when invoked with `fix_context`, applies minimal fixes to blocking findings instead of full implementation.
+
+Canonical entry: [`skills/run-implement/SKILL.md`](../skills/run-implement/SKILL.md).
+
+### run-advise
+
+Multi-model perspective gathering with synthesis. Works standalone ("advise on this approach") and as an embedded phase in `do-consult`. Dispatches `@consultant` (rigorous + creative angles) + `@navigator` + `@envoy` → `@synthesizer`. Produces `advise_artifact` with convergence/divergence map, tradeoffs, falsification risks. Standalone: thin input gets grounding question; embedded: dispatches directly from `analysis_artifact`.
+
+Canonical entry: [`skills/run-advise/SKILL.md`](../skills/run-advise/SKILL.md).
 
 ### run-polish
 
@@ -147,11 +142,10 @@ Canonical entry: [`skills/run-recap/SKILL.md`](../skills/run-recap/SKILL.md).
 | `scout` | Fast | haiku | medium | Fast codebase reconnaissance |
 | `researcher` | Standard | sonnet | high | Deep discovery and evidence gathering; local-depth first, may do bounded plan-specific upstream lookup |
 | `navigator` | Standard | sonnet | high | External-first research specialist for broad, ambiguous, comparative, or current external work |
-| `planner` | Frontier | opus | high | Angle-committed planning, preloads `do-plan` |
+| `consultant` | Standard | sonnet | high | Perspective-committed recommendation for `do-consult` |
 | `debater` | Frontier | opus | high | Multi-perspective Socratic dialogue |
 | `inspector` | Frontier | opus | high | Verdict-focused code review, preloads `run-review` |
 | `analyst` | Standard | sonnet | high | Advisory pattern analysis, preloads `run-review` and `run-polish` |
-| `framer` | Standard | sonnet | high | Perspective-committed problem framing |
 | `verifier` | Frontier | opus | high | Correctness, spec compliance, and E3 verification probes in quality phase and standalone run-review; preloads `with-testing` (test boundary decisions + mock strategy) |
 | `miner` | Fast | haiku | medium | Session data analysis and cross-session pattern extraction |
 | `visualizer` | Standard | sonnet | high | HTML visualization via visual-explainer commands, preloads `visual-explainer` |
@@ -167,7 +161,7 @@ Prefixes group skills in slash-autocomplete — type `do-`, `run-`, `with-`, or 
 
 | Prefix | Semantic | When to use |
 |--------|----------|-------------|
-| `do-` | Primary flow | The workflow chain: discuss → plan → execute |
+| `do-` | Primary flow | The workflow chain: analyze → consult → build |
 | `run-` | Utilities | Standalone actions invoked any time: debug, review, polish, insights, recap |
 | `with-` | Domain constraints | Applied passively when the task matches a specific domain — backend, frontend, terminology, testing |
 | `use-` | Operational tools | Invoked explicitly — utilities, conventions, and cross-provider tooling |

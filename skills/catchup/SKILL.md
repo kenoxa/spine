@@ -5,7 +5,7 @@ description: >
   session, recovering from context loss, or verifying state before continuing.
   Also trigger on "catch up", "what's the session state", "resume session",
   "pick up where we left off", or after any /clear or auto-compaction.
-  Do NOT use for creating new sessions — start with do-discuss or do-plan.
+  Do NOT use for creating new sessions — start with do-analyze or do-consult.
 argument-hint: "[session-id or path to session artifacts]"
 ---
 
@@ -48,8 +48,8 @@ State display:
 ### 4. Resume
 
 After user confirms state, recommend the next skill to invoke:
-- In-progress plan → `/do-execute`
-- No plan yet → `/do-plan`
+- In-progress build → `/do-build`
+- No direction yet → `/do-consult`
 - Plan complete, no commit → `/commit`
 - Unclear phase → ask before recommending
 

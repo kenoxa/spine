@@ -45,5 +45,5 @@ Read synthesis output. Present findings to user per SKILL.md Output Format.
 
 - Running Phase 2 for focused scope (wastes scout dispatch on known target)
 - Dispatching more than 3 researchers in Phase 3 (diminishing returns; cap at 3)
-- Proposing solutions in Phase 4 (audit diagnoses; do-plan with architecture-depth lens prescribes)
+- Proposing solutions in Phase 4 (audit diagnoses; do-consult with architecture-depth lens prescribes)
 - Skipping user selection between Phase 2 and Phase 3 (user chooses deepening targets)

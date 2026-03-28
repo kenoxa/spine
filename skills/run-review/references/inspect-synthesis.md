@@ -32,7 +32,7 @@ Merge procedure:
 - PASS: findings merge normally, no header flag
 - FAIL: flag as blocking in output header ("Verifier found blocking issues")
 - PARTIAL: flag in header ("Verifier coverage incomplete: {stated reason}")
-Unlike do-execute, run-review has no re-entry — blocking findings surface to user for resolution.
+Run-review has no re-entry — blocking findings surface to caller for resolution. (do-build's review gate handles ITERATE loops.)
 
 **Probe integration**: failed probe without corresponding Part 1 finding emits as `[B]` finding. E3 probe supporting E2 Part 1 finding upgrades evidence to E3.
 

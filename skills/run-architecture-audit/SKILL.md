@@ -6,14 +6,14 @@ description: >
   Use when: "architecture audit", "find shallow modules", "module depth", "reduce coupling",
   "tighten interfaces", "dependency analysis", "deep modules", "architecture review",
   "refactoring candidates", "what should I deepen".
-  Do NOT use during active implementation (use do-execute), for code review (use run-review),
-  or for planning (use do-plan with architecture-depth lens).
+  Do NOT use during active implementation (use do-build), for code review (use run-review),
+  or for planning (use do-consult with architecture-depth lens).
 argument-hint: "[scope: directory, module, or 'full codebase']"
 ---
 
 Read-only audit — no file writes, no code changes.
 
-Cross-reference: `do-plan/references/deep-modules.md` for depth heuristics, dependency categories, Design It Twice.
+Cross-reference: `references/deep-modules.md` for depth heuristics, dependency categories, Design It Twice.
 
 ## Phases
 
@@ -46,11 +46,11 @@ Write `architecture-findings.md` to `.scratch/<session>/`:
 1. **Summary** — scope audited, candidate count, top friction areas (2-3 sentences)
 2. **Candidate table** — module | depth | dependency category | priority
 3. **Per-candidate analysis** — coupling indicators, depth assessment, test impact, deepening approach
-4. **Next step** — suggest `/do-discuss` for spec creation (large scope) or `/do-plan` with `architecture-depth` lens (focused scope)
+4. **Next step** — suggest `/do-analyze` for spec creation (large scope) or `/do-consult` with `architecture-depth` lens (focused scope)
 
 ## Anti-Patterns
 
-- Proposing code changes (audit diagnoses; do-plan prescribes)
+- Proposing code changes (audit diagnoses; do-consult/do-build prescribes)
 - Auditing test quality in isolation (use run-review for that)
 - Skipping dependency classification (every candidate needs a category)
 - Conflating shallow modules with small modules (small + deep = fine)

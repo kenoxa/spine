@@ -2,8 +2,8 @@
 name: synthesizer
 description: >
   Merge N subagent outputs into a single structured artifact.
-  Use for synthesis steps in do-plan (discovery, planning, challenge)
-  and do-execute (quality).
+  Use for synthesis steps in run-advise (advisory batch)
+  and run-review (quality).
 model: inherit
 effort: high
 ---

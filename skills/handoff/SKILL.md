@@ -8,7 +8,7 @@ description: >
   a new session", or "continue in a new chat".
   Do NOT use for session summaries without a continuation goal (use
   run-recap) or for cross-skill phase transitions (built into
-  do-discuss and do-execute).
+  do-analyze and do-build).
 argument-hint: "[direction or goal for the next session]"
 ---
 

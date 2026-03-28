@@ -4,7 +4,7 @@ description: >
   Test boundary decisions and risk-based testing strategy.
   Use when deciding what to mock, planning test strategy, evaluating coverage,
   or before writing tests for a new feature.
-  Do NOT use for test execution during do-execute — that skill has its own test gates.
+  Do NOT use for test execution during do-build — that skill has its own review gates.
 argument-hint: "[feature, module, or function under test]"
 ---
 

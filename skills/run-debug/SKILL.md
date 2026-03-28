@@ -4,7 +4,7 @@ description: >
   Diagnose and fix bugs through structured 4-phase debugging.
   Use when facing failing tests, crashes, regressions, unexpected behavior,
   or non-deterministic / flaky failures.
-  Do NOT use when the problem is unclear scope or missing requirements — use /do-plan instead.
+  Do NOT use when the problem is unclear scope or missing requirements — use /do-analyze instead.
 argument-hint: "[error, failing test, or symptom]"
 ---
 
@@ -54,8 +54,8 @@ After each hypothesis dispatch, orchestrator reads `debug-hypothesis.md` header 
 
 ## Escalation
 
-- 3 failed hypotheses (`hypothesis_attempts >= 5`) → halt loop, report all dead-end evidence to user, suggest `/do-plan` for architectural investigation.
-- Architectural uncertainty or repeated cross-module failures → re-enter planning (`/do-plan`).
+- 3 failed hypotheses (`hypothesis_attempts >= 5`) → halt loop, report all dead-end evidence to user, suggest `/do-analyze` for architectural investigation.
+- Architectural uncertainty or repeated cross-module failures → re-enter analysis (`/do-analyze`).
 
 ## Anti-Patterns
 
