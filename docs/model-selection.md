@@ -15,7 +15,7 @@
 | Tier | Purpose | Claude | Codex | Cursor | Qwen | Copilot |
 |------|---------|--------|-------|--------|------|---------|
 | Frontier | Complex reasoning, gate authority | opus | gpt-5.4 | composer-2 | qwen3.5-plus | gpt-5.4 |
-| Standard | Advisory, research, pattern matching | sonnet | gpt-5.4 | composer-2 | qwen3-coder-plus | gpt-5.4 |
+| Standard | Advisory, research, pattern matching | sonnet | gpt-5.4 | auto | qwen3-coder-plus | gpt-5.4 |
 | Fast | Reconnaissance, extraction | haiku | gpt-5.4-mini¹ | composer-2 | coder-model | gpt-5.4-mini |
 | Adaptive | Tracks your session model | — | — | — | — | — |
 
@@ -66,7 +66,7 @@ Heavy multi-agent sessions can exhaust Claude Code Max 5x Opus hours in 2-3 days
 | Tier | Claude | Codex | Cursor | Copilot |
 |------|--------|-------|--------|---------|
 | Frontier | opus ($5/$25) | gpt-5.4 ($2.50/$15) | composer-2 ($0.50/$2.50) | premium requests (not per-token) |
-| Standard | sonnet ($3/$15) | gpt-5.4 ($2.50/$15) | composer-2 ($0.50/$2.50) | premium requests (not per-token) |
+| Standard | sonnet ($3/$15) | gpt-5.4 ($2.50/$15) | auto ($1.25/$6.00) | premium requests (not per-token) |
 | Fast | haiku ($1/$5) | gpt-5.4-mini¹ ($0.75/$4.50) | composer-2 ($0.50/$2.50) | premium requests (not per-token) |
 
 > Cursor models draw from the Auto+Composer pool with a monthly allowance. Per-token cost matters less than staying within your monthly budget. Composer 2 Fast ($1.50/$7.50) offers the same quality at higher speed but 3× the cost — use selectively when latency matters. For higher quality beyond the pool, override to API-pool models (e.g., gpt-5.4) at provider pricing.
@@ -157,7 +157,7 @@ Three mapping points encode the tier tables:
 - **`install.sh`** `generate_qwen_agent_md()` — Qwen agents use only `name` + `description` frontmatter (no model/effort fields).
 - **`install.sh`** `generate_copilot_agent_md()` — Copilot agents use only `name` + `description` frontmatter (same as Qwen).
 
-All mapping points agree on tier:provider mappings. Intentional surface differences: Cursor Fast uses `fast` in install-time frontmatter but `composer-2` in envoy CLI dispatch. Qwen has no effort parameter — all tiers use empty effort. Qwen OAuth free tier resolves all models to `coder-model`; Dashscope API keys required for actual model differentiation.
+All mapping points agree on tier:provider mappings. Intentional surface differences: Cursor Standard uses `auto` (Cursor's routing with separate allocation from composer-2), Cursor Fast uses `fast` in install-time frontmatter but `composer-2` in envoy CLI dispatch. Qwen has no effort parameter — all tiers use empty effort. Qwen OAuth free tier resolves all models to `coder-model`; Dashscope API keys required for actual model differentiation.
 
 ### Agent Tier Assignments
 
