@@ -9,6 +9,7 @@ Dispatch provides:
 - `research_question` -- external knowledge gap
 - `seed_terms` -- library names, versions, framework context (derived from analysis_artifact constraints + key_unknowns, or from the advisory question)
 - `codebase_signals` -- from prior phases (optional)
+- `active_lenses` -- variance lens name(s) and focus directive(s), when present. Prioritize research queries that address the lens domain.
 - `{output_path}`
 
 ## Instructions

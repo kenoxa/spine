@@ -92,9 +92,9 @@ Example: `SPINE_ENVOY_FRONTIER_CLAUDE=opus:high` overrides the frontier tier for
 | Provider | Support | Levels |
 |----------|---------|--------|
 | Claude Code | Session-level only (ignored per-agent) | — |
-| Codex | Per-role in TOML | minimal, low, medium, high, xhigh |
+| Codex | Per-role in TOML | minimal, low, medium, high |
 | Cursor | None | — |
-| Copilot | Yes | low, medium, high, xhigh |
+| Copilot | Yes | low, medium, high |
 
 Agent frontmatter `effort:` is not consumed by Claude Code directly. However, `invoke-claude.sh` reads the tier's effort value from `resolve_tier()` and sets `CLAUDE_CODE_EFFORT_LEVEL` at runtime for envoy dispatch. This means effort values in agent files ARE effective for Claude envoy calls — the runtime script bridges the gap.
 

@@ -920,10 +920,10 @@ map_model_for_provider() {
 map_effort_for_provider() {
   local effort="$1" provider="$2"
   case "$effort:$provider" in
-    max:codex)    _mapped_effort="xhigh" ;;
+    max:codex)    _mapped_effort="high" ;;
     high:codex)   _mapped_effort="high" ;;
     medium:codex) _mapped_effort="medium" ;;
-    max:copilot)    _mapped_effort="xhigh" ;;
+    max:copilot)    _mapped_effort="high" ;;
     high:copilot)   _mapped_effort="high" ;;
     medium:copilot) _mapped_effort="medium" ;;
     low:copilot)    _mapped_effort="low" ;;

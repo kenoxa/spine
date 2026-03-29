@@ -3,7 +3,7 @@ name: verifier
 description: >
   Adversarial verification — probes implementations for failures the implementer did not test. All claims require E3 evidence.
 model: opus
-effort: max
+effort: high
 skills:
   - with-testing
   - use-shell

@@ -63,7 +63,7 @@ case "$fallback_for" in
     codex)
         # GPT family: match tier quality
         case "$tier" in
-            frontier) _base="gpt-5.4";      _base_effort="xhigh" ;;
+            frontier) _base="gpt-5.4";      _base_effort="high" ;;
             standard) _base="gpt-5.4";      _base_effort="medium" ;;
             fast)     _base="gpt-5.4-mini";  _base_effort="high" ;;
         esac

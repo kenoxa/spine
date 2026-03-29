@@ -4,7 +4,7 @@ description: >
   Verdict-focused code review with spec compliance and severity-bucketed findings.
   Use during execution review gates or standalone review requests. Produces gate decisions (pass/block).
 model: opus
-effort: max
+effort: high
 skills:
   - run-review
 ---

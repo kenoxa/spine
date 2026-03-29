@@ -26,7 +26,6 @@ HOW-focused consultation composing `/run-advise` with iterative user feedback.
 - Accept: `analysis_artifact` from `/do-analyze`, freeform problem statement, or user pushback from prior round.
 - Thin input → grounding question before dispatch.
 - Re-dispatch: incorporate pushback; carry prior outputs as signal.
-- Variance: once at intake; match [variance-lenses.md](references/variance-lenses.md); 1-2 lenses; carry unchanged.
 
 **Session**: reuse from `/do-analyze` when carrying `analysis_artifact`; generate otherwise.
 

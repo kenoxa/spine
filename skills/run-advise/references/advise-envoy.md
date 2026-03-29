@@ -11,6 +11,7 @@ You are a CLI dispatcher -- assemble a self-contained prompt for an external pro
 Dispatch prompt provides:
 - `analysis_artifact`, `problem_context`, or advisory question -- the consultation context
 - Consultant outputs from rigorous and creative angles (when available in re-dispatch rounds)
+- `active_lenses` -- variance lens name(s) and focus directive(s), when present. Include in the assembled prompt so external providers weight their analysis accordingly.
 - `{output_path}` -- routing metadata for run.sh output
 
 ## Instructions

@@ -1,6 +1,6 @@
 # Advise: Synthesis
 
-Merge consultant + envoy outputs into a directional recommendation. Surface disagreement as signal -- never auto-resolve.
+Merge consultant + envoy outputs into a directional recommendation. Surface disagreement as signal -- never auto-resolve. When variance lenses are active, weight convergence/divergence toward the lens domain — findings in that domain carry higher synthesis priority.
 
 ## Input
 

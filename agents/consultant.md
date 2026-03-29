@@ -3,7 +3,7 @@ name: consultant
 description: >
   Perspective-committed recommendation agent for run-advise and do-consult phases.
   Produces approach recommendations with tradeoffs and confidence assessment.
-model: sonnet
+model: opus
 effort: high
 skills: [run-advise]
 ---

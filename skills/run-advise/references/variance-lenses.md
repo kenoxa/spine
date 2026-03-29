@@ -19,7 +19,7 @@
 
 Match task keywords against **Example trigger** column. Consider constraints and target files for implicit signals (e.g., touching auth middleware → `security`). When ambiguous, default to `dependency` for multi-file changes, `api-surface` for external callers.
 
-## Dedup: do-consult
+## Dedup: advisory batch
 
 Drop a lens when its domain is fully covered by a default advisory angle. Partial overlap → keep.
 

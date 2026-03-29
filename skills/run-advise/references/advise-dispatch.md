@@ -12,6 +12,8 @@ Dispatch provides one of:
 - `problem_context` -- freeform problem statement or question with enough context for directional advice
 - `prior_round_context` -- previous consultant outputs + user pushback (re-dispatch)
 
+When variance lenses are active, dispatch includes `active_lenses` with lens name(s) and focus directive(s). Weight your analysis toward the lens domain — it signals the most important dimension for this advisory.
+
 If fewer than 3 known items in input, flag "thin context" in angle summary.
 
 ## Instructions

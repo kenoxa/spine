@@ -32,8 +32,9 @@ Accept: question from user (standalone) OR analysis_artifact/context from caller
 
 - **Standalone with thin input** (fewer than 3 concrete constraints/criteria): ask one grounding question before dispatch.
 - **Embedded with analysis_artifact**: skip questions, dispatch directly.
+- **Variance**: match task keywords against [variance-lenses.md](references/variance-lenses.md); select 0-2 lenses. A matched lens counts as one constraint toward the 3-constraint threshold. Freeze lenses on first dispatch — do not re-derive on re-dispatch rounds.
 
-Exit: dispatch context assembled with >=3 constraints, OR analysis_artifact present.
+Exit: dispatch context assembled with >=3 constraints, OR analysis_artifact present. Include selected lenses (if any) in dispatch context for all batch agents.
 
 ### 2. Batch
 

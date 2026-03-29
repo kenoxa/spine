@@ -57,7 +57,7 @@ Invoke `/run-review` scoped to `files_modified` at `scope_artifact.risk_level`. 
 
 **Review gate**: Load [build-review-gate.md](references/build-review-gate.md). Read run-review output. Verdict: ITERATE or ACCEPT.
 
-- **ITERATE** → invoke `/run-implement` with `fix_context` (blocking findings) → re-invoke `/run-review` → re-gate. Cap **3** iterations; freeze on cap.
+- **ITERATE** → invoke `/run-implement` with `fix_context` (blocking findings) → re-invoke `/run-review` → re-gate. Cap **5** iterations; freeze on cap.
 - **ACCEPT** → proceed to polish.
 
 ### 4. Polish
