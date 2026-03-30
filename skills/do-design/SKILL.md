@@ -46,7 +46,7 @@ Zero-dispatch when advisory is self-contained — log with justification.
 
 ### 4. User Decision Gate
 
-Present `advise_artifact` synthesis. Main thread = sole decision authority.
+Assemble `design_artifact` per [design-artifact.md](references/design-artifact.md) from `advise_artifact` + `frame_artifact`. Write to `.scratch/<session>/design-artifact.md`. Present to user — direction and delivery slicing reviewed together. Main thread = sole decision authority.
 
 | User action | Response |
 |------------|----------|

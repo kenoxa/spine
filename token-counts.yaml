@@ -25,9 +25,10 @@ skills/commit/SKILL.md: 539
 skills/do-build/references/build-finalize.md: 672
 skills/do-build/references/build-review-gate.md: 298
 skills/do-build/SKILL.md: 745
-skills/do-design/SKILL.md: 704
+skills/do-design/references/design-artifact.md: 405
+skills/do-design/SKILL.md: 751
 skills/do-frame/references/frame-dispatch.md: 798
-skills/do-frame/SKILL.md: 810
+skills/do-frame/SKILL.md: 899
 skills/do/SKILL.md: 475
 skills/handoff/SKILL.md: 651
 skills/run-advise/references/advise-dispatch.md: 465

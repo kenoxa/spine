@@ -28,7 +28,12 @@ Log each phase to Phase Trace (session-log) at boundary. Zero-dispatch phases re
 
 ### 1. Orient
 
-Invoke `/run-explore` for codebase reconnaissance. Scan input for adaptive signals:
+Two sub-steps — question generation before exploration:
+
+1. **Generate exploration questions** (mainthread) — 3-5 objective codebase-factual questions from user input. Target how code works now — no desired outcomes, direction, or solution-space references.
+2. **Invoke `/run-explore`** with those questions as exploration argument — not the raw user problem.
+
+Scan input for adaptive signals:
 - Defect symptoms (errors, crashes, data loss, missing records, inconsistent state, unexpected behavior, "drops", "gaps", "intermittent") → also invoke `/run-debug`
 - Coupling/module/boundary language → also invoke `/run-architecture-audit`
 
