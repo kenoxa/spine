@@ -56,10 +56,27 @@ warn()     { printf "${_C_YELLOW}WARN:${_C_RESET} %s\n" "$*" >&2; }
 error()    { printf "${_C_RED}ERROR:${_C_RESET} %s\n" "$*" >&2; }
 done_msg() { printf "  ${_C_GREEN}✓${_C_RESET} %s\n" "$*" >&2; }
 
+# Per-tool progressive output: each tool_add reprints the line, tool_done finalizes it.
+_tool_current="" _tool_features=""
+tool_start() { _tool_current="$1"; _tool_features=""; }
+tool_add() {
+  local f="$1"
+  _tool_features="${_tool_features:+${_tool_features}, }$f"
+  # Overwrite current line with updated feature list
+  printf "\r  ${_C_GREEN}✓${_C_RESET} %s: %s" "$_tool_current" "$_tool_features" >&2
+}
+tool_done() {
+  if [ -n "$_tool_features" ]; then
+    # Final newline to lock the line
+    printf "\n" >&2
+  fi
+  _tool_current="" _tool_features=""
+}
+
 # Run a command silently; on failure show captured output then return 1.
 quiet() { local out; out=$("$@" 2>&1) || { echo "$out" >&2; return 1; }; }
 
-# Step progress: step "1/8" "Checking dependencies"
+# Step progress: step "1/7" "Checking dependencies"
 step() { printf "\n${_C_BLUE}[%s]${_C_RESET} %s\n" "$1" "$2" >&2; }
 
 # --- Dependency detection ---
@@ -532,7 +549,7 @@ install_tool() {
     done
   fi
 
-  done_msg "$tool: guardrails, agents"
+  tool_add "guardrails, agents"
 
   # Qwen Code extras: configure context.fileName to load both QWEN.md and AGENTS.md
   if [ "$tool" = "qwen" ] && command -v jq &>/dev/null; then
@@ -542,14 +559,14 @@ install_tool() {
       tmp=$(mktemp)
       if jq '.context.fileName = ["QWEN.md", "AGENTS.md"]' "$qwen_settings" > "$tmp" 2>/dev/null; then
         mv "$tmp" "$qwen_settings"
-        done_msg "qwen: context.fileName configured"
+        tool_add "context.fileName"
       else
         rm -f "$tmp"
         warn "Failed to patch $qwen_settings — set context.fileName manually"
       fi
     else
       printf '{"context":{"fileName":["QWEN.md","AGENTS.md"]}}\n' > "$qwen_settings"
-      done_msg "qwen: settings.json created with context.fileName"
+      tool_add qwen "context.fileName"
     fi
   fi
 
@@ -572,7 +589,7 @@ install_claude_plugin() {
   # Attempt plugin installation
   if quiet claude plugin marketplace add "$marketplace_src" && \
      quiet claude plugin install spine@kenoxa; then
-    done_msg "claude: plugin (hooks + skills)"
+    tool_add "plugin"
     return 0
   fi
 
@@ -633,12 +650,13 @@ install_claude_plugin() {
 # Minimum RTK version required (permissionDecision bypass fix).
 RTK_MIN_VERSION="0.33.1"
 
-install_rtk() {
-  local tools=("$@")
+_rtk_ready=false
+install_rtk_once() {
+  $_rtk_ready && return 0
 
   if ! command -v rtk &>/dev/null; then
     warn "rtk not found — skipping token optimization setup"
-    return 0
+    return 1
   fi
 
   # Version check: require >= 0.33.1 (permissionDecision bypass fix)
@@ -646,7 +664,7 @@ install_rtk() {
   rtk_version=$(rtk --version 2>/dev/null | awk '{print $2}')
   if [ -n "$rtk_version" ] && ! version_gte "$rtk_version" "$RTK_MIN_VERSION"; then
     warn "rtk $rtk_version is below minimum $RTK_MIN_VERSION — skipping (brew upgrade rtk)"
-    return 0
+    return 1
   fi
 
   # Disable telemetry by default
@@ -658,37 +676,37 @@ install_rtk() {
 [telemetry]
 enabled = false
 TOML
-    done_msg "rtk: telemetry disabled (~/.config/rtk/config.toml)"
   fi
 
-  # Per-provider init
-  for tool in "${tools[@]}"; do
-    case "$tool" in
-      claude)
-        quiet rtk init -g --auto-patch && done_msg "rtk: claude hooks" || warn "rtk init -g failed"
-        # PATH bug #685 workaround: patch hook command with absolute rtk path
-        _rtk_patch_claude_hook_path
-        ;;
-      cursor)
-        quiet rtk init -g --agent cursor && done_msg "rtk: cursor hooks" || warn "rtk init --agent cursor failed"
-        ;;
-      codex)
-        quiet rtk init -g --codex && done_msg "rtk: codex instructions" || warn "rtk init --codex failed"
-        ;;
-      qwen)
-        # No RTK flag for Qwen — reuse Codex instruction template
-        _rtk_copy_codex_template "$HOME/.$tool"
-        _rtk_add_root_ref "$HOME/.$tool" "$tool"
-        done_msg "rtk: qwen instructions (fallback)"
-        ;;
-      copilot)
-        # Copilot: project-scoped only — deferred (see TODO.md)
-        ;;
-      opencode)
-        quiet rtk init -g --opencode && done_msg "rtk: opencode plugin" || warn "rtk init --opencode failed"
-        ;;
-    esac
-  done
+  _rtk_ready=true
+}
+
+_install_rtk_single() {
+  local tool="$1"
+  install_rtk_once || return 0
+  case "$tool" in
+    claude)
+      quiet rtk init -g --auto-patch && tool_add "rtk" || warn "rtk init -g failed"
+      _rtk_patch_claude_hook_path
+      ;;
+    cursor)
+      quiet rtk init -g --agent cursor && tool_add "rtk" || warn "rtk init --agent cursor failed"
+      ;;
+    codex)
+      quiet rtk init -g --codex && tool_add "rtk" || warn "rtk init --codex failed"
+      ;;
+    qwen)
+      _rtk_copy_codex_template "$HOME/.$tool"
+      _rtk_add_root_ref "$HOME/.$tool" "$tool"
+      tool_add "rtk"
+      ;;
+    copilot)
+      # Copilot: project-scoped only — deferred
+      ;;
+    opencode)
+      quiet rtk init -g --opencode && tool_add "rtk" || warn "rtk init --opencode failed"
+      ;;
+  esac
 }
 
 # Patch Claude Code settings.json to include absolute rtk path in hook command.
@@ -791,7 +809,7 @@ mcp_add_claude() {
   # Remove first for idempotency — claude mcp add fails if entry already exists
   quiet claude mcp remove "$name" --scope user 2>/dev/null || true
   if quiet claude mcp add --transport http --scope user "$name" "$url" "$@"; then
-    done_msg "claude: MCP server $name"
+    tool_add "MCP:$name"
   else
     warn "Failed to add MCP server $name to claude"
     echo "  Run manually: claude mcp add --transport http --scope user $name $url $*" >&2
@@ -801,7 +819,7 @@ mcp_add_claude() {
 mcp_add_codex() {
   local name="$1" url="$2"; shift 2
   if quiet codex mcp add "$name" --url "$url" "$@"; then
-    done_msg "codex: MCP server $name"
+    tool_add "MCP:$name"
   else
     warn "Failed to add MCP server $name to codex"
     echo "  Run manually: codex mcp add $name --url $url $*" >&2
@@ -816,7 +834,7 @@ mcp_add_qwen() {
   # instead of resolving them at add-time (qwen expands env vars in -H values if set)
   if quiet env -u CONTEXT7_API_KEY -u EXA_API_KEY \
       qwen mcp add --transport http --scope user --trust "$name" "$url" "$@"; then
-    done_msg "qwen: MCP server $name"
+    tool_add "MCP:$name"
   else
     warn "Failed to add MCP server $name to qwen"
     echo "  Run manually: qwen mcp add --transport http --scope user --trust $name $url $*" >&2
@@ -855,7 +873,7 @@ mcp_add_cursor() {
 
   if jq empty "$tmp" 2>/dev/null; then
     mv "$tmp" "$mcp_file"
-    done_msg "cursor: MCP servers (context7, exa)"
+    tool_add "MCP:context7, MCP:exa"
   else
     warn "Generated invalid JSON — $mcp_file left unchanged"
     rm -f "$tmp"
@@ -895,7 +913,7 @@ mcp_add_copilot() {
 
   if jq empty "$tmp" 2>/dev/null; then
     mv "$tmp" "$mcp_file"
-    done_msg "copilot: MCP servers (context7, exa)"
+    tool_add "MCP:context7, MCP:exa"
   else
     warn "Generated invalid JSON — $mcp_file left unchanged"
     rm -f "$tmp"
@@ -937,7 +955,7 @@ mcp_add_opencode() {
 
   if jq empty "$tmp" 2>/dev/null; then
     mv "$tmp" "$config_file"
-    done_msg "opencode: MCP servers (context7, exa)"
+    tool_add "MCP:context7, MCP:exa"
   else
     warn "Generated invalid JSON — $config_file left unchanged"
     rm -f "$tmp"
@@ -945,68 +963,80 @@ mcp_add_opencode() {
   fi
 }
 
-install_mcp_servers() {
-  local detected_tools=("$@")
+_mcp_ready=false
+_mcp_c7_url="" _mcp_exa_url=""
+_mcp_c7_claude_auth=() _mcp_exa_claude_auth=()
+_mcp_c7_codex_auth=() _mcp_exa_codex_auth=()
+
+install_mcp_once() {
+  $_mcp_ready && return 0
 
   source_spine_env
 
-  local c7_url="https://mcp.context7.com/mcp"
-  local exa_url="https://mcp.exa.ai/mcp?tools=get_code_context_exa,web_search_exa"
+  _mcp_c7_url="https://mcp.context7.com/mcp"
+  _mcp_exa_url="https://mcp.exa.ai/mcp?tools=get_code_context_exa,web_search_exa"
 
-  # Build auth args conditionally — only add header references when keys are configured
-  local c7_claude_auth=() exa_claude_auth=()
-  local c7_codex_auth=() exa_codex_auth=()
   if [ -n "${CONTEXT7_API_KEY:-}" ]; then
     # shellcheck disable=SC2016  # intentional: env var resolves at runtime, not install time
-    c7_claude_auth=(--header 'Authorization: Bearer ${CONTEXT7_API_KEY}')
-    c7_codex_auth=(--bearer-token-env-var CONTEXT7_API_KEY)
+    _mcp_c7_claude_auth=(--header 'Authorization: Bearer ${CONTEXT7_API_KEY}')
+    _mcp_c7_codex_auth=(--bearer-token-env-var CONTEXT7_API_KEY)
   fi
   if [ -n "${EXA_API_KEY:-}" ]; then
     # shellcheck disable=SC2016
-    exa_claude_auth=(--header 'Authorization: Bearer ${EXA_API_KEY}')
-    exa_codex_auth=(--bearer-token-env-var EXA_API_KEY)
+    _mcp_exa_claude_auth=(--header 'Authorization: Bearer ${EXA_API_KEY}')
+    _mcp_exa_codex_auth=(--bearer-token-env-var EXA_API_KEY)
   fi
 
+  _mcp_ready=true
+}
+
+_install_mcp_single() {
+  local tool="$1"
+  install_mcp_once
+
+  case "$tool" in
+    claude)
+      mcp_add_claude "context7" "$_mcp_c7_url" "${_mcp_c7_claude_auth[@]}"
+      mcp_add_claude "exa" "$_mcp_exa_url" "${_mcp_exa_claude_auth[@]}"
+      ;;
+    codex)
+      mcp_add_codex "context7" "$_mcp_c7_url" "${_mcp_c7_codex_auth[@]}"
+      mcp_add_codex "exa" "$_mcp_exa_url" "${_mcp_exa_codex_auth[@]}"
+      ;;
+    cursor)
+      mcp_add_cursor "$_mcp_c7_url" "${CONTEXT7_API_KEY:-}" "$_mcp_exa_url" "${EXA_API_KEY:-}"
+      if command -v agent &>/dev/null; then
+        quiet agent mcp enable context7 2>/dev/null || true
+        quiet agent mcp enable exa 2>/dev/null || true
+        tool_add "MCP approved"
+      fi
+      ;;
+    qwen)
+      local c7_qwen_auth=() exa_qwen_auth=()
+      if [ -n "${CONTEXT7_API_KEY:-}" ]; then
+        # shellcheck disable=SC2016
+        c7_qwen_auth=(-H 'Authorization: Bearer ${CONTEXT7_API_KEY}')
+      fi
+      if [ -n "${EXA_API_KEY:-}" ]; then
+        # shellcheck disable=SC2016
+        exa_qwen_auth=(-H 'Authorization: Bearer ${EXA_API_KEY}')
+      fi
+      mcp_add_qwen "context7" "$_mcp_c7_url" "${c7_qwen_auth[@]}"
+      mcp_add_qwen "exa" "$_mcp_exa_url" "${exa_qwen_auth[@]}"
+      ;;
+    copilot)
+      mcp_add_copilot "$_mcp_c7_url" "${CONTEXT7_API_KEY:-}" "$_mcp_exa_url" "${EXA_API_KEY:-}"
+      ;;
+    opencode)
+      mcp_add_opencode "$_mcp_c7_url" "${CONTEXT7_API_KEY:-}" "$_mcp_exa_url" "${EXA_API_KEY:-}"
+      ;;
+  esac
+}
+
+install_mcp_servers() {
+  local detected_tools=("$@")
   for tool in "${detected_tools[@]}"; do
-    case "$tool" in
-      claude)
-        mcp_add_claude "context7" "$c7_url" "${c7_claude_auth[@]}"
-        mcp_add_claude "exa" "$exa_url" "${exa_claude_auth[@]}"
-        ;;
-      codex)
-        mcp_add_codex "context7" "$c7_url" "${c7_codex_auth[@]}"
-        mcp_add_codex "exa" "$exa_url" "${exa_codex_auth[@]}"
-        ;;
-      cursor)
-        mcp_add_cursor "$c7_url" "${CONTEXT7_API_KEY:-}" "$exa_url" "${EXA_API_KEY:-}"
-        # Auto-approve via Cursor agent CLI if available
-        if command -v agent &>/dev/null; then
-          quiet agent mcp enable context7 2>/dev/null || true
-          quiet agent mcp enable exa 2>/dev/null || true
-          done_msg "cursor: MCP servers approved via agent CLI"
-        fi
-        ;;
-      qwen)
-        # Qwen uses same -H flag pattern as Claude for auth headers
-        local c7_qwen_auth=() exa_qwen_auth=()
-        if [ -n "${CONTEXT7_API_KEY:-}" ]; then
-          # shellcheck disable=SC2016
-          c7_qwen_auth=(-H 'Authorization: Bearer ${CONTEXT7_API_KEY}')
-        fi
-        if [ -n "${EXA_API_KEY:-}" ]; then
-          # shellcheck disable=SC2016
-          exa_qwen_auth=(-H 'Authorization: Bearer ${EXA_API_KEY}')
-        fi
-        mcp_add_qwen "context7" "$c7_url" "${c7_qwen_auth[@]}"
-        mcp_add_qwen "exa" "$exa_url" "${exa_qwen_auth[@]}"
-        ;;
-      copilot)
-        mcp_add_copilot "$c7_url" "${CONTEXT7_API_KEY:-}" "$exa_url" "${EXA_API_KEY:-}"
-        ;;
-      opencode)
-        mcp_add_opencode "$c7_url" "${CONTEXT7_API_KEY:-}" "$exa_url" "${EXA_API_KEY:-}"
-        ;;
-    esac
+    _install_mcp_single "$tool"
   done
 
   # Remove retired MCP servers
@@ -1052,6 +1082,10 @@ install_mcp_servers() {
 backup_if_exists() {
   local file="$1"
   if [ -e "$file" ] || [ -L "$file" ]; then
+    # Skip backup for spine-managed files — we own them and will overwrite
+    if [ -f "$file" ] && head -3 "$file" | grep -q 'spine:managed' 2>/dev/null; then
+      return 0
+    fi
     cp -L "$file" "${file}.bak" 2>/dev/null || true
   fi
 }
@@ -1721,9 +1755,7 @@ cleanup_stale_files() {
   fi
 
   if [ "$cleaned" -gt 0 ]; then
-    done_msg "Removed $cleaned stale file(s)"
-  else
-    done_msg "No stale files found"
+    done_msg "Cleaned $cleaned stale file(s)"
   fi
 }
 
@@ -1734,7 +1766,7 @@ main() {
   info "Spine installer — AI coding setup"
 
   # Step 1: Resolve source
-  step "1/8" "Resolving source..."
+  step "1/7" "Resolving source..."
   local src script_dir
   script_dir="$(cd "$(dirname "${BASH_SOURCE[0]:-/dev/stdin}")" && pwd)"
   if [ -f "$script_dir/SPINE.md" ] && [ -d "$script_dir/skills" ]; then
@@ -1751,15 +1783,15 @@ main() {
   fi
 
   # Step 2: Set up central directory
-  step "2/8" "Setting up central directory..."
+  step "2/7" "Setting up central directory..."
   setup_central_dir "$src"
 
   # Step 3: System dependencies
-  step "3/8" "Checking system dependencies..."
+  step "3/7" "Checking system dependencies..."
   ensure_system_deps
 
   # Step 4: Detect tools
-  step "4/8" "Detecting installed tools..."
+  step "4/7" "Detecting installed tools..."
   local tools
   read -ra tools <<< "$(detect_tools)"
 
@@ -1771,25 +1803,22 @@ main() {
 
   done_msg "Found: ${tools[*]}"
 
-  # Step 5: Install guardrails, agents, and plugin
-  step "5/8" "Installing guardrails, agents, and plugin..."
+  # Step 5: Install guardrails, agents, plugin, RTK, MCP — one line per tool, progressive
+  step "5/7" "Configuring tools..."
   for tool in "${tools[@]}"; do
+    tool_start "$tool"
     install_tool "$tool" "$src"
+    _install_rtk_single "$tool"
+    _install_mcp_single "$tool"
+    tool_done
   done
 
-  # Step 5b: RTK token optimization proxy
-  install_rtk "${tools[@]}"
-
-  # Step 6: Configure MCP servers
-  step "6/8" "Configuring MCP servers..."
-  install_mcp_servers "${tools[@]}"
-
-  # Step 7: Install skills
-  step "7/8" "Installing skills..."
+  # Step 6: Install skills
+  step "6/7" "Installing skills..."
   install_skills "$src" "${tools[@]}"
 
-  # Step 8: Clean up stale files
-  step "8/8" "Cleaning up stale files..."
+  # Step 7: Clean up stale files
+  step "7/7" "Cleaning up stale files..."
   cleanup_stale_files "${tools[@]}"
 
   # Summary
