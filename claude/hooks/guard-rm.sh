@@ -20,8 +20,9 @@ fi
 
 # Block: rm appearing as a command AND a recursive flag present.
 # Matches -r, -R, --recursive, and combined flags (-rf, -fr, -rn, etc.).
+# Also matches RTK-rewritten forms (rtk rm ...) for defense-in-depth.
 # Does not block non-recursive rm (e.g., rm file.txt, rm -f file.txt).
-if echo "$CMD" | grep -qiE '(^|;[[:space:]]*|&&[[:space:]]*|[|][|][[:space:]]*|[|][[:space:]]*)rm[[:space:]]' && \
+if echo "$CMD" | grep -qiE '(^|;[[:space:]]*|&&[[:space:]]*|[|][|][[:space:]]*|[|][[:space:]]*)(rtk[[:space:]]+)?rm[[:space:]]' && \
    echo "$CMD" | grep -qiE '(^|[[:space:]])-[a-zA-Z]*[rR]|--recursive'; then
   echo "BLOCKED: Use 'trash <path>' instead of 'rm -r' for recoverable deletion" >&2
   exit 2

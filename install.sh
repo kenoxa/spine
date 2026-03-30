@@ -141,6 +141,7 @@ ensure_system_deps() {
     yq
     tokenizer
     agent-browser
+    rtk
   )
 
   local use_brew=false
@@ -613,6 +614,141 @@ install_claude_plugin() {
     rm -f "$tmp"
     return 1
   fi
+}
+
+# --- RTK (token optimization proxy) ---
+
+# Minimum RTK version required (permissionDecision bypass fix).
+RTK_MIN_VERSION="0.33.1"
+
+install_rtk() {
+  local tools=("$@")
+
+  if ! command -v rtk &>/dev/null; then
+    warn "rtk not found — skipping token optimization setup"
+    return 0
+  fi
+
+  # Version check: require >= 0.33.1 (permissionDecision bypass fix)
+  local rtk_version
+  rtk_version=$(rtk --version 2>/dev/null | awk '{print $2}')
+  if [ -n "$rtk_version" ] && ! version_gte "$rtk_version" "$RTK_MIN_VERSION"; then
+    warn "rtk $rtk_version is below minimum $RTK_MIN_VERSION — skipping (brew upgrade rtk)"
+    return 0
+  fi
+
+  # Disable telemetry by default
+  local rtk_config_dir="$HOME/.config/rtk"
+  local rtk_config="$rtk_config_dir/config.toml"
+  if [ ! -f "$rtk_config" ]; then
+    mkdir -p "$rtk_config_dir"
+    cat > "$rtk_config" << 'TOML'
+[telemetry]
+enabled = false
+TOML
+    done_msg "rtk: telemetry disabled (~/.config/rtk/config.toml)"
+  fi
+
+  # Per-provider init
+  for tool in "${tools[@]}"; do
+    case "$tool" in
+      claude)
+        rtk init -g --auto-patch 2>/dev/null && done_msg "rtk: claude hooks" || warn "rtk init -g failed"
+        # PATH bug #685 workaround: patch hook command with absolute rtk path
+        _rtk_patch_claude_hook_path
+        ;;
+      cursor)
+        rtk init -g --agent cursor 2>/dev/null && done_msg "rtk: cursor hooks" || warn "rtk init --agent cursor failed"
+        ;;
+      codex)
+        rtk init -g --codex 2>/dev/null && done_msg "rtk: codex instructions" || warn "rtk init --codex failed"
+        ;;
+      qwen)
+        # No RTK flag for Qwen — reuse Codex instruction template
+        _rtk_copy_codex_template "$HOME/.$tool"
+        _rtk_add_root_ref "$HOME/.$tool" "$tool"
+        done_msg "rtk: qwen instructions (fallback)"
+        ;;
+      copilot)
+        # Copilot: project-scoped only — deferred (see TODO.md)
+        ;;
+    esac
+  done
+}
+
+# Patch Claude Code settings.json to include absolute rtk path in hook command.
+# Workaround for RTK issue #685: hook subprocess PATH excludes /opt/homebrew/bin.
+_rtk_patch_claude_hook_path() {
+  local settings="$HOME/.claude/settings.json"
+  [ -f "$settings" ] || return 0
+  command -v jq &>/dev/null || return 0
+
+  local rtk_path
+  rtk_path=$(command -v rtk)
+
+  # Check if hook exists and needs patching (contains rtk-rewrite but no absolute path)
+  if ! jq -e '.hooks.PreToolUse[]?.hooks[]? | select(.command | test("rtk-rewrite"))' "$settings" &>/dev/null; then
+    return 0  # no RTK hook found
+  fi
+
+  # Already patched with PATH= prefix? Skip.
+  if jq -e '.hooks.PreToolUse[]?.hooks[]? | select(.command | test("^PATH="))' "$settings" &>/dev/null; then
+    return 0
+  fi
+
+  local rtk_dir
+  rtk_dir=$(dirname "$rtk_path")
+  local tmp
+  tmp=$(mktemp)
+
+  # Prepend PATH with rtk's directory to the hook command
+  if jq --arg dir "$rtk_dir" '
+    .hooks.PreToolUse |= map(
+      .hooks |= map(
+        if (.command | test("rtk-rewrite"))
+        then .command = "PATH=\"" + $dir + ":$PATH\" " + .command
+        else . end
+      )
+    )
+  ' "$settings" > "$tmp" 2>/dev/null && jq empty "$tmp" 2>/dev/null; then
+    mv "$tmp" "$settings"
+    done_msg "rtk: patched claude hook with absolute PATH"
+  else
+    rm -f "$tmp"
+  fi
+}
+
+# Add @RTK.md reference to provider root file if not already present.
+_rtk_add_root_ref() {
+  local target="$1" tool="$2"
+  local rtk_ref="@~/.${tool}/RTK.md"
+  local root_file=""
+  case "$tool" in
+    qwen)   root_file="$target/QWEN.md" ;;
+    *)      root_file="$target/AGENTS.md" ;;
+  esac
+  [ -n "$root_file" ] && [ -f "$root_file" ] || return 0
+  grep -qF "$rtk_ref" "$root_file" && return 0  # already referenced
+  echo "$rtk_ref" >> "$root_file"
+}
+
+# Copy RTK instruction template from Codex (created by rtk init -g --codex).
+_rtk_copy_codex_template() {
+  local target="$1"
+  local rtk_md="$target/RTK.md"
+  local codex_rtk="$HOME/.codex/RTK.md"
+
+  [ -f "$rtk_md" ] && return 0  # already exists
+  if [ ! -f "$codex_rtk" ]; then
+    warn "rtk: codex template not found — skipping $tool RTK instructions"
+    return 0
+  fi
+  cp "$codex_rtk" "$rtk_md"
+}
+
+# Compare semver: returns 0 if $1 >= $2
+version_gte() {
+  [ "$(printf '%s\n' "$1" "$2" | sort -V | head -1)" = "$2" ]
 }
 
 # --- MCP server helpers ---
@@ -1526,6 +1662,9 @@ main() {
   for tool in "${tools[@]}"; do
     install_tool "$tool" "$src"
   done
+
+  # Step 5b: RTK token optimization proxy
+  install_rtk "${tools[@]}"
 
   # Step 6: Configure MCP servers
   step "6/8" "Configuring MCP servers..."
