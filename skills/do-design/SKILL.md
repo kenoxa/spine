@@ -36,13 +36,15 @@ Accept: `frame_artifact` from `/do-frame`, freeform problem statement, or user p
 
 ### 2. Advise
 
+MANDATORY — always invoke `/run-advise`. No zero-dispatch exception; advisory is never self-contained at this phase.
+
 Invoke `/run-advise` with problem context, constraints from `frame_artifact` or `discuss_artifact`. Returns `advise_artifact`.
 
 ### 3. Validate
 
 When advisory surfaces assumptions about codebase state, invoke `/run-explore` for feasibility probes. Feed results back into advisory context.
 
-Zero-dispatch when advisory is self-contained — log with justification.
+Zero-dispatch when advisory is self-contained — log with justification. (Zero-dispatch applies to Phase 3 only, never Phase 2.)
 
 ### 4. User Decision Gate
 
@@ -62,5 +64,6 @@ STOP after presenting. Never auto-forward. **Cap**: 3 re-dispatch rounds; surfac
 - Resolving model disagreements silently — divergence is signal, surface it
 - Producing per-file implementation plans — that is `/do-build`'s scope phase job
 - Bypassing run-advise to dispatch agents directly
+- Skipping run-advise as "zero-dispatch" — zero-dispatch only applies to Phase 3 (Validate)
 - Re-dispatching full advisory batch when run-discuss could resolve pushback locally
 - Ignoring frame_artifact constraints — carry all constraints into run-advise dispatch
