@@ -110,6 +110,18 @@ claude auth login
 </details>
 
 <details>
+<summary>Qwen Code</summary>
+
+```sh
+bash -c "$(curl -fsSL https://qwen-code-assets.oss-cn-hangzhou.aliyuncs.com/installation/install-qwen.sh)" -s --source qwenchat
+qwen
+```
+
+First launch opens an interactive OAuth login flow.
+
+</details>
+
+<details>
 <summary>Copilot CLI</summary>
 
 ```sh
