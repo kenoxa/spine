@@ -4,7 +4,7 @@ description: >
   Merge N subagent outputs into a single structured artifact.
   Use for synthesis steps in run-advise (advisory batch)
   and run-review (quality).
-model: inherit
+model: opus
 effort: high
 ---
 
