@@ -665,15 +665,15 @@ TOML
   for tool in "${tools[@]}"; do
     case "$tool" in
       claude)
-        rtk init -g --auto-patch 2>/dev/null && done_msg "rtk: claude hooks" || warn "rtk init -g failed"
+        quiet rtk init -g --auto-patch && done_msg "rtk: claude hooks" || warn "rtk init -g failed"
         # PATH bug #685 workaround: patch hook command with absolute rtk path
         _rtk_patch_claude_hook_path
         ;;
       cursor)
-        rtk init -g --agent cursor 2>/dev/null && done_msg "rtk: cursor hooks" || warn "rtk init --agent cursor failed"
+        quiet rtk init -g --agent cursor && done_msg "rtk: cursor hooks" || warn "rtk init --agent cursor failed"
         ;;
       codex)
-        rtk init -g --codex 2>/dev/null && done_msg "rtk: codex instructions" || warn "rtk init --codex failed"
+        quiet rtk init -g --codex && done_msg "rtk: codex instructions" || warn "rtk init --codex failed"
         ;;
       qwen)
         # No RTK flag for Qwen — reuse Codex instruction template
@@ -685,7 +685,7 @@ TOML
         # Copilot: project-scoped only — deferred (see TODO.md)
         ;;
       opencode)
-        rtk init -g --opencode 2>/dev/null && done_msg "rtk: opencode plugin" || warn "rtk init --opencode failed"
+        quiet rtk init -g --opencode && done_msg "rtk: opencode plugin" || warn "rtk init --opencode failed"
         ;;
     esac
   done
@@ -903,6 +903,48 @@ mcp_add_copilot() {
   fi
 }
 
+mcp_add_opencode() {
+  local c7_url="$1" c7_key="$2" exa_url="$3" exa_key="$4"
+  local config_dir="$HOME/.config/opencode"
+  local config_file="$config_dir/opencode.json"
+
+  if ! command -v jq &>/dev/null; then
+    warn "jq not found — cannot configure OpenCode MCP servers"
+    return 0
+  fi
+
+  mkdir -p "$config_dir"
+  [ -f "$config_file" ] || echo '{}' > "$config_file"
+
+  if [ -f "$config_file" ] && ! jq empty "$config_file" 2>/dev/null; then
+    warn "Invalid JSON in $config_file — skipping OpenCode MCP configuration"
+    return 0
+  fi
+
+  # OpenCode uses {env:NAME} runtime references — key args gate whether headers are added
+  local tmp
+  tmp=$(mktemp)
+  jq --arg c7url "$c7_url" --arg c7key "$c7_key" \
+     --arg exaurl "$exa_url" --arg exakey "$exa_key" '
+    .mcp //= {} |
+    .mcp.context7 = (
+      {type: "remote", url: $c7url} + if $c7key != "" then {headers: {"Authorization": "Bearer {env:CONTEXT7_API_KEY}"}} else {} end
+    ) |
+    .mcp.exa = (
+      {type: "remote", url: $exaurl} + if $exakey != "" then {headers: {"Authorization": "Bearer {env:EXA_API_KEY}"}} else {} end
+    )
+  ' "$config_file" > "$tmp"
+
+  if jq empty "$tmp" 2>/dev/null; then
+    mv "$tmp" "$config_file"
+    done_msg "opencode: MCP servers (context7, exa)"
+  else
+    warn "Generated invalid JSON — $config_file left unchanged"
+    rm -f "$tmp"
+    return 0
+  fi
+}
+
 install_mcp_servers() {
   local detected_tools=("$@")
 
@@ -960,6 +1002,9 @@ install_mcp_servers() {
         ;;
       copilot)
         mcp_add_copilot "$c7_url" "${CONTEXT7_API_KEY:-}" "$exa_url" "${EXA_API_KEY:-}"
+        ;;
+      opencode)
+        mcp_add_opencode "$c7_url" "${CONTEXT7_API_KEY:-}" "$exa_url" "${EXA_API_KEY:-}"
         ;;
     esac
   done
