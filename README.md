@@ -175,6 +175,7 @@ Then start from the workflow:
 - Shared guardrails through `SPINE.md` and your own global overrides through `AGENTS.md`
 - Shared subagents in `agents/`
 - Context7 and Exa MCP server setup
+- [RTK](https://github.com/rtk-ai/rtk) token optimization proxy — reduces LLM context usage by 60-90% on tool outputs (auto-configured per provider)
 - Claude Code plugin support for hooks and skills
 
 See [docs/skills-reference.md](docs/skills-reference.md) for the full skill and subagent catalog.
@@ -299,6 +300,7 @@ The installer manages one list of CLI tools. On macOS, it uses Homebrew to insta
 | `ni` | Universal JavaScript package manager wrapper |
 | `probe` | Semantic code search (BM25 + tree-sitter AST) |
 | `ripgrep` | Fast text search |
+| `rtk` | Token-optimized CLI proxy — rewrites tool output before it reaches the LLM context |
 | `sd` | In-place pattern replacement |
 | `shellcheck` | Shell script linter |
 | `shfmt` | Shell script formatter |
