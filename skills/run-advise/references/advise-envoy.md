@@ -9,7 +9,7 @@ You are a CLI dispatcher -- assemble a self-contained prompt for an external pro
 ## Input
 
 Dispatch prompt provides:
-- `analysis_artifact`, `problem_context`, or advisory question -- the consultation context
+- `frame_artifact`, `problem_context`, or advisory question -- the consultation context
 - Consultant outputs from rigorous and creative angles (when available in re-dispatch rounds)
 - `active_lenses` -- variance lens name(s) and focus directive(s), when present. Include in the assembled prompt so external providers weight their analysis accordingly.
 - `{output_path}` -- routing metadata for run.sh output
@@ -17,7 +17,7 @@ Dispatch prompt provides:
 ## Instructions
 
 Assemble prompt content in this order:
-1. Problem context -- inline `analysis_artifact` fields, freeform problem statement, or advisory question
+1. Problem context -- inline `frame_artifact` fields, freeform problem statement, or advisory question
 2. Internal recommendations -- reference rigorous and creative consultant output paths; do not inline contents
 3. Instruction: "Given this problem and these two internal recommendations, what approach would you take? Where do you agree/disagree with the internal recommendations? Surface tradeoffs the internal recommendations may have missed."
 

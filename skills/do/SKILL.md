@@ -5,7 +5,7 @@ description: >
   Use when: "do", "fix", "add", "change", "build this", "implement this",
   "solve this", "help me with this", or any actionable request that doesn't
   match a specific skill.
-  Do NOT use when: already inside a phase skill (do-analyze, do-consult, do-build).
+  Do NOT use when: already inside a phase skill (do-frame, do-design, do-build).
 argument-hint: "[task, problem, feature, bug, question, or idea]"
 ---
 
@@ -18,7 +18,7 @@ Generate session ID at entry per SPINE.md (`{slug}-{hash}`). Persist state in `.
 ## State Machine
 
 ```
-START ──► /do-analyze ──► /do-consult ──► /do-build ──► DONE
+START ──► /do-frame ──► /do-design ──► /do-build ──► DONE
              (WHAT)          (HOW)       (BUILD+REVIEW)
 ```
 
@@ -26,12 +26,12 @@ Each transition requires user confirmation. Suggest next phase; never auto-advan
 
 ## Routing
 
-Assess input against skip criteria. Default: start at `/do-analyze`.
+Assess input against skip criteria. Default: start at `/do-frame`.
 
 | Skip | Criteria | Required in input |
 |------|----------|-------------------|
-| analyze | Problem already clear | Explicit problem statement with constraints and blast radius |
-| consult | Direction already clear | Explicit approach/direction statement |
+| frame | Problem already clear | Explicit problem statement with constraints and blast radius |
+| design | Direction already clear | Explicit approach/direction statement |
 | both | Ready to build | Both of the above |
 
 When skip criteria are met, state the skip rationale and suggest the target phase. User confirms.

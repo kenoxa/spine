@@ -3,13 +3,13 @@ name: run-advise
 description: >
   Multi-model perspective gathering with synthesis.
   Use when: "run-advise", "get perspectives", "gather opinions",
-  standalone advisory on approach decisions, or invoked as phase by do-consult.
-  Do NOT use when: problem unclear (do-analyze), full consultation workflow
-  with feedback loop needed (do-consult), implementation ready (run-implement).
-argument-hint: "[problem, approach question, or analysis_artifact]"
+  standalone advisory on approach decisions, or invoked as phase by do-design.
+  Do NOT use when: problem unclear (do-frame), full consultation workflow
+  with feedback loop needed (do-design), implementation ready (run-implement).
+argument-hint: "[problem, approach question, or frame_artifact]"
 ---
 
-Standalone (user question) or embedded (`analysis_artifact` from caller). Dispatches multi-model perspectives, synthesizes into directional recommendation.
+Standalone (user question) or embedded (`frame_artifact` from caller). Dispatches multi-model perspectives, synthesizes into directional recommendation.
 
 **Session**: Generate per SPINE.md. When embedded, inherit calling skill's session ID.
 
@@ -28,13 +28,13 @@ Standalone (user question) or embedded (`analysis_artifact` from caller). Dispat
 
 ### 1. Intake
 
-Accept: question from user (standalone) OR analysis_artifact/context from caller (embedded).
+Accept: question from user (standalone) OR frame_artifact/context from caller (embedded).
 
 - **Standalone with thin input** (fewer than 3 concrete constraints/criteria): ask one grounding question before dispatch.
-- **Embedded with analysis_artifact**: skip questions, dispatch directly.
+- **Embedded with frame_artifact**: skip questions, dispatch directly.
 - **Variance**: match task keywords against [variance-lenses.md](references/variance-lenses.md); select 0-2 lenses. A matched lens counts as one constraint toward the 3-constraint threshold. Freeze lenses on first dispatch — do not re-derive on re-dispatch rounds.
 
-Exit: dispatch context assembled with >=3 constraints, OR analysis_artifact present. Include selected lenses (if any) in dispatch context for all batch agents.
+Exit: dispatch context assembled with >=3 constraints, OR frame_artifact present. Include selected lenses (if any) in dispatch context for all batch agents.
 
 ### 2. Batch
 

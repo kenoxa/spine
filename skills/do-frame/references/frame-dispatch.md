@@ -1,11 +1,11 @@
-# Analysis Dispatch
+# Frame Dispatch
 
-## analysis_artifact Schema
+## frame_artifact Schema
 
 Handoff assembles this artifact from accumulated phase state. All fields required.
 
 ```yaml
-analysis_artifact:
+frame_artifact:
   problem_statement: |
     # What is the problem
     Concrete, observable description. Symptoms, triggers, affected users/systems.
@@ -55,11 +55,16 @@ Invalid: "We should use the plugin API because it's simpler than forking."
 
 Orient (run-explore): `key_findings` → `blast_radius.direct`/`transitive`. Navigator findings → `blast_radius.external` + external constraints.
 
-Investigate (run-explore): findings → `constraints`, `key_unknowns.feasibility_note`, refine `blast_radius`.
+Clarify (run-discuss): `discuss_artifact` projection:
+- `known` (source: user) → `constraints` + `success_criteria`
+- `open_questions` → `key_unknowns`
+- `proposals` (confirmed) → `key_assumptions` with `settled` status
+
+Investigate (adaptive skills): findings → `constraints`, `key_unknowns.feasibility_note`, refine `blast_radius`.
 
 ### Assembly
 
-Main thread assembles `analysis_artifact` at handoff. Write to `.scratch/<session>/analysis-artifact.md`. Validate:
+Main thread assembles `frame_artifact` at handoff. Write to `.scratch/<session>/frame-artifact.md`. Validate:
 
 1. All 6 required fields present and non-empty (allow `blast_radius.direct`/`transitive` empty with `not_applicable` for non-repo contexts)
 2. No forbidden fields

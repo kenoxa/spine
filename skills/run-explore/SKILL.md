@@ -4,7 +4,7 @@ description: >
   Bounded codebase exploration and architecture mapping.
   Use when: "explore", "how does X work", "map the flow", "survey",
   "architecture of", "what does X look like", "show me the lay of the land".
-  Do NOT use for broad refactoring (do-consult) or deliberation (do-analyze).
+  Do NOT use for broad refactoring (do-design) or deliberation (do-frame).
 argument-hint: "[area or question to explore]"
 ---
 

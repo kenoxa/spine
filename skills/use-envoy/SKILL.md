@@ -4,7 +4,7 @@ description: >
   Cross-provider envoy via headless CLI invocation.
   Use when a skill needs an independent perspective from a different AI provider,
   or multi-provider parallel dispatch for broader coverage.
-  Composable — load alongside do-consult, run-review, or any skill that benefits
+  Composable — load alongside do-design, run-review, or any skill that benefits
   from cross-model diversity. Do NOT use standalone.
 ---
 

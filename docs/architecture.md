@@ -6,17 +6,17 @@ Spine routes coding tasks through a three-phase workflow with specialized subage
 
 ## Three-Phase Workflow
 
-Spine separates every task into **discuss, plan, and execute** phases with gates between them.
+Spine separates every task into **frame, design, and build** phases with gates between them.
 
 **Planning before coding works.** The Self-Planning study (Jiang et al. 2024) measured 11--25% relative improvement in Pass@1 when LLMs generate an explicit plan before writing code. PlanSearch demonstrated that searching through plan space reaches 77% versus 60.6% pass@200 on LiveCodeBench. GitHub's internal testing found GPT-5 and Claude Sonnet 4 achieved 15% better success rates when using a planning workflow versus unstructured agent mode. The Bot-with-Plan study showed that separating planning from execution allows 7B models to perform at GPT-4 planning level. The evidence for plan-then-execute is among the strongest in the entire multi-agent literature.
 
 **Execution-based verification is the highest-value pattern.** Phase gates earn their cost when they verify through execution. The TDAD study found baseline agents caused 6.5 broken tests per patch (562 pass-to-pass failures across 100 SWE-bench instances) without execution feedback. Static analysis feedback alone reduced GPT-4 vulnerability rates from 40.2% to 7.4%. In contrast, LLM-based review without execution is unreliable --- LLMs score under 0.3 F1 on self-detecting security vulnerabilities (MAST study). Every successful production tool (Devin, Codex, Cursor) depends on sandboxed execution with iterative feedback, not multi-agent debate.
 
-**Discussion adds value for novel tasks.** No production coding tool implements a pre-planning exploration phase, and the Waterfall multi-agent study found that Requirement and Design stages had "comparatively modest effects" on correctness. Busemeyer's deliberation research from cognitive science explains when exploration pays off: when tasks are novel and prior knowledge is low. Recognition-primed decision-making outperforms deliberation for routine tasks. Spine addresses this through adaptive routing --- the discuss phase uses confidence-gated intake to redirect routine tasks directly to planning, preserving exploration value for the roughly 20% of tasks that are genuinely ambiguous while eliminating overhead for the rest.
+**Discussion adds value for novel tasks.** No production coding tool implements a pre-planning exploration phase, and the Waterfall multi-agent study found that Requirement and Design stages had "comparatively modest effects" on correctness. Busemeyer's deliberation research from cognitive science explains when exploration pays off: when tasks are novel and prior knowledge is low. Recognition-primed decision-making outperforms deliberation for routine tasks. Spine addresses this through adaptive routing --- the frame phase uses confidence-gated intake to redirect routine tasks directly to design, preserving exploration value for the roughly 20% of tasks that are genuinely ambiguous while eliminating overhead for the rest.
 
 ## Quality Phase
 
-The execute phase runs a quality gate with a specific composition: **2 analysts + 1 inspector + 1 verifier + 1 envoy = 5 agents**, followed by a sequential synthesizer.
+The build phase runs a quality gate with a specific composition: **2 analysts + 1 inspector + 1 verifier + 1 envoy = 5 agents**, followed by a sequential synthesizer.
 
 **Two reviewers, not three.** Porter, Siy, Toman, and Votta's Bell Labs experiment --- the most rigorous controlled study on inspection team size --- found that inspection teams of more than two reviewers found no additional significant defects. Dos Santos and Nunes (2018) confirmed this with 201 developers: more than two active reviewers does not significantly improve comment density. However, the same Porter study found that two sequential sessions outperformed one, supporting sequential gating in principle. This is why Spine uses a single parallel batch followed by sequential synthesis, rather than multiple review passes.
 
@@ -49,7 +49,7 @@ Blocking claims require E2+. Verification claims require E3.
 
 ## Multi-Perspective Analysis
 
-Spine's plan phase dispatches three debaters (thesis champion, counterpoint dissenter, tradeoff analyst) plus a cross-provider envoy. These agents use **distinct analytical frameworks**, not adversarial debate framing.
+Spine's design phase dispatches three debaters (thesis champion, counterpoint dissenter, tradeoff analyst) plus a cross-provider envoy. These agents use **distinct analytical frameworks**, not adversarial debate framing.
 
 **Adversarial debate hurts coding performance.** The ICLR 2025 systematic review tested 5 debate frameworks across 9 benchmarks. On MBPP, all debate methods scored lower than single-agent chain-of-thought. On HumanEval, Du et al.'s debate scored 68.09% versus 78.05% for CoT --- debate actively reduced performance. The Multi-Persona adversarial framing (angel/devil) was consistently the worst method tested, sometimes catastrophically (10.3% on MATH with Llama 3.1-8b versus 40.13% for CoT). Wu et al. (2025) demonstrated that debate cannot exceed the accuracy of its strongest participant --- it is fundamentally an ensembling technique with a hard ceiling. Kim et al. (2025) found that when single-agent accuracy exceeds approximately 45% on non-decomposable tasks, adding agents likely degrades performance, and on sequential reasoning tasks, all multi-agent variants degraded performance by 39--70%.
 
@@ -100,14 +100,14 @@ Provider-specific mappings are documented in [model-selection.md](model-selectio
 
 The `/do` orchestrator classifies task complexity at intake and routes accordingly.
 
-- **Routine tasks** (clear requirements, small scope, no ambiguity) skip analyze and go directly to `do-consult` or `do-build`.
-- **Ambiguous tasks** (vague problem statements, novel domains, multiple valid approaches) run the full analyze → consult workflow.
+- **Routine tasks** (clear requirements, small scope, no ambiguity) skip frame and go directly to `do-design` or `do-build`.
+- **Ambiguous tasks** (vague problem statements, novel domains, multiple valid approaches) run the full frame → design workflow.
 
 **Routing by complexity reduces cost without sacrificing quality.** Google's hybrid SAS-MAS study (2025) found that routing simple tasks to single agents and complex tasks to multi-agent pipelines improved accuracy by 1--12% while reducing costs by up to 20%. The insight: not every task needs multi-agent coordination. Routine single-file edits with clear specifications gain nothing from a seven-phase discussion --- they need a plan and an implementation.
 
 **Capability saturation limits multi-agent value.** Kim et al. (2025) established a capability saturation threshold at approximately 45% single-agent accuracy, beyond which adding agents yields diminishing or negative returns. Frontier models now achieve 78--81% on SWE-Bench Verified with minimal scaffolding --- well past the saturation point for most coding tasks. Multi-agent coordination adds the most value for tasks where a single agent struggles, which increasingly means novel architectural decisions rather than routine implementation.
 
-**The analyze phase handles the long tail.** The roughly 20% of tasks that are genuinely ambiguous --- unclear requirements, competing architectural approaches, unfamiliar codebases --- benefit from structured exploration before consulting. Busemeyer's deliberation research confirms that exploration adds maximal value when prior knowledge is low. Spine's adaptive intake preserves this value without imposing the cost on every task.
+**The frame phase handles the long tail.** The roughly 20% of tasks that are genuinely ambiguous --- unclear requirements, competing architectural approaches, unfamiliar codebases --- benefit from structured exploration before design. Busemeyer's deliberation research confirms that exploration adds maximal value when prior knowledge is low. Spine's adaptive intake preserves this value without imposing the cost on every task.
 
 ## Research Context
 

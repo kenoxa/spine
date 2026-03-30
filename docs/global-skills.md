@@ -25,7 +25,7 @@ npx skills add vercel-labs/agent-browser -s agent-browser -a '*' -g -y
 
 | Skill | Repo | Referenced by |
 |-------|------|---------------|
-| `brainstorming` | `obra/superpowers` | do-consult, do-analyze — divergent ideation when problem is known but solution space is open |
+| `brainstorming` | `obra/superpowers` | do-design, do-frame — divergent ideation when problem is known but solution space is open |
 | `visual-explainer` | `nicobailon/visual-explainer` | `@visualizer` agent — visual architecture and diff explanations |
 | `security-reviewer` | `jeffallan/claude-skills` | run-review — high-risk security probe heuristics |
 | `frontend-design` | `anthropics/claude-code` | with-frontend — distinctive visual craft (typography, color, motion, composition) |

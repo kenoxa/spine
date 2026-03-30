@@ -7,7 +7,7 @@ description: >
   "research question", "outsource research", "research for ChatGPT", "research for Claude",
   "research for Gemini".
   Do NOT use for in-session or codebase exploration (use run-explore),
-  or problem framing (use do-analyze).
+  or problem framing (use do-frame).
 argument-hint: "[research goal] [--target chatgpt|claude|gemini] [--depth deep]"
 ---
 
@@ -58,11 +58,11 @@ Output: `.scratch/<session>/research-context.md`
 1. Write prompt to `.scratch/<session>/research-prompt.md`.
 2. Attempt clipboard copy (`pbcopy`/`xclip`). Fail-silent on error.
 3. Print: file path, character count, clipboard status, target UI.
-4. Suggest: "Paste into [target] Deep Research. When you have results, start `/do-analyze` or `/do-consult` with the findings."
+4. Suggest: "Paste into [target] Deep Research. When you have results, start `/do-frame` or `/do-design` with the findings."
 
 ## Anti-Patterns
 
 - Answering the research question instead of compiling a prompt for external AI
 - Skipping security redaction before output
-- Auto-dispatching do-analyze or do-consult after output (suggest only)
+- Auto-dispatching do-frame or do-design after output (suggest only)
 - Exceeding structural item caps in gather output (see gather refs)

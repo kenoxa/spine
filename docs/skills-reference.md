@@ -6,21 +6,21 @@
 
 ### do (orchestrator)
 
-Single entry point that chains `do-analyze` → `do-consult` → `do-build`. Stateful coordinator using redirect model — suggests next phase skill, tracks state in session-log.md. Supports skip validation (skip analyze if problem is clear, skip consult if direction is clear). Catch-all for features, bugs, issues, ideas, questions.
+Single entry point that chains `do-frame` → `do-design` → `do-build`. Stateful coordinator using redirect model — suggests next phase skill, tracks state in session-log.md. Supports skip validation (skip analyze if problem is clear, skip consult if direction is clear). Catch-all for features, bugs, issues, ideas, questions.
 
 Canonical entry: [`skills/do/SKILL.md`](../skills/do/SKILL.md).
 
-### do-analyze
+### do-frame
 
-Socratic WHAT-focused dialogue composing `run-explore`. Phases: orient (invoke `/run-explore`) → clarify (mainthread + `/run-explore` on demand) → investigate (invoke `/run-explore`) → handoff. Produces `analysis_artifact` with problem statement, constraints, blast radius, success criteria, key unknowns. Forbidden from prescribing HOW. WHAT/HOW escape hatch redirects to `/do-consult` when feasibility knowledge is needed.
+Socratic WHAT-focused dialogue composing `run-explore`. Phases: orient (invoke `/run-explore`) → clarify (mainthread + `/run-explore` on demand) → investigate (invoke `/run-explore`) → handoff. Produces `frame_artifact` with problem statement, constraints, blast radius, success criteria, key unknowns. Forbidden from prescribing HOW. WHAT/HOW escape hatch redirects to `/do-design` when feasibility knowledge is needed.
 
-Canonical entry: [`skills/do-analyze/SKILL.md`](../skills/do-analyze/SKILL.md).
+Canonical entry: [`skills/do-frame/SKILL.md`](../skills/do-frame/SKILL.md).
 
-### do-consult
+### do-design
 
-Multi-model HOW direction composing `run-advise`. Thin orchestrator: intake (mainthread) → invoke `/run-advise` (batch dispatch + synthesis) → user decision gate. Disagreement-as-signal. User decision gate: approve → `/do-build`, push back → re-dispatch, reject → `/do-analyze`. Cap 3 re-dispatch rounds.
+Multi-model HOW direction composing `run-advise`. Thin orchestrator: intake (mainthread) → invoke `/run-advise` (batch dispatch + synthesis) → user decision gate. Disagreement-as-signal. User decision gate: approve → `/do-build`, push back → re-dispatch, reject → `/do-frame`. Cap 3 re-dispatch rounds.
 
-Canonical entry: [`skills/do-consult/SKILL.md`](../skills/do-consult/SKILL.md).
+Canonical entry: [`skills/do-design/SKILL.md`](../skills/do-design/SKILL.md).
 
 ### do-build
 
@@ -71,9 +71,9 @@ Canonical entry: [`skills/run-insights/SKILL.md`](../skills/run-insights/SKILL.m
 
 ### run-explore
 
-Bounded codebase exploration and architecture mapping. Answers "what's there?" — single-pass reconnaissance. For "what should we do about it?" use `do-analyze` instead.
+Bounded codebase exploration and architecture mapping. Answers "what's there?" — single-pass reconnaissance. For "what should we do about it?" use `do-frame` instead.
 
-Standalone invocation dispatches role-specific subagents (scout for breadth, researcher for depth, navigator for external research), synthesizes findings, and optionally generates visual recaps via `@visualizer`. Also invoked as a phase skill by `do-analyze` (orient, clarify probes, investigate).
+Standalone invocation dispatches role-specific subagents (scout for breadth, researcher for depth, navigator for external research), synthesizes findings, and optionally generates visual recaps via `@visualizer`. Also invoked as a phase skill by `do-frame` (orient, clarify probes, investigate).
 
 Canonical entry: [`skills/run-explore/SKILL.md`](../skills/run-explore/SKILL.md).
 
@@ -93,7 +93,7 @@ Canonical entry: [`skills/run-implement/SKILL.md`](../skills/run-implement/SKILL
 
 ### run-advise
 
-Multi-model perspective gathering with synthesis. Works standalone ("advise on this approach") and as an embedded phase in `do-consult`. Dispatches `@consultant` (rigorous + creative angles) + `@navigator` + `@envoy` → `@synthesizer`. Produces `advise_artifact` with convergence/divergence map, tradeoffs, falsification risks. Standalone: thin input gets grounding question; embedded: dispatches directly from `analysis_artifact`.
+Multi-model perspective gathering with synthesis. Works standalone ("advise on this approach") and as an embedded phase in `do-design`. Dispatches `@consultant` (rigorous + creative angles) + `@navigator` + `@envoy` → `@synthesizer`. Produces `advise_artifact` with convergence/divergence map, tradeoffs, falsification risks. Standalone: thin input gets grounding question; embedded: dispatches directly from `frame_artifact`.
 
 Canonical entry: [`skills/run-advise/SKILL.md`](../skills/run-advise/SKILL.md).
 
@@ -142,7 +142,7 @@ Canonical entry: [`skills/run-recap/SKILL.md`](../skills/run-recap/SKILL.md).
 | `scout` | Fast | haiku | medium | Fast codebase reconnaissance |
 | `researcher` | Standard | sonnet | high | Deep discovery and evidence gathering; local-depth first, may do bounded plan-specific upstream lookup |
 | `navigator` | Standard | sonnet | high | External-first research specialist for broad, ambiguous, comparative, or current external work |
-| `consultant` | Standard | sonnet | high | Perspective-committed recommendation for `do-consult` |
+| `consultant` | Standard | sonnet | high | Perspective-committed recommendation for `do-design` |
 | `debater` | Frontier | opus | high | Multi-perspective Socratic dialogue |
 | `inspector` | Frontier | opus | high | Verdict-focused code review, preloads `run-review` |
 | `analyst` | Standard | sonnet | high | Advisory pattern analysis, preloads `run-review` and `run-polish` |
@@ -161,7 +161,7 @@ Prefixes group skills in slash-autocomplete — type `do-`, `run-`, `with-`, or 
 
 | Prefix | Semantic | When to use |
 |--------|----------|-------------|
-| `do-` | Primary flow | The workflow chain: analyze → consult → build |
+| `do-` | Primary flow | The workflow chain: frame → design → build |
 | `run-` | Utilities | Standalone actions invoked any time: debug, review, polish, insights, recap |
 | `with-` | Domain constraints | Applied passively when the task matches a specific domain — backend, frontend, terminology, testing |
 | `use-` | Operational tools | Invoked explicitly — utilities, conventions, and cross-provider tooling |

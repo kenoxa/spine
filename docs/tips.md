@@ -7,8 +7,8 @@
 Text after a slash command is the task scope. Examples:
 
 - `/do the auth flow feels broken on mobile`
-- `/do-analyze add retry strategy for API calls`
-- `/do-consult` — gather multi-model advisory on approach
+- `/do-frame add retry strategy for API calls`
+- `/do-design` — gather multi-model advisory on approach
 - `/do-build` — prototype, review, and polish
 - `/run-review` — reviews current changes
 - `/run-debug failing auth test in CI`
@@ -46,6 +46,6 @@ Skills technically work in other modes, but the experience degrades to manual ap
 Spine assigns subagents to three tiers (Frontier/Standard/Fast) with provider-mapped models. The mainthread model is your session choice.
 
 - **Subagent tiers are automatic:** agent frontmatter pins each subagent to a tier. The installer and runtime map tiers to provider-specific models. See [docs/model-selection.md](model-selection.md) for the full mapping.
-- **Mainthread guidance:** opus for analyze/consult/debug (reasoning depth), sonnet acceptable for build/review (focused partitions, pattern matching).
-- **Consultation is the lever:** structured advisory (`/do-consult`) improves output quality more than model choice alone. Strong model + consultation > strong model without consultation > weak model + consultation.
+- **Mainthread guidance:** opus for frame/design/debug (reasoning depth), sonnet acceptable for build/review (focused partitions, pattern matching).
+- **Consultation is the lever:** structured advisory (`/do-design`) improves output quality more than model choice alone. Strong model + consultation > strong model without consultation > weak model + consultation.
 - **Override envoy models:** set `SPINE_ENVOY_{TIER}_{PROVIDER}` in `~/.config/spine/.env` for per-tier envoy overrides.

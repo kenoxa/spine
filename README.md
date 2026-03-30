@@ -124,12 +124,12 @@ Use your provider in its most autonomous mode:
 Then start from the workflow:
 
 ```text
-/do -> /do-analyze -> /do-consult -> /do-build -> /commit
+/do -> /do-frame -> /do-design -> /do-build -> /commit
 ```
 
 ## What You Get
 
-- A shared workflow: `do-analyze`, `do-consult`, `do-build`, `commit` (or `/do` as single entry point)
+- A shared workflow: `do-frame`, `do-design`, `do-build`, `commit` (or `/do` as single entry point)
 - Utility skills for review, debugging, polish, insights, and recap
 - Shared guardrails through `SPINE.md` and your own global overrides through `AGENTS.md`
 - Shared subagents in `agents/`
@@ -160,8 +160,8 @@ If `~/.config/spine/.env` exists, the installer reads it for MCP authentication.
 
 ## Workflow
 
-1. **[Analyze](docs/skills-reference.md#do-analyze)** with `/do-analyze` to frame the problem. Socratic WHAT-focused dialogue composing `run-explore`.
-2. **[Consult](docs/skills-reference.md#do-consult)** with `/do-consult` to gather multi-model advisory on approach.
+1. **[Frame](docs/skills-reference.md#do-frame)** with `/do-frame` to frame the problem. Adaptive composition: `run-explore` + `run-discuss` + conditional skills.
+2. **[Design](docs/skills-reference.md#do-design)** with `/do-design` to design the approach. `run-discuss` + `run-advise` + feasibility probes.
 3. **[Build](docs/skills-reference.md#do-build)** with `/do-build` to prototype, review, and polish.
 4. **[Commit](docs/skills-reference.md#commit)** with `/commit` when the change is ready to stage and ship.
 

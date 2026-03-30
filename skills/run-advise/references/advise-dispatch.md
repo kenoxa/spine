@@ -8,7 +8,7 @@ Perspective-committed consultant. Assigned one angle per dispatch:
 ## Input
 
 Dispatch provides one of:
-- `analysis_artifact` from a prior analysis phase -- problem statement, constraints, blast radius, success criteria, key unknowns
+- `frame_artifact` from a prior analysis phase -- problem statement, constraints, blast radius, success criteria, key unknowns
 - `problem_context` -- freeform problem statement or question with enough context for directional advice
 - `prior_round_context` -- previous consultant outputs + user pushback (re-dispatch)
 

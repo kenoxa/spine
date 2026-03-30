@@ -23,7 +23,7 @@ Evaluate whether the build addressed the original intent:
 | `partially` | Core intent addressed but notable gaps remain |
 | `no` | Build does not answer the original question or recommendation |
 
-When `partially` or `no`: suggest re-direction to `/do-consult` to reframe the problem before another build attempt. State what was missed and why re-framing may help.
+When `partially` or `no`: suggest re-direction to `/do-design` to reframe the problem before another build attempt. State what was missed and why re-framing may help.
 
 ### 2. Prototype Completion Gates
 
@@ -55,8 +55,8 @@ Propose only — never auto-apply. User must approve each update before it is wr
 ### 4. Completion Declaration
 
 - **ACCEPT + gates met + question answered `yes`**: `Build complete.`
-- **ACCEPT + gates met + question answered `partially`**: `Build complete (partial).` — list gaps; suggest `/do-consult` for reframing.
-- **ACCEPT + question answered `no`**: `Build NOT complete.` — explain mismatch; suggest `/do-consult`.
+- **ACCEPT + gates met + question answered `partially`**: `Build complete (partial).` — list gaps; suggest `/do-design` for reframing.
+- **ACCEPT + question answered `no`**: `Build NOT complete.` — explain mismatch; suggest `/do-design`.
 - **ITERATE (cap reached)**: `Build NOT complete.` — list remaining blockers from review.
 
 ### 5. Session Log

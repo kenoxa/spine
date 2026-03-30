@@ -45,6 +45,10 @@ RETIRED_MCP_SERVERS=()
 # Add names here when renaming an agent to ensure cross-provider cleanup.
 RETIRED_AGENT_NAMES=("worker" "second-opinion")
 
+# Skill names previously used by Spine — cleaned up on next run.
+# Add names here when renaming a skill to ensure cross-provider cleanup.
+RETIRED_SKILL_NAMES=("do-analyze" "do-consult")
+
 # --- Helpers ---
 
 info()     { printf "${_C_BLUE}==>${_C_RESET} %s\n" "$*" >&2; }
@@ -1453,6 +1457,16 @@ cleanup_stale_files() {
           cleaned=$((cleaned + 1))
         fi
       done
+    done
+  fi
+
+  # Remove retired skill names from ~/.agents/skills/
+  if [ ${#RETIRED_SKILL_NAMES[@]} -gt 0 ]; then
+    for retired in "${RETIRED_SKILL_NAMES[@]}"; do
+      if [ -d "$HOME/.agents/skills/$retired" ]; then
+        rm -rf "$HOME/.agents/skills/$retired"
+        cleaned=$((cleaned + 1))
+      fi
     done
   fi
 

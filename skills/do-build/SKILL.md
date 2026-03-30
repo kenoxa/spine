@@ -3,7 +3,7 @@ name: do-build
 description: >
   Use when: "build", "implement", "build and review", "just build it", "do-build",
   rapid prototyping from a consult recommendation or approved plan.
-  Do NOT use when problem unclear (do-analyze), exploration incomplete (do-consult).
+  Do NOT use when problem unclear (do-frame), exploration incomplete (do-design).
 argument-hint: "[plan reference, consult recommendation, or task]"
 ---
 
@@ -11,7 +11,7 @@ Automated build-review-polish loop composing run-* phase skills: scope → run-i
 
 ## Entry Gate
 
-Requires do-consult recommendation or clear task with approved direction.
+Requires do-design recommendation or clear task with approved direction.
 
 ## Depth
 
