@@ -69,6 +69,18 @@ resolve_tier() {
         frontier:qwen)   _tier_model=qwen3.5-plus;   _tier_effort= ;;
         standard:qwen)   _tier_model=qwen3-coder-plus; _tier_effort= ;;
         fast:qwen)       _tier_model=coder-model;     _tier_effort= ;;  # OAuth free tier resolves all to coder-model; Dashscope API keys can override via env
+        frontier:minimax) _tier_model=opencode-go/minimax-m2.7; _tier_effort=high ;;
+        standard:minimax) _tier_model=opencode-go/minimax-m2.5; _tier_effort=high ;;
+        fast:minimax)     _tier_model=opencode/minimax-m2.5-free; _tier_effort=minimal ;;
+        frontier:glm)      _tier_model=opencode-go/glm-5;              _tier_effort=high ;;
+        standard:glm)      _tier_model=opencode-go/glm-5;              _tier_effort=high ;;
+        fast:glm)          _tier_model=openrouter/z-ai/glm-4.7-flash;  _tier_effort=minimal ;;
+        frontier:deepseek) _tier_model=openrouter/deepseek/deepseek-v3.2; _tier_effort=high ;;  # speciale lacks tool-use on OpenRouter
+        standard:deepseek) _tier_model=openrouter/deepseek/deepseek-v3.2; _tier_effort=high ;;
+        fast:deepseek)     _tier_model=openrouter/deepseek/deepseek-v3.2; _tier_effort=minimal ;;
+        frontier:opencode) _tier_model=opencode-go/glm-5;              _tier_effort=high ;;
+        standard:opencode) _tier_model=opencode-go/minimax-m2.7;       _tier_effort=high ;;
+        fast:opencode)     _tier_model=opencode/minimax-m2.5-free;     _tier_effort=minimal ;;
         frontier:copilot) _tier_model=gpt-5.4;        _tier_effort=high ;;
         standard:copilot) _tier_model=gpt-5.4;        _tier_effort=medium ;;
         fast:copilot)     _tier_model=gpt-5.4-mini;   _tier_effort=high ;;

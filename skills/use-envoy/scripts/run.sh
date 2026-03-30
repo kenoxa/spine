@@ -103,7 +103,7 @@ if [ "$mode" = "multi" ]; then
     if [ -n "${SPINE_ENVOY_PROVIDERS:-}" ]; then
         _providers=$(printf '%s' "$SPINE_ENVOY_PROVIDERS" | tr ',' ' ')
     else
-        _providers="claude codex cursor qwen"
+        _providers="claude codex cursor qwen glm minimax deepseek"
     fi
 
     # --- Normalize: validate, deduplicate, exclude self ---
@@ -188,12 +188,12 @@ fi
 # --- Pick target and fallback chain (never target self) ---
 
 case "$_self" in
-    claude)  _target=codex;  _chain="copilot,cursor" ;;
-    codex)   _target=claude; _chain="copilot,cursor" ;;
-    cursor)  _target=codex;  _chain="copilot,cursor" ;;
-    qwen)    _target=codex;  _chain="copilot,cursor" ;;
-    copilot) _target=claude; _chain="cursor,codex" ;;
-    *)       _target=codex; _chain="copilot,cursor" ;;
+    claude)  _target=codex;  _chain="copilot,cursor,opencode" ;;
+    codex)   _target=claude; _chain="copilot,cursor,opencode" ;;
+    cursor)  _target=codex;  _chain="copilot,cursor,opencode" ;;
+    qwen)    _target=codex;  _chain="copilot,cursor,opencode" ;;
+    copilot) _target=claude; _chain="cursor,codex,opencode" ;;
+    *)       _target=codex;  _chain="copilot,cursor,opencode" ;;
 esac
 
 # --- Invoke via fallback wrapper ---

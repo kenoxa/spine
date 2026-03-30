@@ -340,8 +340,8 @@ detect_tools() {
   # Cursor: config dir is sufficient (no standalone CLI binary)
   [ -d "$HOME/.cursor" ] && tools+=("cursor")
 
-  # Claude Code / Codex: require CLI binary on PATH
-  for tool in claude codex qwen copilot; do
+  # Claude Code / Codex / OpenCode: require CLI binary on PATH
+  for tool in claude codex qwen copilot opencode; do
     if command -v "$tool" >/dev/null 2>&1; then
       tools+=("$tool")
     elif [ -d "$HOME/.$tool" ]; then
@@ -350,7 +350,7 @@ detect_tools() {
   done
 
   if [ ${#tools[@]} -eq 0 ]; then
-    warn "No AI coding tools found (cursor, claude, codex, qwen, copilot)"
+    warn "No AI coding tools found (cursor, claude, codex, qwen, copilot, opencode)"
     warn "Install at least one, then re-run this installer"
   fi
 
@@ -410,16 +410,22 @@ install_tool() {
   local spine_ref='@~/.config/spine/SPINE.md'
   local custom_ref='@~/.config/spine/AGENTS.md'
 
+  # OpenCode: agents live in ~/.config/opencode/agents/ (XDG layout)
+  if [ "$tool" = "opencode" ]; then
+    target="$HOME/.config/opencode"
+  fi
+
   mkdir -p "$target"
 
   # Guardrails: write @reference to provider root file
-  # Copilot loads AGENTS.md natively — no root file needed
+  # Copilot/OpenCode: no root file needed
   local root_file=""
   case "$tool" in
-    claude)  root_file="$target/CLAUDE.md" ;;
-    qwen)    root_file="$target/QWEN.md" ;;
-    copilot) ;;  # skip — Copilot loads AGENTS.md natively
-    *)       root_file="$target/AGENTS.md" ;;
+    claude)   root_file="$target/CLAUDE.md" ;;
+    qwen)     root_file="$target/QWEN.md" ;;
+    copilot)  ;;  # skip — Copilot loads AGENTS.md natively
+    opencode) ;;  # skip — OpenCode uses agent frontmatter only
+    *)        root_file="$target/AGENTS.md" ;;
   esac
 
   if [ -z "$root_file" ]; then
@@ -507,6 +513,12 @@ install_tool() {
     for agent in "$spine_dir/agents/"*.md; do
       [ -f "$agent" ] || continue
       generate_copilot_agent_md "$agent" "$target/agents"
+    done
+  elif [ "$tool" = "opencode" ]; then
+    # Generate OpenCode agent .md files (with model: in frontmatter)
+    for agent in "$spine_dir/agents/"*.md; do
+      [ -f "$agent" ] || continue
+      generate_opencode_agent_md "$agent" "$target/agents"
     done
   else
     for agent in "$spine_dir/agents/"*.md; do
@@ -671,6 +683,9 @@ TOML
         ;;
       copilot)
         # Copilot: project-scoped only — deferred (see TODO.md)
+        ;;
+      opencode)
+        rtk init -g --opencode 2>/dev/null && done_msg "rtk: opencode plugin" || warn "rtk init --opencode failed"
         ;;
     esac
   done
@@ -1050,6 +1065,9 @@ map_model_for_provider() {
     opus:copilot)    _mapped_model="gpt-5.4" ;;
     sonnet:copilot)  _mapped_model="gpt-5.4" ;;
     haiku:copilot)   _mapped_model="gpt-5.4-mini" ;;
+    opus:opencode)     _mapped_model="opencode-go/glm-5" ;;
+    sonnet:opencode)   _mapped_model="opencode-go/minimax-m2.7" ;;
+    haiku:opencode)    _mapped_model="opencode/minimax-m2.5-free" ;;
     inherit:*|"":*) _mapped_model="" ;;
     *) warn "Unknown model '$model' for provider '$provider'"; _mapped_model="" ;;
   esac
@@ -1067,6 +1085,10 @@ map_effort_for_provider() {
     high:copilot)   _mapped_effort="high" ;;
     medium:copilot) _mapped_effort="medium" ;;
     low:copilot)    _mapped_effort="low" ;;
+    max:opencode)    _mapped_effort="max" ;;
+    high:opencode)   _mapped_effort="high" ;;
+    medium:opencode) _mapped_effort="medium" ;;
+    low:opencode)    _mapped_effort="minimal" ;;
     *) _mapped_effort="" ;;
   esac
 }
@@ -1230,6 +1252,51 @@ $_agent_body"
     echo '# spine:managed — do not edit'
     echo "name: $_agent_name"
     printf 'description: >-\n  %s\n' "$_agent_description"
+    echo '---'
+    echo ""
+    printf '%s\n' "$body"
+  } > "$tmp"
+
+  if [ -f "$out_file" ] && [ ! -L "$out_file" ]; then
+    backup_if_exists "$out_file"
+  fi
+  mv "$tmp" "$out_file"
+}
+
+# --- OpenCode agent generation ---
+
+# Generate an OpenCode agent .md from an agent markdown file.
+# OpenCode agents support model: in frontmatter (unlike Qwen/Copilot which omit it).
+# Output: ~/.config/opencode/agents/<name>.md
+# Usage: generate_opencode_agent_md <agent.md> <output-dir>
+generate_opencode_agent_md() {
+  local md_file="$1" out_dir="$2"
+  parse_agent_frontmatter "$md_file"
+
+  if [ -z "$_agent_body" ]; then
+    warn "No body in $(basename "$md_file") — skipping OpenCode agent generation"
+    return 0
+  fi
+
+  # Build body with optional skills preamble
+  local body="$_agent_body"
+  if [ -n "$_agent_skills" ]; then
+    body="Load the following skill(s): $_agent_skills
+
+$_agent_body"
+  fi
+
+  map_model_for_provider "$_agent_model" opencode
+
+  local tmp out_file="$out_dir/$_agent_name.md"
+  tmp=$(mktemp "$out_dir/spine-tmp.XXXXXX")
+
+  {
+    echo '---'
+    echo '# spine:managed — do not edit'
+    echo "description: >-"
+    printf '  %s\n' "$_agent_description"
+    [ -n "$_mapped_model" ] && echo "model: $_mapped_model"
     echo '---'
     echo ""
     printf '%s\n' "$body"
@@ -1520,6 +1587,7 @@ cleanup_stale_files() {
 
   for tool in "${detected_tools[@]}"; do
     local target="$HOME/.$tool"
+    [ "$tool" = "opencode" ] && target="$HOME/.config/opencode"
     for subdir in agents skills; do
       local dir="$target/$subdir"
       [ -d "$dir" ] || continue
@@ -1562,8 +1630,8 @@ cleanup_stale_files() {
       done
     fi
 
-    # Cursor/Qwen: remove stale spine-managed .md agent files
-    if { [ "$tool" = "cursor" ] || [ "$tool" = "qwen" ] || [ "$tool" = "copilot" ]; } && [ -d "$target/agents" ]; then
+    # Cursor/Qwen/Copilot/OpenCode: remove stale spine-managed .md agent files
+    if { [ "$tool" = "cursor" ] || [ "$tool" = "qwen" ] || [ "$tool" = "copilot" ] || [ "$tool" = "opencode" ]; } && [ -d "$target/agents" ]; then
       for md in "$target/agents/"*.md; do
         [ -f "$md" ] || continue
         [ -L "$md" ] && continue  # skip symlinks
@@ -1582,6 +1650,7 @@ cleanup_stale_files() {
   if [ ${#RETIRED_AGENT_NAMES[@]} -gt 0 ]; then
     for tool in "${detected_tools[@]}"; do
       local target="$HOME/.$tool"
+      [ "$tool" = "opencode" ] && target="$HOME/.config/opencode"
       for retired in "${RETIRED_AGENT_NAMES[@]}"; do
         if [ -e "$target/agents/$retired.md" ] || [ -L "$target/agents/$retired.md" ]; then
           rm "$target/agents/$retired.md"
