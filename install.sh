@@ -12,13 +12,7 @@
 
 set -euo pipefail
 
-# --- Colors (https://no-color.org/) ---
-
-_C_BLUE='\033[1;34m' _C_YELLOW='\033[1;33m'
-_C_RED='\033[1;31m'  _C_GREEN='\033[1;32m'
-_C_RESET='\033[0m'
-# shellcheck disable=SC2034
-[ -n "${NO_COLOR:-}" ] && _C_BLUE='' _C_YELLOW='' _C_RED='' _C_GREEN='' _C_RESET=''
+# --- Constants ---
 
 REPO="kenoxa/spine"
 BRANCH="main"
@@ -49,37 +43,231 @@ RETIRED_AGENT_NAMES=("worker" "second-opinion")
 # Add names here when renaming a skill to ensure cross-provider cleanup.
 RETIRED_SKILL_NAMES=("do-analyze" "do-consult")
 
-# --- Helpers ---
+# --- Terminal UI ---
 
-info()     { printf "${_C_BLUE}==>${_C_RESET} %s\n" "$*" >&2; }
-warn()     { printf "${_C_YELLOW}WARN:${_C_RESET} %s\n" "$*" >&2; }
-error()    { printf "${_C_RED}ERROR:${_C_RESET} %s\n" "$*" >&2; }
-done_msg() { printf "  ${_C_GREEN}✓${_C_RESET} %s\n" "$*" >&2; }
+# Capability detection: colors always (unless NO_COLOR), cursor movement stricter
+_C_RED='\033[0;31m'  _C_GREEN='\033[0;32m'  _C_YELLOW='\033[0;33m'
+_C_BLUE='\033[0;34m' _C_DIM='\033[2m'       _C_BOLD='\033[1m'
+_C_RESET='\033[0m'
+# shellcheck disable=SC2034
+[ -n "${NO_COLOR:-}" ] && _C_RED='' _C_GREEN='' _C_YELLOW='' _C_BLUE='' _C_DIM='' _C_BOLD='' _C_RESET=''
 
-# Per-tool progressive output: each tool_add reprints the line, tool_done finalizes it.
-_tool_current="" _tool_features=""
-tool_start() { _tool_current="$1"; _tool_features=""; }
-tool_add() {
-  local f="$1"
-  _tool_features="${_tool_features:+${_tool_features}, }$f"
-  # Overwrite current line with updated feature list
-  printf "\r  ${_C_GREEN}✓${_C_RESET} %s: %s" "$_tool_current" "$_tool_features" >&2
-}
-tool_done() {
-  if [ -n "$_tool_features" ]; then
-    # Final newline to lock the line
-    printf "\n" >&2
+# Cursor movement: only on real TTY, not dumb terminal, not CI, not NO_COLOR
+_UI_CAN_MOVE=false
+[ -t 2 ] && [ "${TERM:-dumb}" != "dumb" ] && [ -z "${NO_COLOR:-}" ] && [ -z "${CI:-}" ] && _UI_CAN_MOVE=true
+
+# Live section state
+_UI_LIVE_LINES=0
+_UI_WARNINGS=()
+_UI_LIVE_FAILURES=0
+# Per-tool feature accumulator (replaces tool_add)
+_TOOL_FEATURES=""
+_TOOL_MCP=0
+
+# Global counters for final summary
+_TOTAL_TOOLS=0
+_TOTAL_DEPS=0
+_TOTAL_DEPS_INSTALLED=0
+_SPINE_SKILL_COUNT=0
+_GLOBAL_SKILL_COUNT=0
+_ERROR_COUNT=0
+
+# --- UI functions ---
+
+warn() {
+  if [ "$_UI_LIVE_LINES" -gt 0 ]; then
+    _UI_WARNINGS+=("$*")
+  else
+    printf "  ${_C_YELLOW}⚠${_C_RESET}  %s\n" "$*" >&2
   fi
-  _tool_current="" _tool_features=""
 }
+
+error() {
+  _ERROR_COUNT=$((_ERROR_COUNT + 1))
+  if [ "$_UI_LIVE_LINES" -gt 0 ]; then
+    _UI_WARNINGS+=("ERROR: $*")
+  else
+    printf "  ${_C_RED}✗${_C_RESET}  %s\n" "$*" >&2
+  fi
+}
+
+_ui_step_n=0
+_ui_step_total=0
+ui_init()  { _ui_step_total="$1"; }
+ui_step()  {
+  _ui_step_n=$((_ui_step_n + 1))
+  printf "\n${_C_DIM}[%d/%d]${_C_RESET} %s\n" "$_ui_step_n" "$_ui_step_total" "$*" >&2
+}
+
+ui_ok() {
+  if [ -n "${2:-}" ]; then
+    printf "  ${_C_GREEN}✓${_C_RESET}  %s  ${_C_DIM}%s${_C_RESET}\n" "$1" "$2" >&2
+  else
+    printf "  ${_C_GREEN}✓${_C_RESET}  %s\n" "$1" >&2
+  fi
+}
+
+ui_fail() {
+  if [ -n "${2:-}" ]; then
+    printf "  ${_C_RED}✗${_C_RESET}  %s  ${_C_DIM}%s${_C_RESET}\n" "$1" "$2" >&2
+  else
+    printf "  ${_C_RED}✗${_C_RESET}  %s\n" "$1" >&2
+  fi
+}
+
+ui_live_start() {
+  _UI_LIVE_LINES=0
+  _UI_WARNINGS=()
+  _UI_LIVE_FAILURES=0
+  if $_UI_CAN_MOVE && [ -n "${1:-}" ]; then
+    printf "  %b▸%b  %s\n" "${_C_BLUE}" "${_C_RESET}" "$1" >&2
+    _UI_LIVE_LINES=1
+  fi
+}
+
+ui_live_item() {
+  if $_UI_CAN_MOVE; then
+    printf "    %b▸ %s%b\n" "${_C_DIM}" "$*" "${_C_RESET}" >&2
+    _UI_LIVE_LINES=$((_UI_LIVE_LINES + 1))
+  fi
+}
+
+ui_live_done() {
+  local summary="$1" detail="${2:-}"
+  # Track failures for collapse summary
+  if [[ "${detail}" == *failed* ]]; then
+    _UI_LIVE_FAILURES=$((_UI_LIVE_FAILURES + 1))
+  fi
+  if $_UI_CAN_MOVE; then
+    if [[ "${detail}" == *failed* ]]; then
+      printf "\033[1A\r\033[K    %b⚠%b %b%s" "${_C_YELLOW}" "${_C_RESET}" "${_C_DIM}" "$summary" >&2
+    else
+      printf "\033[1A\r\033[K    %b✓%b %b%s" "${_C_GREEN}" "${_C_RESET}" "${_C_DIM}" "$summary" >&2
+    fi
+    [ -n "$detail" ] && printf "  %s" "$detail" >&2
+    printf '%b\n' "${_C_RESET}" >&2
+  fi
+}
+
+_ui_erase_live() {
+  if $_UI_CAN_MOVE && [ "$_UI_LIVE_LINES" -gt 0 ]; then
+    printf "\033[%dA\033[J" "$_UI_LIVE_LINES" >&2
+  fi
+  _UI_LIVE_LINES=0
+}
+
+_ui_flush_warnings() {
+  local w
+  for w in "${_UI_WARNINGS[@]+"${_UI_WARNINGS[@]}"}"; do
+    if [[ "$w" == ERROR:* ]]; then
+      printf "  ${_C_RED}✗${_C_RESET}  %s\n" "${w#ERROR: }" >&2
+    else
+      printf "  ${_C_YELLOW}⚠${_C_RESET}  %s\n" "$w" >&2
+    fi
+  done
+  _UI_WARNINGS=()
+}
+
+ui_live_collapse() {
+  _ui_erase_live
+  if [ "$_UI_LIVE_FAILURES" -gt 0 ]; then
+    # Yellow summary when some subtasks failed
+    local detail="${2:-}"
+    [ -n "$detail" ] && detail="$detail · ${_UI_LIVE_FAILURES} failed"
+    printf "  ${_C_YELLOW}⚠${_C_RESET}  %s  ${_C_DIM}%s${_C_RESET}\n" "$1" "$detail" >&2
+  else
+    ui_ok "$@"
+  fi
+  _ui_flush_warnings
+}
+
+ui_live_fail() {
+  _ui_erase_live
+  ui_fail "$@"
+  _ui_flush_warnings
+}
+
+ui_done() {
+  printf '\n%b─────────────────────────────────────%b\n' "${_C_DIM}" "${_C_RESET}" >&2
+  printf '%b✓%b  %b%s%b\n\n' "${_C_GREEN}" "${_C_RESET}" "${_C_BOLD}" "$*" "${_C_RESET}" >&2
+}
+
+# Feature accumulator for per-tool tracking
+_feature() {
+  if [[ "$1" == MCP:* ]]; then
+    _TOOL_MCP=$((_TOOL_MCP + 1))
+  else
+    _TOOL_FEATURES="${_TOOL_FEATURES:+${_TOOL_FEATURES} · }$1"
+  fi
+}
+
+_tool_summary() {
+  local s="$_TOOL_FEATURES"
+  [ "$_TOOL_MCP" -gt 0 ] && s="${s:+$s · }MCP×$_TOOL_MCP"
+  printf '%s' "$s"
+}
+
+# Cleanup trap: erase live section on abnormal exit + clean up downloaded source
+_SPINE_CLEANUP_DIR=""
+_ui_cleanup() {
+  if [ "$_UI_LIVE_LINES" -gt 0 ] && $_UI_CAN_MOVE; then
+    printf "\033[%dA\033[J" "$_UI_LIVE_LINES" >&2
+    printf '  %b✗%b  Interrupted\n' "${_C_RED}" "${_C_RESET}" >&2
+    _UI_LIVE_LINES=0
+  fi
+  [ -n "${_SPINE_CLEANUP_DIR:-}" ] && rm -rf "$_SPINE_CLEANUP_DIR" || true
+}
+trap '_ui_cleanup' EXIT
+
+# --- Core helpers ---
 
 # Run a command silently; on failure show captured output then return 1.
-quiet() { local out; out=$("$@" 2>&1) || { echo "$out" >&2; return 1; }; }
+# During live sections: suppress output (callers handle failure via warn).
+quiet() {
+  local out
+  out=$("$@" 2>&1) || {
+    if [ "$_UI_LIVE_LINES" -eq 0 ]; then echo "$out" >&2; fi
+    return 1
+  }
+}
 
-# Step progress: step "1/7" "Checking dependencies"
-step() { printf "\n${_C_BLUE}[%s]${_C_RESET} %s\n" "$1" "$2" >&2; }
+# --- Backup helper ---
 
-# --- Dependency detection ---
+backup_if_exists() {
+  local file="$1"
+  if [ -e "$file" ] || [ -L "$file" ]; then
+    # Skip backup for spine-managed files — we own them and will overwrite
+    if [ -f "$file" ] && head -3 "$file" | grep -q 'spine:managed' 2>/dev/null; then
+      return 0
+    fi
+    cp -L "$file" "${file}.bak" 2>/dev/null || true
+  fi
+}
+
+# Compare semver: returns 0 if $1 >= $2
+version_gte() {
+  [ "$(printf '%s\n' "$1" "$2" | sort -V | head -1)" = "$2" ]
+}
+
+# --- Download source into temp dir ---
+
+download_source() {
+  local tmpdir
+  tmpdir=$(mktemp -d)
+
+  if command -v git &>/dev/null && quiet git clone --depth 1 --branch "$BRANCH" "https://github.com/$REPO.git" "$tmpdir/spine"; then
+    echo "$tmpdir/spine"
+  elif command -v curl &>/dev/null && command -v tar &>/dev/null; then
+    curl -fsSL "https://github.com/$REPO/archive/refs/heads/$BRANCH.tar.gz" | tar -xz -C "$tmpdir"
+    echo "$tmpdir/spine-$BRANCH"
+  else
+    error "Neither git nor curl+tar found. Install one of them and retry."
+    rm -rf "$tmpdir"
+    return 1
+  fi
+}
+
+# --- Dependency detection + install ---
 
 # Check whether a python command reports Python >= 3.9.
 python39_plus() {
@@ -126,110 +314,10 @@ brew_install_if_missing() {
 
   dep_present "$formula" && return 0
   brew list --formula "$brew_formula" >/dev/null 2>&1 && return 0
-  if quiet brew install "$brew_formula" </dev/null; then
-    done_msg "Installed $formula via Homebrew"
-  else
-    warn "Failed to install $formula via Homebrew"
-    return 1
-  fi
+  quiet brew install "$brew_formula" </dev/null
 }
 
-# Ensure system deps are available. Attempts brew install on macOS; prints hints otherwise.
-ensure_system_deps() {
-  local os missing=()
-  os="$(uname -s)"
-
-  # Installed tools Spine manages — keep machine-keyed and sync docs when changing these.
-  local -a installed_tools=(
-    git
-    jq
-    node
-    python3
-    uv
-    ast-grep
-    bun
-    coreutils
-    fd
-    ni
-    ripgrep
-    sd
-    shellcheck
-    shfmt
-    yq
-    tokenizer
-    agent-browser
-    rtk
-  )
-
-  local use_brew=false
-  if has_brew; then
-    use_brew=true
-  elif [ "$os" = "Darwin" ]; then
-    warn "Homebrew not found — install it from https://brew.sh"
-  fi
-
-  # probe: direct binary install to ~/.local/bin (no Homebrew formula)
-  install_probe
-
-  # Collect missing deps (brew-managed tools only)
-  for dep in "${installed_tools[@]}"; do
-    dep_present "$dep" || missing+=("$dep")
-  done
-
-  if [ ${#missing[@]} -eq 0 ]; then
-    done_msg "All dependencies found"
-    return 0
-  fi
-
-  if $use_brew; then
-    info "Installing missing tools via Homebrew: ${missing[*]}..."
-    for dep in "${missing[@]}"; do
-      brew_install_if_missing "$dep" || true
-    done
-    # agent-browser requires Chrome for Testing (~500MB one-time download)
-    if [[ " ${missing[*]} " == *" agent-browser "* ]]; then
-      info "Run 'agent-browser install' to download Chrome for Testing (~500MB)"
-    fi
-  fi
-
-  if ! $use_brew; then
-    warn "Missing tools: ${missing[*]}"
-    if [ "$os" = "Darwin" ]; then
-      local brew_missing=()
-      for dep in "${missing[@]}"; do
-        brew_missing+=("$(brew_formula_name "$dep")")
-      done
-      echo "  After installing Homebrew, run:" >&2
-      echo "    brew install ${brew_missing[*]}" >&2
-    else
-      echo "  Install via your package manager, e.g.:" >&2
-      echo "    sudo apt install ${missing[*]}  # Debian/Ubuntu (fd→fd-find, node→nodejs, yq→snap or github.com/mikefarah/yq, coreutils is preinstalled)" >&2
-      echo "    sudo dnf install ${missing[*]}  # Fedora/RHEL" >&2
-    fi
-    echo "" >&2
-  fi
-}
-
-# --- Download source into temp dir ---
-
-download_source() {
-  local tmpdir
-  tmpdir=$(mktemp -d)
-
-  if command -v git &>/dev/null && quiet git clone --depth 1 --branch "$BRANCH" "https://github.com/$REPO.git" "$tmpdir/spine"; then
-    echo "$tmpdir/spine"
-  elif command -v curl &>/dev/null && command -v tar &>/dev/null; then
-    curl -fsSL "https://github.com/$REPO/archive/refs/heads/$BRANCH.tar.gz" | tar -xz -C "$tmpdir"
-    echo "$tmpdir/spine-$BRANCH"
-  else
-    error "Neither git nor curl+tar found. Install one of them and retry."
-    rm -rf "$tmpdir"
-    return 1
-  fi
-}
-
-# --- Install probe (direct binary, no Homebrew formula) ---
-
+# Install probe (direct binary, no Homebrew formula)
 install_probe() {
   local PROBE_REPO="probelabs/probe"
   local INSTALL_DIR="$HOME/.local/bin"
@@ -276,7 +364,6 @@ install_probe() {
   fi
 
   # Download
-  info "Installing probe $latest_tag..."
   local tmpdir
   tmpdir=$(mktemp -d)
 
@@ -346,10 +433,98 @@ install_probe() {
   fi
 
   rm -rf "$tmpdir"
-  done_msg "probe $latest_tag"
+  ui_ok "probe" "$latest_tag"
 }
 
-# --- Detect installed tools ---
+# Ensure system deps are available. Attempts brew install on macOS; prints hints otherwise.
+ensure_system_deps() {
+  local os missing=()
+  os="$(uname -s)"
+
+  # Installed tools Spine manages — keep machine-keyed and sync docs when changing these.
+  local -a installed_tools=(
+    git
+    jq
+    node
+    python3
+    uv
+    ast-grep
+    bun
+    coreutils
+    fd
+    ni
+    ripgrep
+    sd
+    shellcheck
+    shfmt
+    yq
+    tokenizer
+    agent-browser
+    rtk
+  )
+
+  local use_brew=false
+  if has_brew; then
+    use_brew=true
+  elif [ "$os" = "Darwin" ]; then
+    warn "Homebrew not found — install it from https://brew.sh"
+  fi
+
+  # probe: direct binary install to ~/.local/bin (no Homebrew formula)
+  install_probe
+
+  # Collect missing deps (brew-managed tools only)
+  for dep in "${installed_tools[@]}"; do
+    dep_present "$dep" || missing+=("$dep")
+  done
+
+  # +1 for probe (managed separately above)
+  _TOTAL_DEPS=$(( ${#installed_tools[@]} + 1 ))
+
+  if [ ${#missing[@]} -eq 0 ]; then
+    ui_ok "All found" "${_TOTAL_DEPS} deps"
+    return 0
+  fi
+
+  if $use_brew; then
+    ui_live_start "Installing packages"
+    local installed_names=""
+    for dep in "${missing[@]}"; do
+      ui_live_item "$dep"
+      if brew_install_if_missing "$dep"; then
+        _TOTAL_DEPS_INSTALLED=$((_TOTAL_DEPS_INSTALLED + 1))
+        ui_live_done "$dep"
+        case "$dep" in
+          ripgrep)   installed_names="${installed_names:+$installed_names · }rg" ;;
+          ast-grep)  installed_names="${installed_names:+$installed_names · }sg" ;;
+          *)         installed_names="${installed_names:+$installed_names · }$dep" ;;
+        esac
+      else
+        ui_live_done "$dep" "failed"
+      fi
+    done
+    ui_live_collapse "Packages installed" "$installed_names"
+    # agent-browser requires Chrome for Testing (~500MB one-time download)
+    if [[ " ${missing[*]} " == *" agent-browser "* ]]; then
+      warn "Run 'agent-browser install' for Chrome for Testing (~500MB)"
+    fi
+  else
+    warn "Missing tools: ${missing[*]}"
+    if [ "$os" = "Darwin" ]; then
+      local brew_missing=()
+      for dep in "${missing[@]}"; do
+        brew_missing+=("$(brew_formula_name "$dep")")
+      done
+      printf "    After installing Homebrew, run:\n" >&2
+      printf "      brew install %s\n" "${brew_missing[*]}" >&2
+    else
+      printf "    Install via your package manager, e.g.:\n" >&2
+      printf "      sudo apt install %s\n" "${missing[*]}" >&2
+    fi
+  fi
+}
+
+# --- Tool detection ---
 
 detect_tools() {
   local tools=()
@@ -394,7 +569,7 @@ setup_central_dir() {
     cp "$src/env.example" "$spine_dir/.env.example"
     if [ ! -f "$spine_dir/.env" ]; then
       cp "$spine_dir/.env.example" "$spine_dir/.env"
-      done_msg "Created .env from template (edit ~/.config/spine/.env to configure)"
+      ui_ok "Created .env" "edit ~/.config/spine/.env to configure"
     fi
   fi
 
@@ -415,682 +590,11 @@ setup_central_dir() {
     fi
   done
 
-  done_msg "central directory: ~/.config/spine/"
+  # shellcheck disable=SC2088  # display string, not path expansion
+  ui_ok "Central dir" "~/.config/spine/"
 }
 
-# --- Install files for a single tool ---
-
-install_tool() {
-  local tool="$1" src="$2"
-  local target="$HOME/.$tool"
-  local spine_dir="$HOME/.config/spine"
-  local spine_ref='@~/.config/spine/SPINE.md'
-  local custom_ref='@~/.config/spine/AGENTS.md'
-
-  # OpenCode: agents live in ~/.config/opencode/agents/ (XDG layout)
-  if [ "$tool" = "opencode" ]; then
-    target="$HOME/.config/opencode"
-  fi
-
-  mkdir -p "$target"
-
-  # Guardrails: write @reference to provider root file
-  # Copilot/OpenCode: no root file needed
-  local root_file=""
-  case "$tool" in
-    claude)   root_file="$target/CLAUDE.md" ;;
-    qwen)     root_file="$target/QWEN.md" ;;
-    copilot)  ;;  # skip — Copilot loads AGENTS.md natively
-    opencode) ;;  # skip — OpenCode uses agent frontmatter only
-    *)        root_file="$target/AGENTS.md" ;;
-  esac
-
-  if [ -z "$root_file" ]; then
-    : # no root file for this tool
-  elif [ ! -f "$root_file" ]; then
-    # Fresh install
-    printf '%s\n' "$spine_ref" "$custom_ref" > "$root_file"
-  elif head -1 "$root_file" | grep -q '^@.*SPINE\.md$'; then
-    # Already managed — ensure AGENTS.md ref present (upgrade path)
-    if ! grep -q "$custom_ref" "$root_file"; then
-      backup_if_exists "$root_file"
-      local tmp; tmp=$(mktemp)
-      head -1 "$root_file" > "$tmp"
-      echo "$custom_ref" >> "$tmp"
-      tail -n +2 "$root_file" >> "$tmp"
-      mv "$tmp" "$root_file"
-    fi
-  elif diff -q "$root_file" "$spine_dir/SPINE.md" >/dev/null 2>&1 || \
-       head -1 "$root_file" | grep -q '^# \(AGENTS\|SPINE\)\.md$'; then
-    # Spine-managed content (current or pre-rename) — safe to replace entirely
-    backup_if_exists "$root_file"
-    printf '%s\n' "$spine_ref" "$custom_ref" > "$root_file"
-  else
-    # User has custom content — prepend @reference, keep existing content
-    backup_if_exists "$root_file"
-    local tmp
-    tmp=$(mktemp)
-    printf '%s\n%s\n\n' "$spine_ref" "$custom_ref" > "$tmp"
-    cat "$root_file" >> "$tmp"
-    mv "$tmp" "$root_file"
-  fi
-
-  # Agents: Codex uses generated TOML; Cursor uses generated .md; Claude uses symlinks
-  mkdir -p "$target/agents"
-  if [ "$tool" = "codex" ]; then
-    # Remove old .md symlinks (spine-managed only)
-    for md in "$target/agents/"*.md; do
-      [ -L "$md" ] || continue
-      local dest
-      dest=$(readlink "$md")
-      [[ "$dest" == *".config/spine/"* ]] && rm "$md"
-    done
-    # Generate TOML role configs
-    for agent in "$spine_dir/agents/"*.md; do
-      [ -f "$agent" ] || continue
-      generate_codex_agent_toml "$agent" "$target/agents"
-    done
-    # Patch config.toml with agent registrations
-    patch_codex_config "$target" "$spine_dir/agents"
-  elif [ "$tool" = "cursor" ]; then
-    # Remove old symlinks (spine-managed only) — upgrade from symlink to generated .md
-    for md in "$target/agents/"*.md; do
-      [ -L "$md" ] || continue
-      local dest
-      dest=$(readlink "$md")
-      [[ "$dest" == *".config/spine/"* ]] && rm "$md"
-    done
-    # Generate Cursor agent .md files
-    for agent in "$spine_dir/agents/"*.md; do
-      [ -f "$agent" ] || continue
-      generate_cursor_agent_md "$agent" "$target/agents"
-    done
-  elif [ "$tool" = "qwen" ]; then
-    # Remove old symlinks (spine-managed only) — upgrade from symlink to generated .md
-    for md in "$target/agents/"*.md; do
-      [ -L "$md" ] || continue
-      local dest
-      dest=$(readlink "$md")
-      [[ "$dest" == *".config/spine/"* ]] && rm "$md"
-    done
-    # Generate Qwen agent .md files
-    for agent in "$spine_dir/agents/"*.md; do
-      [ -f "$agent" ] || continue
-      generate_qwen_agent_md "$agent" "$target/agents"
-    done
-  elif [ "$tool" = "copilot" ]; then
-    # Remove old symlinks (spine-managed only) — upgrade from symlink to generated .md
-    for md in "$target/agents/"*.md; do
-      [ -L "$md" ] || continue
-      local dest
-      dest=$(readlink "$md")
-      [[ "$dest" == *".config/spine/"* ]] && rm "$md"
-    done
-    # Generate Copilot agent .md files
-    for agent in "$spine_dir/agents/"*.md; do
-      [ -f "$agent" ] || continue
-      generate_copilot_agent_md "$agent" "$target/agents"
-    done
-  elif [ "$tool" = "opencode" ]; then
-    # Generate OpenCode agent .md files (with model: in frontmatter)
-    for agent in "$spine_dir/agents/"*.md; do
-      [ -f "$agent" ] || continue
-      generate_opencode_agent_md "$agent" "$target/agents"
-    done
-  else
-    for agent in "$spine_dir/agents/"*.md; do
-      [ -f "$agent" ] || continue
-      local name
-      name=$(basename "$agent")
-      if [ -f "$target/agents/$name" ] && [ ! -L "$target/agents/$name" ]; then
-        backup_if_exists "$target/agents/$name"
-      fi
-      ln -sf "../../.config/spine/agents/$name" "$target/agents/$name"
-    done
-  fi
-
-  tool_add "guardrails, agents"
-
-  # Qwen Code extras: configure context.fileName to load both QWEN.md and AGENTS.md
-  if [ "$tool" = "qwen" ] && command -v jq &>/dev/null; then
-    local qwen_settings="$target/settings.json"
-    if [ -f "$qwen_settings" ]; then
-      local tmp
-      tmp=$(mktemp)
-      if jq '.context.fileName = ["QWEN.md", "AGENTS.md"]' "$qwen_settings" > "$tmp" 2>/dev/null; then
-        mv "$tmp" "$qwen_settings"
-        tool_add "context.fileName"
-      else
-        rm -f "$tmp"
-        warn "Failed to patch $qwen_settings — set context.fileName manually"
-      fi
-    else
-      printf '{"context":{"fileName":["QWEN.md","AGENTS.md"]}}\n' > "$qwen_settings"
-      tool_add qwen "context.fileName"
-    fi
-  fi
-
-  # Claude Code extras: plugin (hooks + skills)
-  if [ "$tool" = "claude" ]; then
-    install_claude_plugin "$src" "$target"
-  fi
-}
-
-# --- Claude Code plugin (hooks + skills) ---
-
-install_claude_plugin() {
-  local src="$1" target="$2"
-
-  # Determine marketplace source: local path for persistent checkouts, GitHub for downloads.
-  # Check _SPINE_CLEANUP_DIR to distinguish local checkouts from git-cloned temp dirs.
-  local marketplace_src="kenoxa/spine"
-  [ -z "${_SPINE_CLEANUP_DIR:-}" ] && [ -d "$src/.git" ] && marketplace_src="$src"
-
-  # Attempt plugin installation
-  if quiet claude plugin marketplace add "$marketplace_src" && \
-     quiet claude plugin install spine@kenoxa; then
-    tool_add "plugin"
-    return 0
-  fi
-
-  # Fallback: manual hook installation from claude/hooks/
-  warn "Could not install Claude plugin — installing hook manually"
-
-  local settings="$target/settings.json"
-  local hook_cmd="$target/hooks/inject-agents-md.sh"
-
-  mkdir -p "$target/hooks"
-  for script in "$src"/claude/hooks/*.sh; do
-    [ -f "$script" ] || continue
-    cp "$script" "$target/hooks/"
-    chmod +x "$target/hooks/$(basename "$script")"
-  done
-
-  done_msg "claude: hook scripts (fallback)"
-
-  # Patch settings.json with SessionStart hook
-  if ! command -v jq &>/dev/null; then
-    warn "jq not found — cannot auto-patch settings.json"
-    echo "  Install jq and re-run, or patch $settings manually." >&2
-    return 0
-  fi
-
-  [ -f "$settings" ] || echo '{}' > "$settings"
-
-  # Already registered? Skip.
-  if jq -e --arg cmd "$hook_cmd" \
-    '.hooks.SessionStart[]?.hooks[]? | select(.command == $cmd)' \
-    "$settings" &>/dev/null; then
-    done_msg "claude: settings.json already has SessionStart hook"
-    return 0
-  fi
-
-  backup_if_exists "$settings"
-
-  local tmp
-  tmp=$(mktemp)
-  jq --arg cmd "$hook_cmd" '
-    .hooks //= {} |
-    .hooks.SessionStart //= [] |
-    .hooks.SessionStart += [{"hooks": [{"type": "command", "command": $cmd}]}]
-  ' "$settings" > "$tmp"
-
-  if jq empty "$tmp" 2>/dev/null; then
-    mv "$tmp" "$settings"
-    done_msg "claude: settings.json patched with SessionStart hook"
-  else
-    error "Generated invalid JSON — settings.json left unchanged"
-    rm -f "$tmp"
-    return 1
-  fi
-}
-
-# --- RTK (token optimization proxy) ---
-
-# Minimum RTK version required (permissionDecision bypass fix).
-RTK_MIN_VERSION="0.33.1"
-
-_rtk_ready=false
-install_rtk_once() {
-  $_rtk_ready && return 0
-
-  if ! command -v rtk &>/dev/null; then
-    warn "rtk not found — skipping token optimization setup"
-    return 1
-  fi
-
-  # Version check: require >= 0.33.1 (permissionDecision bypass fix)
-  local rtk_version
-  rtk_version=$(rtk --version 2>/dev/null | awk '{print $2}')
-  if [ -n "$rtk_version" ] && ! version_gte "$rtk_version" "$RTK_MIN_VERSION"; then
-    warn "rtk $rtk_version is below minimum $RTK_MIN_VERSION — skipping (brew upgrade rtk)"
-    return 1
-  fi
-
-  # Disable telemetry by default
-  local rtk_config_dir="$HOME/.config/rtk"
-  local rtk_config="$rtk_config_dir/config.toml"
-  if [ ! -f "$rtk_config" ]; then
-    mkdir -p "$rtk_config_dir"
-    cat > "$rtk_config" << 'TOML'
-[telemetry]
-enabled = false
-TOML
-  fi
-
-  _rtk_ready=true
-}
-
-_install_rtk_single() {
-  local tool="$1"
-  install_rtk_once || return 0
-  case "$tool" in
-    claude)
-      quiet rtk init -g --auto-patch && tool_add "rtk" || warn "rtk init -g failed"
-      _rtk_patch_claude_hook_path
-      ;;
-    cursor)
-      quiet rtk init -g --agent cursor && tool_add "rtk" || warn "rtk init --agent cursor failed"
-      ;;
-    codex)
-      quiet rtk init -g --codex && tool_add "rtk" || warn "rtk init --codex failed"
-      ;;
-    qwen)
-      _rtk_copy_codex_template "$HOME/.$tool"
-      _rtk_add_root_ref "$HOME/.$tool" "$tool"
-      tool_add "rtk"
-      ;;
-    copilot)
-      # Copilot: project-scoped only — deferred
-      ;;
-    opencode)
-      quiet rtk init -g --opencode && tool_add "rtk" || warn "rtk init --opencode failed"
-      ;;
-  esac
-}
-
-# Patch Claude Code settings.json to include absolute rtk path in hook command.
-# Workaround for RTK issue #685: hook subprocess PATH excludes /opt/homebrew/bin.
-_rtk_patch_claude_hook_path() {
-  local settings="$HOME/.claude/settings.json"
-  [ -f "$settings" ] || return 0
-  command -v jq &>/dev/null || return 0
-
-  local rtk_path
-  rtk_path=$(command -v rtk)
-
-  # Check if hook exists and needs patching (contains rtk-rewrite but no absolute path)
-  if ! jq -e '.hooks.PreToolUse[]?.hooks[]? | select(.command | test("rtk-rewrite"))' "$settings" &>/dev/null; then
-    return 0  # no RTK hook found
-  fi
-
-  # Already patched with PATH= prefix? Skip.
-  if jq -e '.hooks.PreToolUse[]?.hooks[]? | select(.command | test("^PATH="))' "$settings" &>/dev/null; then
-    return 0
-  fi
-
-  local rtk_dir
-  rtk_dir=$(dirname "$rtk_path")
-  local tmp
-  tmp=$(mktemp)
-
-  # Prepend PATH with rtk's directory to the hook command
-  if jq --arg dir "$rtk_dir" '
-    .hooks.PreToolUse |= map(
-      .hooks |= map(
-        if (.command | test("rtk-rewrite"))
-        then .command = "PATH=\"" + $dir + ":$PATH\" " + .command
-        else . end
-      )
-    )
-  ' "$settings" > "$tmp" 2>/dev/null && jq empty "$tmp" 2>/dev/null; then
-    mv "$tmp" "$settings"
-    done_msg "rtk: patched claude hook with absolute PATH"
-  else
-    rm -f "$tmp"
-  fi
-}
-
-# Add @RTK.md reference to provider root file if not already present.
-_rtk_add_root_ref() {
-  local target="$1" tool="$2"
-  local rtk_ref="@~/.${tool}/RTK.md"
-  local root_file=""
-  case "$tool" in
-    qwen)   root_file="$target/QWEN.md" ;;
-    *)      root_file="$target/AGENTS.md" ;;
-  esac
-  [ -n "$root_file" ] && [ -f "$root_file" ] || return 0
-  grep -qF "$rtk_ref" "$root_file" && return 0  # already referenced
-  echo "$rtk_ref" >> "$root_file"
-}
-
-# Copy RTK instruction template from Codex (created by rtk init -g --codex).
-_rtk_copy_codex_template() {
-  local target="$1"
-  local rtk_md="$target/RTK.md"
-  local codex_rtk="$HOME/.codex/RTK.md"
-
-  [ -f "$rtk_md" ] && return 0  # already exists
-  if [ ! -f "$codex_rtk" ]; then
-    warn "rtk: codex template not found — skipping $tool RTK instructions"
-    return 0
-  fi
-  cp "$codex_rtk" "$rtk_md"
-}
-
-# Compare semver: returns 0 if $1 >= $2
-version_gte() {
-  [ "$(printf '%s\n' "$1" "$2" | sort -V | head -1)" = "$2" ]
-}
-
-# --- MCP server helpers ---
-
-source_spine_env() {
-  local env_file="$HOME/.config/spine/.env"
-  [ -f "$env_file" ] || return 0
-
-  # shellcheck disable=SC1090
-  . "$env_file" 2>/dev/null || { warn "Failed to source $env_file — using keyless mode"; return 0; }
-
-  # Ensure env vars are available in future shells (Codex reads at runtime)
-  if command -v zsh &>/dev/null; then
-    local zshenv="$HOME/.zshenv"
-    if ! grep -qF '/.config/spine/.env' "$zshenv" 2>/dev/null; then
-      # shellcheck disable=SC2016  # intentional: $HOME expands at shell startup, not install time
-      echo '[ -f "$HOME/.config/spine/.env" ] && source "$HOME/.config/spine/.env"' >> "$zshenv"
-      done_msg "Added spine env to ~/.zshenv"
-    fi
-  fi
-}
-
-mcp_add_claude() {
-  local name="$1" url="$2"; shift 2
-  # Remove first for idempotency — claude mcp add fails if entry already exists
-  quiet claude mcp remove "$name" --scope user 2>/dev/null || true
-  if quiet claude mcp add --transport http --scope user "$name" "$url" "$@"; then
-    tool_add "MCP:$name"
-  else
-    warn "Failed to add MCP server $name to claude"
-    echo "  Run manually: claude mcp add --transport http --scope user $name $url $*" >&2
-  fi
-}
-
-mcp_add_codex() {
-  local name="$1" url="$2"; shift 2
-  if quiet codex mcp add "$name" --url "$url" "$@"; then
-    tool_add "MCP:$name"
-  else
-    warn "Failed to add MCP server $name to codex"
-    echo "  Run manually: codex mcp add $name --url $url $*" >&2
-  fi
-}
-
-mcp_add_qwen() {
-  local name="$1" url="$2"; shift 2
-  # Remove first for idempotency — qwen mcp add may fail if entry already exists
-  quiet qwen mcp remove "$name" --scope user 2>/dev/null || true
-  # Strip MCP API key env vars so qwen stores ${VAR} references for runtime resolution
-  # instead of resolving them at add-time (qwen expands env vars in -H values if set)
-  if quiet env -u CONTEXT7_API_KEY -u EXA_API_KEY \
-      qwen mcp add --transport http --scope user --trust "$name" "$url" "$@"; then
-    tool_add "MCP:$name"
-  else
-    warn "Failed to add MCP server $name to qwen"
-    echo "  Run manually: qwen mcp add --transport http --scope user --trust $name $url $*" >&2
-  fi
-}
-
-mcp_add_cursor() {
-  local c7_url="$1" c7_key="$2" exa_url="$3" exa_key="$4"
-  local mcp_file="$HOME/.cursor/mcp.json"
-
-  if ! command -v jq &>/dev/null; then
-    warn "jq not found — cannot configure Cursor MCP servers"
-    return 0
-  fi
-
-  if [ -f "$mcp_file" ] && ! jq empty "$mcp_file" 2>/dev/null; then
-    warn "Invalid JSON in $mcp_file — skipping Cursor MCP configuration"
-    return 0
-  fi
-
-  [ -f "$mcp_file" ] || echo '{}' > "$mcp_file"
-
-  local tmp
-  tmp=$(mktemp)
-  # Cursor supports ${env:NAME} interpolation in headers — use runtime references, not baked values
-  jq --arg c7url "$c7_url" --arg c7key "$c7_key" \
-     --arg exaurl "$exa_url" --arg exakey "$exa_key" '
-    .mcpServers //= {} |
-    .mcpServers.context7 = (
-      {url: $c7url} + if $c7key != "" then {headers: {"Authorization": "Bearer ${env:CONTEXT7_API_KEY}"}} else {} end
-    ) |
-    .mcpServers.exa = (
-      {url: $exaurl} + if $exakey != "" then {headers: {"Authorization": "Bearer ${env:EXA_API_KEY}"}} else {} end
-    )
-  ' "$mcp_file" > "$tmp"
-
-  if jq empty "$tmp" 2>/dev/null; then
-    mv "$tmp" "$mcp_file"
-    tool_add "MCP:context7, MCP:exa"
-  else
-    warn "Generated invalid JSON — $mcp_file left unchanged"
-    rm -f "$tmp"
-    return 0
-  fi
-}
-
-mcp_add_copilot() {
-  local c7_url="$1" c7_key="$2" exa_url="$3" exa_key="$4"
-  local mcp_file="$HOME/.copilot/mcp-config.json"
-
-  if ! command -v jq &>/dev/null; then
-    warn "jq not found — cannot configure Copilot MCP servers"
-    return 0
-  fi
-
-  if [ -f "$mcp_file" ] && ! jq empty "$mcp_file" 2>/dev/null; then
-    warn "Invalid JSON in $mcp_file — skipping Copilot MCP configuration"
-    return 0
-  fi
-
-  [ -f "$mcp_file" ] || { mkdir -p "$(dirname "$mcp_file")"; echo '{}' > "$mcp_file"; }
-
-  local tmp
-  tmp=$(mktemp)
-  # Copilot supports ${env:NAME} interpolation in headers — use runtime references, not baked values
-  jq --arg c7url "$c7_url" --arg c7key "$c7_key" \
-     --arg exaurl "$exa_url" --arg exakey "$exa_key" '
-    .mcpServers //= {} |
-    .mcpServers.context7 = (
-      {url: $c7url} + if $c7key != "" then {headers: {"Authorization": "Bearer ${env:CONTEXT7_API_KEY}"}} else {} end
-    ) |
-    .mcpServers.exa = (
-      {url: $exaurl} + if $exakey != "" then {headers: {"Authorization": "Bearer ${env:EXA_API_KEY}"}} else {} end
-    )
-  ' "$mcp_file" > "$tmp"
-
-  if jq empty "$tmp" 2>/dev/null; then
-    mv "$tmp" "$mcp_file"
-    tool_add "MCP:context7, MCP:exa"
-  else
-    warn "Generated invalid JSON — $mcp_file left unchanged"
-    rm -f "$tmp"
-    return 0
-  fi
-}
-
-mcp_add_opencode() {
-  local c7_url="$1" c7_key="$2" exa_url="$3" exa_key="$4"
-  local config_dir="$HOME/.config/opencode"
-  local config_file="$config_dir/opencode.json"
-
-  if ! command -v jq &>/dev/null; then
-    warn "jq not found — cannot configure OpenCode MCP servers"
-    return 0
-  fi
-
-  mkdir -p "$config_dir"
-  [ -f "$config_file" ] || echo '{}' > "$config_file"
-
-  if [ -f "$config_file" ] && ! jq empty "$config_file" 2>/dev/null; then
-    warn "Invalid JSON in $config_file — skipping OpenCode MCP configuration"
-    return 0
-  fi
-
-  # OpenCode uses {env:NAME} runtime references — key args gate whether headers are added
-  local tmp
-  tmp=$(mktemp)
-  jq --arg c7url "$c7_url" --arg c7key "$c7_key" \
-     --arg exaurl "$exa_url" --arg exakey "$exa_key" '
-    .mcp //= {} |
-    .mcp.context7 = (
-      {type: "remote", url: $c7url} + if $c7key != "" then {headers: {"Authorization": "Bearer {env:CONTEXT7_API_KEY}"}} else {} end
-    ) |
-    .mcp.exa = (
-      {type: "remote", url: $exaurl} + if $exakey != "" then {headers: {"Authorization": "Bearer {env:EXA_API_KEY}"}} else {} end
-    )
-  ' "$config_file" > "$tmp"
-
-  if jq empty "$tmp" 2>/dev/null; then
-    mv "$tmp" "$config_file"
-    tool_add "MCP:context7, MCP:exa"
-  else
-    warn "Generated invalid JSON — $config_file left unchanged"
-    rm -f "$tmp"
-    return 0
-  fi
-}
-
-_mcp_ready=false
-_mcp_c7_url="" _mcp_exa_url=""
-_mcp_c7_claude_auth=() _mcp_exa_claude_auth=()
-_mcp_c7_codex_auth=() _mcp_exa_codex_auth=()
-
-install_mcp_once() {
-  $_mcp_ready && return 0
-
-  source_spine_env
-
-  _mcp_c7_url="https://mcp.context7.com/mcp"
-  _mcp_exa_url="https://mcp.exa.ai/mcp?tools=get_code_context_exa,web_search_exa"
-
-  if [ -n "${CONTEXT7_API_KEY:-}" ]; then
-    # shellcheck disable=SC2016  # intentional: env var resolves at runtime, not install time
-    _mcp_c7_claude_auth=(--header 'Authorization: Bearer ${CONTEXT7_API_KEY}')
-    _mcp_c7_codex_auth=(--bearer-token-env-var CONTEXT7_API_KEY)
-  fi
-  if [ -n "${EXA_API_KEY:-}" ]; then
-    # shellcheck disable=SC2016
-    _mcp_exa_claude_auth=(--header 'Authorization: Bearer ${EXA_API_KEY}')
-    _mcp_exa_codex_auth=(--bearer-token-env-var EXA_API_KEY)
-  fi
-
-  _mcp_ready=true
-}
-
-_install_mcp_single() {
-  local tool="$1"
-  install_mcp_once
-
-  case "$tool" in
-    claude)
-      mcp_add_claude "context7" "$_mcp_c7_url" "${_mcp_c7_claude_auth[@]}"
-      mcp_add_claude "exa" "$_mcp_exa_url" "${_mcp_exa_claude_auth[@]}"
-      ;;
-    codex)
-      mcp_add_codex "context7" "$_mcp_c7_url" "${_mcp_c7_codex_auth[@]}"
-      mcp_add_codex "exa" "$_mcp_exa_url" "${_mcp_exa_codex_auth[@]}"
-      ;;
-    cursor)
-      mcp_add_cursor "$_mcp_c7_url" "${CONTEXT7_API_KEY:-}" "$_mcp_exa_url" "${EXA_API_KEY:-}"
-      if command -v agent &>/dev/null; then
-        quiet agent mcp enable context7 2>/dev/null || true
-        quiet agent mcp enable exa 2>/dev/null || true
-        tool_add "MCP approved"
-      fi
-      ;;
-    qwen)
-      local c7_qwen_auth=() exa_qwen_auth=()
-      if [ -n "${CONTEXT7_API_KEY:-}" ]; then
-        # shellcheck disable=SC2016
-        c7_qwen_auth=(-H 'Authorization: Bearer ${CONTEXT7_API_KEY}')
-      fi
-      if [ -n "${EXA_API_KEY:-}" ]; then
-        # shellcheck disable=SC2016
-        exa_qwen_auth=(-H 'Authorization: Bearer ${EXA_API_KEY}')
-      fi
-      mcp_add_qwen "context7" "$_mcp_c7_url" "${c7_qwen_auth[@]}"
-      mcp_add_qwen "exa" "$_mcp_exa_url" "${exa_qwen_auth[@]}"
-      ;;
-    copilot)
-      mcp_add_copilot "$_mcp_c7_url" "${CONTEXT7_API_KEY:-}" "$_mcp_exa_url" "${EXA_API_KEY:-}"
-      ;;
-    opencode)
-      mcp_add_opencode "$_mcp_c7_url" "${CONTEXT7_API_KEY:-}" "$_mcp_exa_url" "${EXA_API_KEY:-}"
-      ;;
-  esac
-}
-
-install_mcp_servers() {
-  local detected_tools=("$@")
-  for tool in "${detected_tools[@]}"; do
-    _install_mcp_single "$tool"
-  done
-
-  # Remove retired MCP servers
-  if [ ${#RETIRED_MCP_SERVERS[@]} -gt 0 ]; then
-    for name in "${RETIRED_MCP_SERVERS[@]}"; do
-      for tool in "${detected_tools[@]}"; do
-        case "$tool" in
-          claude) quiet claude mcp remove "$name" --scope user 2>/dev/null || true ;;
-          codex)  quiet codex mcp remove "$name" 2>/dev/null || true ;;
-          qwen)   quiet qwen mcp remove "$name" --scope user 2>/dev/null || true ;;
-          cursor)
-            if [ -f "$HOME/.cursor/mcp.json" ] && command -v jq &>/dev/null; then
-              local tmp
-              tmp=$(mktemp)
-              if jq --arg n "$name" 'del(.mcpServers[$n])' "$HOME/.cursor/mcp.json" > "$tmp"; then
-                mv "$tmp" "$HOME/.cursor/mcp.json"
-              else
-                rm -f "$tmp"
-              fi
-            fi
-            command -v agent &>/dev/null && quiet agent mcp disable "$name" 2>/dev/null || true
-            ;;
-          copilot)
-            if [ -f "$HOME/.copilot/mcp-config.json" ] && command -v jq &>/dev/null; then
-              local tmp
-              tmp=$(mktemp)
-              if jq --arg n "$name" 'del(.mcpServers[$n])' "$HOME/.copilot/mcp-config.json" > "$tmp"; then
-                mv "$tmp" "$HOME/.copilot/mcp-config.json"
-              else
-                rm -f "$tmp"
-              fi
-            fi
-            ;;
-        esac
-      done
-      done_msg "Removed retired MCP server: $name"
-    done
-  fi
-}
-
-# --- Backup helper ---
-
-backup_if_exists() {
-  local file="$1"
-  if [ -e "$file" ] || [ -L "$file" ]; then
-    # Skip backup for spine-managed files — we own them and will overwrite
-    if [ -f "$file" ] && head -3 "$file" | grep -q 'spine:managed' 2>/dev/null; then
-      return 0
-    fi
-    cp -L "$file" "${file}.bak" 2>/dev/null || true
-  fi
-}
-
-# --- Codex TOML agent generation ---
+# --- Agent generation ---
 
 # Parse YAML frontmatter from an agent markdown file.
 # Sets: _agent_name, _agent_description, _agent_model, _agent_effort,
@@ -1387,6 +891,8 @@ $_agent_body"
   mv "$tmp" "$out_file"
 }
 
+# --- Codex config ---
+
 # Patch ~/.codex/config.toml with spine-managed agent registrations.
 # Strip-and-append: remove existing spine blocks, append fresh ones.
 # Usage: patch_codex_config <codex-dir> <agents-source-dir>
@@ -1447,7 +953,610 @@ patch_codex_config() {
   mv "$tmp" "$config"
 }
 
-# --- Install skills via runtime launcher ---
+# --- Per-tool install ---
+
+install_tool() {
+  local tool="$1" src="$2"
+  local target="$HOME/.$tool"
+  local spine_dir="$HOME/.config/spine"
+  local spine_ref='@~/.config/spine/SPINE.md'
+  local custom_ref='@~/.config/spine/AGENTS.md'
+
+  # OpenCode: agents live in ~/.config/opencode/agents/ (XDG layout)
+  if [ "$tool" = "opencode" ]; then
+    target="$HOME/.config/opencode"
+  fi
+
+  mkdir -p "$target"
+
+  # Guardrails: write @reference to provider root file
+  # Copilot/OpenCode: no root file needed
+  local root_file=""
+  case "$tool" in
+    claude)   root_file="$target/CLAUDE.md" ;;
+    qwen)     root_file="$target/QWEN.md" ;;
+    copilot)  ;;  # skip — Copilot loads AGENTS.md natively
+    opencode) ;;  # skip — OpenCode uses agent frontmatter only
+    *)        root_file="$target/AGENTS.md" ;;
+  esac
+
+  if [ -z "$root_file" ]; then
+    : # no root file for this tool
+  elif [ ! -f "$root_file" ]; then
+    # Fresh install
+    printf '%s\n' "$spine_ref" "$custom_ref" > "$root_file"
+  elif head -1 "$root_file" | grep -q '^@.*SPINE\.md$'; then
+    # Already managed — ensure AGENTS.md ref present (upgrade path)
+    if ! grep -q "$custom_ref" "$root_file"; then
+      backup_if_exists "$root_file"
+      local tmp; tmp=$(mktemp)
+      head -1 "$root_file" > "$tmp"
+      echo "$custom_ref" >> "$tmp"
+      tail -n +2 "$root_file" >> "$tmp"
+      mv "$tmp" "$root_file"
+    fi
+  elif diff -q "$root_file" "$spine_dir/SPINE.md" >/dev/null 2>&1 || \
+       head -1 "$root_file" | grep -q '^# \(AGENTS\|SPINE\)\.md$'; then
+    # Spine-managed content (current or pre-rename) — safe to replace entirely
+    backup_if_exists "$root_file"
+    printf '%s\n' "$spine_ref" "$custom_ref" > "$root_file"
+  else
+    # User has custom content — prepend @reference, keep existing content
+    backup_if_exists "$root_file"
+    local tmp
+    tmp=$(mktemp)
+    printf '%s\n%s\n\n' "$spine_ref" "$custom_ref" > "$tmp"
+    cat "$root_file" >> "$tmp"
+    mv "$tmp" "$root_file"
+  fi
+
+  # Agents: Codex uses generated TOML; Cursor uses generated .md; Claude uses symlinks
+  mkdir -p "$target/agents"
+  if [ "$tool" = "codex" ]; then
+    # Remove old .md symlinks (spine-managed only)
+    for md in "$target/agents/"*.md; do
+      [ -L "$md" ] || continue
+      local dest
+      dest=$(readlink "$md")
+      [[ "$dest" == *".config/spine/"* ]] && rm "$md"
+    done
+    # Generate TOML role configs
+    for agent in "$spine_dir/agents/"*.md; do
+      [ -f "$agent" ] || continue
+      generate_codex_agent_toml "$agent" "$target/agents"
+    done
+    # Patch config.toml with agent registrations
+    patch_codex_config "$target" "$spine_dir/agents"
+  elif [ "$tool" = "cursor" ]; then
+    # Remove old symlinks (spine-managed only) — upgrade from symlink to generated .md
+    for md in "$target/agents/"*.md; do
+      [ -L "$md" ] || continue
+      local dest
+      dest=$(readlink "$md")
+      [[ "$dest" == *".config/spine/"* ]] && rm "$md"
+    done
+    # Generate Cursor agent .md files
+    for agent in "$spine_dir/agents/"*.md; do
+      [ -f "$agent" ] || continue
+      generate_cursor_agent_md "$agent" "$target/agents"
+    done
+  elif [ "$tool" = "qwen" ]; then
+    # Remove old symlinks (spine-managed only) — upgrade from symlink to generated .md
+    for md in "$target/agents/"*.md; do
+      [ -L "$md" ] || continue
+      local dest
+      dest=$(readlink "$md")
+      [[ "$dest" == *".config/spine/"* ]] && rm "$md"
+    done
+    # Generate Qwen agent .md files
+    for agent in "$spine_dir/agents/"*.md; do
+      [ -f "$agent" ] || continue
+      generate_qwen_agent_md "$agent" "$target/agents"
+    done
+  elif [ "$tool" = "copilot" ]; then
+    # Remove old symlinks (spine-managed only) — upgrade from symlink to generated .md
+    for md in "$target/agents/"*.md; do
+      [ -L "$md" ] || continue
+      local dest
+      dest=$(readlink "$md")
+      [[ "$dest" == *".config/spine/"* ]] && rm "$md"
+    done
+    # Generate Copilot agent .md files
+    for agent in "$spine_dir/agents/"*.md; do
+      [ -f "$agent" ] || continue
+      generate_copilot_agent_md "$agent" "$target/agents"
+    done
+  elif [ "$tool" = "opencode" ]; then
+    # Generate OpenCode agent .md files (with model: in frontmatter)
+    for agent in "$spine_dir/agents/"*.md; do
+      [ -f "$agent" ] || continue
+      generate_opencode_agent_md "$agent" "$target/agents"
+    done
+  else
+    for agent in "$spine_dir/agents/"*.md; do
+      [ -f "$agent" ] || continue
+      local name
+      name=$(basename "$agent")
+      if [ -f "$target/agents/$name" ] && [ ! -L "$target/agents/$name" ]; then
+        backup_if_exists "$target/agents/$name"
+      fi
+      ln -sf "../../.config/spine/agents/$name" "$target/agents/$name"
+    done
+  fi
+
+  _feature "guardrails"
+
+  # Qwen Code extras: configure context.fileName to load both QWEN.md and AGENTS.md
+  if [ "$tool" = "qwen" ] && command -v jq &>/dev/null; then
+    local qwen_settings="$target/settings.json"
+    if [ -f "$qwen_settings" ]; then
+      local tmp
+      tmp=$(mktemp)
+      if jq '.context.fileName = ["QWEN.md", "AGENTS.md"]' "$qwen_settings" > "$tmp" 2>/dev/null; then
+        mv "$tmp" "$qwen_settings"
+        _feature "settings"
+      else
+        rm -f "$tmp"
+        warn "Failed to patch $qwen_settings — set context.fileName manually"
+      fi
+    else
+      printf '{"context":{"fileName":["QWEN.md","AGENTS.md"]}}\n' > "$qwen_settings"
+      _feature "settings"
+    fi
+  fi
+
+  # Claude Code extras: plugin (hooks + skills)
+  if [ "$tool" = "claude" ]; then
+    install_claude_plugin "$src" "$target"
+  fi
+}
+
+# --- Claude Code plugin (hooks + skills) ---
+
+install_claude_plugin() {
+  local src="$1" target="$2"
+
+  # Determine marketplace source: local path for persistent checkouts, GitHub for downloads.
+  # Check _SPINE_CLEANUP_DIR to distinguish local checkouts from git-cloned temp dirs.
+  local marketplace_src="kenoxa/spine"
+  [ -z "${_SPINE_CLEANUP_DIR:-}" ] && [ -d "$src/.git" ] && marketplace_src="$src"
+
+  # Attempt plugin installation
+  if quiet claude plugin marketplace add "$marketplace_src" && \
+     quiet claude plugin install spine@kenoxa; then
+    _feature "plugin"
+    return 0
+  fi
+
+  # Fallback: manual hook installation from claude/hooks/
+  warn "Could not install Claude plugin — installing hook manually"
+
+  local settings="$target/settings.json"
+  local hook_cmd="$target/hooks/inject-agents-md.sh"
+
+  mkdir -p "$target/hooks"
+  for script in "$src"/claude/hooks/*.sh; do
+    [ -f "$script" ] || continue
+    cp "$script" "$target/hooks/"
+    chmod +x "$target/hooks/$(basename "$script")"
+  done
+
+  _feature "hooks"
+
+  # Patch settings.json with SessionStart hook
+  if ! command -v jq &>/dev/null; then
+    warn "jq not found — cannot auto-patch settings.json. Install jq and re-run, or patch $settings manually."
+    return 0
+  fi
+
+  [ -f "$settings" ] || echo '{}' > "$settings"
+
+  # Already registered? Skip.
+  if jq -e --arg cmd "$hook_cmd" \
+    '.hooks.SessionStart[]?.hooks[]? | select(.command == $cmd)' \
+    "$settings" &>/dev/null; then
+    return 0
+  fi
+
+  backup_if_exists "$settings"
+
+  local tmp
+  tmp=$(mktemp)
+  jq --arg cmd "$hook_cmd" '
+    .hooks //= {} |
+    .hooks.SessionStart //= [] |
+    .hooks.SessionStart += [{"hooks": [{"type": "command", "command": $cmd}]}]
+  ' "$settings" > "$tmp"
+
+  if jq empty "$tmp" 2>/dev/null; then
+    mv "$tmp" "$settings"
+  else
+    error "Generated invalid JSON — settings.json left unchanged"
+    rm -f "$tmp"
+    return 1
+  fi
+}
+
+# --- RTK (token optimization proxy) ---
+
+# Minimum RTK version required (permissionDecision bypass fix).
+RTK_MIN_VERSION="0.33.1"
+
+_rtk_ready=false
+install_rtk_once() {
+  $_rtk_ready && return 0
+
+  if ! command -v rtk &>/dev/null; then
+    warn "rtk not found — skipping token optimization setup"
+    return 1
+  fi
+
+  # Version check: require >= 0.33.1 (permissionDecision bypass fix)
+  local rtk_version
+  rtk_version=$(rtk --version 2>/dev/null | awk '{print $2}')
+  if [ -n "$rtk_version" ] && ! version_gte "$rtk_version" "$RTK_MIN_VERSION"; then
+    warn "rtk $rtk_version is below minimum $RTK_MIN_VERSION — skipping (brew upgrade rtk)"
+    return 1
+  fi
+
+  # Disable telemetry by default
+  local rtk_config_dir="$HOME/.config/rtk"
+  local rtk_config="$rtk_config_dir/config.toml"
+  if [ ! -f "$rtk_config" ]; then
+    mkdir -p "$rtk_config_dir"
+    cat > "$rtk_config" << 'TOML'
+[telemetry]
+enabled = false
+TOML
+  fi
+
+  _rtk_ready=true
+}
+
+_install_rtk_single() {
+  local tool="$1"
+  install_rtk_once || return 0
+  case "$tool" in
+    claude)
+      if quiet rtk init -g --auto-patch; then _feature "rtk"; else warn "rtk init -g failed"; fi
+      _rtk_patch_claude_hook_path
+      ;;
+    cursor)
+      if quiet rtk init -g --agent cursor; then _feature "rtk"; else warn "rtk init --agent cursor failed"; fi
+      ;;
+    codex)
+      if quiet rtk init -g --codex; then _feature "rtk"; else warn "rtk init --codex failed"; fi
+      ;;
+    qwen)
+      _rtk_copy_codex_template "$HOME/.$tool"
+      _rtk_add_root_ref "$HOME/.$tool" "$tool"
+      _feature "rtk"
+      ;;
+    copilot)
+      # Copilot: project-scoped only — deferred
+      ;;
+    opencode)
+      if quiet rtk init -g --opencode; then _feature "rtk"; else warn "rtk init --opencode failed"; fi
+      ;;
+  esac
+}
+
+# Patch Claude Code settings.json to include absolute rtk path in hook command.
+# Workaround for RTK issue #685: hook subprocess PATH excludes /opt/homebrew/bin.
+_rtk_patch_claude_hook_path() {
+  local settings="$HOME/.claude/settings.json"
+  [ -f "$settings" ] || return 0
+  command -v jq &>/dev/null || return 0
+
+  local rtk_path
+  rtk_path=$(command -v rtk)
+
+  # Check if hook exists and needs patching (contains rtk-rewrite but no absolute path)
+  if ! jq -e '.hooks.PreToolUse[]?.hooks[]? | select(.command | test("rtk-rewrite"))' "$settings" &>/dev/null; then
+    return 0  # no RTK hook found
+  fi
+
+  # Already patched with PATH= prefix? Skip.
+  if jq -e '.hooks.PreToolUse[]?.hooks[]? | select(.command | test("^PATH="))' "$settings" &>/dev/null; then
+    return 0
+  fi
+
+  local rtk_dir
+  rtk_dir=$(dirname "$rtk_path")
+  local tmp
+  tmp=$(mktemp)
+
+  # Prepend PATH with rtk's directory to the hook command
+  if jq --arg dir "$rtk_dir" '
+    .hooks.PreToolUse |= map(
+      .hooks |= map(
+        if (.command | test("rtk-rewrite"))
+        then .command = "PATH=\"" + $dir + ":$PATH\" " + .command
+        else . end
+      )
+    )
+  ' "$settings" > "$tmp" 2>/dev/null && jq empty "$tmp" 2>/dev/null; then
+    mv "$tmp" "$settings"
+  else
+    rm -f "$tmp"
+  fi
+}
+
+# Add @RTK.md reference to provider root file if not already present.
+_rtk_add_root_ref() {
+  local target="$1" tool="$2"
+  local rtk_ref="@~/.${tool}/RTK.md"
+  local root_file=""
+  case "$tool" in
+    qwen)   root_file="$target/QWEN.md" ;;
+    *)      root_file="$target/AGENTS.md" ;;
+  esac
+  [ -n "$root_file" ] && [ -f "$root_file" ] || return 0
+  grep -qF "$rtk_ref" "$root_file" && return 0  # already referenced
+  echo "$rtk_ref" >> "$root_file"
+}
+
+# Copy RTK instruction template from Codex (created by rtk init -g --codex).
+_rtk_copy_codex_template() {
+  local target="$1"
+  local rtk_md="$target/RTK.md"
+  local codex_rtk="$HOME/.codex/RTK.md"
+
+  [ -f "$rtk_md" ] && return 0  # already exists
+  if [ ! -f "$codex_rtk" ]; then
+    warn "rtk: codex template not found — skipping $tool RTK instructions"
+    return 0
+  fi
+  cp "$codex_rtk" "$rtk_md"
+}
+
+# --- MCP server helpers ---
+
+source_spine_env() {
+  local env_file="$HOME/.config/spine/.env"
+  [ -f "$env_file" ] || return 0
+
+  # shellcheck disable=SC1090
+  . "$env_file" 2>/dev/null || { warn "Failed to source $env_file — using keyless mode"; return 0; }
+
+  # Ensure env vars are available in future shells (Codex reads at runtime)
+  if command -v zsh &>/dev/null; then
+    local zshenv="$HOME/.zshenv"
+    if ! grep -qF '/.config/spine/.env' "$zshenv" 2>/dev/null; then
+      # shellcheck disable=SC2016  # intentional: $HOME expands at shell startup, not install time
+      echo '[ -f "$HOME/.config/spine/.env" ] && source "$HOME/.config/spine/.env"' >> "$zshenv"
+      warn "Added spine env to ~/.zshenv"
+    fi
+  fi
+}
+
+mcp_add_claude() {
+  local name="$1" url="$2"; shift 2
+  # Remove first for idempotency — claude mcp add fails if entry already exists
+  quiet claude mcp remove "$name" --scope user 2>/dev/null || true
+  if quiet claude mcp add --transport http --scope user "$name" "$url" "$@"; then
+    _feature "MCP:$name"
+  else
+    warn "Failed to add MCP server $name to claude. Run manually: claude mcp add --transport http --scope user $name $url $*"
+  fi
+}
+
+mcp_add_codex() {
+  local name="$1" url="$2"; shift 2
+  if quiet codex mcp add "$name" --url "$url" "$@"; then
+    _feature "MCP:$name"
+  else
+    warn "Failed to add MCP server $name to codex. Run manually: codex mcp add $name --url $url $*"
+  fi
+}
+
+mcp_add_qwen() {
+  local name="$1" url="$2"; shift 2
+  # Remove first for idempotency — qwen mcp add may fail if entry already exists
+  quiet qwen mcp remove "$name" --scope user 2>/dev/null || true
+  # Strip MCP API key env vars so qwen stores ${VAR} references for runtime resolution
+  # instead of resolving them at add-time (qwen expands env vars in -H values if set)
+  if quiet env -u CONTEXT7_API_KEY -u EXA_API_KEY \
+      qwen mcp add --transport http --scope user --trust "$name" "$url" "$@"; then
+    _feature "MCP:$name"
+  else
+    warn "Failed to add MCP server $name to qwen. Run manually: qwen mcp add --transport http --scope user --trust $name $url $*"
+  fi
+}
+
+mcp_add_cursor() {
+  local c7_url="$1" c7_key="$2" exa_url="$3" exa_key="$4"
+  local mcp_file="$HOME/.cursor/mcp.json"
+
+  if ! command -v jq &>/dev/null; then
+    warn "jq not found — cannot configure Cursor MCP servers"
+    return 0
+  fi
+
+  if [ -f "$mcp_file" ] && ! jq empty "$mcp_file" 2>/dev/null; then
+    warn "Invalid JSON in $mcp_file — skipping Cursor MCP configuration"
+    return 0
+  fi
+
+  [ -f "$mcp_file" ] || echo '{}' > "$mcp_file"
+
+  local tmp
+  tmp=$(mktemp)
+  # Cursor supports ${env:NAME} interpolation in headers — use runtime references, not baked values
+  jq --arg c7url "$c7_url" --arg c7key "$c7_key" \
+     --arg exaurl "$exa_url" --arg exakey "$exa_key" '
+    .mcpServers //= {} |
+    .mcpServers.context7 = (
+      {url: $c7url} + if $c7key != "" then {headers: {"Authorization": "Bearer ${env:CONTEXT7_API_KEY}"}} else {} end
+    ) |
+    .mcpServers.exa = (
+      {url: $exaurl} + if $exakey != "" then {headers: {"Authorization": "Bearer ${env:EXA_API_KEY}"}} else {} end
+    )
+  ' "$mcp_file" > "$tmp"
+
+  if jq empty "$tmp" 2>/dev/null; then
+    mv "$tmp" "$mcp_file"
+    _feature "MCP:context7"; _feature "MCP:exa"
+  else
+    warn "Generated invalid JSON — $mcp_file left unchanged"
+    rm -f "$tmp"
+    return 0
+  fi
+}
+
+mcp_add_copilot() {
+  local c7_url="$1" c7_key="$2" exa_url="$3" exa_key="$4"
+  local mcp_file="$HOME/.copilot/mcp-config.json"
+
+  if ! command -v jq &>/dev/null; then
+    warn "jq not found — cannot configure Copilot MCP servers"
+    return 0
+  fi
+
+  if [ -f "$mcp_file" ] && ! jq empty "$mcp_file" 2>/dev/null; then
+    warn "Invalid JSON in $mcp_file — skipping Copilot MCP configuration"
+    return 0
+  fi
+
+  [ -f "$mcp_file" ] || { mkdir -p "$(dirname "$mcp_file")"; echo '{}' > "$mcp_file"; }
+
+  local tmp
+  tmp=$(mktemp)
+  # Copilot supports ${env:NAME} interpolation in headers — use runtime references, not baked values
+  jq --arg c7url "$c7_url" --arg c7key "$c7_key" \
+     --arg exaurl "$exa_url" --arg exakey "$exa_key" '
+    .mcpServers //= {} |
+    .mcpServers.context7 = (
+      {url: $c7url} + if $c7key != "" then {headers: {"Authorization": "Bearer ${env:CONTEXT7_API_KEY}"}} else {} end
+    ) |
+    .mcpServers.exa = (
+      {url: $exaurl} + if $exakey != "" then {headers: {"Authorization": "Bearer ${env:EXA_API_KEY}"}} else {} end
+    )
+  ' "$mcp_file" > "$tmp"
+
+  if jq empty "$tmp" 2>/dev/null; then
+    mv "$tmp" "$mcp_file"
+    _feature "MCP:context7"; _feature "MCP:exa"
+  else
+    warn "Generated invalid JSON — $mcp_file left unchanged"
+    rm -f "$tmp"
+    return 0
+  fi
+}
+
+mcp_add_opencode() {
+  local c7_url="$1" c7_key="$2" exa_url="$3" exa_key="$4"
+  local config_dir="$HOME/.config/opencode"
+  local config_file="$config_dir/opencode.json"
+
+  if ! command -v jq &>/dev/null; then
+    warn "jq not found — cannot configure OpenCode MCP servers"
+    return 0
+  fi
+
+  mkdir -p "$config_dir"
+  [ -f "$config_file" ] || echo '{}' > "$config_file"
+
+  if [ -f "$config_file" ] && ! jq empty "$config_file" 2>/dev/null; then
+    warn "Invalid JSON in $config_file — skipping OpenCode MCP configuration"
+    return 0
+  fi
+
+  # OpenCode uses {env:NAME} runtime references — key args gate whether headers are added
+  local tmp
+  tmp=$(mktemp)
+  jq --arg c7url "$c7_url" --arg c7key "$c7_key" \
+     --arg exaurl "$exa_url" --arg exakey "$exa_key" '
+    .mcp //= {} |
+    .mcp.context7 = (
+      {type: "remote", url: $c7url} + if $c7key != "" then {headers: {"Authorization": "Bearer {env:CONTEXT7_API_KEY}"}} else {} end
+    ) |
+    .mcp.exa = (
+      {type: "remote", url: $exaurl} + if $exakey != "" then {headers: {"Authorization": "Bearer {env:EXA_API_KEY}"}} else {} end
+    )
+  ' "$config_file" > "$tmp"
+
+  if jq empty "$tmp" 2>/dev/null; then
+    mv "$tmp" "$config_file"
+    _feature "MCP:context7"; _feature "MCP:exa"
+  else
+    warn "Generated invalid JSON — $config_file left unchanged"
+    rm -f "$tmp"
+    return 0
+  fi
+}
+
+_mcp_ready=false
+_mcp_c7_url="" _mcp_exa_url=""
+_mcp_c7_claude_auth=() _mcp_exa_claude_auth=()
+_mcp_c7_codex_auth=() _mcp_exa_codex_auth=()
+
+install_mcp_once() {
+  $_mcp_ready && return 0
+
+  source_spine_env
+
+  _mcp_c7_url="https://mcp.context7.com/mcp"
+  _mcp_exa_url="https://mcp.exa.ai/mcp?tools=get_code_context_exa,web_search_exa"
+
+  if [ -n "${CONTEXT7_API_KEY:-}" ]; then
+    # shellcheck disable=SC2016  # intentional: env var resolves at runtime, not install time
+    _mcp_c7_claude_auth=(--header 'Authorization: Bearer ${CONTEXT7_API_KEY}')
+    _mcp_c7_codex_auth=(--bearer-token-env-var CONTEXT7_API_KEY)
+  fi
+  if [ -n "${EXA_API_KEY:-}" ]; then
+    # shellcheck disable=SC2016
+    _mcp_exa_claude_auth=(--header 'Authorization: Bearer ${EXA_API_KEY}')
+    _mcp_exa_codex_auth=(--bearer-token-env-var EXA_API_KEY)
+  fi
+
+  _mcp_ready=true
+}
+
+_install_mcp_single() {
+  local tool="$1"
+  install_mcp_once
+
+  case "$tool" in
+    claude)
+      mcp_add_claude "context7" "$_mcp_c7_url" "${_mcp_c7_claude_auth[@]+"${_mcp_c7_claude_auth[@]}"}"
+      mcp_add_claude "exa" "$_mcp_exa_url" "${_mcp_exa_claude_auth[@]+"${_mcp_exa_claude_auth[@]}"}"
+      ;;
+    codex)
+      mcp_add_codex "context7" "$_mcp_c7_url" "${_mcp_c7_codex_auth[@]+"${_mcp_c7_codex_auth[@]}"}"
+      mcp_add_codex "exa" "$_mcp_exa_url" "${_mcp_exa_codex_auth[@]+"${_mcp_exa_codex_auth[@]}"}"
+      ;;
+    cursor)
+      mcp_add_cursor "$_mcp_c7_url" "${CONTEXT7_API_KEY:-}" "$_mcp_exa_url" "${EXA_API_KEY:-}"
+      if command -v agent &>/dev/null; then
+        quiet agent mcp enable context7 2>/dev/null || true
+        quiet agent mcp enable exa 2>/dev/null || true
+        _feature "MCP:approved"
+      fi
+      ;;
+    qwen)
+      local c7_qwen_auth=() exa_qwen_auth=()
+      if [ -n "${CONTEXT7_API_KEY:-}" ]; then
+        # shellcheck disable=SC2016
+        c7_qwen_auth=(-H 'Authorization: Bearer ${CONTEXT7_API_KEY}')
+      fi
+      if [ -n "${EXA_API_KEY:-}" ]; then
+        # shellcheck disable=SC2016
+        exa_qwen_auth=(-H 'Authorization: Bearer ${EXA_API_KEY}')
+      fi
+      mcp_add_qwen "context7" "$_mcp_c7_url" "${c7_qwen_auth[@]+"${c7_qwen_auth[@]}"}"
+      mcp_add_qwen "exa" "$_mcp_exa_url" "${exa_qwen_auth[@]+"${exa_qwen_auth[@]}"}"
+      ;;
+    copilot)
+      mcp_add_copilot "$_mcp_c7_url" "${CONTEXT7_API_KEY:-}" "$_mcp_exa_url" "${EXA_API_KEY:-}"
+      ;;
+    opencode)
+      mcp_add_opencode "$_mcp_c7_url" "${CONTEXT7_API_KEY:-}" "$_mcp_exa_url" "${EXA_API_KEY:-}"
+      ;;
+  esac
+}
+
+# --- Skills ---
 
 SKILLS_RUNTIME_PACKAGE="skills@latest"
 SKILLS_RUNTIME_CHOICES=()
@@ -1553,13 +1662,8 @@ install_skills() {
 
   if ! resolve_skills_runtime; then
     warn "No supported launcher found for bootstrapping $SKILLS_RUNTIME_PACKAGE"
-    echo "" >&2
-    echo "  Install one of these launchers, then re-run this installer:" >&2
-    echo "    nlx" >&2
-    echo "    bunx" >&2
-    echo "    bun  # for 'bun x'" >&2
-    echo "    npx" >&2
-    echo "" >&2
+    printf "\n  Install one of these launchers, then re-run this installer:\n" >&2
+    printf "    nlx\n    bunx\n    bun  # for 'bun x'\n    npx\n\n" >&2
     return 0
   fi
 
@@ -1569,14 +1673,21 @@ install_skills() {
   # Spine skills: install public skills, then remove any renamed/deleted orphans
   local install_ok=0
   local lock_file="$HOME/.agents/.skill-lock.json"
+
+  ui_live_start
+
   if [ ${#skill_flags[@]} -eq 0 ]; then
     warn "No public skills found in $skills_src/skills/"
-  elif run_skills_command add "$skills_src" "${skill_flags[@]}" "${agent_flags[@]}" -g -y; then
-    done_msg "spine: ${#current_skills[@]} public skills"
-    install_ok=1
   else
-    warn "Failed to install spine skills"
-    print_skills_commands add "$skills_src" "${skill_flags[@]}" "${agent_flags[@]}" -g -y
+    ui_live_item "spine public"
+    if run_skills_command add "$skills_src" "${skill_flags[@]}" "${agent_flags[@]}" -g -y; then
+      _SPINE_SKILL_COUNT=${#current_skills[@]}
+      ui_live_done "spine" "${_SPINE_SKILL_COUNT} public"
+      install_ok=1
+    else
+      ui_live_done "spine" "failed"
+      warn "Failed to install spine skills — re-run installer to retry"
+    fi
   fi
 
   if [ "$install_ok" -eq 1 ]; then
@@ -1602,11 +1713,9 @@ install_skills() {
         # Condition 4: externally managed (in lockfile)? Skip.
         if [ -f "$lock_file" ] && \
            jq -e --arg s "$prev_skill" '.skills[$s]' "$lock_file" >/dev/null 2>&1; then
-          info "Skipping $prev_skill — externally managed (skill-lock.json)"
           continue
         fi
-        info "Removing orphaned spine skill: $prev_skill"
-        # cleanup_stale_files() (step 8) sweeps broken symlinks in ~/.{claude,cursor,codex}/skills/
+        # cleanup_stale_files() sweeps broken symlinks in ~/.{claude,cursor,codex}/skills/
         # whose targets contain ".agents/skills/" — spine_targets. No change needed there.
         rm -rf "$HOME/.agents/skills/$prev_skill" || warn "Failed to remove orphan: $prev_skill"
       done < "${spine_manifest}.prev"
@@ -1620,14 +1729,19 @@ install_skills() {
     local skill_name="${entry##*-s }"
     local entry_tokens=()
     read -r -a entry_tokens <<< "$entry"
+    ui_live_item "$skill_name"
     if run_skills_command add "${entry_tokens[@]}" "${agent_flags[@]}" -g -y; then
-      done_msg "global: $skill_name"
+      _GLOBAL_SKILL_COUNT=$((_GLOBAL_SKILL_COUNT + 1))
+      ui_live_done "$skill_name"
     else
+      ui_live_done "$skill_name" "failed"
       failed+=("$entry")
-      warn "Failed to install global skill: $skill_name"
     fi
   done
 
+  ui_live_collapse "Skills installed" "${_SPINE_SKILL_COUNT} spine · ${_GLOBAL_SKILL_COUNT} global"
+
+  # Print failed skill hints after collapse
   if [ ${#failed[@]} -gt 0 ]; then
     warn "Some global skills failed. Install manually:"
     for entry in "${failed[@]}"; do
@@ -1651,13 +1765,12 @@ install_skills() {
       fi
     done
     if [ ${#global_orphans[@]} -gt 0 ]; then
-      info "Removing retired global skills: ${global_orphans[*]}"
       run_skills_command remove "${global_orphans[@]}" "${agent_flags[@]}" -g -y || true
     fi
   fi
 }
 
-# --- Clean up stale files across provider directories ---
+# --- Cleanup ---
 
 cleanup_stale_files() {
   local detected_tools=("$@")
@@ -1755,77 +1868,115 @@ cleanup_stale_files() {
   fi
 
   if [ "$cleaned" -gt 0 ]; then
-    done_msg "Cleaned $cleaned stale file(s)"
+    ui_ok "Stale files cleaned" "$cleaned removed"
   fi
 }
 
 # --- Main ---
 
 main() {
-  echo "" >&2
-  info "Spine installer — AI coding setup"
+  ui_init 6
+  printf '\n%bSpine%b %b— AI coding setup%b\n' "${_C_BOLD}" "${_C_RESET}" "${_C_DIM}" "${_C_RESET}" >&2
 
-  # Step 1: Resolve source
-  step "1/7" "Resolving source..."
+  # Step 1: Setup (source + central dir)
+  ui_step "Setup"
   local src script_dir
   script_dir="$(cd "$(dirname "${BASH_SOURCE[0]:-/dev/stdin}")" && pwd)"
   if [ -f "$script_dir/SPINE.md" ] && [ -d "$script_dir/skills" ]; then
     src="$script_dir"
-    done_msg "Using local repo: $src"
+    ui_ok "Source" "local repo"
   elif [ -n "${SPINE_LOCAL_SRC:-}" ]; then
     src="$SPINE_LOCAL_SRC"
-    done_msg "Using local source: $src"
+    ui_ok "Source" "$src"
   else
     src=$(download_source)
     _SPINE_CLEANUP_DIR="$(dirname "$src")"
-    trap 'rm -rf "$_SPINE_CLEANUP_DIR"' EXIT
-    done_msg "Downloaded $REPO"
+    ui_ok "Source" "downloaded $REPO"
   fi
-
-  # Step 2: Set up central directory
-  step "2/7" "Setting up central directory..."
   setup_central_dir "$src"
 
-  # Step 3: System dependencies
-  step "3/7" "Checking system dependencies..."
+  # Step 2: Dependencies
+  ui_step "Dependencies"
   ensure_system_deps
 
-  # Step 4: Detect tools
-  step "4/7" "Detecting installed tools..."
+  # Step 3: Detect tools
+  ui_step "Detecting tools"
   local tools
   read -ra tools <<< "$(detect_tools)"
 
   if [ ${#tools[@]} -eq 0 ] || [ -z "${tools[0]}" ]; then
-    echo "" >&2
-    error "Nothing to install — no supported tools detected"
+    error "No supported tools detected"
     return 1
   fi
 
-  done_msg "Found: ${tools[*]}"
+  ui_ok "Found" "${tools[*]}"
 
-  # Step 5: Install guardrails, agents, plugin, RTK, MCP — one line per tool, progressive
-  step "5/7" "Configuring tools..."
+  # Step 4: Configure tools
+  ui_step "Configuring tools"
+  ui_live_start
   for tool in "${tools[@]}"; do
-    tool_start "$tool"
+    _TOOL_FEATURES="" _TOOL_MCP=0
+    ui_live_item "$tool"
     install_tool "$tool" "$src"
     _install_rtk_single "$tool"
     _install_mcp_single "$tool"
-    tool_done
+    ui_live_done "$tool" "$(_tool_summary)"
+    _TOTAL_TOOLS=$((_TOTAL_TOOLS + 1))
   done
+  ui_live_collapse "Tools configured" "${tools[*]}"
 
-  # Step 6: Install skills
-  step "6/7" "Installing skills..."
+  # Remove retired MCP servers
+  if [ ${#RETIRED_MCP_SERVERS[@]} -gt 0 ]; then
+    for name in "${RETIRED_MCP_SERVERS[@]}"; do
+      for tool in "${tools[@]}"; do
+        case "$tool" in
+          claude) quiet claude mcp remove "$name" --scope user 2>/dev/null || true ;;
+          codex)  quiet codex mcp remove "$name" 2>/dev/null || true ;;
+          qwen)   quiet qwen mcp remove "$name" --scope user 2>/dev/null || true ;;
+          cursor)
+            if [ -f "$HOME/.cursor/mcp.json" ] && command -v jq &>/dev/null; then
+              local tmp
+              tmp=$(mktemp)
+              if jq --arg n "$name" 'del(.mcpServers[$n])' "$HOME/.cursor/mcp.json" > "$tmp"; then
+                mv "$tmp" "$HOME/.cursor/mcp.json"
+              else
+                rm -f "$tmp"
+              fi
+            fi
+            command -v agent &>/dev/null && quiet agent mcp disable "$name" 2>/dev/null || true
+            ;;
+          copilot)
+            if [ -f "$HOME/.copilot/mcp-config.json" ] && command -v jq &>/dev/null; then
+              local tmp
+              tmp=$(mktemp)
+              if jq --arg n "$name" 'del(.mcpServers[$n])' "$HOME/.copilot/mcp-config.json" > "$tmp"; then
+                mv "$tmp" "$HOME/.copilot/mcp-config.json"
+              else
+                rm -f "$tmp"
+              fi
+            fi
+            ;;
+        esac
+      done
+      ui_ok "Removed retired MCP server" "$name"
+    done
+  fi
+
+  # Step 5: Install skills (live section managed internally)
+  ui_step "Installing skills"
   install_skills "$src" "${tools[@]}"
 
-  # Step 7: Clean up stale files
-  step "7/7" "Cleaning up stale files..."
+  # Step 6: Clean up
+  ui_step "Cleaning up"
   cleanup_stale_files "${tools[@]}"
 
-  # Summary
-  echo "" >&2
-  echo "---" >&2
-  printf "%b\n" "${_C_GREEN}✓ Spine installed for: ${tools[*]}${_C_RESET}" >&2
-  echo "" >&2
+  # Final summary
+  local total_skills=$((_SPINE_SKILL_COUNT + _GLOBAL_SKILL_COUNT))
+  local deps_info="${_TOTAL_DEPS} deps"
+  [ "$_TOTAL_DEPS_INSTALLED" -gt 0 ] && deps_info="${deps_info} (${_TOTAL_DEPS_INSTALLED} installed)"
+  local summary="${_TOTAL_TOOLS} tools · ${deps_info} · ${total_skills} skills"
+  [ "$_ERROR_COUNT" -gt 0 ] && summary="${summary} · ${_ERROR_COUNT} errors"
+  ui_done "Spine ready  ${summary}"
 }
 
 main "$@"
