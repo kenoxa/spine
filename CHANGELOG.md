@@ -2,6 +2,34 @@
 
 All notable changes are documented here, focused on user impact.
 
+## 2026-03-31
+
+### Breaking
+
+- **Workflow renamed: frame → design → build** — `do-discuss`, `do-plan`, and `do-execute` are gone. The new workflow is `do-frame` (problem framing) → `do-design` (solution design) → `do-build` (build-review-polish loop), with a `do` catch-all that routes between them. Invoking old skill names no longer works.
+- **`framer` and `planner` agents removed** — dispatches referencing these agents will fail. Use `consultant` instead.
+
+  **Migration:** re-run `install.sh`. Update any scripts or aliases referencing old skill or agent names.
+
+### Added
+
+- **6 new skills** — `run-advise` (gather perspectives from multiple AI providers before committing to a direction), `run-discuss` (interactive interview to clarify ambiguous problems), `run-implement` (scoped code implementation), `run-research` (compile prompts for external deep research UIs like ChatGPT Deep Research), `with-terminology` (enforce domain glossary consistency), `do` (catch-all entry point that routes to the right workflow phase).
+- **6 new envoy providers** — `qwen-code`, `copilot`, `opencode`, `deepseek`, `glm`, `minimax`. Total: 9 providers (up from 3). OpenCode acts as shared CLI transport for GLM, MiniMax, and DeepSeek.
+- **3 new managed tools** — `probe` (ranked semantic code search, installed to `~/.local/bin`), `yq` (YAML processing, also used internally for frontmatter parsing), `RTK` (token optimization proxy with per-provider `rtk init`).
+- **`consultant` agent** — recommendation agent for `run-advise` and `do-design` phases.
+
+### Changed
+
+- **do-build replaces do-execute** — 7 phases collapsed to 5: scope → implement (`/run-implement`) → review (`/run-review` with up to 5 iterate cycles) → polish (`/run-polish`) → finalize. Phases now compose `run-*` skills instead of dispatching agents directly.
+- **run-review more focused** — 3 parallel inspectors (spec, correctness, risk) replaced by `@verifier` + single risk-focused `@inspector`. Reviews are faster with fewer redundant findings.
+- **Envoy now defaults to multi-provider dispatch** — queries go to multiple providers by default. Cursor retries from `composer-2` to `auto` on capacity errors.
+- **do-design requires `run-advise`** — multi-model perspective gathering is now mandatory before committing to a direction. Includes question-first exploration and design artifact templates.
+- **do-frame routes adaptively** — routine tasks skip deep exploration automatically.
+- **Agent model tiers explicit** — all 13 agents declare their model and effort level. `synthesizer` promoted to frontier tier (opus).
+- **SPINE.md compressed 20%** — 1,691 → 1,351 tokens. Tools section rewritten as a routing table. Search routing hierarchy added (Context7 → Exa → built-in with silent fallback).
+- **Installer UI rebuilt** — live progress sections with per-item status, collapse-on-complete summaries, and graceful CI degradation. Step count reduced from 8 to 6.
+- **Guardrails strengthened** — documentation must now be updated in the same change as the functionality it describes. Evidence claims within a few commands of proof must be verified rather than flagged as gaps.
+
 ## 2026-03-18
 
 ### Changed
