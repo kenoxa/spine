@@ -46,20 +46,24 @@ For each learning, capture structured fields:
 - `what_was_attempted` — approach or assumption tested
 - `result` — succeeded, failed, or partially worked
 - `assumption_corrected` — what we now know to be true/false (if applicable)
-- `memory_candidate` — yes/no: should this persist as a memory entry?
+- `knowledge_candidate` — yes/no: should this persist as a project knowledge entry?
 
 Categories: skill updates, memory entries, rule changes, spec corrections, constraint discoveries, doc-update candidates (behavior changed but no doc file modified).
 
 Propose only — never auto-apply. User must approve each update before it is written.
 
-### 4. Completion Declaration
+### 4. Knowledge Curation
+
+When any learning has `knowledge_candidate: yes`, invoke `/run-curate` with those candidates.
+
+### 5. Completion Declaration
 
 - **ACCEPT + gates met + question answered `yes`**: `Build complete.`
 - **ACCEPT + gates met + question answered `partially`**: `Build complete (partial).` — list gaps; suggest `/do-design` for reframing.
 - **ACCEPT + question answered `no`**: `Build NOT complete.` — explain mismatch; suggest `/do-design`.
 - **ITERATE (cap reached)**: `Build NOT complete.` — list remaining blockers from review.
 
-### 5. Session Log
+### 6. Session Log
 
 Append: completion declaration, question-answered assessment, final `files_modified`, learnings proposals if any, open items.
 

@@ -27,6 +27,13 @@ install.sh            Installer — manages ~/.config/spine/ and provider symlin
 Encoding: o200k_base. Measure: `tokenizer -f <file> -m gpt-4.1`.
 After changing any AI-loaded file: `scripts/token-counts.sh --update`.
 
+## Project Knowledge
+
+Durable cross-provider insights in `docs/`. Backticked paths — not auto-loaded.
+Managed by `/run-curate`; style: telegraphic, 250-800 tokens, `updated:` frontmatter.
+
+_(no entries yet)_
+
 ## Deep Dives
 
 - Skill/agent authoring: CONTRIBUTING.md

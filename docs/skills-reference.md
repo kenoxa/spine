@@ -85,6 +85,14 @@ Three-outcome gather gate: zero-dispatch for purely external goals with no codeb
 
 Canonical entry: [`skills/run-research/SKILL.md`](../skills/run-research/SKILL.md).
 
+### run-curate
+
+Project knowledge lifecycle management: promote, review, prune, maintain. Thin orchestrator dispatching `@curator` (read-only, sonnet-tier). Two modes: auto-triggered from build-finalize when `knowledge_candidate: yes` items exist, or standalone for full knowledge review. Gathers existing AGENTS.md `## Project Knowledge` entries, dispatches curator for evaluation, presents curation plan, applies on user approval.
+
+Knowledge files live in `docs/` — telegraphic, 250-800 tokens, `updated:` frontmatter. AGENTS.md index uses backticked paths (not markdown links) to prevent auto-loading.
+
+Canonical entry: [`skills/run-curate/SKILL.md`](../skills/run-curate/SKILL.md).
+
 ### run-implement
 
 Scoped code implementation with partition-parallel dispatch. Works standalone ("implement this") and as an embedded phase in `do-build`. Three phases: scope (mainthread) → implement (`@implementer` per partition) → report (mainthread). Fix mode: when invoked with `fix_context`, applies minimal fixes to blocking findings instead of full implementation.
@@ -143,6 +151,7 @@ Canonical entry: [`skills/run-recap/SKILL.md`](../skills/run-recap/SKILL.md).
 | `researcher` | Standard | sonnet | high | Deep discovery and evidence gathering; local-depth first, may do bounded plan-specific upstream lookup |
 | `navigator` | Standard | sonnet | high | External-first research specialist for broad, ambiguous, comparative, or current external work |
 | `consultant` | Standard | sonnet | high | Perspective-committed recommendation for `do-design` |
+| `curator` | Standard | sonnet | high | Knowledge curation — promote, review, prune knowledge files |
 | `debater` | Frontier | opus | high | Multi-perspective Socratic dialogue |
 | `inspector` | Frontier | opus | high | Verdict-focused code review, preloads `run-review` |
 | `analyst` | Standard | sonnet | high | Advisory pattern analysis, preloads `run-review` and `run-polish` |

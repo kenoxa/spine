@@ -6,8 +6,8 @@ AI contributors: see `AGENTS.md` for per-invocation constraints and token budget
 
 ```
 SPINE.md                Global guardrails (installed to ~/.config/spine/SPINE.md)
-skills/                 22 skills (13 workflow + 4 domain + 5 tools)
-agents/                 13 subagents
+skills/                 28 skills (19 workflow + 4 domain + 5 tools)
+agents/                 14 subagents
 claude/                 Claude Code plugin (hooks + skills)
 docs/                   Reference docs (skills, tips, external skills)
 .scratch/               Ephemeral subagent output (gitignored)
@@ -159,6 +159,31 @@ The install script downloads spine and sets up the central directory, provider l
 - **Local skill (in `skills/`)**: delete or rename the skill directory, then re-run `install.sh`. The manifest diff detects the old name as an orphan and removes `~/.agents/skills/<old-name>` automatically. The resulting broken symlink in `~/.{claude,cursor,codex}/skills/` is swept by `cleanup_stale_files()`.
 - **Global/external skill (`GLOBAL_SKILLS[]`)**: update the array entry and add the old name to `RETIRED_GLOBAL_SKILLS` in `install_skills()`. The lockfile-based mechanism handles removal.
 - **Note**: public docs use `npx skills remove`, but do not use it for local spine skills — it is a no-op for local-path installs.
+
+## Knowledge Files
+
+Durable project insights live in `docs/` and are indexed by AGENTS.md `## Project Knowledge`. Managed via `/run-curate`.
+
+**When to create**: cross-provider architectural insights, constraint discoveries, integration patterns — anything that improves future AI sessions and can't be derived from code or git history alone.
+
+**Format**:
+- Frontmatter: `updated: YYYY-MM-DD`
+- Style: telegraphic skill-craft prose (same as agent files)
+- Size: 250-800 tokens (o200k_base)
+- Naming: descriptive, no prefix (e.g., `docs/session-inheritance.md`)
+
+**AGENTS.md index**: backticked paths + 2-5 word gloss. No markdown links — prevents auto-loading.
+
+```markdown
+## Project Knowledge
+
+`docs/session-inheritance.md` — skill vs agent session behavior
+`docs/reviewer-limits.md` — parallel reviewer dispatch caps
+```
+
+**Routing rubric**: SPINE.md rules → SPINE.md. Skill/agent roles → skill/agent files. Durable insights → `docs/*.md` knowledge files. Ephemeral session notes → `.scratch/`.
+
+**Evidence gate**: promotion requires E2+ anchor (code reference or executed command). E0/E1-only learnings are advisory.
 
 ## Review Checklist
 
