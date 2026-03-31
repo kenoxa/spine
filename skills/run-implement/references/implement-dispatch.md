@@ -16,6 +16,7 @@ Dispatch provides:
 - No speculative features, extra error handling for impossible cases, or single-use abstractions.
 - New symbols: match naming style of the file being edited.
 - When task is ambiguous, resolve toward simplest interpretation.
+- For doc files in `partition_scope` (README, CHANGELOG, docs/): compose with `use-writing` skill. Preserve formatting, verify internal links, ensure descriptions match current behavior.
 
 ## Output
 

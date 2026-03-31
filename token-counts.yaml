@@ -22,11 +22,11 @@ claude/agents/run-skill-eval/runner.md: 1423
 claude/skills/run-skill-eval/SKILL.md: 3230
 skills/catchup/SKILL.md: 552
 skills/commit/SKILL.md: 539
-skills/do-build/references/build-finalize.md: 672
+skills/do-build/references/build-finalize.md: 684
 skills/do-build/references/build-review-gate.md: 298
-skills/do-build/SKILL.md: 745
+skills/do-build/SKILL.md: 799
 skills/do-design/references/design-artifact.md: 405
-skills/do-design/SKILL.md: 751
+skills/do-design/SKILL.md: 819
 skills/do-frame/references/frame-dispatch.md: 798
 skills/do-frame/SKILL.md: 899
 skills/do/SKILL.md: 475
@@ -59,7 +59,7 @@ skills/run-explore/references/explore-navigator.md: 358
 skills/run-explore/references/explore-scout.md: 283
 skills/run-explore/references/explore-synthesis.md: 341
 skills/run-explore/SKILL.md: 635
-skills/run-implement/references/implement-dispatch.md: 284
+skills/run-implement/references/implement-dispatch.md: 323
 skills/run-implement/references/implement-fix.md: 263
 skills/run-implement/SKILL.md: 435
 skills/run-insights/references/analyze-source-expert.md: 524
@@ -103,3 +103,8 @@ skills/use-skill-craft/references/workflow-patterns.md: 992
 skills/use-skill-craft/SKILL.md: 1539
 skills/use-writing/references/prose-quality.md: 475
 skills/use-writing/SKILL.md: 457
+skills/with-backend/SKILL.md: 132
+skills/with-frontend/SKILL.md: 276
+skills/with-terminology/SKILL.md: 314
+skills/with-testing/SKILL.md: 417
+SPINE.md: 1437

@@ -33,11 +33,12 @@ discover_files() {
     echo "AGENTS.md"
     echo "SPINE.md"
     # Agent files
-    printf '%s\n' agents/*.md
+    for f in agents/*.md; do [ -f "$f" ] && echo "$f"; done
     # Skill files + references
-    printf '%s\n' skills/*/SKILL.md
+    for f in skills/*/SKILL.md; do [ -f "$f" ] && echo "$f"; done
     for dir in skills/*/references; do
-      [ -d "$dir" ] && printf '%s\n' "$dir"/*.md
+      [ -d "$dir" ] || continue
+      for f in "$dir"/*.md; do [ -f "$f" ] && echo "$f"; done
     done
     # Claude plugin skills + agents
     for dir in claude/skills/*/; do

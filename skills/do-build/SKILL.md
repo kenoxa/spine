@@ -40,6 +40,8 @@ Classify at entry. Controls review fanout. Default `standard`.
 
 Main thread. Read plan or consult recommendation, classify depth, partition work. Output `scope_artifact`: `target_files`, `partitions`, `input_source`, `input_excerpt`, `risk_level`, `blocking_questions` (must be empty). Ask user when blocking questions non-empty.
 
+**Doc-awareness**: when the task changes user-visible behavior, APIs, or configuration, include affected doc files (README, CHANGELOG, docs/) in `target_files`. Keep doc files in the same partition as owning code. Compose with `use-writing` skill.
+
 **Risk classification** (advisory — user may override):
 - `low` — config changes, single-module edits, no trust boundaries
 - `medium` — multi-file changes, dependency updates, API surface changes

@@ -48,7 +48,7 @@ For each learning, capture structured fields:
 - `assumption_corrected` — what we now know to be true/false (if applicable)
 - `memory_candidate` — yes/no: should this persist as a memory entry?
 
-Categories: skill updates, memory entries, rule changes, spec corrections, constraint discoveries.
+Categories: skill updates, memory entries, rule changes, spec corrections, constraint discoveries, doc-update candidates (behavior changed but no doc file modified).
 
 Propose only — never auto-apply. User must approve each update before it is written.
 

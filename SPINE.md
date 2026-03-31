@@ -9,6 +9,7 @@
 - Never combine refactor and feature in the same change.
 - Never edit files outside the project directory unless explicitly instructed.
 - Never document, validate, or reference features that aren't implemented.
+- When adding, removing, deprecating, or migrating functionality, update affected documentation in the same change.
 - Justify every new dependency — each one is attack surface and maintenance burden.
 - When replacing an implementation, remove the old one entirely. No backward-compat shims, dual formats, or migration layers unless explicitly requested.
 - Prefer fail-secure defaults — crash on missing config rather than run with insecure fallbacks.
