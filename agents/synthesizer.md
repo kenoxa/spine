@@ -2,8 +2,7 @@
 name: synthesizer
 description: >
   Merge N subagent outputs into a single structured artifact.
-  Use for synthesis steps in run-advise (advisory batch)
-  and run-review (quality).
+  Use for synthesis steps that combine multiple perspectives or review findings.
 model: opus
 effort: high
 ---

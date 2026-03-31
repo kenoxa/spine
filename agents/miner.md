@@ -1,9 +1,9 @@
 ---
 name: miner
 description: >
-  Session data analysis and cross-session pattern extraction.
-  Use for analytics processing, work summarization, session history
-  mining, and prior-decision lookup.
+  Session data analysis and cross-session pattern extraction — "what happened
+  last session", "find prior decisions", "session history", "summarize past
+  work". Analytics processing, work summarization, and prior-decision lookup.
 model: haiku
 effort: medium
 ---

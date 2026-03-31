@@ -40,6 +40,7 @@ Write ONLY to `<base>.prompt`:
 3. Evidence levels: E0–E3
 4. `Do not ask clarifying questions. Tag all claims with evidence levels.`
 5. Final line: `Role: independent advisor. Answer this consultation directly in the format above.`
+6. Read `skills/use-envoy/references/prompt-footer.md` and append its contents verbatim after item 5.
 
 ### 3. Invoke — this is the core action
 

@@ -1,9 +1,10 @@
 ---
 name: researcher
 description: >
-  Deep discovery and evidence gathering for planning phases.
-  Use when tracing implementations, capturing exact shapes, or building evidence
-  tables from repo and bounded upstream sources. Local-depth first.
+  Deep discovery and evidence gathering — "trace this", "where is X defined",
+  "gather evidence", "how does this work internally". Traces implementations,
+  captures exact shapes, builds evidence tables from repo and bounded upstream
+  sources. Local-depth first.
 model: sonnet
 effort: high
 ---

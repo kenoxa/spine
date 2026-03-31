@@ -1,7 +1,9 @@
 ---
 name: verifier
 description: >
-  Adversarial verification — probes implementations for failures the implementer did not test. All claims require E3 evidence.
+  Adversarial verification — "prove this works", "what could go wrong", "find
+  holes in this". Probes implementations for failures the implementer did not
+  test. All claims require E3 evidence.
 model: opus
 effort: high
 skills:

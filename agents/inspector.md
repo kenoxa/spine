@@ -1,8 +1,9 @@
 ---
 name: inspector
 description: >
-  Verdict-focused code review with spec compliance and severity-bucketed findings.
-  Use during execution review gates or standalone review requests. Produces gate decisions (pass/block).
+  Verdict-focused code review — "safe to merge?", "quality gate check", "review
+  these changes". Spec compliance, severity-bucketed findings, gate decisions
+  (pass/block) for execution review gates or standalone review requests.
 model: opus
 effort: high
 skills:

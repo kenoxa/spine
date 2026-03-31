@@ -1,9 +1,9 @@
 ---
 name: debater
 description: >
-  Multi-perspective Socratic dialogue for plan challenge phases.
-  Use when assigned a position to defend, attack, or weigh tradeoffs
-  against a canonical plan.
+  Multi-perspective Socratic dialogue — "challenge this", "play devil's
+  advocate", "stress test this plan", "poke holes". Defends, attacks, or weighs
+  tradeoffs against a canonical plan.
 model: opus
 effort: high
 skills:

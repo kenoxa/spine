@@ -62,6 +62,13 @@ Invoke `/run-review` scoped to `files_modified` at `scope_artifact.risk_level`. 
 - **ITERATE** → invoke `/run-implement` with `fix_context` (blocking findings) → re-invoke `/run-review` → re-gate. Cap **5** iterations; freeze on cap.
 - **ACCEPT** → proceed to polish.
 
+**Stuckness advisory** — after 2 consecutive review-loop iterations where the same error signature repeats (same file + same finding category), surface an advisory to the user. Fires once per build session; informational only — does not auto-dispatch or modify caps.
+
+Suggest agents based on failure pattern:
+- Same code approach failing repeatedly → suggest `@consultant` for approach reset
+- Cross-cutting issue (same finding across multiple files) → suggest `@envoy` for cross-provider second opinion
+- Missing external knowledge (API, library, framework) → suggest `@navigator` for upstream research
+
 ### 4. Polish
 
 Invoke `/run-polish` scoped to `files_modified`. Repeat until no E2+ actions remain. Cap **3** iterations.
@@ -73,6 +80,6 @@ Main thread. Load [build-finalize.md](references/build-finalize.md) unconditiona
 ## Anti-Patterns
 
 - Bypassing run-* skills to dispatch agents directly
-- Re-entering more than 3 times on either loop — freeze and surface to user
+- Exceeding review cap (5) or polish cap (3) — freeze and surface to user
 - Skipping finalize after ACCEPT
 - Skipping polish after review passes

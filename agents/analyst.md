@@ -1,9 +1,9 @@
 ---
 name: analyst
 description: >
-  Advisory single-lens pattern analysis.
-  Use for code review and polish advisory that examines one quality
-  dimension per dispatch. No gate authority.
+  Advisory single-lens pattern analysis — code quality check, convention audit,
+  style review, or complexity assessment. Examines one quality dimension per
+  dispatch. No gate authority; findings are suggestions, not verdicts.
 model: sonnet
 effort: high
 skills:

@@ -17,6 +17,14 @@
 						"command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/inject-compact-essentials.sh"
 					}
 				]
+			},
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/surface-stop-review.sh"
+					}
+				]
 			}
 		],
 		"PreToolUse": [
@@ -48,6 +56,16 @@
 					{
 						"type": "prompt",
 						"prompt": "Context compaction is about to run. Before it does, capture current session state: run the do-handoff workflow to write a handoff artifact to .scratch/. Include all decisions made, rationale, rejected approaches, current state, and next steps. This is a safety net — write the artifact, then compaction will proceed."
+					}
+				]
+			}
+		],
+		"Stop": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/stop-review.sh"
 					}
 				]
 			}

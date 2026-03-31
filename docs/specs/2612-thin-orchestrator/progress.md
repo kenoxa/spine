@@ -97,7 +97,7 @@ Measured via `tokenizer -f <file> -m gpt-4.1` (o200k_base encoding). 2026-03-17.
 | with-frontend | 276 | pass |
 | with-testing | 481 | pass |
 
-### Agent Files (250–750 tokens)
+### Agent Files (250–1000 tokens)
 
 | File | Tokens | Status |
 |------|--------|--------|

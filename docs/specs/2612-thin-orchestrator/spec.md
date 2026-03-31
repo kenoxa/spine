@@ -25,7 +25,7 @@ Orchestrator (SKILL.md)
 
 ### Composition Model
 
-Agent files (250–750 tokens) = base behavior. Reference files = task-specific instructions. Augmentation — reference adds to agent, never replaces.
+Agent files (250–1000 tokens) = base behavior. Reference files = task-specific instructions. Augmentation — reference adds to agent, never replaces.
 
 ### Synthesizer as Aggregation Proxy
 

@@ -1,8 +1,9 @@
 ---
 name: consultant
 description: >
-  Perspective-committed recommendation agent for run-advise and do-design phases.
-  Produces approach recommendations with tradeoffs and confidence assessment.
+  Perspective-committed recommendation agent — "is this sound?", "validate my
+  thinking", "approach reset", "what am I missing?". Produces approach
+  recommendations with tradeoffs and confidence assessment.
 model: opus
 effort: high
 skills: [run-advise]
