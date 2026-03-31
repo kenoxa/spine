@@ -47,6 +47,14 @@ fi
 
 _script_dir=$(cd "$(dirname "$0")" && pwd)
 
+# --- Recursion guard: block envoy-within-envoy ---
+# Skills, subagents, and tools remain available — only nested envoy dispatch is blocked.
+if [ "${SPINE_ENVOY:-}" = "1" ]; then
+    error "Nested envoy dispatch blocked — already inside envoy context. Answer the consultation directly."
+    exit 2
+fi
+export SPINE_ENVOY=1
+
 # --- Strip assembly directive header from prompt file (defense-in-depth) ---
 # Ref: use-envoy/SKILL.md "Dispatch Prompt Framing" template defines this header.
 # The envoy agent should omit it (agents/envoy.md step 2), but strip if leaked.

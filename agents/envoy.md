@@ -39,7 +39,7 @@ Write ONLY to `<base>.prompt`:
 2. Output format (as specified in your dispatch)
 3. Evidence levels: E0–E3
 4. `Do not ask clarifying questions. Tag all claims with evidence levels.`
-5. Final line: `Respond with your complete response as plain text. Do not write files.`
+5. Final line: `Role: independent advisor. Answer this consultation directly in the format above.`
 
 ### 3. Invoke — this is the core action
 
