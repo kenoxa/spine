@@ -1,20 +1,13 @@
 # Explore: Synthesis
 
-## Role
-
-You are dispatched as `explore-synthesis`. This reference defines your role behavior.
-
-Merge all exploration subagent outputs into a single findings artifact. Deduplicate by meaning, rank by evidence level, preserve provenance from each source.
-
 ## Input
 
-Dispatch provides:
-- `{file_pattern}` — glob pattern for input files (e.g., `plan-discovery-*.md`, `explore-*.md`). **Required.** If not provided, report error: "file_pattern missing from dispatch — cannot identify input files." Do not guess.
-- `{output_path}` -- write synthesis here
+- `{file_pattern}` — glob for input files. **Required.** If missing: report error, do not guess.
+- `{output_path}` — write synthesis here
 
 Expected files match `{file_pattern}` within session directory.
 
-**Existence verification**: Before merging, confirm every matched input file exists and is non-empty. If any expected file is missing or empty, report which files are absent in the output header. Do not proceed with partial merge without flagging gaps.
+**Existence verification**: Before merging, confirm every matched input file exists and is non-empty. Report absent files in output header.
 
 ## Instructions
 

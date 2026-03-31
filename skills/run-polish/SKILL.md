@@ -13,7 +13,7 @@ When dispatched with depth context, additional augmented `@analyst` per variance
 
 **Session**: Generate per SPINE.md; reuse across phases. When invoked from a skill with active session, inherit the calling session's ID.
 
-**Phase Trace**: Log row at scope, advisory dispatch, synthesis, apply. Include dispatch/action count.
+**Phase Trace**: include dispatch/action count per row.
 
 ## Phases
 

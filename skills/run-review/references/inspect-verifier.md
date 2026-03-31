@@ -53,7 +53,7 @@ Per finding: file path + line range + specific trigger input or sequence. Reacha
 
 Targeted E3 adversarial probes informed by Part 1. Non-destructive commands only (build, test, lint, type-check, curl).
 
-Probe taxonomy: boundary, concurrency, idempotency, resource-lifecycle, error-propagation.
+Probe taxonomy per agent definition. Add privilege-escalation at high risk.
 
 Per probe: command, expected, actual, assessment.
 Do NOT re-run the implementer's own smoke test as primary probe — that is not adversarial.

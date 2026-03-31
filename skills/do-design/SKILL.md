@@ -11,8 +11,6 @@ argument-hint: "[frame_artifact, problem statement, or area needing direction]"
 
 Compose run-discuss (design scope) + run-advise + optional run-explore. User feedback loop with re-dispatch cap.
 
-Log each phase to Phase Trace (session-log) at boundary. Zero-dispatch phases require row with justification.
-
 ## Phases
 
 | # | Phase | Type | Skills |

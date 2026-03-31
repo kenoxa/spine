@@ -282,7 +282,6 @@ For iterations using `generate_review.py`: add `--previous-workspace` pointing t
 - Evaluating always-loaded file changes in same config as skill changes — isolate
 - Generating trivially simple eval prompts that won't trigger skill invocation
 - Embedding diffs as inline text instead of creating fixture repos — model won't dispatch subagents against text-only context
-- Prepending skill content to user message instead of system prompt — model treats it as informational context, not directives
 - Skipping optimization step — going straight to eval without generating variations
 - Stopping after one iteration when user feedback suggests further improvement
 - Writing markdown report instead of dispatching `@visualizer`

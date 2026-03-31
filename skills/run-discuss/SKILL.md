@@ -19,8 +19,6 @@ Read lens reference matching scope at session start: `frame` → [discuss-lens-f
 
 Read [discuss-protocol.md](references/discuss-protocol.md) at session start.
 
-Log each phase to Phase Trace (session-log) at boundary. Zero-dispatch phases require row with justification.
-
 | # | Phase | Type |
 |---|-------|------|
 | 1 | Seed | mainthread |

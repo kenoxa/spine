@@ -15,8 +15,6 @@ Phases: orient → clarify → investigate → handoff. Triangulates codebase ev
 
 Artifact schema and field mapping: `references/frame-dispatch.md`.
 
-Log each phase to Phase Trace (session-log) at boundary. Zero-dispatch phases require row with justification.
-
 ## Phases
 
 | # | Phase | Type | Skills |
