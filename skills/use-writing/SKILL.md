@@ -2,7 +2,10 @@
 name: use-writing
 description: >
   Documentation and prose quality standards.
-  Use when creating or editing docs, READMEs, changelogs, or user-facing text.
+  Use when writing, drafting, updating, revising, or editing documentation,
+  READMEs, changelogs, release notes, specs, runbooks, ADRs, or user-facing text.
+  Also trigger on: "document this", "write the docs", "update the changelog",
+  "draft release notes", "add a README section", "write a spec", "prose review".
   Do NOT use for code comments or commit messages — commit skill handles commits.
 argument-hint: "[artifact type or document to write/edit]"
 ---

@@ -12,21 +12,17 @@ description: >
 argument-hint: "[direction or goal for the next session]"
 ---
 
-Distill accumulated session context into a self-contained prompt a fresh session can act on.
-
 ## Workflow
 
 1. **Gather** — inventory goal, files, decisions, discoveries, progress. Run `git branch --show-current` and `git status --short`. If `.scratch/<session>/session-log.md` exists, read as primary source for Current State (prefer over conversation reconstruction). Insufficient context → ask what to include rather than producing hollow artifact.
 2. **Filter** — select relevant context using user's direction. Goal-directed distillation, not a session dump. No direction → derive goal from session's overall purpose.
 3. **Structure** — produce the handoff artifact using the sections below.
-4. **Write** — save to `.scratch/handoff-<slug>-<hash>.md` where `slug` is 5–7 words
-   from the direction and `hash` is 4 hex chars from `openssl rand -hex 2` (e.g., `handoff-fix-auth-token-refresh-retry-logic-3c8d.md`).
-   Create the directory if needed. Display the full artifact inline.
-5. **Confirm** — present for user review. The user may adjust, approve, or discard.
+4. **Write** — save to `.scratch/handoff-<slug>-<hash>.md` where `slug` is 5-7 words from the direction and `hash` is 4 hex chars from `openssl rand -hex 2` (e.g., `handoff-fix-auth-refresh-retry-3c8d.md`). Terminal output: 1-2 line summary of what was captured + the file path.
+5. **Confirm** — present file path. User may adjust or discard.
 
 ## Artifact Format
 
-Actionable without session history — no "what we discussed", no conversation-turn pointers. All paths repo-relative. Under 800 tokens — longer means Filter was too loose.
+Actionable without session history — no "what we discussed", no conversation-turn pointers. All paths repo-relative. Under 800 tokens. Exceeding → revisit Filter step.
 
 | Section | Required | Content |
 |---------|----------|---------|
@@ -39,8 +35,8 @@ Actionable without session history — no "what we discussed", no conversation-t
 
 ## Anti-Patterns
 
-- Dumping the session transcript instead of distilling toward the stated direction
-- Including files not relevant to the handoff goal
-- Omitting uncommitted changes that affect the next session's starting state
-- Referencing conversation turns ("as we discussed") instead of stating facts directly
-- Including secrets, tokens, or credentials in the artifact
+- Session transcript dump instead of goal-directed distillation
+- Files not relevant to handoff goal
+- Omitting uncommitted changes affecting next session's starting state
+- Conversation-turn references ("as we discussed") instead of direct facts
+- Secrets, tokens, or credentials in the artifact
