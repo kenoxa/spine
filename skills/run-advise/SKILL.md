@@ -57,6 +57,21 @@ Present synthesis to caller/user as `advise_artifact`.
 - **Standalone**: present for user decision.
 - **Embedded**: return to caller.
 
+### Re-dispatch
+
+Triggered by user pushback after synthesis (via caller like do-design Phase 4 loop).
+
+**Steps**:
+1. **Archive**: invoke `scripts/rotate-round.sh <session-dir>` to archive current round outputs into `advise-r{N}/` subdirectory.
+2. **Assemble context**: `prior_round_dir` = archived directory path (e.g., `advise-r1/`), `user_pushback` = inline text from user/caller.
+3. **Return to Phase 2** (Batch) with re-dispatch context. Agents receive `prior_round_dir` + `user_pushback` and read selectively from the archived directory.
+
+**Contract**: agents write to canonical paths (same as first round). Prior round is available at `{prior_round_dir}/`. Lenses frozen from first dispatch — do not re-derive.
+
+**Barrier**: all 4 batch agents complete before synthesis (same as first round).
+
+**Cap**: 3 re-dispatch rounds. Surface stall after cap.
+
 ## Anti-Patterns
 
 - Producing implementation plans (directional advice only)

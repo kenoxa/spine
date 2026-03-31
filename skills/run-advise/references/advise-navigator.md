@@ -5,12 +5,20 @@ and implementation patterns.
 
 ## Input
 
+### First round
+
 Dispatch provides:
 - `research_question` -- external knowledge gap
 - `seed_terms` -- library names, versions, framework context (derived from frame_artifact constraints + key_unknowns, or from the advisory question)
 - `codebase_signals` -- from prior phases (optional)
 - `active_lenses` -- variance lens name(s) and focus directive(s), when present. Prioritize research queries that address the lens domain.
 - `{output_path}`
+
+### Re-dispatch
+
+All first-round inputs, plus:
+- `prior_round_dir` -- path to archived round directory (e.g., `advise-r1/`). Read prior synthesis at `{prior_round_dir}/advise-synthesis.md`.
+- `user_pushback` -- user feedback on prior round
 
 ## Instructions
 
@@ -23,6 +31,7 @@ Dispatch provides:
 - Focus on what informs solution direction: implementation patterns, library capabilities,
   migration complexity, breaking changes, known gotchas, version compatibility,
   ecosystem alternatives and trade-offs.
+- On re-dispatch: sharpen queries toward evidence gaps, contested claims, and areas where prior round diverged. Address user pushback.
 - Output structure: research question -> `external_signals` table -> findings (E-level
   tagged) -> confidence gaps.
 
@@ -35,5 +44,6 @@ Write to `{output_path}`. Include:
 
 ## Constraints
 
+- Cite sources by name (rigorous, creative, navigator, envoy), not by file path.
 - When research surfaces claims that are a few commands from proof, note them as
   preflight candidates in confidence gaps. Scout or later phases execute probes.
