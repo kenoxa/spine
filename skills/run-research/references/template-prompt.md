@@ -57,10 +57,8 @@ Apply per `--target`. Default: `chatgpt`.
 |--------|--------|-------|-------------|-----------|
 | `chatgpt` | 200-500w | Keyword-dense, structured headers | Include | Section headers with word counts |
 | `claude` | 300-600w | Prose context, numbered tasks | Optional | Numbered constraints, "list assumptions" |
-| `gemini` | 100-300w | Goal-first, minimal | Omit | Goal + scope + dimensions only |
 
 **ChatGPT**: pre-answer likely clarification questions inside the prompt.
-**Gemini**: avoid procedural instructions — use the plan editor instead.
 
 ## Context Block
 

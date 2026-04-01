@@ -1,13 +1,9 @@
 # TODO
 
-- gemini envoy:
-	- `brew install gemini-cli`
-	- `gemini -p "Explain the architecture of this codebase"`
 - svelte skill with autofixer script like we have in nestor
 - auto-loading per glob like min description?
 - https://github.com/SocketDev/sfw-free
 - merge/resolve merge conflict
-- RTK Copilot: add global hook support once Copilot CLI supports `~/.copilot/hooks` ([copilot-cli#1157](https://github.com/github/copilot-cli/issues/1157), [copilot-cli#2013](https://github.com/github/copilot-cli/issues/2013)); VS Code already supports it since v1.112.0 — RTK needs to automate install to `~/.copilot/hooks/` ([rtk#728](https://github.com/rtk-ai/rtk/pull/728))
 - RTK Codex hooks: switch from instruction-only to PreToolUse hook once RTK adds native support ([rtk#921](https://github.com/rtk-ai/rtk/issues/921)); Codex hooks shipped in v0.117.0 but require `codex_hooks = true` feature flag
 - Codex hooks: enable `inject-types-on-read` and `check-on-edit` once Codex PostToolUse supports non-Bash tools (Read, Edit/Write); currently Bash-only ([codex#14754](https://github.com/openai/codex/issues/14754)); hooks are ready — just expand capability matrix in install.sh
 - doc co-evolution Phase 2: if lightweight guardrails (SPINE.md norm + Scope heuristic + finalize learnings) prove insufficient, add `docs_impact` to frame_artifact and `docs_plan` to design_artifact schema fields

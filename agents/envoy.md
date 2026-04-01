@@ -29,7 +29,7 @@ From the output path (`<base>.md`), derive:
 |------|-------|
 | Prompt | `<base>.prompt` |
 | Log | `<base>.log` |
-| Self | Claude/Anthropic → `claude` · Codex/OpenAI → `codex` · Cursor/Composer → `cursor` · Qwen/Alibaba → `qwen` · Copilot/GitHub → `copilot` |
+| Self | Claude/Anthropic → `claude` · Codex/OpenAI → `codex` · Cursor/Composer → `cursor` · OpenCode → `opencode` |
 
 ### 2. Write `.prompt`
 

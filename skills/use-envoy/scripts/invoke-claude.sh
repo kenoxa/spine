@@ -72,7 +72,7 @@ printf 'envoy: invoking claude (model=%s, effort=%s)...\n' "$model" "$effort" >&
 _rc=0
 timeout --kill-after=10 "$_claude_timeout" env \
     -u CLAUDECODE -u CURSOR_AGENT -u CODEX_SANDBOX \
-    -u QWEN_CODE -u QWEN_CODE_NO_RELAUNCH \
+    -u OPENCODE \
     PATH="$HOME/.local/bin:$PATH" \
     CLAUDE_CODE_DISABLE_AUTO_MEMORY=1 \
     CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1 \

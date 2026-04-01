@@ -4,32 +4,29 @@ updated: 2026-04-01
 
 # Provider Privacy & Data Handling
 
-Privacy comparison for envoy provider selection. Guides default priority ordering.
+Privacy comparison for envoy provider selection. Current stack: Claude, Codex, Cursor, OpenCode.
 
 ## Summary
 
 | Provider | Training on code | Retention | Residency | Compliance |
 |----------|-----------------|-----------|-----------|------------|
-| Copilot Business/Enterprise | No (DPA) | 0 days (IDE prompts) | US | SOC2, ISO 27001, IP indemnity |
-| Alibaba Cloud Dashscope (paid Qwen) | No ("never") | API: not saved | Singapore primary | SOC2, DPA, SCCs |
-| MiniMax API | No (explicit) | Deleted after purpose | US | GDPR, SCCs |
+| Claude (Anthropic) | No (Enterprise); opt-out available | — | US | SOC2, IP indemnity (Enterprise) |
+| Codex (OpenAI) | No (Enterprise); opt-out available | — | US | SOC2, IP indemnity (Enterprise) |
+| Cursor | Not documented per-request | — | US | — |
 | OpenCode Go | No training, zero retention | — | US/EU/Singapore | — |
-| Z.ai/GLM (international) | Unclear | API: not stored | Singapore | No SOC2 |
-| Copilot Free/Pro/Pro+ | Yes (opt-out, from 2026-04-24) | 28 days (non-IDE) | US | — |
-| Qwen free OAuth | Unclear | Not specified | Likely China | Not documented |
-| DeepSeek API | Yes (opt-out) | Account lifetime | China (explicit) | Nominal GDPR |
+| OpenCode Free (Zen) | Varies by underlying model | — | Varies | — |
 
 ## Key Splits
 
-**Qwen**: paid Dashscope API = strong (explicit no-training, DPA, SOC2, Singapore). Free OAuth tier = weak (consumer service, undocumented, likely China). Sharp difference.
+**OpenCode Go**: Marketing page (opencode.ai/go) claims zero retention, no training, US/EU/Singapore. Formal privacy policy is less specific. Backend models (GLM-5, MiniMax M2.5/M2.7, Kimi K2.5) are from Chinese-parent providers routed through OpenCode's infrastructure.
 
-**Copilot**: Business/Enterprise = strongest commercial guarantee. Free/Pro = default opt-in training from April 24, 2026 (GitHub blog, 2026-03-25). Opt-out available.
+**OpenCode Free (Zen)**: Free models (qwen3.6-plus-free, minimax-m2.5-free, mimo-v2-pro-free) may collect data during preview periods. Privacy policies of underlying model providers apply.
 
-**OpenCode Go**: Marketing page (opencode.ai/go) claims zero retention, no training, US/EU/Singapore. Formal privacy policy is less specific. MiniMax (standard/fast tier backend) has explicit no-training policy with US data centers.
+**Cursor**: No per-request data handling documentation. Company-paid with monthly budget. Composer-2 (based on Kimi K2.5) routed through Cursor's infrastructure.
 
 ## China Jurisdiction Note
 
-Chinese-parent providers (Alibaba, Zhipu/Z.ai, MiniMax, DeepSeek) are subject to China's National Intelligence Law (Art. 7) regardless of data residency. Singapore/US entity structures provide practical distance but not absolute isolation.
+Some OpenCode backend models (GLM from Zhipu/Z.ai, MiniMax, Kimi from Moonshot) are from Chinese-parent companies subject to China's National Intelligence Law (Art. 7). OpenCode Go's US/EU/Singapore infrastructure provides practical distance but not absolute isolation.
 
 ## Sources
 

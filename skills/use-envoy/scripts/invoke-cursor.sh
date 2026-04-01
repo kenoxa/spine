@@ -96,7 +96,7 @@ printf 'envoy: invoking cursor (model=%s)...\n' "$model" >&2
 _rc=0
 timeout --kill-after=10 "$_cursor_timeout" env \
     -u CLAUDECODE -u CURSOR_AGENT -u CODEX_SANDBOX \
-    -u QWEN_CODE -u QWEN_CODE_NO_RELAUNCH \
+    -u OPENCODE \
     PATH="$HOME/.local/bin:$PATH" \
     "$_binary" -p \
         --output-format text \
@@ -118,7 +118,7 @@ if [ "$_rc" -ne 0 ] && [ "$model" != "auto" ]; then
         _rc=0
         timeout --kill-after=10 "$_cursor_timeout" env \
             -u CLAUDECODE -u CURSOR_AGENT -u CODEX_SANDBOX \
-            -u QWEN_CODE -u QWEN_CODE_NO_RELAUNCH \
+            -u OPENCODE \
             PATH="$HOME/.local/bin:$PATH" \
             "$_binary" -p \
                 --output-format text \

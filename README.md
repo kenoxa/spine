@@ -2,7 +2,7 @@
 
 > **Same skills, same workflow, every provider.**
 
-Spine is a shared AI coding setup for Cursor, Claude Code, Codex, Qwen Code, Copilot, and OpenCode. It gives each tool the same workflow skills, subagents, guardrails, and MCP defaults so you can move between providers without rebuilding your operating model.
+Spine is a shared AI coding setup for Cursor, Claude Code, Codex, and OpenCode. It gives each tool the same workflow skills, subagents, guardrails, and MCP defaults so you can move between providers without rebuilding your operating model.
 
 ## Contents
 
@@ -29,17 +29,11 @@ Install and sign in to the provider tools you want Spine to configure first. Spi
 | **Claude Code** | `claude` | Full | Full | Full | Default | Primary recommended. SWE-Bench 80.8% (Opus). |
 | **Codex** | `codex` | Full | Full | Full | Default | Strongest agentic tool use (Terminal-Bench 75.1%). |
 | **Cursor** | `cursor-agent` | Full | Full | Partial¹ | Default | Best IDE integration. Monthly cap. |
-| **Gemini** | via `copilot` | — | — | — | Default (3rd slot) | Gemini 3.1 Pro / 3 Flash via Copilot CLI. Privacy-first. |
-| **Qwen Code** | `qwen` | Full | Full | Partial² | 3rd slot fallback | Free tier resolves all models to coder-model. |
-| **Copilot** | `copilot` | Full | Full | Partial² | Fallback | Requires GitHub Pro+. Tight rate limits. |
-| **OpenCode** | `opencode` | Full | Full | Full | 3rd slot fallback | Multi-model gateway (GLM, MiniMax, DeepSeek). |
-| **GLM** | via `opencode` | — | — | — | Via override | Best reasoning (Vals AI 60.69%). Subscription. |
-| **MiniMax** | via `opencode` | — | — | — | Via override | Best cost/perf. Free fast tier. |
-| **DeepSeek** | via `opencode` | — | — | — | Via override | Strong coding. Recommended opt-in for security workflows. |
+| **OpenCode** | `opencode` | Full | Full | Full | Availability-gated | Multi-model gateway (GLM, MiniMax). Go subscription + Free tier. |
 
-¹ Legacy plans ignore subagent model config. ² No model/effort fields in agent frontmatter.
+¹ Legacy plans ignore subagent model config.
 
-**Envoy** dispatches cross-provider perspectives during design and review. Default: 3 core providers (`claude`, `codex`, `cursor`) + availability-gated 3rd slot (`gemini` → `opencode` → `qwen`, privacy-first). Override with `SPINE_ENVOY_PROVIDERS`. In single-mode, fallback chains cascade per provider. In multi-mode, all available providers are dispatched in parallel.
+**Envoy** dispatches cross-provider perspectives during design and review. Default: 3 core providers (`claude`, `codex`, `cursor`) + availability-gated `opencode`. Override with `SPINE_ENVOY_PROVIDERS`.
 
 For tier-to-model mappings, pricing, and benchmarks see [docs/model-selection.md](docs/model-selection.md).
 
@@ -111,30 +105,6 @@ claude auth login
 </details>
 
 <details>
-<summary>Qwen Code</summary>
-
-```sh
-bash -c "$(curl -fsSL https://qwen-code-assets.oss-cn-hangzhou.aliyuncs.com/installation/install-qwen.sh)" -s --source qwenchat
-qwen
-```
-
-First launch opens an interactive OAuth login flow.
-
-</details>
-
-<details>
-<summary>Copilot CLI</summary>
-
-```sh
-brew install copilot-cli
-copilot login
-```
-
-Requires GitHub Copilot Pro or higher (free tier cannot use the CLI).
-
-</details>
-
-<details>
 <summary>OpenCode</summary>
 
 ```sh
@@ -142,10 +112,9 @@ brew install anomalyco/tap/opencode
 opencode providers
 ```
 
-OpenCode is a multi-model gateway supporting GLM, MiniMax, DeepSeek, and many others. Models are available through three pricing tiers:
+OpenCode is a multi-model gateway supporting GLM, MiniMax, and many others. Spine uses two pricing tiers:
 - **Go subscription** (`opencode-go/` prefix) — included in subscription, free at margin
-- **Zen** (`opencode/` prefix) — pay-as-you-go per token
-- **OpenRouter** (`openrouter/` prefix) — per-usage via OpenRouter
+- **Free** (`opencode/` prefix with `-free` suffix) — zero cost Zen models
 
 See [opencode.ai/docs/models](https://opencode.ai/docs/models/) for the full model catalog.
 
@@ -162,7 +131,6 @@ The installer configures every supported tool it can detect:
 - Cursor via `~/.cursor/`
 - Claude Code via the `claude` CLI on `PATH`
 - Codex via the `codex` CLI on `PATH`
-- Copilot CLI via the `copilot` CLI on `PATH`
 - OpenCode via the `opencode` CLI on `PATH`
 
 For Claude Code, the installer also attempts to install the [Spine plugin](claude/README.md).
@@ -210,7 +178,7 @@ Spine uses `~/.config/spine/` as the central source of truth.
 
 The installer preserves existing provider root-file content when possible by upgrading or prepending the `@~/.config/spine/...` references instead of assuming a blank file.
 
-Agents are linked (Claude Code symlinks) or generated (Cursor/Qwen/Copilot `.md`, Codex TOML, OpenCode `.md` with model field) from the provider directories back to `~/.config/spine/agents/`.
+Agents are linked (Claude Code symlinks) or generated (Cursor `.md`, Codex TOML, OpenCode `.md` with model field) from the provider directories back to `~/.config/spine/agents/`.
 
 If `~/.config/spine/.env` exists, the installer reads it for MCP authentication. On zsh systems it may also add a `source ~/.config/spine/.env` line to `~/.zshenv` so future shells expose those variables.
 
@@ -273,7 +241,7 @@ Public manual examples use `npx skills add` to match [skills.sh](https://skills.
 Fresh-setup example:
 
 ```sh
-mkdir -p ~/.config/spine/agents ~/.cursor/agents ~/.claude/agents ~/.codex/agents ~/.qwen/agents
+mkdir -p ~/.config/spine/agents ~/.cursor/agents ~/.claude/agents ~/.codex/agents
 cp SPINE.md ~/.config/spine/SPINE.md
 touch ~/.config/spine/AGENTS.md
 cp agents/*.md ~/.config/spine/agents/
@@ -392,14 +360,10 @@ The envoy skill defaults to high-capability models per provider. Override via `~
 # Format: model[:effort]  (effort defaults to "high" if omitted)
 export SPINE_ENVOY_CLAUDE=opus:high
 export SPINE_ENVOY_CODEX=gpt-5.4:high
-
-# OpenCode-based providers (full prefixed model ID required)
-export SPINE_ENVOY_GLM=opencode-go/glm-5:high
-export SPINE_ENVOY_MINIMAX=opencode-go/minimax-m2.7:high
-export SPINE_ENVOY_DEEPSEEK=openrouter/deepseek/deepseek-v3.2:high
+export SPINE_ENVOY_OPENCODE=opencode-go/glm-5:high
 
 # Per-tier overrides: SPINE_ENVOY_{TIER}_{PROVIDER}=model:effort
-export SPINE_ENVOY_FAST_MINIMAX=opencode/minimax-m2.5-free:minimal
+export SPINE_ENVOY_FAST_OPENCODE=opencode/minimax-m2.5-free:minimal
 ```
 
 See [`env.example`](env.example) for the full template.

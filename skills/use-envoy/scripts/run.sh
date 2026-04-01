@@ -97,10 +97,8 @@ elif [ "${CURSOR_AGENT:-}" = "1" ]; then
     _self=cursor
 elif printenv CODEX_SANDBOX >/dev/null 2>&1; then
     _self=codex
-elif [ "${QWEN_CODE:-}" = "1" ]; then
-    _self=qwen
-elif [ "${SPINE_ENVOY_COPILOT:-}" = "1" ]; then
-    _self=copilot
+elif [ "${OPENCODE:-}" = "1" ]; then
+    _self=opencode
 fi
 _self="${_self:-${hint:-codex}}"
 
@@ -113,8 +111,8 @@ if [ "$mode" = "multi" ]; then
     else
         # Core providers (always present; self-exclusion happens below)
         _providers="claude codex cursor"
-        # 3rd slot: privacy-first availability check (gemini → opencode → qwen)
-        for _candidate in gemini opencode qwen; do
+        # 3rd slot: availability check (opencode)
+        for _candidate in opencode; do
             if sh "$_script_dir/check-${_candidate}.sh" >/dev/null 2>&1; then
                 _providers="$_providers $_candidate"
                 break
@@ -159,7 +157,7 @@ if [ "$mode" = "multi" ]; then
     # --- Parallel dispatch with per-slot fallback ---
     for _p in $_launched; do
         sh "$_script_dir/fallback.sh" \
-            --self "$_self" --tier "$tier" --chain "copilot,cursor,opencode" \
+            --self "$_self" --tier "$tier" --chain "cursor,opencode" \
             --prompt-file "$prompt_file" \
             --output-file "${_base}.${_p}.md" \
             --stderr-log "${_base}.${_p}.log" \
@@ -204,12 +202,10 @@ fi
 # --- Pick target and fallback chain (never target self) ---
 
 case "$_self" in
-    claude)  _target=codex;  _chain="copilot,cursor,opencode" ;;
-    codex)   _target=claude; _chain="copilot,cursor,opencode" ;;
-    cursor)  _target=codex;  _chain="copilot,cursor,opencode" ;;
-    qwen)    _target=codex;  _chain="copilot,cursor,opencode" ;;
-    copilot) _target=claude; _chain="cursor,codex,opencode" ;;
-    *)       _target=codex;  _chain="copilot,cursor,opencode" ;;
+    claude)  _target=codex;  _chain="cursor,opencode" ;;
+    codex)   _target=claude; _chain="cursor,opencode" ;;
+    cursor)  _target=codex;  _chain="cursor,opencode" ;;
+    *)       _target=codex;  _chain="cursor,opencode" ;;
 esac
 
 # --- Invoke via fallback wrapper ---

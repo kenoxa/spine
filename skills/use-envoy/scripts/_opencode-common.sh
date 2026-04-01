@@ -20,8 +20,7 @@ opencode_invoke() {
     _rc=0
     timeout --kill-after=10 "$_opencode_timeout" env \
         -u CLAUDECODE -u CURSOR_AGENT -u CODEX_SANDBOX \
-        -u QWEN_CODE -u QWEN_CODE_NO_RELAUNCH \
-        -u OPENCODE_CLIENT -u OPENCODE_PID \
+        -u OPENCODE -u OPENCODE_CLIENT -u OPENCODE_PID \
         opencode run \
             --format json \
             --model "$_oc_model" \

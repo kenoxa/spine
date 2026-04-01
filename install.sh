@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Spine installer — AI coding setup for Cursor, Claude Code, Codex, and Copilot.
+# Spine installer — AI coding setup for Cursor, Claude Code, Codex, and OpenCode.
 # https://github.com/kenoxa/spine
 #
 # Usage:
@@ -37,7 +37,7 @@ RETIRED_MCP_SERVERS=()
 
 # Agent names previously used by Spine — cleaned up on next run.
 # Add names here when renaming an agent to ensure cross-provider cleanup.
-RETIRED_AGENT_NAMES=("worker" "second-opinion")
+RETIRED_AGENT_NAMES=("worker" "second-opinion" "qwen-code" "github-copilot")
 
 # Skill names previously used by Spine — cleaned up on next run.
 # Add names here when renaming a skill to ensure cross-provider cleanup.
@@ -534,7 +534,7 @@ detect_tools() {
   [ -d "$HOME/.cursor" ] && tools+=("cursor")
 
   # Claude Code / Codex / OpenCode: require CLI binary on PATH
-  for tool in claude codex qwen copilot opencode; do
+  for tool in claude codex opencode; do
     if command -v "$tool" >/dev/null 2>&1; then
       tools+=("$tool")
     elif [ -d "$HOME/.$tool" ]; then
@@ -543,7 +543,7 @@ detect_tools() {
   done
 
   if [ ${#tools[@]} -eq 0 ]; then
-    warn "No AI coding tools found (cursor, claude, codex, qwen, copilot, opencode)"
+    warn "No AI coding tools found (cursor, claude, codex, opencode)"
     warn "Install at least one, then re-run this installer"
   fi
 
@@ -1026,15 +1026,12 @@ map_model_for_provider() {
     sonnet:cursor) _mapped_model="auto" ;;
     haiku:codex)   _mapped_model="gpt-5.4-mini" ;;  # ideal: gpt-5.4-nano (unavailable on current Codex subscription)
     haiku:cursor)  _mapped_model="fast" ;;
-    opus:qwen)     _mapped_model="qwen3.5-plus" ;;
-    sonnet:qwen)   _mapped_model="qwen3-coder-plus" ;;
-    haiku:qwen)    _mapped_model="coder-model" ;;
-    opus:copilot)    _mapped_model="gpt-5.4" ;;
-    sonnet:copilot)  _mapped_model="gpt-5.4" ;;
-    haiku:copilot)   _mapped_model="gpt-5.4-mini" ;;
-    opus:opencode)     _mapped_model="opencode-go/glm-5" ;;
-    sonnet:opencode)   _mapped_model="opencode-go/minimax-m2.7" ;;
-    haiku:opencode)    _mapped_model="opencode/minimax-m2.5-free" ;;
+    opus:opencode-go)     _mapped_model="opencode-go/glm-5" ;;
+    sonnet:opencode-go)   _mapped_model="opencode-go/minimax-m2.7" ;;
+    haiku:opencode-go)    _mapped_model="opencode-go/minimax-m2.5" ;;
+    opus:opencode-free)   _mapped_model="opencode/qwen3.6-plus-free" ;;
+    sonnet:opencode-free) _mapped_model="opencode/minimax-m2.5-free" ;;
+    haiku:opencode-free)  _mapped_model="opencode/mimo-v2-pro-free" ;;
     inherit:*|"":*) _mapped_model="" ;;
     *) warn "Unknown model '$model' for provider '$provider'"; _mapped_model="" ;;
   esac
@@ -1048,14 +1045,14 @@ map_effort_for_provider() {
     max:codex)    _mapped_effort="high" ;;
     high:codex)   _mapped_effort="high" ;;
     medium:codex) _mapped_effort="medium" ;;
-    max:copilot)    _mapped_effort="high" ;;
-    high:copilot)   _mapped_effort="high" ;;
-    medium:copilot) _mapped_effort="medium" ;;
-    low:copilot)    _mapped_effort="low" ;;
-    max:opencode)    _mapped_effort="max" ;;
-    high:opencode)   _mapped_effort="high" ;;
-    medium:opencode) _mapped_effort="medium" ;;
-    low:opencode)    _mapped_effort="minimal" ;;
+    max:opencode-go)    _mapped_effort="max" ;;
+    high:opencode-go)   _mapped_effort="high" ;;
+    medium:opencode-go) _mapped_effort="medium" ;;
+    low:opencode-go)    _mapped_effort="minimal" ;;
+    max:opencode-free)    _mapped_effort="high" ;;
+    high:opencode-free)   _mapped_effort="high" ;;
+    medium:opencode-free) _mapped_effort="high" ;;
+    low:opencode-free)    _mapped_effort="minimal" ;;
     *) _mapped_effort="" ;;
   esac
 }
@@ -1148,92 +1145,10 @@ $_agent_body"
   mv "$tmp" "$out_file"
 }
 
-# --- Qwen agent generation ---
-
-# Generate a Qwen Code agent .md from an agent markdown file.
-# Qwen agents use name + description frontmatter only (no model, effort, readonly, tools).
-# Usage: generate_qwen_agent_md <agent.md> <output-dir>
-generate_qwen_agent_md() {
-  local md_file="$1" out_dir="$2"
-  parse_agent_frontmatter "$md_file"
-
-  if [ -z "$_agent_body" ]; then
-    warn "No body in $(basename "$md_file") — skipping Qwen agent generation"
-    return 0
-  fi
-
-  # Build body with optional skills preamble (Qwen ignores skills: frontmatter)
-  local body="$_agent_body"
-  if [ -n "$_agent_skills" ]; then
-    body="Load the following skill(s): $_agent_skills
-
-$_agent_body"
-  fi
-
-  local tmp out_file="$out_dir/$_agent_name.md"
-  tmp=$(mktemp "$out_dir/spine-tmp.XXXXXX")
-
-  {
-    echo '---'
-    echo '# spine:managed — do not edit'
-    echo "name: $_agent_name"
-    printf 'description: >-\n  %s\n' "$_agent_description"
-    echo '---'
-    echo ""
-    printf '%s\n' "$body"
-  } > "$tmp"
-
-  if [ -f "$out_file" ] && [ ! -L "$out_file" ]; then
-    backup_if_exists "$out_file"
-  fi
-  mv "$tmp" "$out_file"
-}
-
-# --- Copilot agent generation ---
-
-# Generate a Copilot CLI agent .md from an agent markdown file.
-# Copilot agents use name + description frontmatter only (no model, effort, readonly, tools).
-# Usage: generate_copilot_agent_md <agent.md> <output-dir>
-generate_copilot_agent_md() {
-  local md_file="$1" out_dir="$2"
-  parse_agent_frontmatter "$md_file"
-
-  if [ -z "$_agent_body" ]; then
-    warn "No body in $(basename "$md_file") — skipping Copilot agent generation"
-    return 0
-  fi
-
-  # Build body with optional skills preamble (Copilot ignores skills: frontmatter)
-  local body="$_agent_body"
-  if [ -n "$_agent_skills" ]; then
-    body="Load the following skill(s): $_agent_skills
-
-$_agent_body"
-  fi
-
-  local tmp out_file="$out_dir/$_agent_name.md"
-  tmp=$(mktemp "$out_dir/spine-tmp.XXXXXX")
-
-  {
-    echo '---'
-    echo '# spine:managed — do not edit'
-    echo "name: $_agent_name"
-    printf 'description: >-\n  %s\n' "$_agent_description"
-    echo '---'
-    echo ""
-    printf '%s\n' "$body"
-  } > "$tmp"
-
-  if [ -f "$out_file" ] && [ ! -L "$out_file" ]; then
-    backup_if_exists "$out_file"
-  fi
-  mv "$tmp" "$out_file"
-}
-
 # --- OpenCode agent generation ---
 
 # Generate an OpenCode agent .md from an agent markdown file.
-# OpenCode agents support model: in frontmatter (unlike Qwen/Copilot which omit it).
+# OpenCode agents support model: in frontmatter.
 # Output: ~/.config/opencode/agents/<name>.md
 # Usage: generate_opencode_agent_md <agent.md> <output-dir>
 generate_opencode_agent_md() {
@@ -1253,7 +1168,7 @@ generate_opencode_agent_md() {
 $_agent_body"
   fi
 
-  map_model_for_provider "$_agent_model" opencode
+  map_model_for_provider "$_agent_model" "opencode-${_SPINE_OPENCODE_TIER:-free}"
 
   local tmp out_file="$out_dir/$_agent_name.md"
   tmp=$(mktemp "$out_dir/spine-tmp.XXXXXX")
@@ -1354,12 +1269,10 @@ install_tool() {
   mkdir -p "$target"
 
   # Guardrails: write @reference to provider root file
-  # Copilot/OpenCode: no root file needed
+  # OpenCode: no root file needed
   local root_file=""
   case "$tool" in
     claude)   root_file="$target/CLAUDE.md" ;;
-    qwen)     root_file="$target/QWEN.md" ;;
-    copilot)  ;;  # skip — Copilot loads AGENTS.md natively
     opencode) ;;  # skip — OpenCode uses agent frontmatter only
     *)        root_file="$target/AGENTS.md" ;;
   esac
@@ -1424,32 +1337,6 @@ install_tool() {
       [ -f "$agent" ] || continue
       generate_cursor_agent_md "$agent" "$target/agents"
     done
-  elif [ "$tool" = "qwen" ]; then
-    # Remove old symlinks (spine-managed only) — upgrade from symlink to generated .md
-    for md in "$target/agents/"*.md; do
-      [ -L "$md" ] || continue
-      local dest
-      dest=$(readlink "$md")
-      [[ "$dest" == *".config/spine/"* ]] && rm "$md"
-    done
-    # Generate Qwen agent .md files
-    for agent in "$spine_dir/agents/"*.md; do
-      [ -f "$agent" ] || continue
-      generate_qwen_agent_md "$agent" "$target/agents"
-    done
-  elif [ "$tool" = "copilot" ]; then
-    # Remove old symlinks (spine-managed only) — upgrade from symlink to generated .md
-    for md in "$target/agents/"*.md; do
-      [ -L "$md" ] || continue
-      local dest
-      dest=$(readlink "$md")
-      [[ "$dest" == *".config/spine/"* ]] && rm "$md"
-    done
-    # Generate Copilot agent .md files
-    for agent in "$spine_dir/agents/"*.md; do
-      [ -f "$agent" ] || continue
-      generate_copilot_agent_md "$agent" "$target/agents"
-    done
   elif [ "$tool" = "opencode" ]; then
     # Generate OpenCode agent .md files (with model: in frontmatter)
     for agent in "$spine_dir/agents/"*.md; do
@@ -1469,25 +1356,6 @@ install_tool() {
   fi
 
   _feature "guardrails"
-
-  # Qwen Code extras: configure context.fileName to load both QWEN.md and AGENTS.md
-  if [ "$tool" = "qwen" ] && command -v jq &>/dev/null; then
-    local qwen_settings="$target/settings.json"
-    if [ -f "$qwen_settings" ]; then
-      local tmp
-      tmp=$(mktemp)
-      if jq '.context.fileName = ["QWEN.md", "AGENTS.md"]' "$qwen_settings" > "$tmp" 2>/dev/null; then
-        mv "$tmp" "$qwen_settings"
-        _feature "settings"
-      else
-        rm -f "$tmp"
-        warn "Failed to patch $qwen_settings — set context.fileName manually"
-      fi
-    else
-      printf '{"context":{"fileName":["QWEN.md","AGENTS.md"]}}\n' > "$qwen_settings"
-      _feature "settings"
-    fi
-  fi
 
   # Claude Code extras: plugin (hooks + skills)
   if [ "$tool" = "claude" ]; then
@@ -1582,14 +1450,6 @@ _install_rtk_single() {
     codex)
       if quiet rtk init -g --codex; then _feature "rtk"; else warn "rtk init --codex failed"; fi
       ;;
-    qwen)
-      _rtk_copy_codex_template "$HOME/.$tool"
-      _rtk_add_root_ref "$HOME/.$tool" "$tool"
-      _feature "rtk"
-      ;;
-    copilot)
-      # Copilot: project-scoped only — deferred
-      ;;
     opencode)
       if quiet rtk init -g --opencode; then _feature "rtk"; else warn "rtk init --opencode failed"; fi
       ;;
@@ -1642,10 +1502,7 @@ _rtk_add_root_ref() {
   local target="$1" tool="$2"
   local rtk_ref="@~/.${tool}/RTK.md"
   local root_file=""
-  case "$tool" in
-    qwen)   root_file="$target/QWEN.md" ;;
-    *)      root_file="$target/AGENTS.md" ;;
-  esac
+  root_file="$target/AGENTS.md"
   [ -n "$root_file" ] && [ -f "$root_file" ] || return 0
   grep -qF "$rtk_ref" "$root_file" && return 0  # already referenced
   echo "$rtk_ref" >> "$root_file"
@@ -1705,20 +1562,6 @@ mcp_add_codex() {
   fi
 }
 
-mcp_add_qwen() {
-  local name="$1" url="$2"; shift 2
-  # Remove first for idempotency — qwen mcp add may fail if entry already exists
-  quiet qwen mcp remove "$name" --scope user 2>/dev/null || true
-  # Strip MCP API key env vars so qwen stores ${VAR} references for runtime resolution
-  # instead of resolving them at add-time (qwen expands env vars in -H values if set)
-  if quiet env -u CONTEXT7_API_KEY -u EXA_API_KEY \
-      qwen mcp add --transport http --scope user --trust "$name" "$url" "$@"; then
-    _feature "MCP:$name"
-  else
-    warn "Failed to add MCP server $name to qwen. Run manually: qwen mcp add --transport http --scope user --trust $name $url $*"
-  fi
-}
-
 mcp_add_cursor() {
   local c7_url="$1" c7_key="$2" exa_url="$3" exa_key="$4"
   local mcp_file="$HOME/.cursor/mcp.json"
@@ -1746,47 +1589,6 @@ mcp_add_cursor() {
     ) |
     .mcpServers.exa = (
       {url: $exaurl} + if $exakey != "" then {headers: {"Authorization": "Bearer ${env:EXA_API_KEY}"}} else {} end
-    )
-  ' "$mcp_file" > "$tmp"
-
-  if jq empty "$tmp" 2>/dev/null; then
-    mv "$tmp" "$mcp_file"
-    _feature "MCP:context7"; _feature "MCP:exa"
-  else
-    warn "Generated invalid JSON — $mcp_file left unchanged"
-    rm -f "$tmp"
-    return 0
-  fi
-}
-
-mcp_add_copilot() {
-  local c7_url="$1" c7_key="$2" exa_url="$3" exa_key="$4"
-  local mcp_file="$HOME/.copilot/mcp-config.json"
-
-  if ! command -v jq &>/dev/null; then
-    warn "jq not found — cannot configure Copilot MCP servers"
-    return 0
-  fi
-
-  if [ -f "$mcp_file" ] && ! jq empty "$mcp_file" 2>/dev/null; then
-    warn "Invalid JSON in $mcp_file — skipping Copilot MCP configuration"
-    return 0
-  fi
-
-  [ -f "$mcp_file" ] || { mkdir -p "$(dirname "$mcp_file")"; echo '{}' > "$mcp_file"; }
-
-  local tmp
-  tmp=$(mktemp)
-  # Copilot supports ${env:NAME} interpolation in headers — use runtime references, not baked values
-  # Copilot requires explicit "type" discriminator for URL-based MCP servers
-  jq --arg c7url "$c7_url" --arg c7key "$c7_key" \
-     --arg exaurl "$exa_url" --arg exakey "$exa_key" '
-    .mcpServers //= {} |
-    .mcpServers.context7 = (
-      {type: "http", url: $c7url} + if $c7key != "" then {headers: {"Authorization": "Bearer ${env:CONTEXT7_API_KEY}"}} else {} end
-    ) |
-    .mcpServers.exa = (
-      {type: "http", url: $exaurl} + if $exakey != "" then {headers: {"Authorization": "Bearer ${env:EXA_API_KEY}"}} else {} end
     )
   ' "$mcp_file" > "$tmp"
 
@@ -1890,22 +1692,6 @@ _install_mcp_single() {
         _feature "MCP:approved"
       fi
       ;;
-    qwen)
-      local c7_qwen_auth=() exa_qwen_auth=()
-      if [ -n "${CONTEXT7_API_KEY:-}" ]; then
-        # shellcheck disable=SC2016
-        c7_qwen_auth=(-H 'Authorization: Bearer ${CONTEXT7_API_KEY}')
-      fi
-      if [ -n "${EXA_API_KEY:-}" ]; then
-        # shellcheck disable=SC2016
-        exa_qwen_auth=(-H 'Authorization: Bearer ${EXA_API_KEY}')
-      fi
-      mcp_add_qwen "context7" "$_mcp_c7_url" "${c7_qwen_auth[@]+"${c7_qwen_auth[@]}"}"
-      mcp_add_qwen "exa" "$_mcp_exa_url" "${exa_qwen_auth[@]+"${exa_qwen_auth[@]}"}"
-      ;;
-    copilot)
-      mcp_add_copilot "$_mcp_c7_url" "${CONTEXT7_API_KEY:-}" "$_mcp_exa_url" "${EXA_API_KEY:-}"
-      ;;
     opencode)
       mcp_add_opencode "$_mcp_c7_url" "${CONTEXT7_API_KEY:-}" "$_mcp_exa_url" "${EXA_API_KEY:-}"
       ;;
@@ -1999,8 +1785,6 @@ install_skills() {
   for tool in "${detected_tools[@]}"; do
     case "$tool" in
       claude)  agent_flags+=(-a "claude-code") ;;
-      qwen)    agent_flags+=(-a "qwen-code") ;;
-      copilot) agent_flags+=(-a "github-copilot") ;;
       *)       agent_flags+=(-a "$tool") ;;
     esac
   done
@@ -2193,8 +1977,8 @@ cleanup_stale_files() {
       done
     fi
 
-    # Cursor/Qwen/Copilot/OpenCode: remove stale spine-managed .md agent files
-    if { [ "$tool" = "cursor" ] || [ "$tool" = "qwen" ] || [ "$tool" = "copilot" ] || [ "$tool" = "opencode" ]; } && [ -d "$target/agents" ]; then
+    # Cursor/OpenCode: remove stale spine-managed .md agent files
+    if { [ "$tool" = "cursor" ] || [ "$tool" = "opencode" ]; } && [ -d "$target/agents" ]; then
       for md in "$target/agents/"*.md; do
         [ -f "$md" ] || continue
         [ -L "$md" ] && continue  # skip symlinks
@@ -2286,6 +2070,14 @@ main() {
 
   ui_ok "Found" "${tools[*]}"
 
+  # Detect OpenCode Go subscription for install-time model mapping
+  _SPINE_OPENCODE_TIER="free"
+  if printf '%s\n' "${tools[@]}" | grep -q '^opencode$'; then
+    if timeout 10 opencode models opencode-go 2>/dev/null | grep -q .; then
+      _SPINE_OPENCODE_TIER="go"
+    fi
+  fi
+
   # Step 5: Configure tools
   ui_step "Configuring tools"
   ui_live_start
@@ -2308,7 +2100,6 @@ main() {
         case "$tool" in
           claude) quiet claude mcp remove "$name" --scope user 2>/dev/null || true ;;
           codex)  quiet codex mcp remove "$name" 2>/dev/null || true ;;
-          qwen)   quiet qwen mcp remove "$name" --scope user 2>/dev/null || true ;;
           cursor)
             if [ -f "$HOME/.cursor/mcp.json" ] && command -v jq &>/dev/null; then
               local tmp
@@ -2320,17 +2111,6 @@ main() {
               fi
             fi
             command -v agent &>/dev/null && quiet agent mcp disable "$name" 2>/dev/null || true
-            ;;
-          copilot)
-            if [ -f "$HOME/.copilot/mcp-config.json" ] && command -v jq &>/dev/null; then
-              local tmp
-              tmp=$(mktemp)
-              if jq --arg n "$name" 'del(.mcpServers[$n])' "$HOME/.copilot/mcp-config.json" > "$tmp"; then
-                mv "$tmp" "$HOME/.copilot/mcp-config.json"
-              else
-                rm -f "$tmp"
-              fi
-            fi
             ;;
         esac
       done

@@ -34,7 +34,6 @@ After changing any AI-loaded file: `scripts/token-counts.sh --update`.
 Durable cross-provider insights in `docs/`. Backticked paths — not auto-loaded.
 Managed by `/run-curate`; style: telegraphic, 250-800 tokens, `updated:` frontmatter.
 
-- `docs/copilot-model-plan-gates.md` — Gemini/Grok require Copilot Pro+/Business plan
 - `docs/multi-model-council-sizing.md` — 3-model default, diversity > performance, anti-patterns
 - `docs/provider-privacy.md` — training/retention/residency per provider and tier
 

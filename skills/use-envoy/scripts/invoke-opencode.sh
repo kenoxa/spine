@@ -47,9 +47,15 @@ _script_dir=$(cd "$(dirname "$0")" && pwd)
 
 command -v jq >/dev/null 2>&1 || { error "jq required but not found"; exit 1; }
 
+# --- Detect OpenCode tier (Go subscription vs Free) ---
+_oc_tier="opencode-free"  # default to free
+if timeout 10 opencode models opencode-go 2>/dev/null | grep -q .; then
+    _oc_tier="opencode"
+fi
+
 # --- Tier-aware model selection (configurable via SPINE_ENVOY_{TIER_}OPENCODE=model:effort) ---
 
-resolve_tier "$tier" opencode
+resolve_tier "$tier" "$_oc_tier"
 case "$tier" in
     frontier) _envoy_val="${SPINE_ENVOY_FRONTIER_OPENCODE:-${SPINE_ENVOY_OPENCODE:-$_tier_model:$_tier_effort}}" ;;
     fast)     _envoy_val="${SPINE_ENVOY_FAST_OPENCODE:-${SPINE_ENVOY_OPENCODE:-$_tier_model:$_tier_effort}}" ;;

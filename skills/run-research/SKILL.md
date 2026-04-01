@@ -2,13 +2,12 @@
 name: run-research
 description: >
   Compile structured research prompts for external deep research UIs
-  (ChatGPT Deep Research, Claude, Gemini Deep Research).
+  (ChatGPT Deep Research, Claude).
   Use when: "research prompt", "deep research", "external research", "compile research",
-  "research question", "outsource research", "research for ChatGPT", "research for Claude",
-  "research for Gemini".
+  "research question", "outsource research", "research for ChatGPT", "research for Claude".
   Do NOT use for in-session or codebase exploration (use run-explore),
   or problem framing (use do-frame).
-argument-hint: "[research goal] [--target chatgpt|claude|gemini] [--depth deep]"
+argument-hint: "[research goal] [--target chatgpt|claude] [--depth deep]"
 ---
 
 Read-only — no code changes, no builds, no test runs.
@@ -30,7 +29,7 @@ Clarify research goal. Identify:
 - **Research question** — what decision does this inform?
 - **Scope** — boundaries, in/out, time range
 - **Output format** — named format from template or user-specified
-- **Target** — `--target chatgpt|claude|gemini` (default: `chatgpt`)
+- **Target** — `--target chatgpt|claude` (default: `chatgpt`)
 - **Depth** — standard (default) or `--depth deep`
 
 ### Gather

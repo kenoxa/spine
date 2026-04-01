@@ -68,7 +68,7 @@ printf 'envoy: invoking codex (model=%s, effort=%s)...\n' "$model" "$effort" >&2
 _rc=0
 timeout --kill-after=10 "$_codex_timeout" env \
     -u CLAUDECODE -u CURSOR_AGENT -u CODEX_SANDBOX \
-    -u QWEN_CODE -u QWEN_CODE_NO_RELAUNCH \
+    -u OPENCODE \
     PATH="$HOME/.local/bin:$PATH" \
     CODEX_HOME="${CODEX_HOME:-$HOME/.codex}" \
     codex exec \

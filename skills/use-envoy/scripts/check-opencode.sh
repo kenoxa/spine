@@ -21,15 +21,22 @@ if [ -z "$_version" ]; then
     exit 2
 fi
 
-# Phase 3: Auth — check that at least one provider is authenticated.
-# `opencode models` only lists models for authenticated providers.
-# If no models appear, no providers are configured.
-_models=$(timeout 10 opencode models 2>/dev/null) || true
-if [ -z "$_models" ]; then
-    error "opencode has no authenticated providers (no models available)"
-    error "Run: opencode providers login"
-    exit 3
+# Phase 3: Auth + tier detection.
+# Check Go subscription first (opencode-go models), then fall back to free-tier.
+_go_models=$(timeout 10 opencode models opencode-go 2>/dev/null) || true
+if [ -n "$_go_models" ]; then
+    printf '%s\nopencode-tier:go\n' "$_version"
+    exit 0
 fi
 
-# Success
-printf '%s\n' "$_version"
+# No Go subscription — check for free-tier models
+_free_models=$(timeout 10 opencode models opencode 2>/dev/null | grep '\-free') || true
+if [ -n "$_free_models" ]; then
+    printf '%s\nopencode-tier:free\n' "$_version"
+    exit 0
+fi
+
+# Neither Go nor free models available
+error "opencode has no Go subscription and no free models available"
+error "Run: opencode providers login"
+exit 3

@@ -79,7 +79,7 @@ Canonical entry: [`skills/run-explore/SKILL.md`](../skills/run-explore/SKILL.md)
 
 ### run-research
 
-Compile structured research prompts for external deep research UIs (ChatGPT Deep Research, Claude, Gemini Deep Research). Acts as a prompt compiler — auto-gathers project context via gated subagent dispatch (`@scout` for standard depth, `@researcher` for deep), applies security redaction, and outputs a paste-ready prompt optimized for the target UI.
+Compile structured research prompts for external deep research UIs (ChatGPT Deep Research, Claude). Acts as a prompt compiler — auto-gathers project context via gated subagent dispatch (`@scout` for standard depth, `@researcher` for deep), applies security redaction, and outputs a paste-ready prompt optimized for the target UI.
 
 Three-outcome gather gate: zero-dispatch for purely external goals with no codebase dependency, `@scout` (Fast/haiku) for standard breadth-first context, or `@researcher` (Standard/sonnet) for `--depth deep` with call chains and evidence tables. Single adaptive template with inline UI adaptation table handles per-provider formatting differences. Compile-only in v1; paste-back ingest deferred to v2.
 

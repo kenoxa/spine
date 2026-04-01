@@ -66,27 +66,12 @@ resolve_tier() {
         fast:claude)     _tier_model=haiku;          _tier_effort=high ;;
         fast:codex)      _tier_model=gpt-5.4-mini;  _tier_effort=high ;;  # ideal: gpt-5.4-nano (unavailable on current Codex subscription)
         fast:cursor)     _tier_model=composer-2;     _tier_effort= ;;  # auto used as rate-limit fallback in invoke-cursor.sh
-        frontier:qwen)   _tier_model=qwen3.5-plus;   _tier_effort= ;;
-        standard:qwen)   _tier_model=qwen3-coder-plus; _tier_effort= ;;
-        fast:qwen)       _tier_model=coder-model;     _tier_effort= ;;  # OAuth free tier resolves all to coder-model; Dashscope API keys can override via env
-        frontier:minimax) _tier_model=opencode-go/minimax-m2.7; _tier_effort=high ;;
-        standard:minimax) _tier_model=opencode-go/minimax-m2.5; _tier_effort=high ;;
-        fast:minimax)     _tier_model=opencode/minimax-m2.5-free; _tier_effort=minimal ;;
-        frontier:glm)      _tier_model=opencode-go/glm-5;              _tier_effort=high ;;
-        standard:glm)      _tier_model=opencode-go/glm-5;              _tier_effort=high ;;
-        fast:glm)          _tier_model=openrouter/z-ai/glm-4.7-flash;  _tier_effort=minimal ;;
-        frontier:deepseek) _tier_model=openrouter/deepseek/deepseek-v3.2; _tier_effort=high ;;  # speciale lacks tool-use on OpenRouter
-        standard:deepseek) _tier_model=openrouter/deepseek/deepseek-v3.2; _tier_effort=high ;;
-        fast:deepseek)     _tier_model=openrouter/deepseek/deepseek-v3.2; _tier_effort=minimal ;;
         frontier:opencode) _tier_model=opencode-go/glm-5;              _tier_effort=high ;;
         standard:opencode) _tier_model=opencode-go/minimax-m2.7;       _tier_effort=high ;;
-        fast:opencode)     _tier_model=opencode/minimax-m2.5-free;     _tier_effort=minimal ;;
-        frontier:copilot) _tier_model=gpt-5.4;        _tier_effort=high ;;
-        standard:copilot) _tier_model=gpt-5.4;        _tier_effort=medium ;;
-        fast:copilot)     _tier_model=gpt-5.4-mini;   _tier_effort=high ;;
-        frontier:gemini) _tier_model=gemini-3.1-pro;  _tier_effort= ;;  # via Copilot CLI; no effort parameter
-        standard:gemini) _tier_model=gemini-3.1-pro;  _tier_effort= ;;
-        fast:gemini)     _tier_model=gemini-3-flash;   _tier_effort= ;;
+        fast:opencode)     _tier_model=opencode-go/minimax-m2.5;       _tier_effort=high ;;
+        frontier:opencode-free) _tier_model=opencode/qwen3.6-plus-free;    _tier_effort=high ;;
+        standard:opencode-free) _tier_model=opencode/minimax-m2.5-free;    _tier_effort=high ;;
+        fast:opencode-free)     _tier_model=opencode/mimo-v2-pro-free;     _tier_effort=minimal ;;
         *)               _tier_model=;               _tier_effort= ;;
     esac
 }
