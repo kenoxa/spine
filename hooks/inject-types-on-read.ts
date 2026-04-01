@@ -1,12 +1,11 @@
-#!/usr/bin/env bun
 /**
  * inject-types-on-read.ts
- * Claude Code PostToolUse hook: inject type signatures when reading TypeScript/Svelte files.
+ * PostToolUse hook: inject type signatures when reading TypeScript/Svelte files.
  *
  * Uses `probe symbols` (tree-sitter) for extraction, then applies smart prioritization
  * inspired by type-inject's tier system. Never cuts mid-symbol.
  *
- * Runs via Bun — no npm install needed for the core logic.
+ * Portable: runs on bun, node ≥22, or deno. No npm install needed for the core logic.
  * For Svelte: dynamically imports svelte/compiler from the project's node_modules.
  */
 
@@ -74,11 +73,23 @@ const BUILTIN_TYPES = new Set([
   "AsyncIterator", "Generator", "AsyncGenerator",
 ]);
 
+// --- Portable stdin reader (bun, node, deno) ---
+
+async function readStdin(): Promise<string> {
+  return new Promise((resolve) => {
+    let data = "";
+    process.stdin.setEncoding("utf-8");
+    process.stdin.on("data", (chunk: string) => { data += chunk; });
+    process.stdin.on("end", () => resolve(data));
+    process.stdin.resume();
+  });
+}
+
 // --- Main ---
 
 async function main(): Promise<void> {
   try {
-    const raw = await Bun.stdin.text();
+    const raw = await readStdin();
     if (!raw.trim()) {
       emit({});
       return;
@@ -107,7 +118,7 @@ async function main(): Promise<void> {
     const offset = input.tool_input?.offset;
     const limit = input.tool_input?.limit;
 
-    const result = processFile(filePath, offset, limit);
+    const result = await processFile(filePath, offset, limit);
 
     if (result) {
       emit({ systemMessage: result });
@@ -121,19 +132,20 @@ async function main(): Promise<void> {
 }
 
 // Only run when executed directly (not when imported for testing)
-if (import.meta.main) {
+// import.meta.main is portable: bun, node ≥22, deno
+if ((import.meta as unknown as { main?: boolean }).main) {
   await main();
 }
 
 // --- Core ---
 
-function processFile(filePath: string, offset?: number, limit?: number): string | null {
+async function processFile(filePath: string, offset?: number, limit?: number): Promise<string | null> {
   let scriptContent: string | undefined;
   let lineOffset = 0;
 
   // For Svelte files, extract <script lang="ts"> content
   if (SVELTE_EXTENSION.test(filePath)) {
-    const extracted = extractSvelteScript(filePath);
+    const extracted = await extractSvelteScript(filePath);
     if (!extracted) return null;
     scriptContent = extracted.content;
     lineOffset = extracted.lineOffset;
@@ -206,16 +218,15 @@ function probeSymbols(filePath: string, scriptContent?: string): ProbeSymbol[] {
 
 // --- Svelte ---
 
-function extractSvelteScript(filePath: string): { content: string; lineOffset: number } | null {
+async function extractSvelteScript(filePath: string): Promise<{ content: string; lineOffset: number } | null> {
   const fileContent = readFileSync(filePath, "utf-8");
 
-  // Try to use project's svelte/compiler for accurate parsing
-  const projectRoot = findProjectRoot(filePath);
-  if (projectRoot) {
+  // Try to use nearest svelte/compiler — walk up from file, not project root (monorepo safe)
+  const svelteCompilerPath = findNearestModule(filePath, "svelte/compiler/index.js");
+  if (svelteCompilerPath) {
     try {
-      const svelteCompilerPath = resolve(projectRoot, "node_modules", "svelte", "compiler", "index.js");
-      if (existsSync(svelteCompilerPath)) {
-        const svelteCompiler = require(svelteCompilerPath);
+      {
+        const svelteCompiler = await import(svelteCompilerPath);
         const ast = svelteCompiler.parse(fileContent, { modern: true, filename: filePath });
 
         // Prefer instance script, fall back to module script
@@ -554,6 +565,17 @@ export function findProjectRoot(filePath: string): string | null {
   while (dir !== "/") {
     if (existsSync(resolve(dir, "package.json"))) return dir;
     if (existsSync(resolve(dir, ".git"))) return dir;
+    dir = dirname(dir);
+  }
+  return null;
+}
+
+/** Walk up from filePath to find nearest node_modules/<modulePath>. Monorepo safe. */
+function findNearestModule(filePath: string, modulePath: string): string | null {
+  let dir = dirname(filePath);
+  while (dir !== "/") {
+    const candidate = resolve(dir, "node_modules", modulePath);
+    if (existsSync(candidate)) return candidate;
     dir = dirname(dir);
   }
   return null;

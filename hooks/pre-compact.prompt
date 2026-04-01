@@ -1,0 +1,2 @@
+Context compaction is about to run. Before it does, capture current session state: run the do-handoff workflow to write a handoff artifact to .scratch/. Include all decisions made, rationale, rejected approaches, current state, and next steps. This is a safety net — write the artifact, then compaction will proceed.
+<!-- Source of truth. hooks.json (plugin) has an inline copy; generators read this file. -->

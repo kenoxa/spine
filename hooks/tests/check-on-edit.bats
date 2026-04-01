@@ -38,3 +38,28 @@ load "test_helper"
   run_hook check-on-edit.sh 'not json'
   assert_success
 }
+
+@test "returns systemMessage when tsc finds errors" {
+  # Skip if no JS package runner available (hook uses _nlx.sh: nlx/bunx/bun x/npx)
+  command -v nlx >/dev/null 2>&1 || command -v bunx >/dev/null 2>&1 || command -v npx >/dev/null 2>&1 || skip "no package runner (nlx/bunx/npx)"
+
+  # Create minimal project with type error
+  local tmpdir
+  tmpdir=$(mktemp -d)
+  mkdir -p "$tmpdir"
+  printf '{"compilerOptions":{"strict":true,"noEmit":true},"include":["*.ts"]}\n' > "$tmpdir/tsconfig.json"
+  printf '{"name":"test","private":true}\n' > "$tmpdir/package.json"
+  printf 'const x: number = "not a number";\n' > "$tmpdir/bad.ts"
+
+  local input
+  input=$(printf '{"tool_input":{"file_path":"%s/bad.ts"}}' "$tmpdir")
+
+  run_hook check-on-edit.sh "$input"
+  assert_success  # always exits 0
+
+  # Should contain systemMessage with checker output
+  assert_output --partial "systemMessage"
+  assert_output --partial "typescript"
+
+  rm -rf "$tmpdir"
+}

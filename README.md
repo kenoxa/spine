@@ -188,8 +188,7 @@ Then start from the workflow:
 - Shared subagents in `agents/`
 - Context7 and Exa MCP server setup
 - [RTK](https://github.com/rtk-ai/rtk) token optimization proxy — reduces LLM context usage by 60-90% on tool outputs (auto-configured per provider)
-- TypeScript type context injection — auto-injects type signatures when reading TS/Svelte files so the AI sees the type graph, not just plain text (Claude Code)
-- Post-edit type checking — runs `tsc`, `svelte-check`, and `biome` after file edits (Claude Code)
+- Cross-provider hooks — security guards, type context injection, post-edit checking, and session augmentation installed per provider (see [Hooks installed](#hooks-installed))
 - Claude Code plugin support for hooks and skills
 
 See [docs/skills-reference.md](docs/skills-reference.md) for the full skill and subagent catalog.
@@ -347,6 +346,39 @@ Both work keyless by default. For higher rate limits, set API keys in `~/.config
 export CONTEXT7_API_KEY=your-key-here
 export EXA_API_KEY=your-key-here
 ```
+
+</details>
+
+<details>
+<summary id="hooks-installed">Hooks installed</summary>
+
+The installer copies shared hooks to `~/.config/spine/hooks/` with shebang rewriting, then generates provider-specific hook configs. Not all providers support all hook events.
+
+| Hook | Event | What it does |
+|------|-------|-------------|
+| `guard-shell` | PreToolUse (Bash) | Security deny-list: blocks recursive `rm`, docker container escapes (run + exec), file uploads via curl/wget. RTK-rewrite agnostic. |
+| `guard-read-large` | PreToolUse (Read) | Warns when reading files >2000 lines without a `limit` parameter. Prevents context window waste. |
+| `inject-types-on-read` | PostToolUse (Read) | Injects TypeScript type signatures into context when reading `.ts`/`.tsx`/`.svelte` files. Uses `probe symbols` (tree-sitter). |
+| `check-on-edit` | PostToolUse (Edit/Write/MultiEdit) | Runs `tsc`, `svelte-check`, and `biome` after file edits. Registry-based — easy to extend. |
+| `inject-agents-md` | SessionStart | Injects project `AGENTS.md` into session context (Claude Code only — other providers load it natively). |
+| `inject-compact-essentials` | SessionStart | Reinjects essential context on compaction events. |
+| `pre-compact` | PreCompact | Prompts a handoff artifact before context compaction as a safety net. |
+
+**Provider compatibility:**
+
+| Hook | Claude | Codex | Cursor | OpenCode |
+|------|--------|-------|--------|----------|
+| `guard-shell` | ✓ | ✓ | ✓ | ✓ |
+| `guard-read-large` | ✓ | ✓ | ✓ | ✓ |
+| `inject-types-on-read` | ✓ | ‒ | ✓ | ✓ |
+| `check-on-edit` | ✓ | ‒ | ✓ | ✓ |
+| `inject-agents-md` | ✓ | ‒ | ‒ | ‒ |
+| `inject-compact-essentials` | ✓ | ‒ | ‒ | ‒ |
+| `pre-compact` | ✓ | ‒ | ‒ | ‒ |
+
+Codex PostToolUse is Bash-only — `inject-types-on-read` and `check-on-edit` are deferred until Codex supports Read/Edit PostToolUse events. OpenCode uses an in-process TS plugin (`opencode/spine-hooks.ts`) that delegates to the shared shell hooks.
+
+All hooks fail open on missing dependencies (jq, bun, probe) — warnings only, never workflow-blocking. Security and context guards (`guard-shell`, `guard-read-large`) intentionally block when triggered.
 
 </details>
 

@@ -5,7 +5,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/inject-agents-md.sh"
+						"command": "$HOME/.config/spine/hooks/inject-agents-md.sh"
 					}
 				]
 			},
@@ -14,15 +14,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/inject-compact-essentials.sh"
-					}
-				]
-			},
-			{
-				"hooks": [
-					{
-						"type": "command",
-						"command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/surface-stop-review.sh"
+						"command": "$HOME/.config/spine/hooks/inject-compact-essentials.sh"
 					}
 				]
 			}
@@ -33,7 +25,17 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/guard-rm.sh"
+						"command": "$HOME/.config/spine/hooks/guard-shell.sh"
+					}
+				]
+			},
+			{
+				"matcher": "Read",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "$HOME/.config/spine/hooks/guard-read-large.sh",
+						"timeout": 10
 					}
 				]
 			}
@@ -44,7 +46,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "bun ${CLAUDE_PLUGIN_ROOT}/hooks/inject-types-on-read.ts",
+						"command": "$HOME/.config/spine/hooks/_ts.sh $HOME/.config/spine/hooks/inject-types-on-read.ts",
 						"timeout": 30
 					}
 				]
@@ -54,7 +56,7 @@
 				"hooks": [
 					{
 						"type": "command",
-						"command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/check-on-edit.sh",
+						"command": "$HOME/.config/spine/hooks/check-on-edit.sh",
 						"timeout": 30
 					}
 				]
@@ -66,16 +68,6 @@
 					{
 						"type": "prompt",
 						"prompt": "Context compaction is about to run. Before it does, capture current session state: run the do-handoff workflow to write a handoff artifact to .scratch/. Include all decisions made, rationale, rejected approaches, current state, and next steps. This is a safety net — write the artifact, then compaction will proceed."
-					}
-				]
-			}
-		],
-		"Stop": [
-			{
-				"hooks": [
-					{
-						"type": "command",
-						"command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/stop-review.sh"
 					}
 				]
 			}

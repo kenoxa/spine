@@ -68,6 +68,7 @@ _TOOL_MCP=0
 _TOTAL_TOOLS=0
 _TOTAL_DEPS=0
 _TOTAL_DEPS_INSTALLED=0
+_TOTAL_HOOKS=0
 _SPINE_SKILL_COUNT=0
 _GLOBAL_SKILL_COUNT=0
 _ERROR_COUNT=0
@@ -594,6 +595,389 @@ setup_central_dir() {
   ui_ok "Central dir" "~/.config/spine/"
 }
 
+# --- Hook file setup ---
+
+# Copy hook files from source to ~/.config/spine/hooks/ with shebang rewriting.
+# .sh hooks: #!/bin/sh → #!/path/to/_env.sh (env bootstrap via shebang)
+# .ts hooks: shebang → #!/path/to/_ts.sh (runtime resolver)
+# Helper scripts (_env.sh, _ts.sh, etc.) keep original shebangs.
+setup_hooks() {
+  local src="$1"
+  local spine_dir="$HOME/.config/spine"
+  local count=0
+
+  mkdir -p "$spine_dir/hooks"
+  for hook in "$src/hooks/"*.sh "$src/hooks/"*.ts "$src/hooks/"*.prompt; do
+    [ -f "$hook" ] || continue
+    local hook_name
+    hook_name=$(basename "$hook")
+    cp "$hook" "$spine_dir/hooks/$hook_name"
+    count=$((count + 1))
+    # .prompt files are plain text — don't make executable
+    case "$hook_name" in
+      *.prompt) ;;
+      *) chmod +x "$spine_dir/hooks/$hook_name" ;;
+    esac
+    # Rewrite shebangs at install time — makes hooks directly executable
+    # Skip _env.sh, _ts.sh, _nlx.sh, _project.sh themselves (helper scripts keep original shebangs)
+    case "$hook_name" in
+      _*) ;;  # skip helper scripts
+      *.sh)
+        if head -1 "$spine_dir/hooks/$hook_name" | grep -q '^#!/bin/sh'; then
+          local tmp_hook
+          tmp_hook=$(mktemp)
+          echo "#!$spine_dir/hooks/_env.sh" > "$tmp_hook"
+          tail -n +2 "$spine_dir/hooks/$hook_name" >> "$tmp_hook"
+          mv "$tmp_hook" "$spine_dir/hooks/$hook_name"
+          chmod +x "$spine_dir/hooks/$hook_name"
+        fi
+        ;;
+      *.ts)
+        local tmp_hook
+        tmp_hook=$(mktemp)
+        echo "#!$spine_dir/hooks/_ts.sh" > "$tmp_hook"
+        # Strip existing shebang if present
+        if head -1 "$spine_dir/hooks/$hook_name" | grep -q '^#!'; then
+          tail -n +2 "$spine_dir/hooks/$hook_name" >> "$tmp_hook"
+        else
+          cat "$spine_dir/hooks/$hook_name" >> "$tmp_hook"
+        fi
+        mv "$tmp_hook" "$spine_dir/hooks/$hook_name"
+        chmod +x "$spine_dir/hooks/$hook_name"
+        ;;
+    esac
+  done
+
+  # Post-install smoke test: verify _env.sh restores tool access
+  if [ -f "$spine_dir/hooks/_env.sh" ]; then
+    SPINE_ENV_VERIFY=1 sh "$spine_dir/hooks/_env.sh" true 2>&1 | while IFS= read -r line; do
+      case "$line" in
+        *"NOT FOUND"*) warn "$line" ;;
+      esac
+    done
+  fi
+
+  # shellcheck disable=SC2088  # display string, not path expansion
+  ui_ok "Hooks" "$count files → ~/.config/spine/hooks/"
+}
+
+# --- Hook capability matrix ---
+# Which hooks fire on which provider events. Used by generators to silently omit unsupported hooks.
+# Providers: claude, codex, cursor, opencode
+# Events: SessionStart, PreToolUse, PostToolUse, PreCompact, Stop
+#
+# Codex PostToolUse is Bash-only — inject-types-on-read and check-on-edit deferred (TODO.md).
+# OpenCode uses in-process TS plugin — shell hooks delegated via execFileSync.
+
+hook_supports() {
+  local hook="$1" event="$2" provider="$3"
+  case "$hook:$event:$provider" in
+    inject-agents-md:SessionStart:claude)         return 0 ;;  # only Claude — others load AGENTS.md natively
+    inject-compact-essentials:SessionStart:claude) return 0 ;;
+    guard-shell:PreToolUse:claude)                return 0 ;;
+    guard-shell:PreToolUse:codex)                 return 0 ;;
+    guard-shell:PreToolUse:cursor)                return 0 ;;
+    guard-shell:PreToolUse:opencode)              return 0 ;;
+    guard-read-large:PreToolUse:claude)           return 0 ;;
+    guard-read-large:PreToolUse:codex)            return 0 ;;
+    guard-read-large:PreToolUse:cursor)           return 0 ;;
+    guard-read-large:PreToolUse:opencode)         return 0 ;;
+    inject-types-on-read:PostToolUse:claude)      return 0 ;;
+    inject-types-on-read:PostToolUse:cursor)      return 0 ;;
+    inject-types-on-read:PostToolUse:opencode)    return 0 ;;
+    check-on-edit:PostToolUse:claude)             return 0 ;;
+    check-on-edit:PostToolUse:cursor)             return 0 ;;
+    check-on-edit:PostToolUse:opencode)           return 0 ;;
+    pre-compact:PreCompact:claude)                return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+# Count hooks supported for a provider. Sets _TOOL_HOOKS.
+_count_provider_hooks() {
+  local provider="$1"
+  _TOOL_HOOKS=0
+  local hook event
+  for hook in inject-agents-md inject-compact-essentials guard-shell guard-read-large inject-types-on-read check-on-edit pre-compact; do
+    for event in SessionStart PreToolUse PostToolUse PreCompact; do
+      if hook_supports "$hook" "$event" "$provider" 2>/dev/null; then
+        _TOOL_HOOKS=$((_TOOL_HOOKS + 1))
+      fi
+    done
+  done
+}
+
+# --- Hook config generation ---
+
+# Generate Claude Code hooks in settings.json (fallback when plugin not available).
+# Uses spine:managed strip-and-append pattern.
+# Usage: generate_claude_hooks <spine-dir>
+generate_claude_hooks() {
+  local spine_dir="$1"
+  local hooks_dir="$spine_dir/hooks"
+  local settings="$HOME/.claude/settings.json"
+
+  [ -d "$hooks_dir" ] || return 0
+  command -v jq &>/dev/null || { warn "jq not found — cannot generate Claude hook config"; return 0; }
+
+  [ -f "$settings" ] || echo '{}' > "$settings"
+  backup_if_exists "$settings"
+
+  # Build hook entries using absolute paths (resolved at install time)
+
+  local tmp
+  tmp=$(mktemp)
+
+  # Start from existing settings, strip any spine-managed hooks
+  # Identified by spine/hooks path in hook commands
+  jq '
+    .hooks //= {} |
+    .hooks |= with_entries(
+      .value |= map(select(
+        (.hooks // []) | all(.command // "" | test("spine/hooks") | not)
+      ))
+    )
+  ' "$settings" > "$tmp" 2>/dev/null || cp "$settings" "$tmp"
+
+  # SessionStart hooks
+  local ss_hooks="[]"
+  if hook_supports inject-agents-md SessionStart claude; then
+    ss_hooks=$(echo "$ss_hooks" | jq --arg cmd "$hooks_dir/inject-agents-md.sh" \
+      '. + [{"hooks":[{"type":"command","command":$cmd}]}]')
+  fi
+  if hook_supports inject-compact-essentials SessionStart claude; then
+    ss_hooks=$(echo "$ss_hooks" | jq --arg cmd "$hooks_dir/inject-compact-essentials.sh" \
+      '. + [{"matcher":"compact","hooks":[{"type":"command","command":$cmd}]}]')
+  fi
+  # PreToolUse hooks
+  local ptu_hooks="[]"
+  if hook_supports guard-shell PreToolUse claude; then
+    ptu_hooks=$(echo "$ptu_hooks" | jq --arg cmd "$hooks_dir/guard-shell.sh" \
+      '. + [{"matcher":"Bash","hooks":[{"type":"command","command":$cmd}]}]')
+  fi
+  if hook_supports guard-read-large PreToolUse claude; then
+    ptu_hooks=$(echo "$ptu_hooks" | jq --arg cmd "$hooks_dir/guard-read-large.sh" \
+      '. + [{"matcher":"Read","hooks":[{"type":"command","command":$cmd,"timeout":10}]}]')
+  fi
+
+  # PostToolUse hooks
+  local post_hooks="[]"
+  if hook_supports inject-types-on-read PostToolUse claude; then
+    post_hooks=$(echo "$post_hooks" | jq --arg cmd "$hooks_dir/_ts.sh $hooks_dir/inject-types-on-read.ts" \
+      '. + [{"matcher":"Read","hooks":[{"type":"command","command":$cmd,"timeout":30}]}]')
+  fi
+  if hook_supports check-on-edit PostToolUse claude; then
+    post_hooks=$(echo "$post_hooks" | jq --arg cmd "$hooks_dir/check-on-edit.sh" \
+      '. + [{"matcher":"Edit|Write|MultiEdit","hooks":[{"type":"command","command":$cmd,"timeout":30}]}]')
+  fi
+
+  # PreCompact hooks
+  local pc_hooks="[]"
+  if hook_supports pre-compact PreCompact claude && [ -f "$hooks_dir/pre-compact.prompt" ]; then
+    local prompt_text
+    prompt_text=$(cat "$hooks_dir/pre-compact.prompt")
+    pc_hooks=$(echo "$pc_hooks" | jq --arg p "$prompt_text" \
+      '. + [{"hooks":[{"type":"prompt","prompt":$p}]}]')
+  fi
+
+  # Merge spine hooks into settings
+  jq \
+    --argjson ss "$ss_hooks" \
+    --argjson ptu "$ptu_hooks" \
+    --argjson post "$post_hooks" \
+    --argjson pc "$pc_hooks" \
+    '
+    .hooks //= {} |
+    .hooks.SessionStart = ((.hooks.SessionStart // []) + $ss) |
+    .hooks.PreToolUse = ((.hooks.PreToolUse // []) + $ptu) |
+    .hooks.PostToolUse = ((.hooks.PostToolUse // []) + $post) |
+    .hooks.PreCompact = ((.hooks.PreCompact // []) + $pc) |
+    .hooks |= with_entries(select(.value | length > 0))
+  ' "$tmp" > "${tmp}.out" 2>/dev/null
+
+  if jq empty "${tmp}.out" 2>/dev/null; then
+    mv "${tmp}.out" "$settings"
+    rm -f "$tmp"
+  else
+    warn "Generated invalid Claude hooks JSON — settings.json left unchanged"
+    rm -f "$tmp" "${tmp}.out"
+  fi
+}
+
+# Generate Codex hooks in ~/.codex/hooks.json.
+# Codex hooks: SessionStart, PreToolUse, PostToolUse (Bash-only), Stop.
+# Uses spine:managed strip-and-append pattern.
+# Usage: generate_codex_hooks <spine-dir>
+generate_codex_hooks() {
+  local spine_dir="$1"
+  local hooks_dir="$spine_dir/hooks"
+  local target_dir="$HOME/.codex"
+  local hooks_file="$target_dir/hooks.json"
+  local config_file="$target_dir/config.toml"
+
+  [ -d "$hooks_dir" ] || return 0
+  command -v jq &>/dev/null || { warn "jq not found — cannot generate Codex hook config"; return 0; }
+
+  mkdir -p "$target_dir"
+
+  # Build hooks.json
+  local hooks_json='{"hooks":{}}'
+
+  # SessionStart
+  local ss_hooks="[]"
+  if hook_supports inject-agents-md SessionStart codex; then
+    ss_hooks=$(echo "$ss_hooks" | jq --arg cmd "$hooks_dir/inject-agents-md.sh" \
+      '. + [{"hooks":[{"type":"command","command":$cmd}]}]')
+  fi
+  # PreToolUse (Bash only on Codex)
+  local ptu_hooks="[]"
+  if hook_supports guard-shell PreToolUse codex; then
+    ptu_hooks=$(echo "$ptu_hooks" | jq --arg cmd "$hooks_dir/guard-shell.sh" \
+      '. + [{"matcher":"Bash","hooks":[{"type":"command","command":$cmd}]}]')
+  fi
+  if hook_supports guard-read-large PreToolUse codex; then
+    ptu_hooks=$(echo "$ptu_hooks" | jq --arg cmd "$hooks_dir/guard-read-large.sh" \
+      '. + [{"matcher":"Read","hooks":[{"type":"command","command":$cmd,"timeout":10}]}]')
+  fi
+
+  # Note: PostToolUse for Read/Edit hooks deferred — Codex PostToolUse is Bash-only
+  # (tracked in TODO.md)
+
+  hooks_json=$(echo '{}' | jq \
+    --argjson ss "$ss_hooks" \
+    --argjson ptu "$ptu_hooks" \
+    '
+    .hooks = {} |
+    if ($ss | length > 0) then .hooks.SessionStart = $ss else . end |
+    if ($ptu | length > 0) then .hooks.PreToolUse = $ptu else . end
+  ')
+
+  # Write hooks.json (spine-managed, full overwrite — no user hooks in Codex hooks.json yet)
+  local tmp
+  tmp=$(mktemp)
+  echo "$hooks_json" | jq '.' > "$tmp" 2>/dev/null
+
+  if jq empty "$tmp" 2>/dev/null; then
+    mv "$tmp" "$hooks_file"
+  else
+    warn "Generated invalid Codex hooks JSON — skipping"
+    rm -f "$tmp"
+    return 0
+  fi
+
+  # Enable codex_hooks feature flag in config.toml
+  if [ -f "$config_file" ]; then
+    if ! grep -q 'codex_hooks' "$config_file" 2>/dev/null; then
+      if grep -q '^\[features\]' "$config_file" 2>/dev/null; then
+        # Append key under existing [features] section
+        sed -i.bak '/^\[features\]/a\
+codex_hooks = true' "$config_file"
+        rm -f "${config_file}.bak"
+      else
+        printf '\n[features]\ncodex_hooks = true\n' >> "$config_file"
+      fi
+    fi
+  else
+    cat > "$config_file" << 'TOML'
+[features]
+codex_hooks = true
+TOML
+  fi
+}
+
+# Generate Cursor hooks in ~/.cursor/hooks.json.
+# Cursor uses the same PascalCase events as Claude Code.
+# Usage: generate_cursor_hooks <spine-dir>
+generate_cursor_hooks() {
+  local spine_dir="$1"
+  local hooks_dir="$spine_dir/hooks"
+  local hooks_file="$HOME/.cursor/hooks.json"
+
+  [ -d "$hooks_dir" ] || return 0
+  [ -d "$HOME/.cursor" ] || return 0
+  command -v jq &>/dev/null || { warn "jq not found — cannot generate Cursor hook config"; return 0; }
+
+
+  # Build hooks.json for Cursor
+  local ss_hooks="[]" ptu_hooks="[]" post_hooks="[]"
+
+  # SessionStart
+  if hook_supports inject-agents-md SessionStart cursor; then
+    ss_hooks=$(echo "$ss_hooks" | jq --arg cmd "$hooks_dir/inject-agents-md.sh" \
+      '. + [{"hooks":[{"type":"command","command":$cmd}]}]')
+  fi
+  # PreToolUse
+  if hook_supports guard-shell PreToolUse cursor; then
+    ptu_hooks=$(echo "$ptu_hooks" | jq --arg cmd "$hooks_dir/guard-shell.sh" \
+      '. + [{"matcher":"Bash","hooks":[{"type":"command","command":$cmd}]}]')
+  fi
+  if hook_supports guard-read-large PreToolUse cursor; then
+    ptu_hooks=$(echo "$ptu_hooks" | jq --arg cmd "$hooks_dir/guard-read-large.sh" \
+      '. + [{"matcher":"Read","hooks":[{"type":"command","command":$cmd,"timeout":10}]}]')
+  fi
+
+  # PostToolUse — Cursor uses afterFileEdit with different envelope shape
+  # inject-types-on-read: Cursor postToolUse for Read
+  if hook_supports inject-types-on-read PostToolUse cursor; then
+    post_hooks=$(echo "$post_hooks" | jq --arg cmd "$hooks_dir/_ts.sh $hooks_dir/inject-types-on-read.ts" \
+      '. + [{"matcher":"Read","hooks":[{"type":"command","command":$cmd,"timeout":30}]}]')
+  fi
+  if hook_supports check-on-edit PostToolUse cursor; then
+    post_hooks=$(echo "$post_hooks" | jq --arg cmd "$hooks_dir/check-on-edit.sh" \
+      '. + [{"matcher":"Edit|Write|MultiEdit","hooks":[{"type":"command","command":$cmd,"timeout":30}]}]')
+  fi
+
+  # Merge into hooks.json (strip existing spine-managed entries first)
+  [ -f "$hooks_file" ] || echo '{}' > "$hooks_file"
+
+  local tmp
+  tmp=$(mktemp)
+
+  # Strip existing spine hooks (identified by spine/hooks path)
+  jq '
+    .hooks //= {} |
+    .hooks |= with_entries(
+      .value |= map(select(
+        (.hooks // []) | all(.command // "" | test("spine/hooks") | not)
+      ))
+    )
+  ' "$hooks_file" > "$tmp" 2>/dev/null || cp "$hooks_file" "$tmp"
+
+  jq \
+    --argjson ss "$ss_hooks" \
+    --argjson ptu "$ptu_hooks" \
+    --argjson post "$post_hooks" \
+    '
+    .hooks //= {} |
+    .hooks.SessionStart = ((.hooks.SessionStart // []) + $ss) |
+    .hooks.PreToolUse = ((.hooks.PreToolUse // []) + $ptu) |
+    .hooks.PostToolUse = ((.hooks.PostToolUse // []) + $post) |
+    .hooks |= with_entries(select(.value | length > 0))
+  ' "$tmp" > "${tmp}.out" 2>/dev/null
+
+  if jq empty "${tmp}.out" 2>/dev/null; then
+    mv "${tmp}.out" "$hooks_file"
+    rm -f "$tmp"
+  else
+    warn "Generated invalid Cursor hooks JSON — hooks.json left unchanged"
+    rm -f "$tmp" "${tmp}.out"
+  fi
+}
+
+# Install OpenCode hook plugin from opencode/spine-hooks.ts.
+# Copies canonical plugin to ~/.config/opencode/plugins/.
+# Usage: install_opencode_plugin <src-dir>
+install_opencode_plugin() {
+  local src="$1"
+  local plugin_src="$src/opencode/spine-hooks.ts"
+  local plugin_dir="$HOME/.config/opencode/plugins"
+
+  [ -f "$plugin_src" ] || return 0
+
+  mkdir -p "$plugin_dir"
+  cp "$plugin_src" "$plugin_dir/spine-hooks.ts"
+}
+
 # --- Agent generation ---
 
 # Parse YAML frontmatter from an agent markdown file.
@@ -1109,6 +1493,19 @@ install_tool() {
   if [ "$tool" = "claude" ]; then
     install_claude_plugin "$src" "$target"
   fi
+
+  # Per-provider hook generation (all providers except Claude which uses plugin or fallback above)
+  case "$tool" in
+    codex)    generate_codex_hooks "$spine_dir" ;;
+    cursor)   generate_cursor_hooks "$spine_dir" ;;
+    opencode) install_opencode_plugin "$src" ;;
+  esac
+
+  # Count and report hooks enabled for this provider
+  _count_provider_hooks "$tool"
+  if [ "$_TOOL_HOOKS" -gt 0 ]; then
+    _feature "hooks×$_TOOL_HOOKS"
+  fi
 }
 
 # --- Claude Code plugin (hooks + skills) ---
@@ -1128,53 +1525,11 @@ install_claude_plugin() {
     return 0
   fi
 
-  # Fallback: manual hook installation from claude/hooks/
-  warn "Could not install Claude plugin — installing hook manually"
+  # Fallback: manual hook installation — use central hooks + generator
+  warn "Could not install Claude plugin — installing hooks via generator"
 
-  local settings="$target/settings.json"
-  local hook_cmd="$target/hooks/inject-agents-md.sh"
-
-  mkdir -p "$target/hooks"
-  for script in "$src"/claude/hooks/*.sh; do
-    [ -f "$script" ] || continue
-    cp "$script" "$target/hooks/"
-    chmod +x "$target/hooks/$(basename "$script")"
-  done
-
-  _feature "hooks"
-
-  # Patch settings.json with SessionStart hook
-  if ! command -v jq &>/dev/null; then
-    warn "jq not found — cannot auto-patch settings.json. Install jq and re-run, or patch $settings manually."
-    return 0
-  fi
-
-  [ -f "$settings" ] || echo '{}' > "$settings"
-
-  # Already registered? Skip.
-  if jq -e --arg cmd "$hook_cmd" \
-    '.hooks.SessionStart[]?.hooks[]? | select(.command == $cmd)' \
-    "$settings" &>/dev/null; then
-    return 0
-  fi
-
-  backup_if_exists "$settings"
-
-  local tmp
-  tmp=$(mktemp)
-  jq --arg cmd "$hook_cmd" '
-    .hooks //= {} |
-    .hooks.SessionStart //= [] |
-    .hooks.SessionStart += [{"hooks": [{"type": "command", "command": $cmd}]}]
-  ' "$settings" > "$tmp"
-
-  if jq empty "$tmp" 2>/dev/null; then
-    mv "$tmp" "$settings"
-  else
-    error "Generated invalid JSON — settings.json left unchanged"
-    rm -f "$tmp"
-    return 1
-  fi
+  local spine_dir="$HOME/.config/spine"
+  generate_claude_hooks "$spine_dir"
 }
 
 # --- RTK (token optimization proxy) ---
@@ -1773,9 +2128,24 @@ install_skills() {
 # --- Cleanup ---
 
 cleanup_stale_files() {
+  local src="$1"; shift
   local detected_tools=("$@")
   local spine_targets=(".config/spine/" ".agents/skills/")
   local cleaned=0
+
+  # Remove hooks no longer in source
+  local spine_dir="$HOME/.config/spine"
+  if [ -d "$spine_dir/hooks" ]; then
+    for existing in "$spine_dir/hooks/"*.sh "$spine_dir/hooks/"*.ts "$spine_dir/hooks/"*.prompt; do
+      [ -f "$existing" ] || continue
+      local hook_name
+      hook_name=$(basename "$existing")
+      if [ ! -f "$src/hooks/$hook_name" ]; then
+        rm "$existing"
+        cleaned=$((cleaned + 1))
+      fi
+    done
+  fi
 
   for tool in "${detected_tools[@]}"; do
     local target="$HOME/.$tool"
@@ -1875,7 +2245,7 @@ cleanup_stale_files() {
 # --- Main ---
 
 main() {
-  ui_init 6
+  ui_init 7
   printf '\n%bSpine%b %b— AI coding setup%b\n' "${_C_BOLD}" "${_C_RESET}" "${_C_DIM}" "${_C_RESET}" >&2
 
   # Step 1: Setup (source + central dir)
@@ -1895,11 +2265,15 @@ main() {
   fi
   setup_central_dir "$src"
 
-  # Step 2: Dependencies
+  # Step 2: Hooks
+  ui_step "Hooks"
+  setup_hooks "$src"
+
+  # Step 3: Dependencies
   ui_step "Dependencies"
   ensure_system_deps
 
-  # Step 3: Detect tools
+  # Step 4: Detect tools
   ui_step "Detecting tools"
   local tools
   read -ra tools <<< "$(detect_tools)"
@@ -1911,17 +2285,18 @@ main() {
 
   ui_ok "Found" "${tools[*]}"
 
-  # Step 4: Configure tools
+  # Step 5: Configure tools
   ui_step "Configuring tools"
   ui_live_start
   for tool in "${tools[@]}"; do
-    _TOOL_FEATURES="" _TOOL_MCP=0
+    _TOOL_FEATURES="" _TOOL_MCP=0 _TOOL_HOOKS=0
     ui_live_item "$tool"
     install_tool "$tool" "$src"
     _install_rtk_single "$tool"
     _install_mcp_single "$tool"
     ui_live_done "$tool" "$(_tool_summary)"
     _TOTAL_TOOLS=$((_TOTAL_TOOLS + 1))
+    _TOTAL_HOOKS=$((_TOTAL_HOOKS + _TOOL_HOOKS))
   done
   ui_live_collapse "Tools configured" "${tools[*]}"
 
@@ -1962,19 +2337,19 @@ main() {
     done
   fi
 
-  # Step 5: Install skills (live section managed internally)
+  # Step 6: Install skills (live section managed internally)
   ui_step "Installing skills"
   install_skills "$src" "${tools[@]}"
 
-  # Step 6: Clean up
+  # Step 7: Clean up
   ui_step "Cleaning up"
-  cleanup_stale_files "${tools[@]}"
+  cleanup_stale_files "$src" "${tools[@]}"
 
   # Final summary
   local total_skills=$((_SPINE_SKILL_COUNT + _GLOBAL_SKILL_COUNT))
   local deps_info="${_TOTAL_DEPS} deps"
   [ "$_TOTAL_DEPS_INSTALLED" -gt 0 ] && deps_info="${deps_info} (${_TOTAL_DEPS_INSTALLED} installed)"
-  local summary="${_TOTAL_TOOLS} tools · ${deps_info} · ${total_skills} skills"
+  local summary="${_TOTAL_TOOLS} tools · ${deps_info} · ${_TOTAL_HOOKS} hooks · ${total_skills} skills"
   [ "$_ERROR_COUNT" -gt 0 ] && summary="${summary} · ${_ERROR_COUNT} errors"
   ui_done "Spine ready  ${summary}"
 }

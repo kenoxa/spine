@@ -1,7 +1,7 @@
 #!/bin/bash
-# Unified test runner for Claude Code hooks.
+# Unified test runner for Spine hooks.
 # Runs both BATS tests (shell hooks) and Bun tests (TypeScript hooks).
-# Usage: bash claude/hooks/tests/test.sh [bats|bun|all]
+# Usage: bash hooks/tests/test.sh [bats|bun|all]
 # Default: all
 
 set -euo pipefail
@@ -17,9 +17,8 @@ FAILURES=0
 
 run_bats() {
   if ! command -v bats &>/dev/null; then
-    echo "⚠ bats not found — skipping shell hook tests"
-    echo "  Install: brew install bats-core bats-support bats-assert"
-    return 0
+    echo "✘ bats not found — install: brew install bats-core bats-support bats-assert" >&2
+    return 1
   fi
 
   echo "── Shell hooks (BATS) ──"
@@ -39,8 +38,8 @@ run_bats() {
 
 run_bun() {
   if ! command -v bun &>/dev/null; then
-    echo "⚠ bun not found — skipping TypeScript hook tests"
-    return 0
+    echo "✘ bun not found — install: https://bun.sh" >&2
+    return 1
   fi
 
   local test_files=("$SCRIPT_DIR"/*.test.ts)
@@ -59,9 +58,9 @@ run_bun() {
 # --- Run ---
 
 case "$MODE" in
-  bats)  run_bats ;;
-  bun)   run_bun ;;
-  all)   run_bats; run_bun ;;
+  bats)  run_bats || FAILURES=$((FAILURES + 1)) ;;
+  bun)   run_bun || FAILURES=$((FAILURES + 1)) ;;
+  all)   run_bats || FAILURES=$((FAILURES + 1)); run_bun || FAILURES=$((FAILURES + 1)) ;;
   *)
     echo "Usage: $0 [bats|bun|all]"
     exit 1

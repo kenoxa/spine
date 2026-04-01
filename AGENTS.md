@@ -9,7 +9,9 @@ CONTRIBUTING.md       Human authoring guide — read before editing skills or ag
 skills/               Skills: SKILL.md + references/ per skill
   {do,run,with,use}-* Prefix: do- workflow, run- standalone, with- domain, use- tools
 agents/               Subagents (250-1000 tokens each)
-claude/               Claude Code plugin: hooks, Claude-only skills (run-skill-eval)
+hooks/                Cross-provider hooks: _env.sh _ts.sh _nlx.sh _project.sh (helpers), shell/TS hooks, tests/
+claude/               Claude Code plugin: hooks.json manifest, Claude-only skills (run-skill-eval)
+opencode/             OpenCode plugin: spine-hooks.ts (in-process hook delegation)
 docs/                 specs/, skills-reference.md, global-skills.md, tips.md
 scripts/              Token counting, drift detection
 install.sh            Installer — manages ~/.config/spine/ and provider symlinks

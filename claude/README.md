@@ -1,6 +1,6 @@
 # Spine — Claude Code Plugin
 
-Claude Code-specific extensions that don't apply to Cursor or Codex.
+Claude Code-specific extensions delivered via the plugin marketplace. Hooks are shared with other providers (see the [main README](../README.md#hooks-installed) for the full compatibility matrix).
 
 ## Install
 
@@ -9,23 +9,29 @@ claude plugin marketplace add kenoxa/spine
 claude plugin install spine@kenoxa
 ```
 
-The [`install.sh`](../install.sh) script attempts this automatically for Claude Code users.
+The [`install.sh`](../install.sh) script attempts this automatically. If plugin installation fails, it falls back to generating hooks in `~/.claude/settings.json`.
+
+> **Note:** The plugin's hooks depend on shared hook scripts installed to `~/.config/spine/hooks/` by `install.sh`. Running `claude plugin marketplace add` alone registers the hooks, but they will fail open until `install.sh` copies the hook scripts.
 
 ## Contents
 
-### SessionStart hook
+### Hooks
 
-Injects project-level `AGENTS.md` files into Claude Code context. Claude Code natively loads `CLAUDE.md` but not `AGENTS.md` — this hook bridges the gap so projects using `AGENTS.md` (shared with Cursor and Codex) are visible in Claude Code sessions.
+The plugin registers hooks via [`hooks/hooks.json`](hooks/hooks.json). All hook scripts live in the shared [`hooks/`](../hooks/) directory and are installed to `~/.config/spine/hooks/` with shebang rewriting.
 
-Configured in [`hooks/hooks.json`](hooks/hooks.json). Script: [`hooks/inject-agents-md.sh`](hooks/inject-agents-md.sh).
+| Hook | Event | Script | Detail |
+|------|-------|--------|--------|
+| `inject-agents-md` | SessionStart | [`inject-agents-md.sh`](../hooks/inject-agents-md.sh) | Injects project `AGENTS.md` — Claude Code loads `CLAUDE.md` natively but not `AGENTS.md`. |
+| `inject-compact-essentials` | SessionStart (compact) | [`inject-compact-essentials.sh`](../hooks/inject-compact-essentials.sh) | Reinjects essential context on compaction events. |
+| `guard-shell` | PreToolUse (Bash) | [`guard-shell.sh`](../hooks/guard-shell.sh) | Security deny-list: recursive rm, docker container escapes (run + exec), file uploads. RTK-rewrite agnostic. |
+| `guard-read-large` | PreToolUse (Read) | [`guard-read-large.sh`](../hooks/guard-read-large.sh) | Warns on files >2000 lines without `limit` parameter. |
+| `inject-types-on-read` | PostToolUse (Read) | [`inject-types-on-read.ts`](../hooks/inject-types-on-read.ts) | Injects TS type signatures via `probe symbols` (tree-sitter, ~40ms). Runs via Bun. |
+| `check-on-edit` | PostToolUse (Edit/Write/MultiEdit) | [`check-on-edit.sh`](../hooks/check-on-edit.sh) | Runs `tsc`, `svelte-check`, `biome` after edits. Registry-based. |
+| `pre-compact` | PreCompact | [`pre-compact.prompt`](../hooks/pre-compact.prompt) | Prompts handoff artifact before context compaction. |
 
-### PostToolUse hook (inject-types-on-read)
+Claude Code gets all 7 hooks. See the [main README](../README.md#hooks-installed) for per-provider differences.
 
-Injects TypeScript type signatures into Claude's conversation context when reading `.ts`, `.tsx`, `.mts`, `.cts`, or `.svelte` files. The AI sees plain text on file reads — this hook adds the type graph so it understands function signatures, interfaces, and type relationships without chasing imports manually.
-
-Uses `probe symbols` (tree-sitter) for extraction — fast (~40ms), no LSP daemon, no `node_modules` dependencies. Inspired by [type-inject](https://github.com/nick-vi/type-inject).
-
-**Key behaviors:**
+#### inject-types-on-read detail
 
 | Behavior | Detail |
 |----------|--------|
@@ -37,15 +43,7 @@ Uses `probe symbols` (tree-sitter) for extraction — fast (~40ms), no LSP daemo
 | Svelte | Uses project's `svelte/compiler` when available, regex fallback otherwise |
 | Scope | Project-root-gated; skips plugin directory and non-project files |
 
-Always exits 0 — type context is best-effort, never blocks the workflow.
-
-Configured in [`hooks/hooks.json`](hooks/hooks.json) (30s timeout). Script: [`hooks/inject-types-on-read.ts`](hooks/inject-types-on-read.ts) (runs via Bun).
-
-### PostToolUse hook (check-on-edit)
-
-Runs project-appropriate checkers after file edits (Edit, Write, MultiEdit). Uses a registry-based pattern with `detect_*/run_*` function pairs for easy extensibility.
-
-**Supported checkers:**
+#### check-on-edit checkers
 
 | Checker | Detects via | Runs |
 |---------|------------|------|
@@ -53,11 +51,7 @@ Runs project-appropriate checkers after file edits (Edit, Write, MultiEdit). Use
 | Svelte | `svelte.config.*` + `.svelte/.ts/.js` file | `svelte-check` |
 | Biome | `biome.json` or `biome.jsonc` | `biome check <file>` |
 
-Uses `nlx` (from ni) to execute project checkers — no lockfile detection needed. Always exits 0 — errors and missing-tooling notices are reported via `systemMessage`, never by exit code. Output is truncated to 20 lines per checker.
-
-To add a new checker, define `detect_<name>` and `run_<name>` functions and append to the `CHECKERS` array.
-
-Configured in [`hooks/hooks.json`](hooks/hooks.json) (30s timeout). Script: [`hooks/check-on-edit.sh`](hooks/check-on-edit.sh).
+To add a checker, define `detect_<name>` and `run_<name>` functions in `check-on-edit.sh`.
 
 ### `run-skill-eval` skill
 
@@ -80,14 +74,26 @@ claude/
 ├── .claude-plugin/
 │   └── plugin.json               Plugin metadata
 ├── hooks/
-│   ├── hooks.json                Hook definitions (SessionStart, PreToolUse, PostToolUse)
-│   ├── inject-types-on-read.ts   PostToolUse Read — type context injection (Bun)
-│   ├── check-on-edit.sh          PostToolUse Edit/Write — project checkers
-│   ├── guard-rm.sh               PreToolUse Bash — block recursive rm
-│   ├── inject-agents-md.sh       SessionStart — inject AGENTS.md
-│   └── tests/                    Hook test suite (BATS + Bun)
-│       └── test.sh               Unified test runner
+│   └── hooks.json                Hook definitions (plugin paths → shared hooks/)
 └── skills/
     └── run-skill-eval/
         └── SKILL.md              Skill optimization + evaluation loop
+
+hooks/                            Shared hooks (all providers)
+├── _env.sh                       POSIX env bootstrap (PATH fix, shebang wrapper)
+├── _ts.sh                        TS runtime resolver (sources _env.sh, resolves bun)
+├── _nlx.sh                       Package exec resolver (nlx/bunx/npx fallback)
+├── _project.sh                   Project root resolver
+├── guard-shell.sh                PreToolUse Bash — security deny-list
+├── guard-read-large.sh           PreToolUse Read — large file warning
+├── inject-agents-md.sh           SessionStart — inject AGENTS.md
+├── inject-compact-essentials.sh  SessionStart — reinject on compaction
+├── inject-types-on-read.ts       PostToolUse Read — TS type injection (Bun)
+├── check-on-edit.sh              PostToolUse Edit/Write/MultiEdit — project checkers
+├── pre-compact.prompt            PreCompact — handoff prompt text
+└── tests/
+    ├── test.sh                   Unified test runner (BATS + Bun)
+    ├── *.bats                    Shell hook tests (guard-shell, env, ts, inject-agents-md, check-on-edit)
+    ├── *.test.ts                 TypeScript hook tests (inject-types-on-read)
+    └── test_helper.bash          Shared BATS helpers
 ```

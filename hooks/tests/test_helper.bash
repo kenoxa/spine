@@ -16,7 +16,7 @@ run_hook() {
   shift
   local input="$1"
   shift
-  run bash -c "echo '$input' | bash '$script'"
+  run bash -c 'printf "%s" "$1" | bash "$2"' -- "$input" "$script"
 }
 
 # Run a hook script with env vars.
@@ -26,5 +26,5 @@ run_hook_env() {
   shift
   local input="$1"
   shift
-  run env "$@" bash -c "echo '$input' | bash '$script'"
+  run env "$@" bash -c 'printf "%s" "$1" | bash "$2"' -- "$input" "$script"
 }
