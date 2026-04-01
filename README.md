@@ -188,6 +188,8 @@ Then start from the workflow:
 - Shared subagents in `agents/`
 - Context7 and Exa MCP server setup
 - [RTK](https://github.com/rtk-ai/rtk) token optimization proxy — reduces LLM context usage by 60-90% on tool outputs (auto-configured per provider)
+- TypeScript type context injection — auto-injects type signatures when reading TS/Svelte files so the AI sees the type graph, not just plain text (Claude Code)
+- Post-edit type checking — runs `tsc`, `svelte-check`, and `biome` after file edits (Claude Code)
 - Claude Code plugin support for hooks and skills
 
 See [docs/skills-reference.md](docs/skills-reference.md) for the full skill and subagent catalog.

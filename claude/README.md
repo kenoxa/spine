@@ -19,6 +19,28 @@ Injects project-level `AGENTS.md` files into Claude Code context. Claude Code na
 
 Configured in [`hooks/hooks.json`](hooks/hooks.json). Script: [`hooks/inject-agents-md.sh`](hooks/inject-agents-md.sh).
 
+### PostToolUse hook (inject-types-on-read)
+
+Injects TypeScript type signatures into Claude's conversation context when reading `.ts`, `.tsx`, `.mts`, `.cts`, or `.svelte` files. The AI sees plain text on file reads — this hook adds the type graph so it understands function signatures, interfaces, and type relationships without chasing imports manually.
+
+Uses `probe symbols` (tree-sitter) for extraction — fast (~40ms), no LSP daemon, no `node_modules` dependencies. Inspired by [type-inject](https://github.com/nick-vi/type-inject).
+
+**Key behaviors:**
+
+| Behavior | Detail |
+|----------|--------|
+| Priority | 5-tier: exported functions → types in signatures → transitive deps → other exports → non-exported |
+| Token budget | ~1500 tokens, per-symbol accounting, never cuts mid-symbol |
+| Import resolution | 1-hop relative imports, capped at 10 files / 200ms |
+| Full-file reads | Injects imported types only (local signatures already visible) |
+| Partial reads | Injects both local (outside visible range) and imported types |
+| Svelte | Uses project's `svelte/compiler` when available, regex fallback otherwise |
+| Scope | Project-root-gated; skips plugin directory and non-project files |
+
+Always exits 0 — type context is best-effort, never blocks the workflow.
+
+Configured in [`hooks/hooks.json`](hooks/hooks.json) (30s timeout). Script: [`hooks/inject-types-on-read.ts`](hooks/inject-types-on-read.ts) (runs via Bun).
+
 ### PostToolUse hook (check-on-edit)
 
 Runs project-appropriate checkers after file edits (Edit, Write, MultiEdit). Uses a registry-based pattern with `detect_*/run_*` function pairs for easy extensibility.
@@ -56,12 +78,16 @@ Works in any repo, not spine-specific. Requires the `skill-creator` plugin for g
 ```
 claude/
 ├── .claude-plugin/
-│   └── plugin.json          Plugin metadata
+│   └── plugin.json               Plugin metadata
 ├── hooks/
-│   ├── hooks.json           Hook definitions (SessionStart, PostToolUse)
-│   ├── check-on-edit.sh     PostToolUse checker hook
-│   └── inject-agents-md.sh  SessionStart hook script
+│   ├── hooks.json                Hook definitions (SessionStart, PreToolUse, PostToolUse)
+│   ├── inject-types-on-read.ts   PostToolUse Read — type context injection (Bun)
+│   ├── check-on-edit.sh          PostToolUse Edit/Write — project checkers
+│   ├── guard-rm.sh               PreToolUse Bash — block recursive rm
+│   ├── inject-agents-md.sh       SessionStart — inject AGENTS.md
+│   └── tests/                    Hook test suite (BATS + Bun)
+│       └── test.sh               Unified test runner
 └── skills/
     └── run-skill-eval/
-        └── SKILL.md          Skill optimization + evaluation loop
+        └── SKILL.md              Skill optimization + evaluation loop
 ```
