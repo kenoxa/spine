@@ -18,11 +18,11 @@ Privacy comparison for envoy provider selection. Current stack: Claude, Codex, C
 
 ## Key Splits
 
-**OpenCode Go**: Marketing page (opencode.ai/go) claims zero retention, no training, US/EU/Singapore. Formal privacy policy is less specific. Backend models (GLM-5, MiniMax M2.5/M2.7, Kimi K2.5) are from Chinese-parent providers routed through OpenCode's infrastructure.
+**OpenCode Go**: Marketing page (opencode.ai/go) claims zero retention, no training, US/EU/Singapore. Formal privacy policy is less specific. Backend models from Chinese-parent providers (Zhipu/GLM, MiniMax, Moonshot/Kimi) routed through OpenCode's infrastructure.
 
-**OpenCode Free (Zen)**: Free models (qwen3.6-plus-free, minimax-m2.5-free, mimo-v2-pro-free) may collect data during preview periods. Privacy policies of underlying model providers apply.
+**OpenCode Free (Zen)**: Free-tier models may collect data during preview periods. Privacy policies of underlying model providers apply.
 
-**Cursor**: No per-request data handling documentation. Company-paid with monthly budget. Composer-2 (based on Kimi K2.5) routed through Cursor's infrastructure.
+**Cursor**: Backend model routing not publicly documented per-request. Company-paid with monthly budget.
 
 ## China Jurisdiction Note
 
