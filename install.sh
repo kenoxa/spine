@@ -1778,14 +1778,15 @@ mcp_add_copilot() {
   local tmp
   tmp=$(mktemp)
   # Copilot supports ${env:NAME} interpolation in headers — use runtime references, not baked values
+  # Copilot requires explicit "type" discriminator for URL-based MCP servers
   jq --arg c7url "$c7_url" --arg c7key "$c7_key" \
      --arg exaurl "$exa_url" --arg exakey "$exa_key" '
     .mcpServers //= {} |
     .mcpServers.context7 = (
-      {url: $c7url} + if $c7key != "" then {headers: {"Authorization": "Bearer ${env:CONTEXT7_API_KEY}"}} else {} end
+      {type: "http", url: $c7url} + if $c7key != "" then {headers: {"Authorization": "Bearer ${env:CONTEXT7_API_KEY}"}} else {} end
     ) |
     .mcpServers.exa = (
-      {url: $exaurl} + if $exakey != "" then {headers: {"Authorization": "Bearer ${env:EXA_API_KEY}"}} else {} end
+      {type: "http", url: $exaurl} + if $exakey != "" then {headers: {"Authorization": "Bearer ${env:EXA_API_KEY}"}} else {} end
     )
   ' "$mcp_file" > "$tmp"
 
