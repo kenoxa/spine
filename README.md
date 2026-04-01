@@ -26,19 +26,20 @@ Install and sign in to the provider tools you want Spine to configure first. Spi
 
 | Provider | CLI | Host | Skills | Subagents | Envoy | Notes |
 |----------|-----|------|--------|-----------|-------|-------|
-| **Claude Code** | `claude` | Full | Full | Full | Target | Primary recommended. SWE-Bench 80.8% (Opus). |
-| **Codex** | `codex` | Full | Full | Full | Target | Strongest agentic tool use (Terminal-Bench 75.1%). |
-| **Cursor** | `cursor-agent` | Full | Full | Partial¹ | Target | Best IDE integration. Monthly cap. |
-| **Qwen Code** | `qwen` | Full | Full | Partial² | Target | Free tier resolves all models to coder-model. |
-| **Copilot** | `copilot` | Full | Full | Partial² | Target + Fallback | Requires GitHub Pro+. Tight rate limits. |
-| **OpenCode** | `opencode` | Full | Full | Full | Target + Fallback | Multi-model gateway (GLM, MiniMax, DeepSeek). |
-| **GLM** | via `opencode` | — | — | — | Target | Best reasoning (Vals AI 60.69%). Subscription. |
-| **MiniMax** | via `opencode` | — | — | — | Target | Best cost/perf. Free fast tier. |
-| **DeepSeek** | via `opencode` | — | — | — | Target | Strong coding. Per-usage via OpenRouter. |
+| **Claude Code** | `claude` | Full | Full | Full | Default | Primary recommended. SWE-Bench 80.8% (Opus). |
+| **Codex** | `codex` | Full | Full | Full | Default | Strongest agentic tool use (Terminal-Bench 75.1%). |
+| **Cursor** | `cursor-agent` | Full | Full | Partial¹ | Default | Best IDE integration. Monthly cap. |
+| **Gemini** | via `copilot` | — | — | — | Default (3rd slot) | Gemini 3.1 Pro / 3 Flash via Copilot CLI. Privacy-first. |
+| **Qwen Code** | `qwen` | Full | Full | Partial² | 3rd slot fallback | Free tier resolves all models to coder-model. |
+| **Copilot** | `copilot` | Full | Full | Partial² | Fallback | Requires GitHub Pro+. Tight rate limits. |
+| **OpenCode** | `opencode` | Full | Full | Full | 3rd slot fallback | Multi-model gateway (GLM, MiniMax, DeepSeek). |
+| **GLM** | via `opencode` | — | — | — | Via override | Best reasoning (Vals AI 60.69%). Subscription. |
+| **MiniMax** | via `opencode` | — | — | — | Via override | Best cost/perf. Free fast tier. |
+| **DeepSeek** | via `opencode` | — | — | — | Via override | Strong coding. Recommended opt-in for security workflows. |
 
 ¹ Legacy plans ignore subagent model config. ² No model/effort fields in agent frontmatter.
 
-**Envoy** dispatches cross-provider perspectives during design and review. In single-mode, fallback chains cascade: primary target → copilot → cursor → **opencode** (best-of-breed per tier). In multi-mode, all available providers are dispatched in parallel.
+**Envoy** dispatches cross-provider perspectives during design and review. Default: 3 core providers (`claude`, `codex`, `cursor`) + availability-gated 3rd slot (`gemini` → `opencode` → `qwen`, privacy-first). Override with `SPINE_ENVOY_PROVIDERS`. In single-mode, fallback chains cascade per provider. In multi-mode, all available providers are dispatched in parallel.
 
 For tier-to-model mappings, pricing, and benchmarks see [docs/model-selection.md](docs/model-selection.md).
 

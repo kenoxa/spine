@@ -183,7 +183,7 @@ Durable project insights live in `docs/` and are indexed by AGENTS.md `## Projec
 
 **Routing rubric**: SPINE.md rules → SPINE.md. Skill/agent roles → skill/agent files. Durable insights → `docs/*.md` knowledge files. Ephemeral session notes → `.scratch/`.
 
-**Evidence gate**: promotion requires E2+ anchor (code reference or executed command). E0/E1-only learnings are advisory.
+**Evidence gate**: promotion requires E2+ anchor (code reference or executed command). E0/E1-only learnings are advisory. Exception: findings about third-party systems (provider policies, external libraries, academic results) accept E1 with 3+ independent sources — these are structurally incapable of producing E2 code references.
 
 ## Review Checklist
 

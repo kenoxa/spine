@@ -84,6 +84,9 @@ resolve_tier() {
         frontier:copilot) _tier_model=gpt-5.4;        _tier_effort=high ;;
         standard:copilot) _tier_model=gpt-5.4;        _tier_effort=medium ;;
         fast:copilot)     _tier_model=gpt-5.4-mini;   _tier_effort=high ;;
+        frontier:gemini) _tier_model=gemini-3.1-pro;  _tier_effort= ;;  # via Copilot CLI; no effort parameter
+        standard:gemini) _tier_model=gemini-3.1-pro;  _tier_effort= ;;
+        fast:gemini)     _tier_model=gemini-3-flash;   _tier_effort= ;;
         *)               _tier_model=;               _tier_effort= ;;
     esac
 }

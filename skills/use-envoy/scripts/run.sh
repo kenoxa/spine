@@ -111,7 +111,15 @@ if [ "$mode" = "multi" ]; then
     if [ -n "${SPINE_ENVOY_PROVIDERS:-}" ]; then
         _providers=$(printf '%s' "$SPINE_ENVOY_PROVIDERS" | tr ',' ' ')
     else
-        _providers="claude codex cursor qwen glm minimax deepseek"
+        # Core providers (always present; self-exclusion happens below)
+        _providers="claude codex cursor"
+        # 3rd slot: privacy-first availability check (gemini → opencode → qwen)
+        for _candidate in gemini opencode qwen; do
+            if sh "$_script_dir/check-${_candidate}.sh" >/dev/null 2>&1; then
+                _providers="$_providers $_candidate"
+                break
+            fi
+        done
     fi
 
     # --- Normalize: validate, deduplicate, exclude self ---
@@ -151,7 +159,7 @@ if [ "$mode" = "multi" ]; then
     # --- Parallel dispatch with per-slot fallback ---
     for _p in $_launched; do
         sh "$_script_dir/fallback.sh" \
-            --self "$_self" --tier "$tier" --chain "copilot,cursor" \
+            --self "$_self" --tier "$tier" --chain "copilot,cursor,opencode" \
             --prompt-file "$prompt_file" \
             --output-file "${_base}.${_p}.md" \
             --stderr-log "${_base}.${_p}.log" \

@@ -2,6 +2,24 @@
 
 All notable changes are documented here, focused on user impact.
 
+## 2026-04-01
+
+### Breaking
+
+- **Default envoy providers reduced from 7 to 3+fallback** — the default envoy stack is now `claude`, `codex`, `cursor` + an availability-gated 3rd slot (`gemini` → `opencode` → `qwen`). Previously all 7 providers (`claude,codex,cursor,qwen,glm,minimax,deepseek`) were dispatched by default. The new default reduces noise from redundant perspectives and orders the 3rd slot by privacy strength. GLM, MiniMax, and DeepSeek remain available via explicit `SPINE_ENVOY_PROVIDERS` override.
+
+  **Migration:** to restore the previous 7-provider default, set `export SPINE_ENVOY_PROVIDERS=claude,codex,cursor,qwen,glm,minimax,deepseek` in `~/.config/spine/.env`.
+
+### Added
+
+- **`gemini` envoy provider** — pseudo-provider that routes through Copilot CLI to access Google Gemini models. Tier mapping: frontier/standard = Gemini 3.1 Pro, fast = Gemini 3 Flash. No effort parameter (Copilot has none for Gemini). Adds Google model family for analytical diversity. Privacy: GitHub umbrella (Business/Enterprise: no training, IP indemnity, US data residency). **Note:** Gemini models are not yet available via Copilot CLI (`--model` flag); the provider infrastructure is in place and will activate automatically when Copilot adds CLI support. Until then, the 3rd slot falls through to OpenCode or Qwen.
+
+### Changed
+
+- **Envoy 3rd slot is availability-gated** — instead of a static provider list, the 3rd slot probes for the first available provider in priority order: `gemini` (strongest privacy) → `opencode` (zero retention) → `qwen` (proven analytics). `SPINE_ENVOY_PROVIDERS` override bypasses detection entirely.
+- **Privacy-first provider ordering** — default provider priority reflects data handling guarantees rather than analytical performance alone. Gemini (GitHub umbrella, US residency) outranks OpenCode (zero retention, US/EU/Singapore) outranks Qwen (China data residency, free tier undocumented).
+- **DeepSeek recommended as opt-in** — strong coding and agentic benchmarks, but per-usage OpenRouter routing and China-origin privacy considerations. Recommended for explicit opt-in in security-focused workflows.
+
 ## 2026-03-31
 
 ### Breaking
