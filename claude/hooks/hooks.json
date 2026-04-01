@@ -40,6 +40,16 @@
 		],
 		"PostToolUse": [
 			{
+				"matcher": "Read",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "bun ${CLAUDE_PLUGIN_ROOT}/hooks/inject-types-on-read.ts",
+						"timeout": 30
+					}
+				]
+			},
+			{
 				"matcher": "Edit|Write|MultiEdit",
 				"hooks": [
 					{
