@@ -36,7 +36,7 @@ Accept: `frame_artifact` from `/do-frame`, freeform problem statement, or user p
 
 MANDATORY — always invoke `/run-advise`. No zero-dispatch exception; advisory is never self-contained at this phase.
 
-Invoke `/run-advise` with problem context, constraints from `frame_artifact` or `discuss_artifact`. Returns `advise_artifact`.
+Invoke `/run-advise` with problem context, constraints from `frame_artifact` or `discuss_artifact`, and `{source_artifact_path}` set to the persisted authoritative artifact for this phase (typically the `frame_artifact` or `discuss_artifact` file under `.scratch/<session>/`). Returns `advise_artifact`.
 
 ### 3. Validate
 

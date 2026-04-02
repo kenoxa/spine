@@ -12,6 +12,7 @@ Critical framing: assume only the happy path was tested.
 
 Dispatch provides:
 - `{review_brief_path}` -- review brief (read before raising any finding)
+- `{change_evidence_path}` -- optional; when present, read `review-change-evidence.md` for actual diff/patch/hunks before relying on path-only lists
 - Diff/file list
 - Risk level
 - `{output_path}`

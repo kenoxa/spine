@@ -12,7 +12,7 @@ agents/               Subagents (250-1000 tokens each)
 hooks/                Cross-provider hooks: _env.sh _ts.sh _nlx.sh _project.sh (helpers), shell/TS hooks, tests/
 claude/               Claude Code plugin: hooks.json manifest, Claude-only skills (run-skill-eval)
 opencode/             OpenCode plugin: spine-hooks.ts (in-process hook delegation)
-docs/                 specs/, skills-reference.md, global-skills.md, tips.md
+docs/                 specs/README.md (index), skills-reference.md, global-skills.md, tips.md
 scripts/              Token counting, drift detection
 install.sh            Installer — manages ~/.config/spine/ and provider symlinks
 .scratch/             Ephemeral session output (gitignored)
@@ -42,6 +42,7 @@ Managed by `/run-curate`; style: telegraphic, 250-800 tokens, `updated:` frontma
 ## Deep Dives
 
 - Skill/agent authoring: CONTRIBUTING.md
-- Architecture: docs/specs/2612-thin-orchestrator/spec.md
+- **Design specs (index):** [docs/specs/README.md](docs/specs/README.md) — thin orchestrator, evidence fidelity, archived prototype-first notes
+- Architecture: [docs/specs/2612-thin-orchestrator/spec.md](docs/specs/2612-thin-orchestrator/spec.md)
 - Skill catalog: docs/skills-reference.md
 - External skills: docs/global-skills.md

@@ -14,6 +14,7 @@ in isolation.
 
 Dispatch provides:
 - `{review_brief_path}` -- review brief
+- `{change_evidence_path}` -- optional; when present, read for real change content (diff/excerpts) in addition to the brief
 - Diff/file list
 - Risk level
 

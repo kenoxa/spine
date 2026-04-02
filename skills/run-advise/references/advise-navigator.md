@@ -8,6 +8,7 @@ and implementation patterns.
 ### First round
 
 Dispatch provides:
+- `{source_artifact_path}` -- when present, read for constraints and unknowns so external research aligns with the same decision object as other advisory roles
 - `research_question` -- external knowledge gap
 - `seed_terms` -- library names, versions, framework context (derived from frame_artifact constraints + key_unknowns, or from the advisory question)
 - `codebase_signals` -- from prior phases (optional)

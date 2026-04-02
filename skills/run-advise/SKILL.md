@@ -36,6 +36,8 @@ Accept: question from user (standalone) OR frame_artifact/context from caller (e
 
 Exit: dispatch context assembled with >=3 constraints, OR frame_artifact present. Include selected lenses (if any) in dispatch context for all batch agents.
 
+**`{source_artifact_path}`**: MUST pass to every batch agent + synthesis — repo-relative decision object (e.g. `.scratch/<session>/frame-artifact.md`, `discuss-artifact.md`, or thin standalone intake). Same path in `advise-synthesis` + `advise-envoy`.
+
 ### 2. Batch
 
 Dispatch in parallel:
@@ -48,7 +50,7 @@ Dispatch in parallel:
 
 ### 3. Synthesis
 
-Entry: all 4 batch outputs exist (or gap-flagged). Sequential `@synthesizer` via `references/advise-synthesis.md`. Retry once on empty; halt on failure. Output: `.scratch/<session>/advise-synthesis.md`.
+Entry: all 4 batch outputs exist (or gap-flagged). Sequential `@synthesizer` via `references/advise-synthesis.md` with the same `{source_artifact_path}` as Phase 2. Retry once on empty; halt on failure. Output: `.scratch/<session>/advise-synthesis.md`.
 
 ### 4. Output
 

@@ -32,8 +32,8 @@ Canonical entry: [`skills/do-build/SKILL.md`](../skills/do-build/SKILL.md).
 
 Structured code review with severity-bucketed findings and evidence-level gating. Four phases:
 
-1. **Scope + Context** — classify depth, build understanding, emit review brief (Gate A).
-2. **Inspect** — parallel dispatch: `@verifier` (plan/spec compliance + logic correctness + E3 probes) + `@inspector` (risk lens: security, perf, scale) + cross-provider `@envoy`. Verifier runs at standard and deep depth; focused depth is inline-only.
+1. **Scope + Context** — classify depth, build understanding, emit review brief (Gate A); recommended Gate A2 writes `review-change-evidence.md` (diff/patch) for shared evidence with envoy.
+2. **Inspect** — parallel dispatch: `@verifier` (plan/spec compliance + logic correctness + E3 probes) + `@inspector` (risk lens: security, perf, scale) + cross-provider `@envoy`. Verifier runs at standard and deep depth; focused depth is inline-only. Same `{review_brief_path}` / `{change_evidence_path}` for all roles and synthesis (see `use-envoy` per-phase evidence plane).
 3. **Synthesis** — `@synthesizer` merges verifier VERDICT, inspector findings, and envoy output. VERDICT propagation: FAIL/PARTIAL → blocking flag in synthesis header.
 4. **Output** — conflict resolution, severity re-sort, user-facing findings, visual diff report.
 
@@ -101,7 +101,7 @@ Canonical entry: [`skills/run-implement/SKILL.md`](../skills/run-implement/SKILL
 
 ### run-advise
 
-Multi-model perspective gathering with synthesis. Works standalone ("advise on this approach") and as an embedded phase in `do-design`. Dispatches `@consultant` (rigorous + creative angles) + `@navigator` + `@envoy` → `@synthesizer`. Produces `advise_artifact` with convergence/divergence map, tradeoffs, falsification risks. Standalone: thin input gets grounding question; embedded: dispatches directly from `frame_artifact`.
+Multi-model perspective gathering with synthesis. Works standalone ("advise on this approach") and as an embedded phase in `do-design`. Dispatches `@consultant` (rigorous + creative angles) + `@navigator` + `@envoy` → `@synthesizer`. Produces `advise_artifact` with convergence/divergence map, tradeoffs, falsification risks. Standalone: thin input gets grounding question; embedded: dispatches directly from `frame_artifact`. Orchestration passes `{source_artifact_path}` so the synthesizer and envoy share the same authoritative on-disk artifact as the decision object (see `references/advise-synthesis.md`).
 
 Canonical entry: [`skills/run-advise/SKILL.md`](../skills/run-advise/SKILL.md).
 

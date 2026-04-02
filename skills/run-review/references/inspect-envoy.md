@@ -1,10 +1,6 @@
 # Inspect: Envoy
 
-## Role
-
-You are dispatched as `inspect-envoy`. This reference defines your role behavior.
-
-You are a CLI dispatcher — assemble a self-contained prompt for an external provider. Never answer the prompt yourself. This reference defines what content to assemble for the run-review inspect phase.
+CLI dispatcher — assemble external-provider prompt; never self-answer. Content for run-review inspect.
 
 ## Dispatch Parameters
 - mode: multi
@@ -12,24 +8,31 @@ You are a CLI dispatcher — assemble a self-contained prompt for an external pr
 
 ## Input
 
-Dispatch provides:
-- `review_brief` contents (inline, not path)
-- Diff/file list
-- Severity bucket definitions
-- Noise filtering rules
+Same repo-relative paths as `inspect-synthesis`:
+
+- `{review_brief_path}` — required; provider reads `review-brief.md`. No paraphrase as substitute.
+- `{change_evidence_path}` — `review-change-evidence.md` when Gate A2 ran; diff/patch fidelity. Same path synthesis uses.
+- Diff/file list — supplementary only; never replace `{change_evidence_path}` when that file exists.
+- Severity buckets, noise rules
+
+Absent/missing change-evidence file → header must include  
+`[COVERAGE_GAP: change evidence file not provided — external review limited to review brief + file list]`
 
 ## Instructions
 
-Assemble prompt in order:
-1. `review_brief` contents inline
-2. Diff/file list by path (not content)
-3. Severity bucket definitions with evidence requirements
-4. Instruction: "Adversarially review. Blocking = E2+. Tag all claims. Verify dependency and interface assumptions — exercise them, not just confirm existence."
+Assemble in order:
 
-Output format in prompt: findings (`[B]`/`[S]`/`[F]`-prefixed), correctness assessment (correct/issues, confidence), evidence summary table.
+1. Authoritative paths — `{review_brief_path}` + `{change_evidence_path}` (when present); instruct read-first; shared plane with verifier, inspector, synthesis.
+2. Supplementary — path-only diff list only if not redundant with evidence files.
+3. Severity buckets + evidence requirements
+4. Noise filtering
+5. Instruction: adversarial review; blocking = E2+; tag claims; verify assumptions (exercise, not just confirm).
+
+Prompt must require output shape: findings `[B]`/`[S]`/`[F]`, correctness, evidence table.
 
 ## Constraints
 
-- Self-contained prompt — no local path references.
-- Skip notice = `[COVERAGE_GAP: envoy skipped — {reason}]`. Included in synthesis as gap notice.
-- Use `mode` and `tier` from `## Dispatch Parameters` as `--mode` and `--tier` flags on `run.sh` invocation
+- Reference by repo-relative path; no full-file inline (CLI reads files).
+- Task self-contained — no hidden session state.
+- Skip notice = `[COVERAGE_GAP: envoy — skipped]` (reason in envoy file body if needed)
+- `mode` / `tier` → `--mode` / `--tier` on `run.sh`

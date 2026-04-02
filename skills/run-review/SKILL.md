@@ -36,14 +36,11 @@ When invoked directly (not as agent preload): follow standalone review phases be
 
 Mainthread. Load [scope-context.md](references/scope-context.md).
 
-Depth classification → session → context passes → review_brief (Gate A).
-
-Review brief schema: [template-review-brief.md](references/template-review-brief.md).
-Security probe: [security-probe.md](references/security-probe.md).
+Depth → session → context → Gate A (`review-brief.md`) → Gate A2 (`review-change-evidence.md`, optional) per [review-change-evidence-schema.md](references/review-change-evidence-schema.md). Brief: [template-review-brief.md](references/template-review-brief.md). Security: [security-probe.md](references/security-probe.md).
 
 ### Phase 2: Inspect
 
-Dispatch in parallel:
+Dispatch in parallel with the **same** `{review_brief_path}` and `{change_evidence_path}` (when present) for every role — shared evidence plane with Phase 3 synthesis:
 - `verifier` (`@verifier`) → `references/inspect-verifier.md`
 - `risk-reviewer` (`@inspector`) → `references/inspect-risk-reviewer.md`
 - `@envoy` → `references/inspect-envoy.md` (via `use-envoy`)
@@ -52,11 +49,11 @@ At `deep` depth: +augmented `@inspector` per variance lens (cap 5 total).
 
 Do NOT run Phase 2 inline at `standard` or `deep` depth. Dispatch is mandatory. Inline execution only when Gate A fails (fallback to focused depth).
 
-**Gate B**: verifier: VERDICT present (FAIL/PARTIAL → note for synthesis; output without VERDICT → treat as PARTIAL). risk-reviewer: ≥1 finding entry (`[B`/`[S`/`[F`) OR explicit per-category clearance with rationale. Absent → inject blocking. envoy: absent → `[COVERAGE_GAP: envoy absent]`. Verifier absent → inject blocking.
+**Gate B** (before synthesis files exist): verifier: VERDICT present (FAIL/PARTIAL → note for synthesis; output without VERDICT → treat as PARTIAL). risk-reviewer: ≥1 finding entry (`[B`/`[S`/`[F`) OR explicit per-category clearance with rationale. Absent → inject blocking. envoy: not dispatched → `[COVERAGE_GAP: envoy — not dispatched]`. Verifier absent → inject blocking. (Same tag family as `use-envoy` Synthesis; Gate B = pre-run, Synthesis = post-run.)
 
 ### Phase 3: Synthesis
 
-`@synthesizer` → `references/inspect-synthesis.md`
+`@synthesizer` → `references/inspect-synthesis.md` (pass `{review_brief_path}`, `{change_evidence_path}` when applicable, plus inspector/verifier/envoy outputs)
 
 **Gate C**: synthesis empty → fall back to individual agent outputs, merge manually.
 

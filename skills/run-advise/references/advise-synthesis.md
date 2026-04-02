@@ -5,6 +5,7 @@ Merge consultant + envoy outputs into a directional recommendation. Surface disa
 ## Input
 
 Dispatch provides:
+- `{source_artifact_path}` — repo-relative decision object (`frame_artifact` / `discuss_artifact` / `.scratch/<session>/` intake). Read fully before merge. Same path as envoy for this round.
 - `{file_pattern}` -- glob pattern for consultant output files
 - `{output_path}` -- write synthesis here
 
@@ -14,17 +15,19 @@ Expected files matching `{file_pattern}`:
 - `advise-batch-navigator.md` (external research: library docs, code patterns, ecosystem alternatives)
 - `advise-batch-envoy.md` or `advise-batch-envoy.<provider>.md` per mode (when present; may be skip advisory)
 
-Verify all expected inputs exist and are non-empty; flag gaps in output header.
+Verify `{source_artifact_path}` exists and is non-empty; verify all expected batch inputs exist and are non-empty; flag gaps in output header.
 
 ## Instructions
 
-Merge strategy -- disagreement-as-signal:
+**Source grounding**: Batch outputs are angles on `{source_artifact_path}` — do not let summaries replace facts only in the source file.
+
+Merge strategy — disagreement-as-signal:
 
 1. **Convergence zones**: where multiple angles agree = high confidence. Cite all sources.
 2. **Divergence zones**: where angles disagree = surface to user with both positions and evidence. Do NOT auto-resolve. Tag with `[DIVERGENCE]`.
 3. Rank by evidence level: E3 > E2 > E1 > E0. Same level = `[CONFLICT]` with provenance.
 4. Preserve per-consultant provenance (rigorous, creative, envoy).
-5. Envoy skip notice: `[COVERAGE_GAP: envoy skipped]` in header; proceed with base outputs.
+5. Envoy gap: `[COVERAGE_GAP: envoy — skipped]` or `— no output` in header (same shape as `use-envoy`); proceed with base outputs.
 
 ## Falsification
 

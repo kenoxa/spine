@@ -6,18 +6,19 @@
 - `{verifier_output_path}` — verifier output file
 - `{envoy_output_paths}` — 0-N envoy output files (via `{base}.*.md` glob)
 - `{review_brief_path}` — review brief
+- `{change_evidence_path}` — optional; Gate A2 `review-change-evidence.md`. Read when present (align with envoy). If absent, note in header.
 - `{output_path}` — write synthesis here
 
 ## Instructions
 
-**Existence check**: confirm every input file exists and is non-empty. Report absent/empty in output header.
+**Existence check**: required inputs exist, non-empty; report gaps in header.
 
 Merge procedure:
 1. **Deduplicate by meaning** — same finding from multiple inspectors collapses, citing all sources.
 2. **Rank by evidence** — E3 > E2 > E1 > E0.
 3. **Conflicting findings** at same evidence level → `[CONFLICT]` label. Do NOT resolve.
 4. **Preserve provenance** — per finding, list originating inspector(s).
-5. **Envoy skip notice** → omit from merge; note `[COVERAGE_GAP: envoy skipped]` in output header.
+5. **Envoy skip / gap** → omit bad rows from merge; note `[COVERAGE_GAP: envoy — skipped]` or `— no output` per `use-envoy` Synthesis.
 6. **Assign final severity** — E2+ required for blocking. For blocking findings, verify cited file+symbol references exist; unverifiable → demote to `should_fix`.
 7. **Correctness assessment** — categorical confidence (high/med/low) + 1-2 sentence justification. Note envoy agreement/disagreement.
 

@@ -69,12 +69,17 @@ When reviewing docs, READMEs, or user-facing text:
 
 After writing review_brief, read it back and confirm all 7 fields present. Dispatch must not begin in the same orchestration turn as the write. If any mandatory field is absent: do NOT proceed to Phase 2. Fall back to inline execution of remaining phases. Log to user: "review_brief incomplete after pass 4; proceeding inline at focused depth."
 
+### Gate A2: review change evidence (recommended)
+
+After Gate A, if a diff exists: write `.scratch/<session>/review-change-evidence.md` per [review-change-evidence-schema.md](review-change-evidence-schema.md) — diff/patch/excerpts, not paths-only. Omit → `inspect-envoy` uses deterministic gap string (see ref).
+
 ## Output
 
-`review_brief` written to `.scratch/<session>/review-brief.md` per [template-review-brief.md](template-review-brief.md) schema.
+- `review_brief` written to `.scratch/<session>/review-brief.md` per [template-review-brief.md](template-review-brief.md) schema.
+- **`review-change-evidence.md`** at `.scratch/<session>/review-change-evidence.md` when standard/deep and a change exists (recommended).
 
 ## Constraints
 
-- Read-only — no file writes except review_brief. `@verifier` may run non-destructive commands (build, test, lint, type-check) for E3 probes. All other agents: no test execution.
+- Read-only — no file writes except `review-brief.md` and optional `review-change-evidence.md`. `@verifier` may run non-destructive commands (build, test, lint, type-check) for E3 probes. All other agents: no test execution.
 - Emitting a `review_brief` without `noise_context` is an error — inspectors will flag pre-existing issues as findings.
 - At `focused` depth, skip dispatch entirely — proceed inline to output phase.

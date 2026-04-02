@@ -80,6 +80,6 @@ stdout: actual output paths, one per line (`<base>.<provider>.md`). These are a 
 | 2 | interrupted (provider-specific) |
 | 3 | output validation failed |
 
-Non-zero + stdout paths = partial success → `[COVERAGE_GAP: envoy — {reason}]` per missing provider.
+Non-zero + stdout paths = partial success → `[COVERAGE_GAP: envoy — no output]` or `— skipped` per missing provider (same family as `use-envoy` Synthesis).
 
 If Bash returns `Command running in background` → invocation escaped foreground. Write skip advisory: `interrupted (backgrounded before completion)`.

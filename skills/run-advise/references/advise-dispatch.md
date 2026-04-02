@@ -13,6 +13,8 @@ Dispatch provides one of:
 - `frame_artifact` from a prior analysis phase -- problem statement, constraints, blast radius, success criteria, key unknowns
 - `problem_context` -- freeform problem statement or question with enough context for directional advice
 
+When present, `{source_artifact_path}` points to the same authoritative advisory source artifact synthesis and envoy use; **Read** that file when grounding recommendations so your angle aligns with the shared decision object.
+
 When variance lenses are active, dispatch includes `active_lenses` with lens name(s) and focus directive(s). Weight your analysis toward the lens domain.
 
 ### Re-dispatch
