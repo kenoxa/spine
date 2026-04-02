@@ -17,9 +17,8 @@
 | Frontier | Complex reasoning, gate authority | opus | gpt-5.4 | composer-2 | opencode-go/glm-5 | opencode/qwen3.6-plus-free |
 | Standard | Advisory, research, pattern matching | sonnet | gpt-5.4 | auto | opencode-go/minimax-m2.7 | opencode/minimax-m2.5-free |
 | Fast | Reconnaissance, extraction | haiku | gpt-5.4-mini¹ | composer-2 | opencode-go/minimax-m2.5 | opencode/mimo-v2-pro-free |
-| Adaptive | Reserved for `model: inherit` mappings | — | — | — | — | — |
 
-No Spine subagent currently uses Adaptive; the implementer is Standard. Session quality/cost is chosen on the mainthread.
+Session quality/cost is chosen on the mainthread.
 
 ¹ Ideal mapping is gpt-5.4-nano — using mini until nano is available on the Codex subscription.
 
