@@ -4,7 +4,7 @@ description: >
   Read-write implementation within a scoped file partition.
   Use when editing project source files per plan tasks, polish actions,
   or quality-fix directives.
-model: inherit
+model: sonnet
 effort: high
 skills:
   - use-shell

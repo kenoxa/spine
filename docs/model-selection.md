@@ -4,7 +4,7 @@
 
 ## How Models Work in Spine
 
-**Session model** — the model running your conversation (the mainthread). You choose this based on task complexity and budget. It also drives adaptive agents like the implementer and synthesizer.
+**Session model** — the model running your conversation (the mainthread). You choose this based on task complexity and budget. It does not override fixed subagent tiers: the implementer is Standard, the synthesizer is Frontier, and so on (see [Agent Tier Assignments](#agent-tier-assignments)).
 
 **Subagents** — dispatched by skills for specific tasks (planning, reviewing, debugging). Each has an assigned tier that determines its model automatically. You don't configure these — a planner always uses a frontier model, a scout always uses a fast model, regardless of your session choice.
 
@@ -17,7 +17,9 @@
 | Frontier | Complex reasoning, gate authority | opus | gpt-5.4 | composer-2 | opencode-go/glm-5 | opencode/qwen3.6-plus-free |
 | Standard | Advisory, research, pattern matching | sonnet | gpt-5.4 | auto | opencode-go/minimax-m2.7 | opencode/minimax-m2.5-free |
 | Fast | Reconnaissance, extraction | haiku | gpt-5.4-mini¹ | composer-2 | opencode-go/minimax-m2.5 | opencode/mimo-v2-pro-free |
-| Adaptive | Tracks your session model | — | — | — | — | — |
+| Adaptive | Reserved for `model: inherit` mappings | — | — | — | — | — |
+
+No Spine subagent currently uses Adaptive; the implementer is Standard. Session quality/cost is chosen on the mainthread.
 
 ¹ Ideal mapping is gpt-5.4-nano — using mini until nano is available on the Codex subscription.
 
@@ -221,6 +223,17 @@ All mapping points agree on tier:provider mappings. Intentional surface differen
 | Agent | Tier |
 |-------|------|
 | consultant, debater, inspector, synthesizer, verifier | Frontier |
-| analyst, envoy, navigator, researcher, visualizer | Standard |
-| implementer | Adaptive |
+| analyst, curator, envoy, implementer, navigator, researcher, visualizer | Standard |
 | miner, scout | Fast |
+
+### Implementer (Standard)
+
+**Pinned to Standard** so the implementer never tracks a Fast session model down to Haiku-class quality. Implementation quality should not depend on whether you temporarily downgraded the mainthread for cheap exploration.
+
+**Gate dependency:** Frontier roles produce plans, merges, and review verdicts; the Sonnet/Opus gap on SWE-Bench Verified is small relative to that stack (see benchmarks above). Treating the implementer as a Standard worker behind Frontier gates matches the "strong gates, efficient workers" pattern described in [model-tier-assignments.md](model-tier-assignments.md).
+
+### Escalation: session vs implementer
+
+**Session upgrade (mainthread)** — when *your* conversation model should move to Frontier: ambiguous requirements, cascading architectural decisions, elusive root causes, very large accumulated context, or phase-gating complexity. See [docs/model-tier-assignments.md](model-tier-assignments.md) for the full trigger list.
+
+**Implementer workload** — when *implementation* needs more than Standard even if the session stays put: multi-file architectural refactoring where the design artifact cannot fully specify cross-cutting concerns. Response: upgrade the session, use provider-specific overrides if your toolchain allows a higher tier for `@implementer` only, or split work into smaller partitions — not a substitute for Frontier session when the orchestrator itself is underpowered.

@@ -83,14 +83,16 @@ Each subagent role has an assigned model tier. The tier determines the model aut
 
 | Tier | Agents | Rationale |
 |------|--------|-----------|
-| **Frontier** | planner, debater, inspector, verifier | Gate authority. Quality of judgment must exceed quality of implementation. |
-| **Standard** | analyst, researcher, navigator, framer, visualizer, envoy | Advisory and research. Pattern matching without gate authority. |
+| **Frontier** | consultant, debater, inspector, synthesizer, verifier | Gate authority. Quality of judgment must exceed quality of implementation. |
+| **Standard** | analyst, curator, envoy, implementer, navigator, researcher, visualizer | Advisory, research, and implementation. Pattern matching and code edits without sole gate authority. |
 | **Fast** | scout, miner | Reconnaissance and extraction. Speed over depth. |
-| **Adaptive** | implementer, synthesizer | Tracks the user's session model. Respects the user's quality/cost choice. |
+| **Adaptive** | — | No subagent uses `model: inherit`. Session model choice applies to the mainthread only; see [model-selection.md](model-selection.md). |
 
-**Gate authority requires frontier reasoning.** The planner, debaters, inspector, and verifier make decisions that constrain all downstream work. A plan approved by a weaker model than the one implementing it inverts the quality hierarchy --- the gate becomes less rigorous than the work it gates. Frontier models (Opus, GPT-5.4) at these roles ensure that the hardest reasoning happens at decision points, not at implementation.
+**Gate authority requires frontier reasoning.** The consultant, debaters, inspector, synthesizer, and verifier make decisions that constrain or merge downstream work. A plan or synthesis approved by a weaker model than the roles it aggregates inverts the quality hierarchy --- the gate becomes less rigorous than the work it gates. Frontier models (Opus, GPT-5.4) at these roles ensure that the hardest reasoning happens at decision points and at merge points, not at routine extraction.
 
-**Implementation tracks the session model.** The implementer and synthesizer use Adaptive tier, inheriting whatever model the user chose for their session. If a user runs on Sonnet for cost efficiency, their implementer uses Sonnet. If they upgrade to Opus for a complex task, the implementer upgrades with them. This respects the user's cost/quality tradeoff without forcing frontier prices for routine implementation.
+**Standard floor for implementation.** The implementer is pinned to Standard (Sonnet-class) so a Fast session model cannot degrade write quality. Frontier design artifacts and Frontier reviewers absorb the small Sonnet/Opus coding benchmark gap in practice; numeric context lives in [model-selection.md](model-selection.md) and the quick reference in [model-tier-assignments.md](model-tier-assignments.md).
+
+**Synthesizer stays Frontier.** Merging N subagent outputs is merge-authority work behind the thin-orchestrator firewall; it is not parallel to "routine implementation" and stays on Opus-class models independently of the session model.
 
 **Fast agents handle reconnaissance.** Scouts and miners search files, extract patterns, and gather context. These tasks are bounded and factual --- model quality matters less than speed and token efficiency.
 

@@ -2,6 +2,13 @@
 
 All notable changes are documented here, focused on user impact.
 
+## 2026-04-02
+
+### Changed
+
+- **`implementer` pinned to Standard** — `model: inherit` → `model: sonnet` so Fast session models cannot pull implementation down to Haiku-class quality. Documentation updated (`docs/architecture.md`, `docs/model-selection.md`, `docs/model-tier-assignments.md`, `docs/skills-reference.md`, README model-selection details). Escalation guidance split into **session** (mainthread) vs **implementer workload** triggers.
+- **Agent tier docs aligned with repo** — `synthesizer` is Frontier (`opus`) in `agents/synthesizer.md`; catalog and architecture no longer describe it as Adaptive.
+
 ## 2026-04-01
 
 ### Breaking
