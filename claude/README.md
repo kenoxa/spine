@@ -25,7 +25,7 @@ The plugin registers hooks via [`hooks/hooks.json`](hooks/hooks.json). All hook 
 | `inject-compact-essentials` | SessionStart (compact) | [`inject-compact-essentials.sh`](../hooks/inject-compact-essentials.sh) | Reinjects essential context on compaction events. |
 | `guard-shell` | PreToolUse (Bash) | [`guard-shell.sh`](../hooks/guard-shell.sh) | Security deny-list: recursive rm, docker container escapes (run + exec), file uploads. RTK-rewrite agnostic. |
 | `guard-read-large` | PreToolUse (Read) | [`guard-read-large.sh`](../hooks/guard-read-large.sh) | Warns on files >2000 lines without `limit` parameter. |
-| `inject-types-on-read` | PostToolUse (Read) | [`inject-types-on-read.ts`](../hooks/inject-types-on-read.ts) | Injects TS type signatures via `probe symbols` (tree-sitter, ~40ms). Runs via Bun. |
+| `inject-types-on-read` | PostToolUse (Read) | [`inject-types-on-read.ts`](../hooks/inject-types-on-read.ts) | Injects JS/TS/Svelte, Python, and Java symbol signatures via `probe symbols` (tree-sitter, ~40ms). Runtime-agnostic: Bun, Node.js, or Deno. |
 | `check-on-edit` | PostToolUse (Edit/Write/MultiEdit) | [`check-on-edit.sh`](../hooks/check-on-edit.sh) | Runs `tsc`, `svelte-check`, `biome` after edits. Registry-based. |
 | `pre-compact` | PreCompact | [`pre-compact.prompt`](../hooks/pre-compact.prompt) | Prompts handoff artifact before context compaction. |
 
@@ -40,7 +40,7 @@ Claude Code gets all 7 hooks. See the [main README](../README.md#hooks-installed
 | Import resolution | 1-hop relative imports, capped at 10 files / 200ms |
 | Full-file reads | Injects imported types only (local signatures already visible) |
 | Partial reads | Injects both local (outside visible range) and imported types |
-| Svelte | Uses project's `svelte/compiler` when available, regex fallback otherwise |
+| Svelte | Extracts every `<script>` block, infers JS vs TS temp probing, uses project's `svelte/compiler` when available with regex fallback |
 | Scope | Project-root-gated; skips plugin directory and non-project files |
 
 #### check-on-edit checkers
@@ -88,7 +88,8 @@ hooks/                            Shared hooks (all providers)
 ├── guard-read-large.sh           PreToolUse Read — large file warning
 ├── inject-agents-md.sh           SessionStart — inject AGENTS.md
 ├── inject-compact-essentials.sh  SessionStart — reinject on compaction
-├── inject-types-on-read.ts       PostToolUse Read — TS type injection (Bun)
+├── inject-types-on-read.ts       PostToolUse Read — symbol/signature injection (runtime-agnostic)
+├── inject-types/                 TS modules imported by inject-types-on-read (copied by install.sh)
 ├── check-on-edit.sh              PostToolUse Edit/Write/MultiEdit — project checkers
 ├── pre-compact.prompt            PreCompact — handoff prompt text
 └── tests/

@@ -321,13 +321,13 @@ export EXA_API_KEY=your-key-here
 <details>
 <summary id="hooks-installed">Hooks installed</summary>
 
-The installer copies shared hooks to `~/.config/spine/hooks/` with shebang rewriting, then generates provider-specific hook configs. Not all providers support all hook events.
+The installer copies shared hooks to `~/.config/spine/hooks/` with shebang rewriting, then generates provider-specific hook configs. TypeScript hooks that use local modules (for example `inject-types-on-read.ts` plus the `inject-types/` directory) are copied as a tree so imports resolve after install. Not all providers support all hook events.
 
 | Hook | Event | What it does |
 |------|-------|-------------|
 | `guard-shell` | PreToolUse (Bash) | Security deny-list: blocks recursive `rm`, docker container escapes (run + exec), file uploads via curl/wget. RTK-rewrite agnostic. |
 | `guard-read-large` | PreToolUse (Read) | Warns when reading files >2000 lines without a `limit` parameter. Prevents context window waste. |
-| `inject-types-on-read` | PostToolUse (Read) | Injects TypeScript type signatures into context when reading `.ts`/`.tsx`/`.svelte` files. Uses `probe symbols` (tree-sitter). |
+| `inject-types-on-read` | PostToolUse (Read) | Injects symbol/signature context into reads for JS/TS/Svelte, Python, and Java files via `probe symbols` (tree-sitter). |
 | `check-on-edit` | PostToolUse (Edit/Write/MultiEdit) | Runs `tsc`, `svelte-check`, and `biome` after file edits. Registry-based — easy to extend. |
 | `inject-agents-md` | SessionStart | Injects project `AGENTS.md` into session context (Claude Code only — other providers load it natively). |
 | `inject-compact-essentials` | SessionStart | Reinjects essential context on compaction events. |

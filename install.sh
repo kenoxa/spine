@@ -688,6 +688,7 @@ setup_central_dir() {
 # .sh hooks: #!/bin/sh → #!/path/to/_env.sh (env bootstrap via shebang)
 # .ts hooks: shebang → #!/path/to/_ts.sh (runtime resolver)
 # Helper scripts (_env.sh, _ts.sh, etc.) keep original shebangs.
+# Subdirectories: e.g. hooks/inject-types/ (modules imported by inject-types-on-read.ts) are copied wholesale.
 setup_hooks() {
   local src="$1"
   local spine_dir="$HOME/.config/spine"
@@ -734,6 +735,12 @@ setup_hooks() {
         ;;
     esac
   done
+
+  # TS support modules (not counted in hook total — only top-level *.sh/*.ts/*.prompt are "hooks")
+  if [ -d "$src/hooks/inject-types" ]; then
+    rm -rf "$spine_dir/hooks/inject-types"
+    cp -R "$src/hooks/inject-types" "$spine_dir/hooks/inject-types"
+  fi
 
   # Post-install smoke test: verify _env.sh restores tool access
   if [ -f "$spine_dir/hooks/_env.sh" ]; then
@@ -2018,6 +2025,10 @@ cleanup_stale_files() {
         cleaned=$((cleaned + 1))
       fi
     done
+    if [ -d "$spine_dir/hooks/inject-types" ] && [ ! -d "$src/hooks/inject-types" ]; then
+      rm -rf "$spine_dir/hooks/inject-types"
+      cleaned=$((cleaned + 1))
+    fi
   fi
 
   for tool in "${detected_tools[@]}"; do

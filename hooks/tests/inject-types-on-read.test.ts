@@ -1,4 +1,8 @@
 import { describe, expect, test } from "bun:test";
+import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
+import { extractCommonJsExportNames } from "../inject-types/commonjs-exports";
 import {
   applyBudget,
   classifySymbols,
@@ -7,6 +11,7 @@ import {
   filterVisible,
   findProjectRoot,
   formatOutput,
+  MAX_HOOK_FILE_BYTES,
   parseSymbol,
   MAX_TIER1_SYMBOLS,
   type ClassifiedSymbol,
@@ -104,6 +109,41 @@ describe("parseSymbol", () => {
     expect(result.exported).toBe(true);
     expect(result.realKind).toBe("unknown");
   });
+
+  test("parses CommonJS function export", () => {
+    const result = parseSymbol(sym({
+      name: "expression_statement",
+      kind: "variable",
+      signature: "module.exports.loadUser = function loadUser() {}",
+    }));
+    expect(result).toEqual({ realName: "loadUser", realKind: "function", exported: true });
+  });
+
+  test("parses Python exports using __all__", () => {
+    const result = parseSymbol(sym({
+      name: "public_api",
+      kind: "function",
+      signature: "def public_api(user: User) -> User:",
+    }), {
+      filePath: "/tmp/example.py",
+      fileContent: "__all__ = ['public_api']",
+      language: "python",
+      publicNames: new Set(["public_api"]),
+    });
+    expect(result).toEqual({ realName: "public_api", realKind: "function", exported: true });
+  });
+
+  test("parses Java public methods as exported functions", () => {
+    const result = parseSymbol(sym({
+      name: "load",
+      kind: "method",
+      signature: "public User load(User input) { return input; }",
+    }), {
+      filePath: "/tmp/Service.java",
+      language: "java",
+    });
+    expect(result).toEqual({ realName: "load", realKind: "function", exported: true });
+  });
 });
 
 // --- extractTypeReferences ---
@@ -200,6 +240,104 @@ describe("classifySymbols", () => {
     ];
     const result = classifySymbols(symbols);
     expect(result[0].tier).toBeLessThanOrEqual(result[1].tier);
+  });
+
+  test("uses Python __all__ to keep private helpers out of exported tiers", () => {
+    const symbols: ProbeSymbol[] = [
+      sym({ name: "expression_statement", kind: "variable", signature: "__all__ = ['public_api']", line: 1, end_line: 1 }),
+      sym({ name: "public_api", kind: "function", signature: "def public_api(user: User) -> User:", line: 3, end_line: 4 }),
+      sym({ name: "User", kind: "class", signature: "class User:", line: 6, end_line: 7 }),
+      sym({ name: "_hidden", kind: "function", signature: "def _hidden():", line: 9, end_line: 10 }),
+    ];
+    const result = classifySymbols(symbols, {
+      filePath: "/tmp/example.py",
+      fileContent: "__all__ = ['public_api']",
+      language: "python",
+    });
+
+    expect(result.find((s) => s.realName === "public_api")?.tier).toBe(1);
+    expect(result.find((s) => s.realName === "User")?.tier).toBe(2);
+    expect(result.find((s) => s.realName === "_hidden")?.tier).toBe(5);
+  });
+
+  test("treats Java public methods as API surface", () => {
+    const symbols: ProbeSymbol[] = [
+      sym({ name: "User", kind: "class", signature: "public class User {}", line: 1, end_line: 1 }),
+      sym({ name: "Service", kind: "class", signature: "public class Service { ... }", line: 2, end_line: 4 }),
+      sym({ name: "load", kind: "method", signature: "public User load(User input) { return input; }", line: 3, end_line: 3 }),
+      sym({ name: "helper", kind: "method", signature: "private User helper(User input) { return input; }", line: 4, end_line: 4 }),
+    ];
+    const result = classifySymbols(symbols, {
+      filePath: "/tmp/Service.java",
+      language: "java",
+    });
+
+    expect(result.find((s) => s.realName === "load")?.tier).toBe(1);
+    expect(result.find((s) => s.realName === "User")?.tier).toBe(2);
+    expect(result.find((s) => s.realName === "helper")?.tier).toBe(5);
+  });
+
+  test("treats module.exports object members as exported JS API", () => {
+    const symbols: ProbeSymbol[] = [
+      sym({ name: "loadUser", kind: "function", signature: "function loadUser(user) { return user; }", line: 3, end_line: 3 }),
+      sym({ name: "UserRepo", kind: "class", signature: "class UserRepo {}", line: 4, end_line: 4 }),
+    ];
+    const result = classifySymbols(symbols, {
+      filePath: "/tmp/worker.cjs",
+      fileContent: "module.exports = { loadUser, UserRepo };",
+    });
+
+    expect(result.find((s) => s.realName === "loadUser")?.tier).toBe(1);
+    expect(result.find((s) => s.realName === "UserRepo")?.tier).toBe(4);
+  });
+
+  test("does not treat expression-valued CommonJS exports as local API symbols", () => {
+    const symbols: ProbeSymbol[] = [
+      sym({ name: "makeApi", kind: "function", signature: "function makeApi() { return {}; }", line: 3, end_line: 3 }),
+    ];
+    const direct = classifySymbols(symbols, {
+      filePath: "/tmp/direct-call.cjs",
+      fileContent: "module.exports = makeApi();",
+    });
+    const objectLiteral = classifySymbols(symbols, {
+      filePath: "/tmp/object-call.cjs",
+      fileContent: "module.exports = { api: makeApi() };",
+    });
+
+    expect(direct.find((s) => s.realName === "makeApi")?.tier).toBe(5);
+    expect(objectLiteral.find((s) => s.realName === "makeApi")?.tier).toBe(5);
+  });
+
+  test("treats module.exports members as exported when object literal contains nested braces", () => {
+    const symbols: ProbeSymbol[] = [
+      sym({ name: "loadUser", kind: "function", signature: "function loadUser(user) { return user; }", line: 20, end_line: 20 }),
+    ];
+    const result = classifySymbols(symbols, {
+      filePath: "/tmp/nested.cjs",
+      fileContent: [
+        "module.exports = {",
+        "  config: { a: 1, b: { c: 2 } },",
+        "  loadUser,",
+        "};",
+      ].join("\n"),
+    });
+
+    expect(result.find((s) => s.realName === "loadUser")?.tier).toBe(1);
+  });
+});
+
+// --- extractCommonJsExportNames ---
+
+describe("extractCommonJsExportNames", () => {
+  test("parses shorthand after nested object property", () => {
+    const src = [
+      "module.exports = {",
+      "  config: { a: 1, b: { c: 2 } },",
+      "  loadUser,",
+      "};",
+    ].join("\n");
+    const names = extractCommonJsExportNames(src);
+    expect(names?.has("loadUser")).toBe(true);
   });
 });
 
@@ -378,6 +516,19 @@ describe("findProjectRoot", () => {
 // --- Integration: end-to-end hook via subprocess ---
 
 describe("hook e2e", () => {
+  function makeTempProject(files: Record<string, string>): string {
+    const root = mkdtempSync(join(tmpdir(), "inject-types-"));
+    writeFileSync(join(root, "package.json"), JSON.stringify({ name: "tmp-project" }));
+
+    for (const [relativePath, content] of Object.entries(files)) {
+      const absolutePath = join(root, relativePath);
+      mkdirSync(dirname(absolutePath), { recursive: true });
+      writeFileSync(absolutePath, content);
+    }
+
+    return root;
+  }
+
   function runHook(input: object, env?: Record<string, string>): { stdout: string; exitCode: number } {
     const proc = Bun.spawnSync(["bun", import.meta.dir + "/../inject-types-on-read.ts"], {
       stdin: Buffer.from(JSON.stringify(input)),
@@ -440,5 +591,237 @@ describe("hook e2e", () => {
       });
       expect(proc.exitCode).toBe(0);
     }
+  });
+
+  test("injects CommonJS symbols for .cjs reads", () => {
+    const root = makeTempProject({
+      "src/worker.cjs": [
+        "",
+        "module.exports.loadUser = function loadUser() {};",
+        "module.exports.UserRepo = class UserRepo {};",
+      ].join("\n"),
+    });
+
+    const { stdout, exitCode } = runHook({
+      tool_input: { file_path: join(root, "src/worker.cjs"), offset: 0, limit: 1 },
+    });
+
+    expect(exitCode).toBe(0);
+    expect(stdout).toContain("loadUser");
+    expect(stdout).toContain("UserRepo");
+  });
+
+  test("injects JS exports from module.exports object literals", () => {
+    const root = makeTempProject({
+      "src/object-export.cjs": [
+        "module.exports = { loadUser, UserRepo };",
+        "",
+        "function loadUser(user) { return user; }",
+        "class UserRepo {}",
+      ].join("\n"),
+    });
+
+    const { stdout, exitCode } = runHook({
+      tool_input: { file_path: join(root, "src/object-export.cjs"), offset: 0, limit: 1 },
+    });
+
+    expect(exitCode).toBe(0);
+    expect(stdout).toContain("function loadUser");
+    expect(stdout).toContain("class UserRepo");
+  });
+
+  test("returns {} when source file exceeds byte limit", () => {
+    const root = makeTempProject({
+      "src/huge.ts": "export const x = 1;\n" + " ".repeat(MAX_HOOK_FILE_BYTES),
+    });
+
+    const { stdout, exitCode } = runHook({
+      tool_input: { file_path: join(root, "src/huge.ts"), offset: 0, limit: 1 },
+    });
+
+    expect(exitCode).toBe(0);
+    expect(stdout).toBe("{}");
+  });
+
+  test("does not emit CommonJS helpers for expression-valued exports", () => {
+    const root = makeTempProject({
+      "src/direct-call.cjs": [
+        "module.exports = makeApi();",
+        "",
+        "function makeApi() { return {}; }",
+      ].join("\n"),
+      "src/object-call.cjs": [
+        "module.exports = { api: makeApi() };",
+        "",
+        "function makeApi() { return {}; }",
+      ].join("\n"),
+    });
+
+    const direct = runHook({
+      tool_input: { file_path: join(root, "src/direct-call.cjs"), offset: 0, limit: 1 },
+    });
+    const objectLiteral = runHook({
+      tool_input: { file_path: join(root, "src/object-call.cjs"), offset: 0, limit: 1 },
+    });
+
+    expect(direct.exitCode).toBe(0);
+    expect(objectLiteral.exitCode).toBe(0);
+    expect(direct.stdout).toBe("{}");
+    expect(objectLiteral.stdout).toBe("{}");
+  });
+
+  test("injects Python symbols using __all__", () => {
+    const root = makeTempProject({
+      "pkg/api.py": [
+        "__all__ = [",
+        "    'public_api',",
+        "]",
+        "",
+        "class User:",
+        "    pass",
+        "",
+        "def public_api(user: User) -> User:",
+        "    return user",
+        "",
+        "def _hidden():",
+        "    pass",
+      ].join("\n"),
+    });
+
+    const { stdout, exitCode } = runHook({
+      tool_input: { file_path: join(root, "pkg/api.py"), offset: 0, limit: 1 },
+    });
+
+    expect(exitCode).toBe(0);
+    expect(stdout).toContain("public_api");
+    expect(stdout).toContain("class User:");
+    expect(stdout).not.toContain("_hidden");
+  });
+
+  test("resolves Python sibling relative imports", () => {
+    const root = makeTempProject({
+      "pkg/api.py": [
+        "from . import models",
+        "",
+        "def public_api(user: models.User) -> models.User:",
+        "    return user",
+      ].join("\n"),
+      "pkg/models.py": [
+        "class User:",
+        "    pass",
+      ].join("\n"),
+    });
+
+    const { stdout, exitCode } = runHook({
+      tool_input: { file_path: join(root, "pkg/api.py"), offset: 0, limit: 1 },
+    });
+
+    expect(exitCode).toBe(0);
+    expect(stdout).toContain("class User:");
+  });
+
+  test("injects Java public API symbols", () => {
+    const root = makeTempProject({
+      "src/main/java/com/example/Service.java": [
+        "package com.example;",
+        "",
+        "public class User {}",
+        "public class Service {",
+        "  public User load(User input) { return input; }",
+        "  private User helper(User input) { return input; }",
+        "}",
+      ].join("\n"),
+    });
+
+    const { stdout, exitCode } = runHook({
+      tool_input: { file_path: join(root, "src/main/java/com/example/Service.java"), offset: 0, limit: 2 },
+    });
+
+    expect(exitCode).toBe(0);
+    expect(stdout).toContain("public User load");
+    expect(stdout).toContain("public class User");
+    expect(stdout).not.toContain("private User helper");
+  });
+
+  test("does not flatten methods from package-private Java classes", () => {
+    const root = makeTempProject({
+      "src/main/java/com/example/Service.java": [
+        "package com.example;",
+        "",
+        "public class User {}",
+        "class Service {",
+        "  public User load(User input) { return input; }",
+        "}",
+      ].join("\n"),
+    });
+
+    const { stdout, exitCode } = runHook({
+      tool_input: { file_path: join(root, "src/main/java/com/example/Service.java"), offset: 0, limit: 2 },
+    });
+
+    expect(exitCode).toBe(0);
+    expect(stdout).not.toContain("public User load");
+  });
+
+  test("does not flatten methods from nested public Java classes", () => {
+    const root = makeTempProject({
+      "src/main/java/com/example/Outer.java": [
+        "package com.example;",
+        "",
+        "public class User {}",
+        "public class Outer {",
+        "  public static class Inner {",
+        "    public User load(User input) { return input; }",
+        "  }",
+        "}",
+      ].join("\n"),
+    });
+
+    const { stdout, exitCode } = runHook({
+      tool_input: { file_path: join(root, "src/main/java/com/example/Outer.java"), offset: 0, limit: 2 },
+    });
+
+    expect(exitCode).toBe(0);
+    expect(stdout).not.toContain("public User load");
+  });
+
+  test("remaps unsupported .mts files through probe", () => {
+    const root = makeTempProject({
+      "src/types.mts": [
+        "",
+        "export type User = { id: string };",
+        "export function loadUser(user: User): User { return user; }",
+      ].join("\n"),
+    });
+
+    const { stdout, exitCode } = runHook({
+      tool_input: { file_path: join(root, "src/types.mts"), offset: 0, limit: 1 },
+    });
+
+    expect(exitCode).toBe(0);
+    expect(stdout).toContain("export function loadUser");
+    expect(stdout).toContain("export type User");
+  });
+
+  test("extracts every Svelte script block, not only lang=ts", () => {
+    const root = makeTempProject({
+      "src/Component.svelte": [
+        "<script context=\"module\">",
+        "  export function loadThing() { return true; }",
+        "</script>",
+        "",
+        "<script>",
+        "  export let name;",
+        "</script>",
+      ].join("\n"),
+    });
+
+    const { stdout, exitCode } = runHook({
+      tool_input: { file_path: join(root, "src/Component.svelte"), offset: 0, limit: 1 },
+    });
+
+    expect(exitCode).toBe(0);
+    expect(stdout).toContain("loadThing");
+    expect(stdout).toContain("export let name");
   });
 });

@@ -15,7 +15,7 @@ Tool composition for AI agent code queries. Each tool owns a capability layer �
 | **fd** | File discovery | Name/pattern/type filtering, parallel exec, depth control | Unix-composable (`fd -e ts \| xargs rg`) |
 | **probe** | Ranked code extraction | BM25/TF-IDF ranked complete function bodies, `--max-tokens` budget | Purpose-built for LLM context windows; optional BERT reranking |
 | **LSP servers** | Type intelligence | Diagnostics, go-to-definition, rename, call hierarchy | Embeds actual compiler frontends (tsserver, pyright, rust-analyzer) |
-| **inject-types hook** | Auto type context | PostToolUse on every TS/JS/Svelte read — tiered symbols, 1-hop import resolution | Stateless tree-sitter extraction, 1500-token budget, Svelte `<script>` support |
+| **inject-types hook** | Auto symbol context | PostToolUse on JS/TS/Svelte, Python, and Java reads — tiered symbols, 1-hop import resolution | Stateless tree-sitter extraction, 1500-token budget, Svelte `<script>` support |
 
 ## Design Rationale
 
