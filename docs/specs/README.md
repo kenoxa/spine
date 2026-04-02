@@ -2,6 +2,8 @@
 
 Numbered folders match tracking IDs (issue/ADR-style). One `spec.md` (+ optional `progress.md`) per topic.
 
+**ID format:** `{YY}{WW}-<slug>` — 2-digit year + ISO week. Multiple specs per week allowed (different slugs, same prefix).
+
 | ID | Spec | One-line |
 |----|------|----------|
 | **2612** | [thin-orchestrator/spec.md](2612-thin-orchestrator/spec.md) | Orchestrator SKILL.md = thin; behavior in per-role refs; dispatch vs mainthread |

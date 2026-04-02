@@ -66,6 +66,8 @@ After `do-design` emits a recommendation, STOP and await explicit user approval 
 
 **Project Layout:** `TODO.md` (flat task list) · `docs/specs/{YY}{WW}-<slug>/` (spec directory: spec.md + progress.md) · `.scratch/<session>/` (ephemeral session output)
 
+**Spec IDs:** `{YY}{WW}` = 2-digit year + ISO week. Multiple specs per week share the same prefix with different slugs (e.g., `2614-implementer-standard-tier`).
+
 ## Evidence Levels
 
 All claims in plans, reviews, and execution phases must be tagged:

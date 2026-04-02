@@ -57,7 +57,7 @@ Verify Phase Trace has rows for orient, clarify, investigate, handoff.
 
 Assemble `frame_artifact` per `references/frame-dispatch.md`. When a blocking unknown is feasibility-related, redirect to `/do-design` (WHAT/HOW escape hatch).
 
-**Spec persistence**: When confidence is high or medium, offer to persist `frame_artifact` to `docs/specs/{YYWW}-<slug>/spec.md`. User confirms.
+**Spec persistence**: When confidence is high or medium, offer to persist `frame_artifact` to `docs/specs/{YYWW}-<slug>/spec.md`. User confirms. `{YY}{WW}` = 2-digit year + ISO week; multiple specs per week allowed (e.g., `2614-implementer-standard-tier`).
 
 Carry session ID into `/do-design`.
 
