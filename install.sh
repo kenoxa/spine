@@ -506,8 +506,12 @@ install_dev_browser() {
   mv "$tmpfile" "$INSTALL_DIR/dev-browser"
   chmod +x "$INSTALL_DIR/dev-browser"
 
-  # Install Playwright Chromium (only on version change)
-  "$INSTALL_DIR/dev-browser" install 2>/dev/null || warn "dev-browser: Chromium install failed — run 'dev-browser install' manually"
+  # Install Playwright Chromium (only on version change). Keep success quiet, but preserve failure output.
+  local chromium_output=""
+  if ! chromium_output=$("$INSTALL_DIR/dev-browser" install 2>&1); then
+    warn "dev-browser: Chromium install failed — run 'dev-browser install' manually"
+    [ -n "$chromium_output" ] && printf '%s\n' "$chromium_output" >&2
+  fi
 
   # Write manifest — atomic tmpfile+mv
   local manifest_tmp
