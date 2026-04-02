@@ -387,20 +387,14 @@ See [claude/README.md](claude/README.md) for plugin details and fallback install
 </details>
 
 <details>
-<summary>Browser access (agent-browser)</summary>
+<summary>Browser access (dev-browser)</summary>
 
-Spine installs [agent-browser](https://github.com/vercel-labs/agent-browser) via Homebrew and the `agent-browser` skill via the skills CLI. Agents can use browser automation for web interaction, testing, and debugging.
+Spine installs [dev-browser](https://github.com/SawyerHood/dev-browser) as a standalone binary to `~/.local/bin/` and provides the local `use-browser` skill. Scripts are passed as Playwright JavaScript via stdin heredoc and run in a QuickJS WASM sandbox.
 
-After installation, download Chrome for Testing (~500MB, one-time):
-
-```sh
-agent-browser install
-```
-
-Manual skill install:
+First-time setup downloads Playwright Chromium (~500MB, one-time):
 
 ```sh
-npx skills add vercel-labs/agent-browser -s agent-browser -a '*' -g -y
+dev-browser install
 ```
 
 **Note:** Browser automation is not available in Codex sandboxed mode. Enable `danger-full-access` mode if required.

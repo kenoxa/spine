@@ -28,7 +28,6 @@ GLOBAL_SKILLS=(
   "trailofbits/skills -s fp-check"
   "mattpocock/skills -s ubiquitous-language"
   "mattpocock/skills -s tdd"
-  "vercel-labs/agent-browser -s agent-browser"
 )
 
 # MCP servers previously installed by Spine — removed on next run.
@@ -437,6 +436,90 @@ install_probe() {
   ui_ok "probe" "$latest_tag"
 }
 
+# Install dev-browser (direct binary, no Homebrew formula)
+install_dev_browser() {
+  local DEV_BROWSER_REPO="SawyerHood/dev-browser"
+  local INSTALL_DIR="$HOME/.local/bin"
+  local MANIFEST="$HOME/.config/spine/tool-versions"
+
+  local os; os="$(uname -s)"
+  local arch; arch="$(uname -m)"
+  local ASSET_NAME
+  case "${os}-${arch}" in
+    Darwin-arm64|Darwin-aarch64) ASSET_NAME="dev-browser-darwin-arm64" ;;
+    Darwin-x86_64)               ASSET_NAME="dev-browser-darwin-x64" ;;
+    Linux-x86_64)                ASSET_NAME="dev-browser-linux-x64" ;;
+    Linux-arm64|Linux-aarch64)   ASSET_NAME="dev-browser-linux-arm64" ;;
+    *)  warn "dev-browser: unsupported platform ${os}-${arch} — skipping"; return 0 ;;
+  esac
+
+  mkdir -p "$INSTALL_DIR"
+
+  # Get latest release tag — gh CLI primary, curl fallback
+  local latest_tag=""
+  if command -v gh &>/dev/null && gh auth status &>/dev/null; then
+    latest_tag=$(gh release view --repo "$DEV_BROWSER_REPO" --json tagName --jq '.tagName' 2>/dev/null) || true
+  fi
+  if [ -z "$latest_tag" ]; then
+    local api_response
+    api_response=$(curl -sS "https://api.github.com/repos/$DEV_BROWSER_REPO/releases/latest" 2>/dev/null) || true
+    if [ -n "$api_response" ]; then
+      latest_tag=$(echo "$api_response" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    fi
+  fi
+  if [ -z "$latest_tag" ]; then
+    warn "dev-browser: could not determine latest version — skipping"
+    return 0
+  fi
+
+  # Version skip — check manifest + binary existence
+  local installed_tag
+  installed_tag=$(grep "^dev-browser=" "$MANIFEST" 2>/dev/null | cut -d= -f2 | head -1) || true
+  if [ "${installed_tag:-}" = "$latest_tag" ] && [ -x "$INSTALL_DIR/dev-browser" ]; then
+    return 0
+  fi
+
+  # Download binary directly (no archive — single binary asset)
+  local tmpfile
+  tmpfile=$(mktemp)
+
+  local download_ok=false
+  if command -v gh &>/dev/null && gh auth status &>/dev/null; then
+    if quiet gh release download "$latest_tag" --repo "$DEV_BROWSER_REPO" \
+        --pattern "$ASSET_NAME" \
+        --output "$tmpfile" --clobber; then
+      download_ok=true
+    fi
+  fi
+  if ! $download_ok; then
+    local download_url="https://github.com/$DEV_BROWSER_REPO/releases/download/$latest_tag/$ASSET_NAME"
+    if curl -fsSL -o "$tmpfile" "$download_url"; then
+      download_ok=true
+    fi
+  fi
+  if ! $download_ok; then
+    warn "dev-browser: download failed — skipping"
+    rm -f "$tmpfile"
+    return 0
+  fi
+
+  mv "$tmpfile" "$INSTALL_DIR/dev-browser"
+  chmod +x "$INSTALL_DIR/dev-browser"
+
+  # Install Playwright Chromium (only on version change)
+  "$INSTALL_DIR/dev-browser" install 2>/dev/null || warn "dev-browser: Chromium install failed — run 'dev-browser install' manually"
+
+  # Write manifest — atomic tmpfile+mv
+  local manifest_tmp
+  manifest_tmp=$(mktemp)
+  [ -f "$MANIFEST" ] && grep -v "^dev-browser=" "$MANIFEST" > "$manifest_tmp" || true
+  echo "dev-browser=$latest_tag" >> "$manifest_tmp"
+  mv "$manifest_tmp" "$MANIFEST"
+
+  rm -f "$tmpfile" 2>/dev/null
+  ui_ok "dev-browser" "$latest_tag"
+}
+
 # Ensure system deps are available. Attempts brew install on macOS; prints hints otherwise.
 ensure_system_deps() {
   local os missing=()
@@ -460,7 +543,6 @@ ensure_system_deps() {
     shfmt
     yq
     tokenizer
-    agent-browser
     rtk
   )
 
@@ -471,16 +553,17 @@ ensure_system_deps() {
     warn "Homebrew not found — install it from https://brew.sh"
   fi
 
-  # probe: direct binary install to ~/.local/bin (no Homebrew formula)
+  # Direct binary installs to ~/.local/bin (no Homebrew formula)
   install_probe
+  install_dev_browser
 
   # Collect missing deps (brew-managed tools only)
   for dep in "${installed_tools[@]}"; do
     dep_present "$dep" || missing+=("$dep")
   done
 
-  # +1 for probe (managed separately above)
-  _TOTAL_DEPS=$(( ${#installed_tools[@]} + 1 ))
+  # +2 for probe and dev-browser (managed separately above)
+  _TOTAL_DEPS=$(( ${#installed_tools[@]} + 2 ))
 
   if [ ${#missing[@]} -eq 0 ]; then
     ui_ok "All found" "${_TOTAL_DEPS} deps"
@@ -505,9 +588,9 @@ ensure_system_deps() {
       fi
     done
     ui_live_collapse "Packages installed" "$installed_names"
-    # agent-browser requires Chrome for Testing (~500MB one-time download)
-    if [[ " ${missing[*]} " == *" agent-browser "* ]]; then
-      warn "Run 'agent-browser install' for Chrome for Testing (~500MB)"
+    # Advisory: agent-browser is retired — suggest manual cleanup
+    if command -v agent-browser &>/dev/null; then
+      warn "agent-browser is retired (replaced by dev-browser). Remove with: brew uninstall agent-browser"
     fi
   else
     warn "Missing tools: ${missing[*]}"
@@ -1895,6 +1978,7 @@ install_skills() {
   # Add skill names here when swapping one global skill for another.
   local -a RETIRED_GLOBAL_SKILLS=(
     "typescript-expert"  # replaced by typescript-magician (mcollina/skills)
+    "agent-browser"      # replaced by local use-browser skill (dev-browser binary)
   )
 
   if [ ${#RETIRED_GLOBAL_SKILLS[@]} -gt 0 ] && [ -f "$lock_file" ] && command -v jq &>/dev/null; then

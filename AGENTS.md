@@ -37,6 +37,7 @@ Managed by `/run-curate`; style: telegraphic, 250-800 tokens, `updated:` frontma
 - `docs/code-intelligence-stack.md` — tool composition (rg/sg/fd/probe/LSP/hook), design rationale, routing
 - `docs/multi-model-council-sizing.md` — 3-model default, diversity > performance, anti-patterns
 - `docs/provider-privacy.md` — training/retention/residency per provider and tier
+- `docs/browser-automation-selection.md` — dev-browser chosen over 5 alternatives, benchmarks, install model, limitations
 
 ## Deep Dives
 
