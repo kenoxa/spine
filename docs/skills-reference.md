@@ -12,7 +12,7 @@ Canonical entry: [`skills/do/SKILL.md`](../skills/do/SKILL.md).
 
 ### do-frame
 
-Socratic WHAT-focused dialogue composing `run-explore`. Phases: orient (invoke `/run-explore`) → clarify (mainthread + `/run-explore` on demand) → investigate (invoke `/run-explore`) → handoff. Produces `frame_artifact` with problem statement, constraints, blast radius, success criteria, key unknowns. Forbidden from prescribing HOW. WHAT/HOW escape hatch redirects to `/do-design` when feasibility knowledge is needed.
+Socratic WHAT-focused dialogue composing `run-explore` and `run-discuss`. Phases: orient (invoke `/run-explore`) → clarify (mainthread + `/run-discuss` + `/run-explore` on demand) → investigate (invoke `/run-explore`) → handoff. Produces `frame_artifact` with problem statement, constraints, blast radius, success criteria, key unknowns. Forbidden from prescribing HOW. WHAT/HOW escape hatch redirects to `/do-design` when feasibility knowledge is needed.
 
 Canonical entry: [`skills/do-frame/SKILL.md`](../skills/do-frame/SKILL.md).
 
@@ -150,7 +150,7 @@ Canonical entry: [`skills/run-recap/SKILL.md`](../skills/run-recap/SKILL.md).
 | `scout` | Fast | haiku | medium | Fast codebase reconnaissance |
 | `researcher` | Standard | sonnet | high | Deep discovery and evidence gathering; local-depth first, may do bounded plan-specific upstream lookup |
 | `navigator` | Standard | sonnet | high | External-first research specialist for broad, ambiguous, comparative, or current external work |
-| `consultant` | Standard | sonnet | high | Perspective-committed recommendation for `do-design` |
+| `consultant` | Frontier | opus | high | Perspective-committed recommendation for `do-design` |
 | `curator` | Standard | sonnet | high | Knowledge curation — promote, review, prune knowledge files |
 | `debater` | Frontier | opus | high | Multi-perspective Socratic dialogue |
 | `inspector` | Frontier | opus | high | Verdict-focused code review, preloads `run-review` |

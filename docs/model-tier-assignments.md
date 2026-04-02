@@ -20,7 +20,7 @@ Source: `docs/model-selection.md` agent table + agent frontmatter.
 
 ## Session Model (Main-Thread)
 
-**Standard is the recommended default** (sonnet / gpt-5.4 / composer-2).
+**Standard is the recommended default** (sonnet:medium / gpt-5.4:medium / auto).
 
 Sonnet 4.6 scores 79.6% SWE-Bench Verified vs Opus 4.6's 80.8% — 1.2-point gap at 40% lower input cost. On orchestration-adjacent tasks (tool use, structured task execution, agent coordination), Sonnet 4.6 matches or leads Opus 4.6. Frontier subagents (consultant, inspector, verifier, synthesizer) handle gate decisions regardless of session model.
 

@@ -10,7 +10,7 @@
 
 **Providers** — Claude Code, Codex, Cursor, and OpenCode each have their own model names. Spine maps tiers to the right model for whichever provider you use.
 
-**Tiers** — four quality levels, from highest to lowest:
+**Tiers** — three quality levels, from highest to lowest:
 
 | Tier | Purpose | Claude | Codex | Cursor | OpenCode (Go) | OpenCode (Free) |
 |------|---------|--------|-------|--------|---------------|-----------------|

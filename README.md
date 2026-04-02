@@ -162,7 +162,9 @@ Then start from the workflow:
 
 See [docs/skills-reference.md](docs/skills-reference.md) for the full skill and subagent catalog.
 
-## How Spine Installs
+<a id="how-spine-installs"></a>
+<details>
+<summary><strong>How Spine Installs</strong></summary>
 
 Spine uses `~/.config/spine/` as the central source of truth.
 
@@ -182,14 +184,18 @@ Agents are linked (Claude Code symlinks) or generated (Cursor `.md`, Codex TOML,
 
 If `~/.config/spine/.env` exists, the installer reads it for MCP authentication. On zsh systems it may also add a `source ~/.config/spine/.env` line to `~/.zshenv` so future shells expose those variables.
 
+</details>
+
 ## Workflow
 
-1. **[Frame](docs/skills-reference.md#do-frame)** with `/do-frame` to frame the problem. Adaptive composition: `run-explore` + `run-discuss` + conditional skills.
-2. **[Design](docs/skills-reference.md#do-design)** with `/do-design` to design the approach. `run-discuss` + `run-advise` + feasibility probes.
+1. **[Frame](docs/skills-reference.md#do-frame)** with `/do-frame` to define the problem, constraints, and success criteria.
+2. **[Design](docs/skills-reference.md#do-design)** with `/do-design` to compare approaches and get a cross-model recommendation.
 3. **[Build](docs/skills-reference.md#do-build)** with `/do-build` to prototype, review, and polish.
 4. **[Commit](docs/skills-reference.md#commit)** with `/commit` when the change is ready to stage and ship.
 
 Or use `/do` as a single entry point that routes through all three phases.
+
+**Session model:** Standard is the default (sonnet:medium / gpt-5.4:medium / auto). Switch via your provider's model selector or `--model` flag when launching. See [docs/model-selection.md](docs/model-selection.md) for when to upgrade to Frontier and when to step down to Fast.
 
 Skills write session artifacts to `.scratch/` during planning and execution. Keep `.scratch/` in your project `.gitignore`.
 
@@ -404,7 +410,7 @@ dev-browser install
 <details>
 <summary>Model selection</summary>
 
-**Standard tier is the recommended default** (sonnet / gpt-5.4 / composer-2). Subagents use specialized models by tier automatically — frontier for gate authority and synthesis, standard for `@implementer`, fast for recon — regardless of your session choice.
+**Standard tier is the recommended default** (sonnet:medium / gpt-5.4:medium / auto). Subagents use specialized models by tier automatically — frontier for gate authority and synthesis, standard for `@implementer`, fast for recon — regardless of your session choice.
 
 **When to upgrade the session (mainthread) to Frontier:** ambiguous requirements, cascading architectural decisions, elusive root causes, very large accumulated context (~50K+ tokens across subagent work), or tangled phase gates. **When implementation alone needs more:** cross-cutting multi-file refactors that outrun the design artifact — escalate `@implementer` workload or partition scope (see [docs/model-tier-assignments.md](docs/model-tier-assignments.md)); that is not always the same as upgrading the orchestrator.
 
