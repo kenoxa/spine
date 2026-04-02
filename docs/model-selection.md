@@ -82,20 +82,39 @@ SPINE_ENVOY_{TIER}_{PROVIDER} > SPINE_ENVOY_{PROVIDER} > built-in default
 
 Example: `SPINE_ENVOY_FRONTIER_CLAUDE=opus:high` overrides the frontier tier for Claude envoy calls.
 
-### Cursor-agent fallback (after Claude or Codex CLI fails)
+### Automatic Fallback
 
-Each invoke script owns its fallback: on fast-failure (rate limit, auth error, stale model), `invoke-claude.sh` / `invoke-codex.sh` call `fallback.sh` which attempts a single cursor-agent hop. If cursor-agent also fails, the error propagates — no further hops. Cursor and OpenCode invoke scripts have no fallback.
+When Claude or Codex hits a rate limit, runs out of credits, or has an auth error, Spine automatically retries the same request through **cursor-agent** using the **same model**. If cursor-agent is also unavailable, the request fails — there are no further retry hops.
 
-Model derivation is deterministic: `to_cursor_model()` in `invoke-cursor.sh` maps the failed provider's canonical model + effort (from `resolve_tier()`) to a cursor-agent model ID in two steps — base model, then effort suffix. No env var overrides. Version prefix `claude-4.6` is a named constant (one-line update on model generation change).
+**How it works:**
+- Claude fails → cursor-agent runs the same Claude model (e.g., `opus` → `claude-4.6-opus-high-thinking`)
+- Codex fails → cursor-agent runs the same GPT model (e.g., `gpt-5.4` → `gpt-5.4-high`)
+- Cursor fails → no fallback (cursor-agent models aren't available elsewhere)
+- OpenCode fails → no fallback (GLM/MiniMax models aren't available on cursor-agent)
 
-| Primary fails | model + effort | cursor-agent ID |
-|---|---|---|
-| Claude frontier | `opus` + `high` | `claude-4.6-opus-high-thinking` |
-| Claude standard | `sonnet` + `high` | `claude-4.6-sonnet-medium-thinking` |
-| Claude fast | `haiku` + `high` | `auto` |
-| Codex frontier | `gpt-5.4` + `high` | `gpt-5.4-high` |
-| Codex standard | `gpt-5.4` + `medium` | `gpt-5.4-medium` |
-| Codex fast | `gpt-5.4-mini` + `high` | `gpt-5.4-mini-high` |
+**What you'll see:** A stderr message like `claude failed (exit 1), attempting cursor-agent fallback`, and the output header will note the fallback: `Claude Code -> Cursor-Agent Fallback`.
+
+**What triggers fallback:** Rate limits, quota exhaustion, auth errors, and stale model IDs. Normal errors (timeouts, connection failures) do **not** trigger fallback — they propagate immediately.
+
+**What you can control:**
+- **Tier overrides** affect fallback: if you set `SPINE_ENVOY_FRONTIER_CLAUDE=sonnet:high`, the fallback mirrors your override (`claude-4.6-sonnet-medium-thinking`), not the default.
+- **Debug mode**: `SPINE_ENVOY_DEBUG=1` shows the fallback decision path on stderr.
+- **Cursor availability**: fallback requires `cursor-agent` on PATH. If you don't have the Cursor CLI installed, fallback is silently skipped.
+
+**What you can't control:** The model mapping from provider models to cursor-agent IDs is automatic. There are no env vars for fallback-specific model overrides — the principle is "same model, different provider."
+
+#### Fallback Model Mapping
+
+| Your model | cursor-agent runs |
+|---|---|
+| `opus` | `claude-4.6-opus-high-thinking` |
+| `sonnet` | `claude-4.6-sonnet-medium-thinking` |
+| `haiku` | `auto` (Cursor's cheapest routing) |
+| `gpt-5.4` | `gpt-5.4-{effort}` |
+| `gpt-5.4-mini` | `gpt-5.4-mini-{effort}` |
+| Other `gpt-*` | passed through as `{model}-{effort}` |
+
+Claude models always use the `-thinking` variant on cursor-agent (same price, better quality). Sonnet is fixed to `medium` effort (the only variant cursor-agent offers).
 
 ### Multi-Provider Dispatch
 
