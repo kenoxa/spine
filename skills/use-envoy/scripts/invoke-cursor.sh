@@ -18,6 +18,7 @@ EOF
 # --- Argument parsing ---
 
 prompt_file="" output_file="" stderr_log="" tier="standard" fallback_for=""
+_fb_model="" _fb_effort=""
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -26,6 +27,8 @@ while [ $# -gt 0 ]; do
         --stderr-log)     stderr_log="$2"; shift 2 ;;
         --tier)           tier="$2"; shift 2 ;;
         --fallback-for)   fallback_for="$2"; shift 2 ;;
+        --model)          _fb_model="$2"; shift 2 ;;
+        --effort)         _fb_effort="$2"; shift 2 ;;
         -h|--help)        usage; exit 0 ;;
         *)                error "Unknown argument: $1"; usage; exit 1 ;;
     esac
@@ -43,22 +46,71 @@ _script_dir=$(cd "$(dirname "$0")" && pwd)
 # shellcheck source=_common.sh
 . "$_script_dir/_common.sh"
 
-# --- Tier-aware model selection (no effort — cursor-agent CLI unsupported) ---
-# Two-pass: (1) fallback_for determines base model for standard tier,
-# (2) tier overrides base for frontier/fast. Differs from claude/codex
-# scripts because cursor composes fallback-provider with tier selection.
+# --- Model selection ---
+# Direct cursor invoke: tier → Cursor pool (composer / auto). Fallback after
+# Claude/Codex failure: deterministic two-step mapping from canonical model+effort
+# to cursor-agent model IDs (see docs/model-selection.md).
 
-resolve_tier "$tier" cursor
-case "$fallback_for" in
-    claude) _base="${SPINE_ENVOY_CLAUDE_CURSOR_FALLBACK:-composer-2}" ;;
-    codex)  _base="${SPINE_ENVOY_CODEX_CURSOR_FALLBACK:-composer-2}" ;;
-    *)      _base="$_tier_model" ;;  # Direct target (not fallback) — use tier default
-esac
-case "$tier" in
-    frontier) model="${SPINE_ENVOY_FRONTIER_CURSOR:-${SPINE_ENVOY_CURSOR:-$_tier_model}}" ;;
-    fast)     model="${SPINE_ENVOY_FAST_CURSOR:-${SPINE_ENVOY_CURSOR:-$_tier_model}}" ;;
-    *)        model="${SPINE_ENVOY_STANDARD_CURSOR:-${SPINE_ENVOY_CURSOR:-$_base}}" ;;
-esac
+_CLAUDE_CURSOR_PREFIX="claude-4.6"
+
+# Two-step mapping: canonical model+effort → cursor-agent model ID.
+# Step 1: map model to cursor-agent base. Step 2: compose effort suffix.
+# Returns 1 if no cursor-agent equivalent exists for the model.
+to_cursor_model() {
+    _tcm_model="$1"
+    _tcm_effort="$2"
+
+    # Step 1 — map canonical model to cursor-agent base
+    case "$_tcm_model" in
+        opus)   _tcm_base="${_CLAUDE_CURSOR_PREFIX}-opus" ;;
+        sonnet) _tcm_base="${_CLAUDE_CURSOR_PREFIX}-sonnet" ;;
+        haiku)  _cursor_model="auto"; return 0 ;;  # terminal — skip step 2
+        gpt-*)  _tcm_base="$_tcm_model" ;;  # pass through — cursor-agent rejects unknown IDs
+        *)      return 1 ;;
+    esac
+
+    # Step 2 — compose cursor-agent model ID with effort
+    case "$_tcm_base" in
+        "${_CLAUDE_CURSOR_PREFIX}-sonnet")
+            # Sonnet: only medium-thinking variant available on cursor-agent
+            _cursor_model="${_tcm_base}-medium-thinking" ;;
+        "${_CLAUDE_CURSOR_PREFIX}"-*)
+            # Other Claude models: effort + thinking suffix
+            _cursor_model="${_tcm_base}-${_tcm_effort}-thinking" ;;
+        gpt-*)
+            # GPT models: effort suffix, no thinking
+            _cursor_model="${_tcm_base}-${_tcm_effort}" ;;
+    esac
+    return 0
+}
+
+if [ -n "$fallback_for" ]; then
+    # Fallback mode: mirror the failed provider’s model via cursor-agent.
+    # Prefer --model/--effort from caller (respects env var overrides);
+    # fall back to resolve_tier when not provided.
+    if [ -n "$_fb_model" ] && [ -n "$_fb_effort" ]; then
+        _fallback_model="$_fb_model"
+        _fallback_effort="$_fb_effort"
+    else
+        resolve_tier "$tier" "$fallback_for"
+        # shellcheck disable=SC2154  # _tier_model, _tier_effort set by resolve_tier()
+        _fallback_model="$_tier_model"
+        _fallback_effort="$_tier_effort"
+    fi
+    if ! to_cursor_model "$_fallback_model" "$_fallback_effort"; then
+        error "No cursor-agent equivalent for model ‘$_fallback_model’"
+        exit 1
+    fi
+    model="$_cursor_model"
+else
+    # Direct cursor dispatch: tier → Cursor pool via env var cascade
+    resolve_tier "$tier" cursor
+    case "$tier" in
+        frontier) model="${SPINE_ENVOY_FRONTIER_CURSOR:-${SPINE_ENVOY_CURSOR:-$_tier_model}}" ;;
+        fast)     model="${SPINE_ENVOY_FAST_CURSOR:-${SPINE_ENVOY_CURSOR:-$_tier_model}}" ;;
+        *)        model="${SPINE_ENVOY_STANDARD_CURSOR:-${SPINE_ENVOY_CURSOR:-$_tier_model}}" ;;
+    esac
+fi
 _cursor_timeout=1800  # cursor-agent hang bug (GH #3588)
 
 # --- Binary resolution ---
@@ -107,9 +159,10 @@ timeout --kill-after=10 "$_cursor_timeout" env \
         > "$output_file" 2>"$stderr_log" \
     || _rc=$?
 
-# Model-level retry: composer-2 rate limit → auto (different usage pool).
-# Auto uses Cursor's routing with a separate allocation from composer-2.
+# Model-level retry: rate limit → auto (different usage pool).
+# Auto uses Cursor's routing with a separate allocation from named models.
 # Only retry rate-limit failures; other errors propagate to fallback.sh.
+# Guard: skip when model is already auto (haiku fallback or direct auto dispatch).
 if [ "$_rc" -ne 0 ] && [ "$model" != "auto" ]; then
     if grep -qiE 'out of usage|increase.*limit|rate[ _-]limit|quota|credits.*exhaust' "$stderr_log" 2>/dev/null; then
         printf 'envoy: cursor %s rate-limited, retrying with auto...\n' "$model" >&2

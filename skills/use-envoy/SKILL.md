@@ -26,6 +26,8 @@ Callers must NOT gate findings by source, inline severity overrides, cap priorit
 
 **Orchestrator:** Dispatch `@envoy` per `agents/envoy.md` (subagent writes `.prompt`, runs `run.sh`). Do not run `run.sh` or write envoy output `.md` from the main thread. In Cursor, use parallel `Task` with `subagent_type: envoy`.
 
+**Runtime fallback:** Each invoke script owns its fallback. `invoke-claude.sh` and `invoke-codex.sh` call `fallback.sh` on fast-failure (rate limit, auth error, stale model) for a single cursor-agent hop. If cursor-agent also fails, the error propagates. Cursor and OpenCode have no fallback. Model mapping is deterministic via `to_cursor_model()` in `invoke-cursor.sh` — no env var overrides, no chain mechanism. `run.sh` dispatches invoke scripts directly.
+
 ## Per-phase evidence plane
 
 Same repo-relative paths → envoy assembly + phase synthesizer.

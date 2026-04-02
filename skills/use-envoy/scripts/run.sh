@@ -1,6 +1,7 @@
 #!/bin/sh
 # Cross-provider envoy dispatcher.
-# Detects current provider, picks target, delegates via fallback wrapper.
+# Detects current provider, picks target, delegates to invoke scripts.
+# Invoke scripts handle their own fallback internally (via fallback.sh helper).
 # Exit: propagates exit code from provider script.
 
 set -eu
@@ -154,14 +155,13 @@ if [ "$mode" = "multi" ]; then
     }
     trap '_kill_children' INT TERM
 
-    # --- Parallel dispatch with per-slot fallback ---
+    # --- Parallel dispatch (invoke scripts handle their own fallback) ---
     for _p in $_launched; do
-        sh "$_script_dir/fallback.sh" \
-            --self "$_self" --tier "$tier" --chain "cursor,opencode" \
+        sh "$_script_dir/invoke-${_p}.sh" \
             --prompt-file "$prompt_file" \
             --output-file "${_base}.${_p}.md" \
             --stderr-log "${_base}.${_p}.log" \
-            -- "$_script_dir/invoke-${_p}.sh" \
+            --tier "$tier" \
             >/dev/null &
         _child_pids="$_child_pids $!"
     done
@@ -199,26 +199,25 @@ if [ -n "$target" ]; then
     exit "$_rc"
 fi
 
-# --- Pick target and fallback chain (never target self) ---
+# --- Pick target (never target self) ---
+# Invoke scripts handle their own fallback internally via fallback.sh helper.
 
 case "$_self" in
-    claude)  _target=codex;  _chain="cursor,opencode" ;;
-    codex)   _target=claude; _chain="cursor,opencode" ;;
-    cursor)  _target=codex;  _chain="cursor,opencode" ;;
-    *)       _target=codex;  _chain="cursor,opencode" ;;
+    claude)   _target=codex ;;
+    codex)    _target=claude ;;
+    cursor)   _target=codex ;;
+    *)        _target=codex ;;
 esac
 
-# --- Invoke via fallback wrapper ---
-# Output naming: single-mode now uses {base}.{target}.md for consistency with multi-mode.
+# Output naming: single-mode uses {base}.{target}.md for consistency with multi-mode.
 
 _out="${_base}.${_target}.md"
 
 # shellcheck disable=SC2093
-exec sh "$_script_dir/fallback.sh" \
-    --self "$_self" --tier "$tier" --chain "$_chain" \
+exec sh "$_script_dir/invoke-${_target}.sh" \
     --prompt-file "$prompt_file" \
     --output-file "$_out" \
     --stderr-log "$stderr_log" \
-    -- "$_script_dir/invoke-${_target}.sh"
+    --tier "$tier"
 # Dead-code guard (exec replaces process)
 error "exec failed"; exit 1

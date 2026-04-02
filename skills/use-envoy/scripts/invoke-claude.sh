@@ -93,7 +93,20 @@ if [ "$_rc" -eq 124 ] || [ "$_rc" -eq 137 ]; then
     _cleanup
     error "Claude CLI timed out after ${_claude_timeout}s"; exit 2
 fi
-handle_exit_code "Claude CLI"
+
+# --- Fallback to cursor-agent on fast-failure ---
+if [ "$_rc" -ne 0 ]; then
+    # Try cursor-agent fallback (exits with fallback result or original error)
+    sh "$_script_dir/fallback.sh" \
+        --provider claude --tier "$tier" --exit-code "$_rc" \
+        --model "$model" --effort "$effort" \
+        --prompt-file "$prompt_file" --output-file "$output_file" \
+        --stderr-log "$stderr_log"
+    _fb_rc=$?
+    # Fallback returned without exec — no cursor-agent available or not a fast-failure
+    error "Claude CLI invocation failed (exit $_rc)"
+    exit "$_fb_rc"
+fi
 stop_timer
 
 # --- Extract body and metadata from JSON output ---

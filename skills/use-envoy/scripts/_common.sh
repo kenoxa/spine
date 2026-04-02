@@ -76,6 +76,13 @@ resolve_tier() {
     esac
 }
 
+# Fast-failure detection — rate-limit, auth, and model-rejection patterns.
+# Reusable by any invoke/fallback script that sources _common.sh.
+is_fast_failure() {
+    [ -f "$1" ] || return 1
+    grep -qiE 'rate[ _-]limit|rate_limited|hit a rate limit|quota|credits.*exhaust|out of usage|increase.*limit|not logged in|not authenticated|authorization.*error|usage.limit|too many requests|overloaded|credit balance|payment.*past due|account.*disabled|cannot use this model' "$1"
+}
+
 # Shell-level timing (POSIX date +%s, second precision).
 start_timer() { _timer_start=$(date +%s); }
 stop_timer()  { _timer_elapsed=$(( $(date +%s) - ${_timer_start:-0} )); }

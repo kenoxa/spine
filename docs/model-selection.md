@@ -82,6 +82,21 @@ SPINE_ENVOY_{TIER}_{PROVIDER} > SPINE_ENVOY_{PROVIDER} > built-in default
 
 Example: `SPINE_ENVOY_FRONTIER_CLAUDE=opus:high` overrides the frontier tier for Claude envoy calls.
 
+### Cursor-agent fallback (after Claude or Codex CLI fails)
+
+Each invoke script owns its fallback: on fast-failure (rate limit, auth error, stale model), `invoke-claude.sh` / `invoke-codex.sh` call `fallback.sh` which attempts a single cursor-agent hop. If cursor-agent also fails, the error propagates — no further hops. Cursor and OpenCode invoke scripts have no fallback.
+
+Model derivation is deterministic: `to_cursor_model()` in `invoke-cursor.sh` maps the failed provider's canonical model + effort (from `resolve_tier()`) to a cursor-agent model ID in two steps — base model, then effort suffix. No env var overrides. Version prefix `claude-4.6` is a named constant (one-line update on model generation change).
+
+| Primary fails | model + effort | cursor-agent ID |
+|---|---|---|
+| Claude frontier | `opus` + `high` | `claude-4.6-opus-high-thinking` |
+| Claude standard | `sonnet` + `high` | `claude-4.6-sonnet-medium-thinking` |
+| Claude fast | `haiku` + `high` | `auto` |
+| Codex frontier | `gpt-5.4` + `high` | `gpt-5.4-high` |
+| Codex standard | `gpt-5.4` + `medium` | `gpt-5.4-medium` |
+| Codex fast | `gpt-5.4-mini` + `high` | `gpt-5.4-mini-high` |
+
 ### Multi-Provider Dispatch
 
 `SPINE_ENVOY_PROVIDERS` controls which providers envoy attempts and in what order.
@@ -173,10 +188,11 @@ Env var changes take effect immediately (runtime). Model mapping changes require
 
 ## Implementation Notes
 
-Three mapping points encode the tier tables:
+Four mapping points encode the tier tables:
 
 - **`install.sh`** `map_model_for_provider()` — maps tiers to provider models at install time, generating agent frontmatter for Codex TOML, Cursor `.md`, and OpenCode `.md` files.
 - **`_common.sh`** `resolve_tier()` — maps tier + provider to model at runtime for envoy CLI dispatch via `invoke-{provider}.sh`.
+- **`invoke-cursor.sh`** `to_cursor_model()` — maps canonical model + effort to cursor-agent model IDs for fallback after Claude/Codex failure. Version prefix `claude-4.6` is a named constant.
 - **`_opencode-common.sh`** — shared transport helper for OpenCode. Owns CLI invocation, JSONL parsing, `step_finish` completeness gate, and OpenCode env sanitization.
 
 All mapping points agree on tier:provider mappings. Intentional surface differences: Cursor Standard uses `auto` (Cursor's routing with separate allocation from composer-2), Cursor Fast uses `fast` in install-time frontmatter but `composer-2` in envoy CLI dispatch. OpenCode uses full prefixed model strings (e.g., `opencode-go/glm-5`) with no runtime prefix probing. OpenCode automatically detects Go subscription vs Free tier models.
