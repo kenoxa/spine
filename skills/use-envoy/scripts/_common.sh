@@ -64,7 +64,7 @@ resolve_tier() {
         standard:codex)  _tier_model=gpt-5.4;       _tier_effort=medium ;;
         standard:cursor) _tier_model=composer-2;     _tier_effort= ;;
         fast:claude)     _tier_model=haiku;          _tier_effort=medium ;;
-        fast:codex)      _tier_model=gpt-5.4-mini;  _tier_effort=medium ;;  # ideal: gpt-5.4-nano (unavailable on current Codex subscription)
+        fast:codex)      _tier_model=gpt-5.4-mini;  _tier_effort=medium ;;
         fast:cursor)     _tier_model=auto;           _tier_effort= ;;
         frontier:opencode) _tier_model=opencode-go/glm-5;              _tier_effort=high ;;
         standard:opencode) _tier_model=opencode-go/minimax-m2.7;       _tier_effort=high ;;

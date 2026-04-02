@@ -126,7 +126,8 @@ See [opencode.ai/docs/models](https://opencode.ai/docs/models/) for the full mod
 curl -fsSL https://raw.githubusercontent.com/kenoxa/spine/main/install.sh | bash
 ```
 
-The installer configures every supported tool it can detect:
+<details>
+<summary>What gets configured</summary>
 
 - Cursor via `~/.cursor/`
 - Claude Code via the `claude` CLI on `PATH`
@@ -135,13 +136,33 @@ The installer configures every supported tool it can detect:
 
 For Claude Code, the installer also attempts to install the [Spine plugin](claude/README.md).
 
+</details>
+
 ### Start Using It
 
-Use your provider in its most autonomous mode:
+<details>
+<summary>Provider setup — autonomous mode and session model</summary>
 
-- Cursor: agent mode
-- Claude Code: auto-accept edits
-- Codex: full auto mode
+**Autonomous mode** — skills dispatch subagents that read, write, and run commands without approval prompts. Other modes interrupt this with constant approval requests.
+
+| Provider | Mode |
+|----------|------|
+| Cursor | Agent mode |
+| Claude Code | Auto-accept edits |
+| Codex | Full auto mode |
+
+**Session model** — Standard tier is the default. Start here and upgrade when the task demands it.
+
+| Provider | Default | Upgrade |
+|----------|---------|---------|
+| Claude Code | sonnet:medium | opus:high |
+| Codex | gpt-5.4:medium | gpt-5.4:high |
+| Cursor | auto | composer-2 |
+| OpenCode | minimax-m2.7 (Go) / minimax-m2.5-free (Free) | glm-5 |
+
+See [docs/model-selection.md](docs/model-selection.md) for full tier guidance and escalation triggers.
+
+</details>
 
 Then start from the workflow:
 

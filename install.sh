@@ -1118,7 +1118,7 @@ map_model_for_provider() {
     opus:cursor)   _mapped_model="composer-2" ;;
     sonnet:codex)  _mapped_model="gpt-5.4" ;;
     sonnet:cursor) _mapped_model="composer-2" ;;
-    haiku:codex)   _mapped_model="gpt-5.4-mini" ;;  # ideal: gpt-5.4-nano (unavailable on current Codex subscription)
+    haiku:codex)   _mapped_model="gpt-5.4-mini" ;;
     haiku:cursor)  _mapped_model="fast" ;;
     opus:opencode-go)     _mapped_model="opencode-go/glm-5" ;;
     sonnet:opencode-go)   _mapped_model="opencode-go/minimax-m2.7" ;;

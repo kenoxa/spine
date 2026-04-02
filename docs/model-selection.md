@@ -16,12 +16,11 @@
 |------|---------|--------|-------|--------|---------------|-----------------|
 | Frontier | Complex reasoning, gate authority | opus:high | gpt-5.4:high | composer-2 | opencode-go/glm-5 | opencode/qwen3.6-plus-free |
 | Standard | Advisory, research, pattern matching | sonnet:medium | gpt-5.4:medium | composer-2 | opencode-go/minimax-m2.7 | opencode/minimax-m2.5-free |
-| Fast | Reconnaissance, extraction | haiku:medium | gpt-5.4-mini¹:medium | auto² | opencode-go/minimax-m2.5 | opencode/mimo-v2-pro-free |
+| Fast | Reconnaissance, extraction | haiku:medium | gpt-5.4-mini:medium | auto¹ | opencode-go/minimax-m2.5 | opencode/mimo-v2-pro-free |
 
 Session quality/cost is chosen on the mainthread.
 
-¹ Ideal mapping is gpt-5.4-nano — using mini until nano is available on the Codex subscription.
-² Envoy/tier dispatch only. Fast subagents use `fast` in install-time frontmatter (Cursor's own fast routing).
+¹ Envoy/tier dispatch only. Fast subagents use `fast` in install-time frontmatter (Cursor's own fast routing).
 
 ## Session Model
 
@@ -56,11 +55,11 @@ Heavy multi-agent sessions can exhaust Claude Code Max 5x Opus hours in 2-3 days
 
 ### Provider budget context
 
-| Provider | Budget model | Default | Recommendation |
-|----------|-------------|---------|----------------|
-| Claude Code | 5h / 7-day rolling | sonnet | Generous budget — upgrade to opus freely for complex phases |
-| Codex | 5h / 7-day rolling | gpt-5.4 | Generous budget — upgrade to gpt-5.4 freely for complex phases |
-| Cursor | ~$20-30 / month | auto | Tight monthly cap — stay on auto, upgrade selectively to composer-2 |
+| Provider | Budget model | Default | Upgrade | Recommendation |
+|----------|-------------|---------|---------|----------------|
+| Claude Code | 5h / 7-day rolling | sonnet:medium | opus:high | Generous budget — upgrade to opus freely for complex phases |
+| Codex | 5h / 7-day rolling | gpt-5.4:medium | gpt-5.4:high | Generous budget — upgrade effort freely for complex phases |
+| Cursor | ~$20-30 / month | auto | composer-2 | Tight monthly cap — stay on auto, upgrade selectively to composer-2 |
 
 ### Cost per million tokens
 
