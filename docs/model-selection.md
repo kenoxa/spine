@@ -14,13 +14,14 @@
 
 | Tier | Purpose | Claude | Codex | Cursor | OpenCode (Go) | OpenCode (Free) |
 |------|---------|--------|-------|--------|---------------|-----------------|
-| Frontier | Complex reasoning, gate authority | opus | gpt-5.4 | composer-2 | opencode-go/glm-5 | opencode/qwen3.6-plus-free |
-| Standard | Advisory, research, pattern matching | sonnet | gpt-5.4 | auto | opencode-go/minimax-m2.7 | opencode/minimax-m2.5-free |
-| Fast | Reconnaissance, extraction | haiku | gpt-5.4-mini¹ | composer-2 | opencode-go/minimax-m2.5 | opencode/mimo-v2-pro-free |
+| Frontier | Complex reasoning, gate authority | opus:high | gpt-5.4:high | composer-2 | opencode-go/glm-5 | opencode/qwen3.6-plus-free |
+| Standard | Advisory, research, pattern matching | sonnet:medium | gpt-5.4:medium | composer-2 | opencode-go/minimax-m2.7 | opencode/minimax-m2.5-free |
+| Fast | Reconnaissance, extraction | haiku:medium | gpt-5.4-mini¹:medium | auto² | opencode-go/minimax-m2.5 | opencode/mimo-v2-pro-free |
 
 Session quality/cost is chosen on the mainthread.
 
 ¹ Ideal mapping is gpt-5.4-nano — using mini until nano is available on the Codex subscription.
+² Envoy/tier dispatch only. Fast subagents use `fast` in install-time frontmatter (Cursor's own fast routing).
 
 ## Session Model
 
@@ -43,7 +44,7 @@ For day-to-day work, each provider has different strengths:
 | **Strength** | Code reasoning (SWE-Bench) | Agentic tool use (Terminal-Bench 75.1%) | IDE integration, cheapest agentic model | Multi-model gateway (GLM, MiniMax); Go subscription + Free tier |
 | **Budget** | 5h / 7-day rolling (generous) | 5h / 7-day rolling (generous) | ~$20-30 / month (tight) | Go subscription (free at margin) or Free tier (zero cost) |
 | **Best for** | Planning, debugging, complex reasoning | Sandboxed execution, tool-heavy tasks | Focused implementation, inline edits | Analytical diversity, cost-sensitive workloads, chain terminus fallback |
-| **Default model** | sonnet | gpt-5.4 | composer-2 | opencode-go/minimax-m2.7 (Go) / opencode/minimax-m2.5-free (Free) |
+| **Default model** | sonnet | gpt-5.4 | auto | opencode-go/minimax-m2.7 (Go) / opencode/minimax-m2.5-free (Free) |
 
 **Recommended primary**: Claude Code — highest code quality benchmarks, generous rolling budget, full Spine skill and subagent support. Use Standard (sonnet) as daily driver.
 
@@ -59,7 +60,7 @@ Heavy multi-agent sessions can exhaust Claude Code Max 5x Opus hours in 2-3 days
 |----------|-------------|---------|----------------|
 | Claude Code | 5h / 7-day rolling | sonnet | Generous budget — upgrade to opus freely for complex phases |
 | Codex | 5h / 7-day rolling | gpt-5.4 | Generous budget — upgrade to gpt-5.4 freely for complex phases |
-| Cursor | ~$20-30 / month | composer-2 | Tight monthly cap — stay on composer-2, upgrade selectively |
+| Cursor | ~$20-30 / month | auto | Tight monthly cap — stay on auto, upgrade selectively to composer-2 |
 
 ### Cost per million tokens
 
@@ -215,7 +216,7 @@ Four mapping points encode the tier tables:
 - **`invoke-cursor.sh`** `to_cursor_model()` — maps canonical model + effort to cursor-agent model IDs for fallback after Claude/Codex failure. Version prefix `claude-4.6` is a named constant.
 - **`_opencode-common.sh`** — shared transport helper for OpenCode. Owns CLI invocation, JSONL parsing, `step_finish` completeness gate, and OpenCode env sanitization.
 
-All mapping points agree on tier:provider mappings. Intentional surface differences: Cursor Standard uses `auto` (Cursor's routing with separate allocation from composer-2), Cursor Fast uses `fast` in install-time frontmatter but `composer-2` in envoy CLI dispatch. OpenCode uses full prefixed model strings (e.g., `opencode-go/glm-5`) with no runtime prefix probing. OpenCode automatically detects Go subscription vs Free tier models.
+All mapping points agree on tier:provider mappings. Intentional surface differences: Cursor Fast uses `fast` in install-time frontmatter (actual subagent dispatch) but `auto` in envoy CLI dispatch (tier table); Frontier and Standard are the only tiers meaningfully used in envoy for Cursor. Effort applies to Claude and Codex only — Cursor has no effort parameter. OpenCode uses full prefixed model strings (e.g., `opencode-go/glm-5`) with no runtime prefix probing. OpenCode automatically detects Go subscription vs Free tier models.
 
 ### Agent Tier Assignments
 

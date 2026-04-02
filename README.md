@@ -414,7 +414,7 @@ dev-browser install
 
 **When to upgrade the session (mainthread) to Frontier:** ambiguous requirements, cascading architectural decisions, elusive root causes, very large accumulated context (~50K+ tokens across subagent work), or tangled phase gates. **When implementation alone needs more:** cross-cutting multi-file refactors that outrun the design artifact — escalate `@implementer` workload or partition scope (see [docs/model-tier-assignments.md](docs/model-tier-assignments.md)); that is not always the same as upgrading the orchestrator.
 
-Claude Code and Codex have generous rolling budgets (5h/7d); Cursor has a tighter monthly cap — stay on composer-2, upgrade selectively.
+Claude Code and Codex have generous rolling budgets (5h/7d); Cursor has a tighter monthly cap — stay on auto, upgrade selectively to composer-2.
 
 For the full guide — tier mapping, provider pricing, env overrides, and benchmarks — see [docs/model-selection.md](docs/model-selection.md).
 
