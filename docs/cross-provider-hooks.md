@@ -100,6 +100,39 @@ Hooks that block emit both `hookSpecificOutput.permissionDecision` (Claude Code)
 |-------|----------|---------|
 | Plain text stdout | Claude Code | Injected as session context |
 | `additional_context` | Cursor (native) | Static session context (confirmed working) |
+| `{}` (empty JSON) | Cursor (command hook bail) | Silent no-op — all fields optional per Cursor docs |
+
+**Claude-only sessionStart hooks** (`inject-agents-md`, `inject-compact-essentials`) must bail with `printf '{}'` when `SPINE_PROVIDER_IS_CURSOR=1`. Detection: `_env.sh` exports `SPINE_PROVIDER_IS_CURSOR=1` when `CURSOR_PLUGIN_ROOT` is set (confirmed E3: Cursor 3.0.9). `CURSOR_AGENT` is absent in hook subprocesses — it applies to CLI/terminal context only.
+
+## _env.sh Implementation Constraints
+
+### Cursor env var detection — CLI vs hook subprocess
+
+`CURSOR_AGENT=1` is set in Cursor CLI/terminal sessions only — absent in hook
+subprocesses spawned via the Cursor Claude plugin. `CLAUDECODE` is also absent
+in hook subprocesses; negative detection is unreliable.
+
+Vars confirmed present in Cursor 3.0.9 hook subprocess env (E3: `~/.spine-hooks.log`):
+`CURSOR_PLUGIN_ROOT`, `CURSOR_VERSION`, `CURSOR_USER_EMAIL`, `CURSOR_WORKSPACE_LABEL`,
+`CURSOR_LAYOUT`.
+
+Canonical detection pattern (implemented at `hooks/_env.sh:52`):
+```sh
+{ [ -n "${CURSOR_PLUGIN_ROOT:-}" ] || [ -n "${CURSOR_VERSION:-}" ]; } \
+  && export SPINE_PROVIDER_IS_CURSOR=1 || true
+```
+`CURSOR_PLUGIN_ROOT` is most precise (plugin execution path); `CURSOR_VERSION` is
+broader fallback.
+
+### exec boundary — functions lost, exported vars survive
+
+`_env.sh` calls `exec /bin/sh "$_spine_cmd"` at line 80, replacing the process.
+Shell functions defined before exec are lost. Exported env vars survive (POSIX
+inheritance). `export -f` (function export) is a bashism — unavailable in `#!/bin/sh`.
+
+Any cross-hook state from `_env.sh` must use `export VAR=value`, not functions.
+Check in hook body with `[ "${FLAG:-}" = "1" ]`. Existing vars that follow this
+pattern: `SPINE_ENV_LOADED`, `PATH`, `SPINE_HOOKS_DIR`, `SPINE_PROVIDER_IS_CURSOR`.
 
 ## Cursor-Specific Events
 

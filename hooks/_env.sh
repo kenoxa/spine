@@ -46,6 +46,11 @@ export PATH
 # Export hooks directory for hook scripts
 export SPINE_HOOKS_DIR="${SPINE_HOOKS_DIR:-$HOME/.config/spine/hooks}"
 
+# Detect Cursor plugin execution context — exported so value survives exec boundary.
+# CURSOR_PLUGIN_ROOT is set by Cursor in hook subprocess env (confirmed E3: v3.0.9).
+# Note: CURSOR_AGENT is absent in hook subprocesses (CLI/terminal context only).
+{ [ -n "${CURSOR_PLUGIN_ROOT:-}" ] || [ -n "${CURSOR_VERSION:-}" ]; } && export SPINE_PROVIDER_IS_CURSOR=1 || true
+
 # Diagnostic mode: verify tool access
 if [ "${SPINE_ENV_VERIFY:-}" = "1" ]; then
   for _spine_t in bun node probe jq fd rg; do

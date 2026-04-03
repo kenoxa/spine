@@ -94,7 +94,7 @@ fi
 _self=""
 if printenv CLAUDECODE >/dev/null 2>&1; then
     _self=claude
-elif [ "${CURSOR_AGENT:-}" = "1" ]; then
+elif [ "${CURSOR_AGENT:-}" = "1" ]; then  # CLI/terminal context only — absent in hook subprocesses; use CURSOR_PLUGIN_ROOT there
     _self=cursor
 elif printenv CODEX_SANDBOX >/dev/null 2>&1; then
     _self=codex

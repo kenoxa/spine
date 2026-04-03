@@ -4,6 +4,10 @@
 # Post-compaction, CLAUDE.md is re-loaded with a "may or may not be relevant" disclaimer
 # that demotes rules to suggestions. This hook reinforces the highest-impact rules.
 
+# Bail silently when running under Cursor — this is a Claude-only hook.
+# Cursor parses sessionStart hook stdout as JSON; plain text causes SyntaxError.
+[ "${SPINE_PROVIDER_IS_CURSOR:-}" = "1" ] && { printf '{}'; exit 0; }
+
 cat <<'ESSENTIALS'
 ## Post-Compaction Essentials
 
