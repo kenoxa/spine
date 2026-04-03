@@ -24,7 +24,7 @@
 
 ## Tools
 
-Prefer native tools over shell: Grep not `rg`, Glob not `find`, Read not `cat`, Edit not `sed`. Prefer MCP tools over WebFetch/WebSearch. One search tool per question.
+Prefer native tools over shell: Grep not `rg`, Glob not `find`, Read not `cat`, Edit/StrReplace not `sed`. Prefer MCP tools over WebFetch/WebSearch. One search tool per question.
 
 **Routing**
 
@@ -52,7 +52,7 @@ After `do-design` emits a recommendation, STOP and await explicit user approval 
 
 **Verification:** Never mark a task complete without proving it works. Run tests, check logs, demonstrate correctness.
 
-**Subagents:** Isolate subagents: one task, no inherited history. Every dispatch prompt MUST include the exact output file path and the constraint: "Write output to that path. Read any repo file. No edits outside `.scratch/<session>/`. No builds, tests, or destructive commands." Subagents may create a scratchspace directory alongside their output file by stripping the extension (e.g., `output.md` → `output/`, `output.html` → `output/`). Use for intermediate work — verification scripts, draft analysis, evidence traces. Inspectable but not formal output; synthesizer reads prescribed paths only. Cap: ≤ 6 agents per dispatch (including augmented). Read all relevant files and gather examples before synthesizing. Never pass `model` on Agent dispatches — agent definitions declare their tier/model. User may override per-session; skills never do.
+**Subagents:** Isolate subagents: one task, no inherited history. Every dispatch prompt MUST include the exact output file path and the constraint: "Write output to that path. Read any repo file. No edits outside `.scratch/<session>/`. No builds, tests, or destructive commands." Subagents may create a scratchspace directory alongside their output file by stripping the extension (e.g., `output.md` → `output/`, `output.html` → `output/`). Use for intermediate work — verification scripts, draft analysis, evidence traces. Inspectable but not formal output; synthesizer reads prescribed paths only. Cap: ≤ 6 agents per dispatch (including augmented). Read all relevant files and gather examples before synthesizing. Never pass `model` on Agent/Task dispatches — agent definitions declare their tier/model. User may override per-session; skills never do.
 
 **Phase Trace:** Workflow skills log a Phase Trace row to session-log at every phase boundary. Zero-dispatch phases require a row with justification.
 

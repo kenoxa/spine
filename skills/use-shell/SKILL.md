@@ -11,7 +11,7 @@ description: >
 argument-hint: "[shell task or command]"
 ---
 
-Prefer native tools (Grep, Glob, Read, Edit) over shell equivalents. Shell is the fallback. Use `trash`, never `rm`.
+Prefer native tools (Grep, Glob, Read, Edit/StrReplace) over shell equivalents. Shell is the fallback. Use `trash`, never `rm`.
 
 ## Tool Preferences
 

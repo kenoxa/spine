@@ -104,10 +104,10 @@ skills/use-envoy/SKILL.md: 1156
 skills/use-js/SKILL.md: 714
 skills/use-shell/references/ast-grep.md: 932
 skills/use-shell/references/probe.md: 290
-skills/use-shell/SKILL.md: 611
+skills/use-shell/SKILL.md: 614
 skills/use-skill-craft/references/examples.md: 531
 skills/use-skill-craft/references/phase-audit.md: 373
-skills/use-skill-craft/references/workflow-patterns.md: 992
+skills/use-skill-craft/references/workflow-patterns.md: 997
 skills/use-skill-craft/SKILL.md: 1539
 skills/use-writing/references/prose-quality.md: 475
 skills/use-writing/SKILL.md: 519
@@ -115,4 +115,4 @@ skills/with-backend/SKILL.md: 132
 skills/with-frontend/SKILL.md: 276
 skills/with-terminology/SKILL.md: 314
 skills/with-testing/SKILL.md: 417
-SPINE.md: 1510
+SPINE.md: 1515

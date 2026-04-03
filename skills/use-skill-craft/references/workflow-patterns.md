@@ -80,7 +80,7 @@ Overhead only justified for complex dependency graphs — not for linear flows.
 | AP-5 | Missing exit criteria — "done" undefined | Define completion condition per phase |
 | AP-6 | No verification step — errors undetected | Add validation at end of every workflow |
 | AP-7 | Vague routing keywords — wrong workflow selected | Use distinctive keywords per route |
-| AP-8 | Bash for file ops — fragile encoding/permissions | Use Glob/Grep/Read/Write/Edit instead |
+| AP-8 | Bash/Shell for file ops — fragile encoding/permissions | Use Glob/Grep/Read/Write/Edit/StrReplace instead |
 | AP-9 | Overprivileged tools — unnecessary attack surface | List only tools instructions actually reference |
 | AP-10 | Vague subagent prompts — garbage output | Specify what to analyze, look for, and return |
 | AP-11 | Reference dumps — raw docs instead of judgment | Teach decision-making, not documentation |
