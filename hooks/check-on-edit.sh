@@ -2,11 +2,12 @@
 # check-on-edit.sh
 # PostToolUse hook: run project-appropriate checkers after file edits.
 # Triggered by Edit|Write|MultiEdit tools via hooks.json matcher.
-# Returns JSON on stdout with optional systemMessage.
-# ALWAYS exits 0 — errors and missing-tooling notices are reported via systemMessage, never by exit code.
+# Returns hookSpecificOutput.additionalContext for model context injection.
+# ALWAYS exits 0 — errors and missing-tooling notices are reported via hookSpecificOutput.additionalContext, never by exit code.
 
 # Guarantee valid JSON output on any unexpected failure
 trap 'echo "{}"; exit 0' HUP INT TERM
+printf '%s\tpostToolUse\tcheck-on-edit\n' "$(date +%s)" >>"$HOME/.spine-hooks.log" 2>/dev/null || true
 
 # --- Read hook input from stdin ---
 input=$(cat)
@@ -103,7 +104,7 @@ done
 if [ -n "$errors" ]; then
   jq -n --arg msg "Post-edit check found issues:
 
-$errors" '{ "systemMessage": $msg }'
+$errors" '{ "hookSpecificOutput": { "hookEventName": "PostToolUse", "additionalContext": $msg } }'
 else
   echo '{}'
 fi

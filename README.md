@@ -366,13 +366,17 @@ The installer copies shared hooks to `~/.config/spine/hooks/` with shebang rewri
 |------|--------|-------|--------|----------|
 | `guard-shell` | ✓ | ✓ | ✓ | ✓ |
 | `guard-read-large` | ✓ | ✓ | ✓ | ✓ |
-| `inject-types-on-read` | ✓ | ‒ | ✓ | ✓ |
-| `check-on-edit` | ✓ | ‒ | ✓ | ✓ |
+| `inject-types-on-read` | ✓ | ‒ | fires† | ✓ |
+| `check-on-edit` | ✓ | ‒ | fires† | ✓ |
 | `inject-agents-md` | ✓ | ‒ | ‒ | ‒ |
 | `inject-compact-essentials` | ✓ | ‒ | ‒ | ‒ |
-| `pre-compact` | ✓ | ‒ | ‒ | ‒ |
+| `pre-compact` | ✓ | ‒ | ✓ | ‒ |
 
 Codex PostToolUse is Bash-only — `inject-types-on-read` and `check-on-edit` are deferred until Codex supports Read/Edit PostToolUse events. OpenCode uses an in-process TS plugin (`opencode/spine-hooks.ts`) that delegates to the shared shell hooks.
+
+† Cursor PostToolUse hooks execute (confirmed E3) but their output is not surfaced to the model — staff-confirmed bug in Cursor 2.6.x, no fix shipped.
+
+Cursor 3.0+ loads `.claude/settings.json` hooks natively. PreToolUse guards (`guard-shell`, `guard-read-large`) are also written to `~/.cursor/hooks.json` as a fallback in case the plugin fails to load — double-fire is acceptable for idempotent guards. PostToolUse hooks are omitted from `~/.cursor/hooks.json` due to the bug above. In a Cursor-only install (no Claude), the full compatible hook set is written to `~/.cursor/hooks.json`.
 
 All hooks fail open on missing dependencies (jq, bun, probe) — warnings only, never workflow-blocking. Security and context guards (`guard-shell`, `guard-read-large`) intentionally block when triggered.
 

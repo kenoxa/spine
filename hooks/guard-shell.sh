@@ -7,6 +7,7 @@
 #
 # Exit codes: 0 = allow, 2 = block (with reason on stderr/stdout).
 # ALWAYS exits 0 on missing deps — fail open.
+printf '%s\tpreToolUse\tguard-shell\n' "$(date +%s)" >>"$HOME/.spine-hooks.log" 2>/dev/null || true
 
 # Required: jq for JSON parsing. Fail open with actionable warning.
 if ! command -v jq >/dev/null 2>&1; then

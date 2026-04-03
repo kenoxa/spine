@@ -5,6 +5,8 @@
  * Uses `probe symbols` (tree-sitter) for extraction, then applies smart prioritization
  * inspired by type-inject's tier system. Never cuts mid-symbol.
  *
+ * Returns hookSpecificOutput.additionalContext for model context injection.
+ *
  * Portable: runs on bun, node ≥22, or deno. No npm install needed for the core logic.
  * For Svelte: dynamically imports svelte/compiler from the project's node_modules.
  *
@@ -13,8 +15,8 @@
 
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, unlinkSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { appendFileSync, existsSync, unlinkSync, writeFileSync } from "node:fs";
+import { homedir, tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 
 import { extractCommonJsExportNames } from "./inject-types/commonjs-exports.ts";
@@ -128,6 +130,7 @@ async function readStdin(): Promise<string> {
 // --- Main ---
 
 async function main(): Promise<void> {
+	try { appendFileSync(join(homedir(), ".spine-hooks.log"), `${Date.now()}\tpostToolUse\tinject-types-on-read\n`); } catch {}
 	try {
 		const raw = await readStdin();
 		if (!raw.trim()) {
@@ -160,7 +163,7 @@ async function main(): Promise<void> {
 		const result = await processFile(filePath, offset, limit);
 
 		if (result) {
-			emit({ systemMessage: result });
+			emit({ hookSpecificOutput: { hookEventName: "PostToolUse", additionalContext: result } });
 		} else {
 			emit({});
 		}
@@ -577,7 +580,7 @@ function flattenProbeSymbols(symbols: ProbeSymbol[], flattenChildren: boolean, d
 			&& depth === 0
 			&& (!["class", "interface", "enum"].includes(sym.kind) || /\bpublic\b/.test(sym.signature));
 		if (shouldFlattenChildren) {
-			flat.push(...flattenProbeSymbols(sym.children, flattenChildren, depth + 1));
+			flat.push(...flattenProbeSymbols(sym.children!, flattenChildren, depth + 1));
 		}
 	}
 	return flat;

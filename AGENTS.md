@@ -39,6 +39,7 @@ Managed by `/run-curate`; style: telegraphic, 250-800 tokens, `updated:` frontma
 - `docs/provider-privacy.md` — training/retention/residency per provider (Claude, Codex, Cursor, OpenCode)
 - `docs/browser-automation-selection.md` — dev-browser chosen over 5 alternatives, benchmarks, install model, limitations
 - `docs/model-tier-assignments.md` — agent tier table, session model guidance, session vs implementer escalation triggers
+- `docs/cross-provider-hooks.md` — per-provider hook formats, Cursor camelCase schema, capability matrix, cross-provider gotchas
 
 ## Deep Dives
 

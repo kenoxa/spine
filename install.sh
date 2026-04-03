@@ -783,6 +783,7 @@ hook_supports() {
     check-on-edit:PostToolUse:cursor)             return 0 ;;
     check-on-edit:PostToolUse:opencode)           return 0 ;;
     pre-compact:PreCompact:claude)                return 0 ;;
+    pre-compact:PreCompact:cursor)                return 0 ;;
     *) return 1 ;;
   esac
 }
@@ -980,7 +981,8 @@ TOML
 }
 
 # Generate Cursor hooks in ~/.cursor/hooks.json.
-# Cursor uses the same PascalCase events as Claude Code.
+# Cursor uses camelCase event names (preToolUse, postToolUse, preCompact) and flat
+# hook entries {command, matcher?, timeout?} — no type/hooks wrapper like Claude Code.
 # Usage: generate_cursor_hooks <spine-dir>
 generate_cursor_hooks() {
   local spine_dir="$1"
@@ -991,34 +993,37 @@ generate_cursor_hooks() {
   [ -d "$HOME/.cursor" ] || return 0
   command -v jq &>/dev/null || { warn "jq not found — cannot generate Cursor hook config"; return 0; }
 
+  backup_if_exists "$hooks_file"
 
-  # Build hooks.json for Cursor
-  local ss_hooks="[]" ptu_hooks="[]" post_hooks="[]"
+  # PreToolUse guards always go into cursor hooks.json — they are idempotent and provider-agnostic.
+  # PostToolUse hooks are omitted: Cursor postToolUse additional_context bug makes them non-functional.
+  # PreCompact uses Claude plugin prompt hook when Claude is installed; command hook for Cursor-only.
+  local ptu_hooks="[]" post_hooks="[]" pc_hooks="[]"
 
-  # SessionStart
-  if hook_supports inject-agents-md SessionStart cursor; then
-    ss_hooks=$(echo "$ss_hooks" | jq --arg cmd "$hooks_dir/inject-agents-md.sh" \
-      '. + [{"hooks":[{"type":"command","command":$cmd}]}]')
-  fi
-  # PreToolUse
+  # PreToolUse: always write provider-agnostic guards to cursor hooks.json.
+  # When Claude is also installed, these fire twice (once via Claude plugin, once here) — acceptable
+  # for idempotent guard hooks. Ensures protection even if the Claude plugin fails to load.
   if hook_supports guard-shell PreToolUse cursor; then
     ptu_hooks=$(echo "$ptu_hooks" | jq --arg cmd "$hooks_dir/guard-shell.sh" \
-      '. + [{"matcher":"Bash","hooks":[{"type":"command","command":$cmd}]}]')
+      '. + [{"command":$cmd,"matcher":"Bash"}]')
   fi
   if hook_supports guard-read-large PreToolUse cursor; then
     ptu_hooks=$(echo "$ptu_hooks" | jq --arg cmd "$hooks_dir/guard-read-large.sh" \
-      '. + [{"matcher":"Read","hooks":[{"type":"command","command":$cmd,"timeout":10}]}]')
+      '. + [{"command":$cmd,"matcher":"Read","timeout":10}]')
   fi
 
-  # PostToolUse — Cursor uses afterFileEdit with different envelope shape
-  # inject-types-on-read: Cursor postToolUse for Read
-  if hook_supports inject-types-on-read PostToolUse cursor; then
-    post_hooks=$(echo "$post_hooks" | jq --arg cmd "$hooks_dir/_ts.sh $hooks_dir/inject-types-on-read.ts" \
-      '. + [{"matcher":"Read","hooks":[{"type":"command","command":$cmd,"timeout":30}]}]')
-  fi
-  if hook_supports check-on-edit PostToolUse cursor; then
-    post_hooks=$(echo "$post_hooks" | jq --arg cmd "$hooks_dir/check-on-edit.sh" \
-      '. + [{"matcher":"Edit|Write|MultiEdit","hooks":[{"type":"command","command":$cmd,"timeout":30}]}]')
+  # PostToolUse: omitted — Cursor postToolUse additional_context is a staff-confirmed bug
+  # (forum.cursor.com/t/155689, Cursor 2.6.x, no fix shipped). Output is accepted but not
+  # surfaced to the model. Entries will be added here once the bug is verified fixed.
+  # inject-types-on-read and check-on-edit remain available via the Claude plugin channel.
+
+  # PreCompact: Cursor-only installs only. Claude+Cursor uses the Claude plugin's native
+  # [prompt] PreCompact hook, which takes precedence and avoids duplicate context injection.
+  if ! command -v claude >/dev/null 2>&1; then
+    if hook_supports pre-compact PreCompact cursor && [ -f "$hooks_dir/pre-compact.sh" ]; then
+      pc_hooks=$(echo "$pc_hooks" | jq --arg cmd "$hooks_dir/pre-compact.sh" \
+        '. + [{"command":$cmd}]')
+    fi
   fi
 
   # Merge into hooks.json (strip existing spine-managed entries first)
@@ -1027,25 +1032,28 @@ generate_cursor_hooks() {
   local tmp
   tmp=$(mktemp)
 
-  # Strip existing spine hooks (identified by spine/hooks path)
+  # Strip existing spine hooks — flat format (.command) and legacy nested format (.hooks[].command)
   jq '
     .hooks //= {} |
     .hooks |= with_entries(
       .value |= map(select(
-        (.hooks // []) | all(.command // "" | test("spine/hooks") | not)
+        (.command // "" | test("spine/hooks") | not) and
+        ((.hooks // []) | map(.command // "") | all(test("spine/hooks") | not))
       ))
-    )
+    ) |
+    .hooks |= with_entries(select(.value | length > 0))
   ' "$hooks_file" > "$tmp" 2>/dev/null || cp "$hooks_file" "$tmp"
 
   jq \
-    --argjson ss "$ss_hooks" \
     --argjson ptu "$ptu_hooks" \
     --argjson post "$post_hooks" \
+    --argjson pc "$pc_hooks" \
     '
+    .version = 1 |
     .hooks //= {} |
-    .hooks.SessionStart = ((.hooks.SessionStart // []) + $ss) |
-    .hooks.PreToolUse = ((.hooks.PreToolUse // []) + $ptu) |
-    .hooks.PostToolUse = ((.hooks.PostToolUse // []) + $post) |
+    .hooks.preToolUse = ((.hooks.preToolUse // []) + $ptu) |
+    .hooks.postToolUse = ((.hooks.postToolUse // []) + $post) |
+    .hooks.preCompact = ((.hooks.preCompact // []) + $pc) |
     .hooks |= with_entries(select(.value | length > 0))
   ' "$tmp" > "${tmp}.out" 2>/dev/null
 
