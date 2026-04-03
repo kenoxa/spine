@@ -15,7 +15,7 @@
 
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { appendFileSync, existsSync, unlinkSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, renameSync, rmSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 
@@ -127,10 +127,31 @@ async function readStdin(): Promise<string> {
 	});
 }
 
+// --- Logging ---
+
+function spineLog(): void {
+	if (!process.env.SPINE_HOOK_LOG) return;
+	try {
+		const logPath = process.env.SPINE_LOG_FILE ?? join(homedir(), ".config", "spine", "logs", "hooks.jsonl");
+		try { mkdirSync(dirname(logPath), { recursive: true }); } catch {}
+
+		let size = 0;
+		try { size = statSync(logPath).size; } catch {}
+		if (size >= 512000) { // keep in sync with _spine_log() in hooks/_log.sh
+			rmSync(logPath + ".2", { force: true });
+			try { renameSync(logPath + ".1", logPath + ".2"); } catch {}
+			try { renameSync(logPath, logPath + ".1"); } catch {}
+		}
+
+		const entry = JSON.stringify({ ts: new Date().toISOString(), event: "postToolUse", hook: "inject-types-on-read", tool: "Read" }) + "\n";
+		appendFileSync(logPath, entry);
+	} catch {}
+}
+
 // --- Main ---
 
 async function main(): Promise<void> {
-	try { appendFileSync(join(homedir(), ".spine-hooks.log"), `${Date.now()}\tpostToolUse\tinject-types-on-read\n`); } catch {}
+	spineLog();
 	try {
 		const raw = await readStdin();
 		if (!raw.trim()) {

@@ -4,7 +4,9 @@
 # Prevents context window waste from reading entire large files.
 #
 # Exit codes: 2 = block with context, 0 = allow.
-printf '%s\tpreToolUse\tguard-read-large\n' "$(date +%s)" >>"$HOME/.spine-hooks.log" 2>/dev/null || true
+# shellcheck source=./_log.sh
+. "$(dirname "$0")/_log.sh"
+_spine_log preToolUse guard-read-large Read
 
 # Required: jq for JSON parsing. Fail open with actionable warning.
 if ! command -v jq >/dev/null 2>&1; then

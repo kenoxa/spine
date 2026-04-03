@@ -644,6 +644,7 @@ setup_central_dir() {
   local spine_dir="$HOME/.config/spine"
 
   mkdir -p "$spine_dir/agents"
+  mkdir -p "$spine_dir/logs"
 
   # Copy guardrails
   backup_if_exists "$spine_dir/SPINE.md"

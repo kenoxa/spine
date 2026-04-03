@@ -7,7 +7,9 @@
 
 # Guarantee valid JSON output on any unexpected failure
 trap 'echo "{}"; exit 0' HUP INT TERM
-printf '%s\tpostToolUse\tcheck-on-edit\n' "$(date +%s)" >>"$HOME/.spine-hooks.log" 2>/dev/null || true
+# shellcheck source=./_log.sh
+. "$(dirname "$0")/_log.sh"
+_spine_log postToolUse check-on-edit Edit  # matcher: Edit|Write|MultiEdit
 
 # --- Read hook input from stdin ---
 input=$(cat)
