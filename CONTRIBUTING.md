@@ -166,7 +166,7 @@ Durable project insights live in `docs/` and are indexed by AGENTS.md `## Projec
 **When to create**: cross-provider architectural insights, constraint discoveries, integration patterns — anything that improves future AI sessions and can't be derived from code or git history alone.
 
 **Format**:
-- Frontmatter: `updated: YYYY-MM-DD`
+- Frontmatter: `updated: YYYY-MM-DD`, optional `paths: [list]` (codebase paths for staleness detection)
 - Style: telegraphic skill-craft prose (same as agent files)
 - Size: 250-800 tokens (o200k_base)
 - Naming: descriptive, no prefix (e.g., `docs/session-inheritance.md`)
@@ -183,6 +183,12 @@ Durable project insights live in `docs/` and are indexed by AGENTS.md `## Projec
 **Routing rubric**: SPINE.md rules → SPINE.md. Skill/agent roles → skill/agent files. Durable insights → `docs/*.md` knowledge files. Ephemeral session notes → `.scratch/`.
 
 **Evidence gate**: promotion requires E2+ anchor (code reference or executed command). E0/E1-only learnings are advisory. Exception: findings about third-party systems (provider policies, external libraries, academic results) accept E1 with 3+ independent sources — these are structurally incapable of producing E2 code references.
+
+**Staleness detection**: `/run-curate` checks each knowledge file's `updated:` frontmatter against `git log --since=<updated_date>` on related codebase paths. Files with changed neighbors are flagged stale and prioritized for Update or Prune review. Knowledge files may declare related paths via `paths:` frontmatter for more accurate detection; files without declared paths are skipped.
+
+**Coverage gap discovery**: `/run-curate` dispatches an envoy panel (frontier tier, multi-provider) to identify unrepresented knowledge domains. Output is advisory (E1) — envoy findings cannot self-promote through the E2+ evidence gate. Curator may recommend investigation of flagged gaps as follow-up; promotion still requires E2+ anchor.
+
+**Candidate intake** (standalone mode): scans `.scratch/` session logs for entries with `knowledge_candidate: yes`. Other workflow skills may emit candidates in their finalize phases using the standard shape: `what_was_attempted`, `result`, `assumption_corrected`, `knowledge_candidate`. Collected candidates are passed to `@curator` alongside existing entries.
 
 ## Review Checklist
 
