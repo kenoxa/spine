@@ -1129,7 +1129,7 @@ map_model_for_provider() {
     sonnet:cursor) _mapped_model="composer-2" ;;
     haiku:codex)   _mapped_model="gpt-5.4-mini" ;;
     haiku:cursor)  _mapped_model="fast" ;;
-    opus:opencode-go)     _mapped_model="opencode-go/glm-5" ;;
+    opus:opencode-go)     _mapped_model="opencode-go/mimo-v2-pro" ;;
     sonnet:opencode-go)   _mapped_model="opencode-go/minimax-m2.7" ;;
     haiku:opencode-go)    _mapped_model="opencode-go/minimax-m2.5" ;;
     opus:opencode-free)   _mapped_model="opencode/qwen3.6-plus-free" ;;

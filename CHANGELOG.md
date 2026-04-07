@@ -2,6 +2,12 @@
 
 All notable changes are documented here, focused on user impact.
 
+## 2026-04-07
+
+### Changed
+
+- **OpenCode Go Frontier model: GLM-5 → MiMo-V2-Pro** — 1M context window (vs 200K) for gate-authority tasks. Added OpenCode Go provider budget row and subscription-effective pricing.
+
 ## 2026-04-02
 
 ### Changed

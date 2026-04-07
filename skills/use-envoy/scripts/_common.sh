@@ -66,7 +66,7 @@ resolve_tier() {
         fast:claude)     _tier_model=haiku;          _tier_effort=medium ;;
         fast:codex)      _tier_model=gpt-5.4-mini;  _tier_effort=medium ;;
         fast:cursor)     _tier_model=auto;           _tier_effort= ;;
-        frontier:opencode) _tier_model=opencode-go/glm-5;              _tier_effort=high ;;
+        frontier:opencode) _tier_model=opencode-go/mimo-v2-pro;         _tier_effort=high ;;
         standard:opencode) _tier_model=opencode-go/minimax-m2.7;       _tier_effort=high ;;
         fast:opencode)     _tier_model=opencode-go/minimax-m2.5;       _tier_effort=high ;;
         frontier:opencode-free) _tier_model=opencode/qwen3.6-plus-free;    _tier_effort=high ;;

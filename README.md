@@ -158,7 +158,7 @@ For Claude Code, the installer also attempts to install the [Spine plugin](claud
 | Claude Code | sonnet:medium | opus:high |
 | Codex | gpt-5.4:medium | gpt-5.4:high |
 | Cursor | auto | composer-2 |
-| OpenCode | minimax-m2.7 (Go) / minimax-m2.5-free (Free) | glm-5 |
+| OpenCode | minimax-m2.7 (Go) / minimax-m2.5-free (Free) | mimo-v2-pro |
 
 See [docs/model-selection.md](docs/model-selection.md) for full tier guidance and escalation triggers.
 
@@ -391,7 +391,7 @@ The envoy skill defaults to high-capability models per provider. Override via `~
 # Format: model[:effort]  (effort defaults to "high" if omitted)
 export SPINE_ENVOY_CLAUDE=opus:high
 export SPINE_ENVOY_CODEX=gpt-5.4:high
-export SPINE_ENVOY_OPENCODE=opencode-go/glm-5:high
+export SPINE_ENVOY_OPENCODE=opencode-go/mimo-v2-pro:high
 
 # Per-tier overrides: SPINE_ENVOY_{TIER}_{PROVIDER}=model:effort
 export SPINE_ENVOY_FAST_OPENCODE=opencode/minimax-m2.5-free:minimal

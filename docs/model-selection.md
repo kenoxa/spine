@@ -14,7 +14,7 @@
 
 | Tier | Purpose | Claude | Codex | Cursor | OpenCode (Go) | OpenCode (Free) |
 |------|---------|--------|-------|--------|---------------|-----------------|
-| Frontier | Complex reasoning, gate authority | opus:high | gpt-5.4:high | composer-2 | opencode-go/glm-5 | opencode/qwen3.6-plus-free |
+| Frontier | Complex reasoning, gate authority | opus:high | gpt-5.4:high | composer-2 | opencode-go/mimo-v2-pro | opencode/qwen3.6-plus-free |
 | Standard | Advisory, research, pattern matching | sonnet:medium | gpt-5.4:medium | composer-2 | opencode-go/minimax-m2.7 | opencode/minimax-m2.5-free |
 | Fast | Reconnaissance, extraction | haiku:medium | gpt-5.4-mini:medium | auto¹ | opencode-go/minimax-m2.5 | opencode/mimo-v2-pro-free |
 
@@ -40,7 +40,7 @@ For day-to-day work, each provider has different strengths:
 
 | | Claude Code | Codex | Cursor | OpenCode |
 |---|------------|-------|--------|----------|
-| **Strength** | Code reasoning (SWE-Bench) | Agentic tool use (Terminal-Bench 75.1%) | IDE integration, cheapest agentic model | Multi-model gateway (GLM, MiniMax); Go subscription + Free tier |
+| **Strength** | Code reasoning (SWE-Bench) | Agentic tool use (Terminal-Bench 75.1%) | IDE integration, cheapest agentic model | Multi-model gateway (MiMo, MiniMax, GLM); Go subscription + Free tier |
 | **Budget** | 5h / 7-day rolling (generous) | 5h / 7-day rolling (generous) | ~$20-30 / month (tight) | Go subscription (free at margin) or Free tier (zero cost) |
 | **Best for** | Planning, debugging, complex reasoning | Sandboxed execution, tool-heavy tasks | Focused implementation, inline edits | Analytical diversity, cost-sensitive workloads, chain terminus fallback |
 | **Default model** | sonnet | gpt-5.4 | auto | opencode-go/minimax-m2.7 (Go) / opencode/minimax-m2.5-free (Free) |
@@ -60,16 +60,19 @@ Heavy multi-agent sessions can exhaust Claude Code Max 5x Opus hours in 2-3 days
 | Claude Code | 5h / 7-day rolling | sonnet:medium | opus:high | Generous budget — upgrade to opus freely for complex phases |
 | Codex | 5h / 7-day rolling | gpt-5.4:medium | gpt-5.4:high | Generous budget — upgrade effort freely for complex phases |
 | Cursor | ~$20-30 / month | auto | composer-2 | Tight monthly cap — stay on auto, upgrade selectively to composer-2 |
+| OpenCode Go | $60/mo flat ($10 sub), $12/5h · $30/wk rolling caps | minimax-m2.5 (Fast) | mimo-v2-pro (Frontier) | Tight rolling caps — default to M2.5 for volume; escalate to MiMo-V2-Pro for gate-authority tasks only. M2.5 gives 20K req/5h vs MiMo-V2-Pro's 1.3K req/5h. Fall back to free models when cap hit. |
 
 ### Cost per million tokens
 
 | Tier | Claude | Codex | Cursor | OpenCode (Go) | OpenCode (Free) |
 |------|--------|-------|--------|---------------|-----------------|
-| Frontier | opus ($5/$25) | gpt-5.4 ($2.50/$15) | composer-2 ($0.50/$2.50) | glm-5 ($1/$3.20, sub free) | qwen3.6-plus-free (**free**) |
-| Standard | sonnet ($3/$15) | gpt-5.4 ($2.50/$15) | auto ($1.25/$6.00) | minimax-m2.7 ($0.30/$1.20, sub) | minimax-m2.5-free (**free**) |
-| Fast | haiku ($1/$5) | gpt-5.4-mini¹ ($0.75/$4.50) | composer-2 ($0.50/$2.50) | minimax-m2.5 ($0.30/$1.20, sub) | mimo-v2-pro-free (**free**) |
+| Frontier | opus ($5/$25) | gpt-5.4 ($2.50/$15) | composer-2 ($0.50/$2.50) | mimo-v2-pro ($0, sub, ~6.5K req/mo) | qwen3.6-plus-free (**free**) |
+| Standard | sonnet ($3/$15) | gpt-5.4 ($2.50/$15) | auto ($1.25/$6.00) | minimax-m2.7 ($0, sub, ~70K req/mo) | minimax-m2.5-free (**free**) |
+| Fast | haiku ($1/$5) | gpt-5.4-mini¹ ($0.75/$4.50) | composer-2 ($0.50/$2.50) | minimax-m2.5 ($0, sub, ~100K req/mo) | mimo-v2-pro-free (**free**) |
 
 > Cursor models draw from the Auto+Composer pool with a monthly allowance. Per-token cost matters less than staying within your monthly budget. Composer 2 Fast ($1.50/$7.50) offers the same quality at higher speed but 3× the cost — use selectively when latency matters. For higher quality beyond the pool, override to API-pool models (e.g., gpt-5.4) at provider pricing.
+
+> OpenCode Go models are billed against a $60/month usage allowance included in the $10/month subscription. Per-token rates apply only on the Zen (pay-as-you-go) tier. Request counts are estimates based on observed average token patterns (last verified: April 2026).
 
 ## Overrides
 
@@ -91,7 +94,7 @@ When Claude or Codex hits a rate limit, runs out of credits, or has an auth erro
 - Claude fails → cursor-agent runs the same Claude model (e.g., `opus` → `claude-4.6-opus-high-thinking`)
 - Codex fails → cursor-agent runs the same GPT model (e.g., `gpt-5.4` → `gpt-5.4-high`)
 - Cursor fails → no fallback (cursor-agent models aren't available elsewhere)
-- OpenCode fails → no fallback (GLM/MiniMax models aren't available on cursor-agent)
+- OpenCode fails → no fallback (MiMo/MiniMax models aren't available on cursor-agent)
 
 **What you'll see:** A stderr message like `claude failed (exit 1), attempting cursor-agent fallback`, and the output header will note the fallback: `Claude Code -> Cursor-Agent Fallback`.
 
@@ -199,12 +202,15 @@ Env var changes take effect immediately (runtime). Model mapping changes require
 
 | Model | SWE-Bench Verified | SWE-Bench Pro | Vals AI Composite | Pricing (in/out per M) |
 |-------|-------------------|---------------|-------------------|----------------------|
-| MiniMax M2.5 | 80.2% | — | — | $0.30 / $1.20 (sub free) |
-| MiniMax M2.7 | — | 56.22% | — | $0.30 / $1.20 (sub) |
-| GLM-5 | 77.8% | — | 60.69% | $1 / $3.20 (sub free) |
+| MiMo-V2-Pro | 78.0%† | — | ClawEval 61.5 | $0 (Go sub, ~6.5K req/mo) |
+| MiniMax M2.5 | 80.2% | — | — | $0 (Go sub, ~100K req/mo) |
+| MiniMax M2.7 | — | 56.22% | — | $0 (Go sub, ~70K req/mo) |
+| GLM-5 | 77.8% | — | 60.69% | $0 (Go sub, ~5.8K req/mo) |
 | GLM 4.7 Flash | — | — | — | $0.06 / $0.40 (30B coding-optimized) |
 
-> MiniMax M2.7 also reports improved hallucination resistance (+1 AA-Omniscience over M2.5). GLM-5 leads on Vals AI composite (60.69%), indicating strong factual reliability. MiniMax M2.5-free provides zero-cost fast-tier coverage.
+† self-reported by vendor
+
+> MiniMax M2.7 also reports improved hallucination resistance (+1 AA-Omniscience over M2.5). GLM-5 leads on Vals AI composite (60.69%), indicating strong factual reliability. MiniMax M2.5-free provides zero-cost fast-tier coverage. MiMo-V2-Pro offers a 1M context window (vs GLM-5's 200K), making it the preferred Frontier choice for gate-authority tasks requiring full-repo visibility. ClawEval 61.5 (independently confirmed, claw-eval.github.io).
 
 ## Implementation Notes
 
@@ -215,7 +221,7 @@ Four mapping points encode the tier tables:
 - **`invoke-cursor.sh`** `to_cursor_model()` — maps canonical model + effort to cursor-agent model IDs for fallback after Claude/Codex failure. Version prefix `claude-4.6` is a named constant.
 - **`_opencode-common.sh`** — shared transport helper for OpenCode. Owns CLI invocation, JSONL parsing, `step_finish` completeness gate, and OpenCode env sanitization.
 
-All mapping points agree on tier:provider mappings. Intentional surface differences: Cursor Fast uses `fast` in install-time frontmatter (actual subagent dispatch) but `auto` in envoy CLI dispatch (tier table); Frontier and Standard are the only tiers meaningfully used in envoy for Cursor. Effort applies to Claude and Codex only — Cursor has no effort parameter. OpenCode uses full prefixed model strings (e.g., `opencode-go/glm-5`) with no runtime prefix probing. OpenCode automatically detects Go subscription vs Free tier models.
+All mapping points agree on tier:provider mappings. Intentional surface differences: Cursor Fast uses `fast` in install-time frontmatter (actual subagent dispatch) but `auto` in envoy CLI dispatch (tier table); Frontier and Standard are the only tiers meaningfully used in envoy for Cursor. Effort applies to Claude and Codex only — Cursor has no effort parameter. OpenCode uses full prefixed model strings (e.g., `opencode-go/mimo-v2-pro`) with no runtime prefix probing. OpenCode automatically detects Go subscription vs Free tier models.
 
 ### Agent Tier Assignments
 
