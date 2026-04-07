@@ -1,10 +1,6 @@
 # Advanced Patterns
 
-Capabilities available in dev-browser but not documented in `--help`.
-
 ## Browser Console Capture
-
-Capture `console.log()` calls from the web page (distinct from script's own `console.log`):
 
 ```javascript
 const messages = [];
@@ -17,8 +13,6 @@ console.log(JSON.stringify({ consoleMessages: messages }));
 ```
 
 ## Network Observation
-
-Monitor HTTP requests and responses:
 
 ```javascript
 const requests = [];
@@ -53,9 +47,7 @@ await ctx.addCookies([{
 await ctx.clearCookies({ name: "session" });
 ```
 
-## Auth State (storageState)
-
-Export cookies + localStorage origins as JSON for inspection or logging:
+## Auth State
 
 ```javascript
 const state = await page.context().storageState();
@@ -63,11 +55,9 @@ console.log(JSON.stringify(state));
 // { cookies: [...], origins: [{ origin, localStorage: [...] }] }
 ```
 
-Note: `storageState({ path })` throws in the sandbox — capture the return value and log it instead.
-
 ## Network Interception
 
-Intercept and modify requests. Use specific URL patterns only:
+Use specific URL patterns only:
 
 ```javascript
 await page.route("**/api/data", async (route) => {
@@ -77,5 +67,3 @@ await page.route("**/api/data", async (route) => {
   await route.fulfill({ json: body });
 });
 ```
-
-**Never use `page.route("**/*")`** — catches Playwright internal traffic and causes timeouts.

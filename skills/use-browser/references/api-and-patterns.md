@@ -1,6 +1,6 @@
 # API Reference & Patterns
 
-From dev-browser's LLM guide. Pages are full Playwright Page objects.
+Pages are full Playwright Page objects.
 
 ## Playwright Page Methods
 
@@ -8,7 +8,7 @@ From dev-browser's LLM guide. Pages are full Playwright Page objects.
 page.goto(url)                         Navigate to a URL
 page.title()                           Get the current page title
 page.url()                             Get the current URL
-page.snapshotForAI(options)            AI-optimized snapshot → { full, incremental? }
+page.snapshotForAI(options)            AI-optimized snapshot -> { full, incremental? }
                                        Options: { track?, depth?, timeout? }
 page.getByRole(role, { name })         Target elements from snapshot
 page.textContent(selector)             Get text content
@@ -36,34 +36,7 @@ console.log(JSON.stringify(tabs, null, 2));
 EOF
 ```
 
-## Error Recovery
-
-If a script fails, the page stays where it stopped. Reconnect and inspect:
-
-```sh
-dev-browser --headless <<'EOF'
-const page = await browser.getPage("checkout");
-const path = await saveScreenshot(await page.screenshot(), "debug.png");
-console.log(JSON.stringify({
-  screenshot: path,
-  url: page.url(),
-  title: await page.title(),
-}));
-EOF
-```
-
-## Waiting
-
-```javascript
-await page.waitForSelector(".results");
-await page.waitForURL("**/success");
-await page.waitForTimeout(500); // ms, use sparingly
-```
-
 ## Tips
 
-- `console.log(JSON.stringify(...))` for structured output
-- `snapshotForAI()` for structure; screenshots when visual layout matters
 - Keep page names stable across scripts for failure recovery
 - `--timeout 10` for fast-fail instead of 30s default hang
-- `page.evaluate(fn)` runs in browser context — plain JS only, no TypeScript
