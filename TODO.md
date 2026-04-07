@@ -6,7 +6,7 @@
 - auto-loading per glob like min description?
 - https://github.com/SocketDev/sfw-free
 - merge/resolve merge conflict
-- RTK Codex hooks: switch from instruction-only to PreToolUse hook once RTK adds native support ([rtk#921](https://github.com/rtk-ai/rtk/issues/921)); Codex hooks shipped in v0.117.0 but require `codex_hooks = true` feature flag
+- RTK Codex hooks: switch from instruction-only (`RTK.md`) to PreToolUse hook rewriting once Codex supports `updatedInput` + `permissionDecision:allow` — both are parsed but explicitly rejected as "unsupported" in `codex-rs/hooks/src/engine/output_parser.rs` (verified 2026-04-07). Blocked on Codex, not RTK. ([rtk#921](https://github.com/rtk-ai/rtk/issues/921), [codex#14754](https://github.com/openai/codex/issues/14754))
 - Codex hooks: enable `inject-types-on-read` and `check-on-edit` once Codex PostToolUse supports non-Bash tools (Read, Edit/Write); currently Bash-only ([codex#14754](https://github.com/openai/codex/issues/14754)); hooks are ready — just expand capability matrix in install.sh
 - doc co-evolution Phase 2: if lightweight guardrails (SPINE.md norm + Scope heuristic + finalize learnings) prove insufficient, add `docs_impact` to frame_artifact and `docs_plan` to design_artifact schema fields
 
