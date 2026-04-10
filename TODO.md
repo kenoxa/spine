@@ -26,3 +26,11 @@
 - zed editor settings
 - claude code, codex, cursor settings
 - brew install --cask steipete/tap/codexbar
+- Time Machine exclusions for dev directories
+	- `chpwd` hook in `.zshrc`: reads `.gitignore`, excludes matching directories (skips secrets/IDE config via safelist)
+	- fixed-path exclusions for stable caches: Gradle, npm, pnpm store, Xcode DerivedData, JetBrains caches
+	- sticky exclusions for IDE app caches: VS Code, Cursor, Claude Desktop, Zed (regenerable bundles/indexes)
+	- OrbStack/Docker disk images (when disposable)
+	- Postgres data dirs only when DB state is fully seedable
+	- leave backed up: Homebrew Cellar, VS Code/Cursor `Backups/` + `User/`, `.env*`, IDE settings
+	- consider: Cursor `state.vscdb` can bloat to 40+ GB — periodic `sqlite3 VACUUM` helps
