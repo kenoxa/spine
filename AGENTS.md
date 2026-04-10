@@ -40,6 +40,7 @@ Managed by `/run-curate`; style: telegraphic, 250-800 tokens, `updated:` frontma
 - `docs/browser-automation-selection.md` — dev-browser chosen over 5 alternatives, benchmarks, install model, limitations
 - `docs/model-tier-assignments.md` — agent tier table, session model guidance, session vs implementer escalation triggers
 - `docs/cross-provider-hooks.md` — per-provider hook formats, Cursor camelCase schema, capability matrix, cross-provider gotchas
+- `docs/skill-guardrail-patterns.md` — anti-rationalization format, inline vs hook enforcement, ecosystem context
 
 ## Deep Dives
 
