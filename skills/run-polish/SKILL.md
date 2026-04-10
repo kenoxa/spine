@@ -73,3 +73,4 @@ Output: `polish_findings`, updated `files_modified`.
 - Raising micro-optimizations without measured evidence
 - Expanding scope beyond provided file list
 - Surfacing pre-existing issues unrelated to current change
+- "This code is fine, no polish needed" — conventions and complexity lenses catch what review misses; run advisory

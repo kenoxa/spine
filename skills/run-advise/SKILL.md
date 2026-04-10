@@ -79,3 +79,10 @@ Triggered by user pushback after synthesis (via caller like do-design Phase 4 lo
 - Producing implementation plans (directional advice only)
 - Auto-resolving model disagreements (divergence is signal)
 - Skipping batch dispatch and answering in mainthread
+- "I can give good advice without external perspectives" — single-model advice has blind spots; batch is mandatory
+
+## Completion
+
+- Phase Trace rows for intake, batch, synthesis, output [E3]
+- All 4 batch outputs exist or gap-flagged [E2]
+- Synthesis written with convergence/divergence map [E2]

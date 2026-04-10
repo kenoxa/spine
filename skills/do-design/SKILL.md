@@ -65,3 +65,12 @@ STOP after presenting. Never auto-forward. **Cap**: 3 re-dispatch rounds; surfac
 - Skipping run-advise as "zero-dispatch" — zero-dispatch only applies to Phase 3 (Validate)
 - Re-dispatching full advisory batch when run-discuss could resolve pushback locally
 - Ignoring frame_artifact constraints — carry all constraints into run-advise dispatch
+- "I already know the right approach, skip advisory" — single-perspective answers miss tradeoffs; dispatch is mandatory
+- "The user approved the direction, go build" — approval must be explicit; silence is not consent
+- "Consultants agree, so skip validation" — convergence on wrong assumptions is still wrong; probe when evidence is thin
+
+## Completion
+
+- Phase Trace has rows for intake, advise, validate, decide [E3]
+- design_artifact written to `.scratch/<session>/` with delivery slices + constraints [E2]
+- User explicitly approved or pushed back — no auto-forward [E2]

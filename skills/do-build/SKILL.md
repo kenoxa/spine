@@ -83,3 +83,12 @@ Main thread. Load [build-finalize.md](references/build-finalize.md) unconditiona
 - Exceeding review cap (5) or polish cap (3) — freeze and surface to user
 - Skipping finalize after ACCEPT
 - Skipping polish after review passes
+- "I'll review after all partitions are done" — bugs compound across partitions; review each
+- "This fix is obvious, skip re-review" — obvious fixes break adjacent code; re-review catches regressions
+- "Polish is cosmetic, ship now" — polish catches complexity and convention drift missed by review
+
+## Completion
+
+- Phase Trace rows exist for scope, implement, review, review-gate, polish, finalize [E3]
+- All blocking review findings resolved or user-deferred [E2]
+- Token counts verified for any modified skill files [E3]

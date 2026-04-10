@@ -44,3 +44,5 @@ Aggregate `files_modified`. Exit: `implement_artifact` emitted with `files_modif
 - Running tests or builds (implementation only)
 - Expanding scope beyond partition_scope
 - Fix mode without fix_context
+- "I'll also fix this adjacent issue while I'm here" — scope expansion is the top cause of review churn
+- "This partition depends on the other, I'll do both" — overlapping writes break parallel dispatch; sequence instead

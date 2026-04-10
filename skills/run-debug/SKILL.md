@@ -66,6 +66,8 @@ After each hypothesis dispatch, orchestrator reads `debug-hypothesis.md` header 
 - Claiming completion without current-run verification evidence
 - Adding instrumentation before generating and ranking hypotheses
 - Leaving debug instrumentation in code after confirming and applying fix
+- "The fix is obvious, skip reproduction" — obvious fixes mask deeper root causes; reproduce first
+- "Tests pass now, done" — symptom relief without confirmed root cause means the bug recurs
 
 ## Completion
 

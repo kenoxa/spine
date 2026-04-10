@@ -51,8 +51,8 @@ that immediately delegates to another skill.
 
 ### Structure
 
-`overview → core directives → anti-patterns` — no other sections unless the task
-requires prerequisites.
+`overview → core directives → anti-patterns` — plus optional `## Completion` for
+skills with exit-evidence requirements. No other sections unless prerequisites require it.
 
 Core directives must be domain-specific procedures the agent wouldn't know.
 For multi-phase workflow skills: see `references/workflow-patterns.md` — pattern selection, phase structure, anti-patterns.
@@ -72,7 +72,14 @@ Cut:
 - Anything the agent can deduce from general knowledge or the target files
 
 Anti-patterns: one line each. If a warning needs a paragraph to explain, convert
-it to a directive in the main instructions instead.
+it to a directive in the main instructions instead. Include rationalization-awareness
+bullets for workflow skills: `"I'll X later" — reality: Y` format exposes excuses
+agents use to skip steps.
+
+`## Completion` (optional): 3-6 concrete evidence requirements at skill exit. Tag
+each with required evidence level (E2/E3). Precedent: `run-debug/SKILL.md`,
+`do-build/references/build-finalize.md`. Workflow skills (`do-*`, `run-*`) with
+phase-gated exits should include this section.
 
 **Be concrete.** Vague directives fail the authoring test. See
 [references/examples.md](references/examples.md) for before/after pairs.

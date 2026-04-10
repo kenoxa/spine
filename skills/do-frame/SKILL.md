@@ -79,3 +79,12 @@ STOP after declaration. User decides next step.
 - Ranking or recommending options — framing maps the problem, not the solution space
 - Skipping orient when input is codebase-adjacent
 - Carrying blocking unknowns past handoff without flagging confidence
+- "The user already described the problem, skip orient" — user description is hypothesis, not codebase fact
+- "I can clarify inline without run-discuss" — run-discuss enforces propose-and-refine discipline; inlining drifts to open-ended questions
+- "No blocking unknowns, skip investigate" — zero-dispatch is valid, but log rationale; skipping the phase is not
+
+## Completion
+
+- Phase Trace has rows for orient, clarify, investigate, handoff [E3]
+- frame_artifact written to `.scratch/<session>/` with constraints + success criteria [E2]
+- Confidence declared (high/medium/low) with basis [E2]

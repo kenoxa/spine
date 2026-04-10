@@ -104,6 +104,14 @@ Before raising any finding, verify:
 - Silently dropping deferred findings from output
 - Skipping security probe on high-risk changes
 - Merging review with implementation unless user asked for immediate fixes
+- "The change is small, inline review is fine" — depth classification decides fanout, not gut feel
+- "Verifier passed, skip synthesis" — synthesis catches cross-role conflicts verifier alone misses
+
+## Completion
+
+- Phase Trace rows for scope, inspect dispatch, synthesis, output [E3]
+- All findings severity-bucketed with E-level evidence [E2]
+- Findings artifact emitted [E2]
 
 ## See Also
 

@@ -18,7 +18,7 @@ docs/                   Reference docs (skills, tips, external skills)
 Use `/use-skill-craft` — it covers the full authoring workflow. Key points:
 
 1. **Pass the authoring test**: Would an LLM perform the task worse without this skill? If the agent can figure it out from general knowledge or target files, don't create the skill.
-2. **Structure**: `frontmatter → overview → core directives → anti-patterns`. No other sections unless prerequisites require it.
+2. **Structure**: `frontmatter → overview → core directives → anti-patterns` + optional `## Completion` for skills with exit-evidence requirements. No other sections unless prerequisites require it.
 3. **Be concrete**: Vague directives fail the authoring test. "Handle errors properly" is cut. "Fail-closed: deny by default, allowlist explicitly" stays.
 4. **Phase enforcement**: Multi-phase skills: classify dispatch points (C/R/G per `workflow-patterns.md`), log Phase Trace at boundaries, verify coverage at completion. See `phase-audit.md`.
 5. **Size**: Under 5000 tokens. Extract examples and templates to `references/` if needed. Never nest deeper than `SKILL.md → references/file.md`.
