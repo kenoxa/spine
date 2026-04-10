@@ -7,7 +7,7 @@ const messages = [];
 page.on("console", (msg) => {
   messages.push({ type: msg.type(), text: msg.text() });
 });
-await page.goto("https://example.com");
+await page.goto("https://example.com", { waitUntil: "domcontentloaded" });
 await page.waitForTimeout(200);
 console.log(JSON.stringify({ consoleMessages: messages }));
 ```
@@ -22,7 +22,7 @@ page.on("request", (req) => {
 page.on("response", (res) => {
   requests.find(r => r.url === res.url()).status = res.status();
 });
-await page.goto("https://example.com");
+await page.goto("https://example.com", { waitUntil: "domcontentloaded" });
 await page.waitForTimeout(200);
 console.log(JSON.stringify({ network: requests }));
 ```

@@ -1,5 +1,5 @@
 ---
-updated: 2026-04-02
+updated: 2026-04-10
 ---
 
 # Browser Automation Tool Selection
@@ -42,6 +42,7 @@ Binary from GitHub releases → `~/.local/bin/dev-browser`. Version in `~/.confi
 ## Known Limitations
 
 - `page.route("**/*")` catch-all causes 30s timeout (blocks Playwright internals)
-- Pre-1.0 (v0.2.6 as of selection) — API may change
+- Pre-1.0 (v0.2.7 as of 2026-04-10) — API may change
+- Default `page.goto()` `"load"` wait hangs on dev servers (HMR/streaming) — use `{ waitUntil: "domcontentloaded" }`
 - `storageState({ path })` throws in sandbox — capture return value instead
 - HAR recording and tracing are stubbed in the Playwright fork

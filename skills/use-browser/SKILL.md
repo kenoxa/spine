@@ -22,7 +22,7 @@ Run Playwright JavaScript via dev-browser stdin heredoc. QuickJS WASM sandbox â€
 ```sh
 dev-browser --headless <<'EOF'
 const page = await browser.getPage("main");
-await page.goto("https://example.com");
+await page.goto("https://example.com", { waitUntil: "domcontentloaded" });
 console.log(await page.title());
 EOF
 ```

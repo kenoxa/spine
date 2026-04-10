@@ -5,7 +5,8 @@ Pages are full Playwright Page objects.
 ## Playwright Page Methods
 
 ```
-page.goto(url)                         Navigate to a URL
+page.goto(url, { waitUntil: "domcontentloaded" })
+                                       Navigate to a URL; prefer domcontentloaded on dev servers
 page.title()                           Get the current page title
 page.url()                             Get the current URL
 page.snapshotForAI(options)            AI-optimized snapshot -> { full, incremental? }
@@ -40,3 +41,4 @@ EOF
 
 - Keep page names stable across scripts for failure recovery
 - `--timeout 10` for fast-fail instead of 30s default hang
+- For local dev servers (Next.js, Vite, etc.), use `{ waitUntil: "domcontentloaded" }` — the default `"load"` wait can hang on HMR/streaming connections
