@@ -56,6 +56,6 @@ Dispatch `@visualizer` → `references/present-visualizer.md` if complexity warr
 
 - Reading only `analytics.json` for detail — miner must read raw `*_sessions.json`
 - Processing/formatting in main thread — dispatch to `@miner`
-- Inventing task descriptions — use "unspecified task" with files list
+- Inventing task descriptions — follow full fallback chain (brief_summary → underlying_goal → title → thread_name → summary → all user_prompts → files_touched → git commit → session ID placeholder); never use "unspecified task"
 - Multiple subagent dispatches — single `@miner` per invocation
 - Modifying scripts in `run-insights/scripts/`
