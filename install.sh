@@ -24,10 +24,8 @@ GLOBAL_SKILLS=(
   "wshobson/agents -s wcag-audit-patterns"
   "softaworks/agent-toolkit -s reducing-entropy"
   "mcollina/skills -s typescript-magician"
-  "trailofbits/skills -s differential-review"
-  "trailofbits/skills -s fp-check"
-  "mattpocock/skills -s ubiquitous-language"
-  "mattpocock/skills -s tdd"
+  "trailofbits/skills -s differential-review -s fp-check"
+  "mattpocock/skills -s ubiquitous-language -s tdd"
 )
 
 # MCP servers previously installed by Spine — removed on next run.
@@ -1871,6 +1869,48 @@ run_skills_command() {
   return 1
 }
 
+# Run skills command with live spinner and timeout.
+# Falls through launchers like run_skills_command; shows elapsed time on live line.
+# Usage: run_skills_spinning <label> <skills-args...>
+run_skills_spinning() {
+  local label="$1"; shift
+  local timeout_s=90
+  local chars=('◐' '◓' '◑' '◒')
+  local launcher pid rc elapsed
+
+  for launcher in "${SKILLS_RUNTIME_CHOICES[@]}"; do
+    set_skills_runtime_launcher "$launcher"
+
+    timeout "$timeout_s" "${SKILLS_RUNTIME_CMD[@]}" "$@" >/dev/null 2>&1 &
+    pid=$!
+    elapsed=0
+
+    while kill -0 "$pid" 2>/dev/null; do
+      if $_UI_CAN_MOVE; then
+        printf "\033[1A\r\033[K    %b%s %s %ds%b\n" \
+          "${_C_DIM}" "${chars[elapsed % 4]}" "$label" "$elapsed" "${_C_RESET}" >&2
+      fi
+      sleep 1
+      elapsed=$((elapsed + 1))
+    done
+
+    wait "$pid"
+    rc=$?
+
+    # Restore standard live-item format for ui_live_done
+    if $_UI_CAN_MOVE; then
+      printf "\033[1A\r\033[K    %b▸ %s%b\n" "${_C_DIM}" "$label" "${_C_RESET}" >&2
+    fi
+
+    if [ $rc -eq 124 ]; then
+      warn "$label timed out after ${timeout_s}s"
+      return 1
+    fi
+    [ $rc -eq 0 ] && return 0
+  done
+  return 1
+}
+
 print_skills_commands() {
   local launcher
   for launcher in "${SKILLS_RUNTIME_CHOICES[@]}"; do
@@ -1923,7 +1963,7 @@ install_skills() {
     warn "No public skills found in $skills_src/skills/"
   else
     ui_live_item "spine public"
-    if run_skills_command add "$skills_src" "${skill_flags[@]}" "${agent_flags[@]}" -g -y; then
+    if run_skills_spinning "spine public" add "$skills_src" "${skill_flags[@]}" "${agent_flags[@]}" -g -y; then
       _SPINE_SKILL_COUNT=${#current_skills[@]}
       ui_live_done "spine" "${_SPINE_SKILL_COUNT} public"
       install_ok=1
@@ -1965,19 +2005,28 @@ install_skills() {
     fi
   fi
 
-  # Global/external skills
+  # Global/external skills (entries may batch multiple -s flags from the same repo)
   local failed=()
   for entry in "${GLOBAL_SKILLS[@]}"; do
-    # entry is e.g. "obra/superpowers -s brainstorming"
-    local skill_name="${entry##*-s }"
     local entry_tokens=()
     read -r -a entry_tokens <<< "$entry"
-    ui_live_item "$skill_name"
-    if run_skills_command add "${entry_tokens[@]}" "${agent_flags[@]}" -g -y; then
-      _GLOBAL_SKILL_COUNT=$((_GLOBAL_SKILL_COUNT + 1))
-      ui_live_done "$skill_name"
+    # Extract skill names for display (may be multiple per batched entry)
+    local names=() count=0
+    for ((i=0; i<${#entry_tokens[@]}; i++)); do
+      if [ "${entry_tokens[i]}" = "-s" ] && [ $((i+1)) -lt ${#entry_tokens[@]} ]; then
+        names+=("${entry_tokens[i+1]}")
+        count=$((count + 1))
+      fi
+    done
+    local label
+    label=$(printf '%s, ' "${names[@]}")
+    label="${label%, }"
+    ui_live_item "$label"
+    if run_skills_spinning "$label" add "${entry_tokens[@]}" "${agent_flags[@]}" -g -y; then
+      _GLOBAL_SKILL_COUNT=$((_GLOBAL_SKILL_COUNT + count))
+      ui_live_done "$label"
     else
-      ui_live_done "$skill_name" "failed"
+      ui_live_done "$label" "failed"
       failed+=("$entry")
     fi
   done
