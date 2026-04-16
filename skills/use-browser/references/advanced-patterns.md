@@ -29,7 +29,7 @@ console.log(JSON.stringify({ network: requests }));
 
 ## Cookies
 
-Full CRUD via `page.context()`:
+Via `page.context()`:
 
 ```javascript
 const ctx = page.context();

@@ -8,8 +8,7 @@ description: >
   Triggers: "test this page", "check the site", "verify the deploy", "go to [url]",
   "fill the form", "click on", "take a screenshot", "log into", "scrape", "debug the UI",
   "automate the browser", "login flow", "check this URL".
-  Do NOT use as a replacement for WebFetch or web search — this is for interactive
-  browser automation, not data retrieval.
+  Do NOT use as a replacement for WebFetch or web search.
 argument-hint: "[URL or browser task description]"
 ---
 
@@ -27,25 +26,24 @@ console.log(await page.title());
 EOF
 ```
 
-Flags: `--headless` (default), `--browser <NAME>` (named instance, state persists), `--connect [URL]` (attach to running Chrome via CDP), `--timeout <SEC>` (default 30).
+Flags: `--headless` (omit for visible browser), `--browser <NAME>` (named persistent instance), `--connect [URL]` (attach to running Chrome/CDP), `--timeout <SEC>` (default 30; use `--timeout 10` for fast-fail).
 
 **Sandbox globals:**
 - `browser` — `getPage(name)`, `newPage()`, `listPages()`, `closePage(name)`
 - `console.log/warn/error/info` — routed to stdout/stderr
 - `saveScreenshot(buf, name)`, `writeFile(name, data)`, `readFile(name)` — sandboxed I/O to `~/.dev-browser/tmp/`
 
-Pages from `browser.getPage(name)` are full Playwright Page objects. Named pages persist across script runs.
-
 **Key directives:**
+- Named pages (`--browser <NAME>`) persist across `dev-browser` calls — reuse for multi-step flows
+- Keep page names stable across scripts for failure recovery
 - Use `page.snapshotForAI()` for AI-optimized accessibility tree before interacting with unknown pages
-- End every script with `console.log(JSON.stringify(...))` for structured output
-- On failure, reconnect to named page with `browser.getPage(name)` and `saveScreenshot()` to inspect state
+- End every script with `console.log(JSON.stringify(...))`
+- On failure: reconnect via `browser.getPage(name)`, `saveScreenshot()` to capture state
 
 ## Anti-Patterns
 
 - Never use catch-all `page.route("**/*")` — blocks Playwright internals; use specific URL patterns.
 - Never use `require()` or `import()` — not available in the sandbox.
-- Never pass `{ path }` to `page.screenshot()` — use `saveScreenshot(buf, name)` instead.
-- Never pass `{ path }` to `storageState()` — throws in sandbox; capture return value instead.
+- Never pass `{ path }` to `page.screenshot()` or `storageState()` — use `saveScreenshot(buf, name)` / capture return value.
 - Never run multiple `dev-browser` calls when a single multi-step script suffices.
 - Never use `<FILE>` argument for scripts — always pipe via stdin heredoc.

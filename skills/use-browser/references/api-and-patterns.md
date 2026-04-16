@@ -36,9 +36,3 @@ const tabs = await browser.listPages();
 console.log(JSON.stringify(tabs, null, 2));
 EOF
 ```
-
-## Tips
-
-- Keep page names stable across scripts for failure recovery
-- `--timeout 10` for fast-fail instead of 30s default hang
-- For local dev servers (Next.js, Vite, etc.), use `{ waitUntil: "domcontentloaded" }` — the default `"load"` wait can hang on HMR/streaming connections
