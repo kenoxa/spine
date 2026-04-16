@@ -41,6 +41,8 @@ Read AGENTS.md `## Project Knowledge` section and each referenced knowledge file
 
 **Staleness detection** (incremental): for each knowledge file declaring `paths:` frontmatter, run `git log --since=<updated_date> --name-only -- <paths>`; skip files with zero changes. Build staleness matrix (knowledge_file, last_updated, changed_neighbors, stale) and pass to `@curator`.
 
+**Glossary discovery** (optional): check for `UBIQUITOUS_LANGUAGE.md` at project root. If present, extract a lightweight term list (term + aliases if available). If absent, record `[GLOSSARY_SKIP: not found]` in session trace and continue — do not suggest creating one.
+
 ### 2. Dispatch
 
 Dispatch `@curator` and `@envoy` in parallel:
@@ -49,6 +51,7 @@ Dispatch `@curator` and `@envoy` in parallel:
 - `candidates` -- learnings with evidence anchors (auto mode) or collected from session scans (standalone)
 - `existing_entries` -- parsed entries with file contents
 - `staleness_matrix` -- from Gather phase
+- `glossary_terms` -- lightweight term extract from Gather (omit when glossary absent)
 
 Output: `.scratch/<session>/curate-plan.md`
 
@@ -64,7 +67,7 @@ Dispatch `@synthesizer` via `references/curate-synthesis.md` to merge curator pl
 
 Read `.scratch/<session>/curate-synthesis.md`.
 
-Present grouped by action type (promote / update / prune). Show token budget impact. When staleness matrix has stale entries, highlight them. Include envoy GAP/WATCH items labeled `[ADVISORY: envoy]`.
+Present grouped by action type (promote / update / prune). Show token budget impact. When staleness matrix has stale entries, highlight them. Include envoy GAP/WATCH items labeled `[ADVISORY: envoy]`. Include glossary findings labeled `[ADVISORY: glossary]` — these carry E1 ceiling and cannot gate promotion.
 
 Require explicit user approval before proceeding -- never auto-apply.
 
@@ -86,3 +89,5 @@ Skip actions the user explicitly declines. Report final state.
 - Promoting skill/agent operational details to docs/ knowledge files (belongs in skill/agent files)
 - Treating envoy GAP/WATCH items as promotable without E2+ evidence
 - Running staleness detection against all knowledge files regardless of changed neighbors (full-corpus sweep)
+- Gating promotion on glossary alignment — glossary findings are advisory, not blockers
+- Suggesting glossary creation when none exists — with-terminology owns that advisory

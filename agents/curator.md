@@ -19,6 +19,7 @@ You receive:
 - `candidates` — learnings with `knowledge_candidate: yes`
 - `existing_entries` — current AGENTS.md Project Knowledge entries with paths
 - `staleness_matrix` — per-file table of last_updated, changed_neighbors, stale flag (when present)
+- `glossary_terms` — term list from project glossary (when present; omitted when no glossary exists)
 
 ## Output: Curation Plan
 
@@ -32,3 +33,4 @@ Sections (omit empty): **Promote** (file, index_entry, content_summary, E2+ evid
 - Route per CONTRIBUTING.md routing rubric.
 - When AGENTS.md Project Knowledge section is getting long, suggest consolidation before adding new entries.
 - Prefer updating existing files over creating new ones when content overlaps.
+- When `glossary_terms` is present: note candidates or existing entries that use non-canonical terms (aliases, synonyms, or terms absent from the glossary). Tag findings `[ADVISORY: glossary]` — these are informational, never block promotion.
