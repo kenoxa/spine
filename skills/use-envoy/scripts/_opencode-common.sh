@@ -18,10 +18,14 @@ opencode_invoke() {
 
     printf 'envoy: invoking opencode (model=%s, effort=%s)...\n' "$_oc_model" "$_oc_effort" >&2
     _rc=0
+    # --dir pins OpenCode's workspace to the caller's cwd. Without it, OpenCode
+    # resolves repo-relative paths (e.g. .scratch/...) against $HOME and
+    # auto-rejects them as external_directory.
     timeout --kill-after=10 "$_opencode_timeout" env \
         -u CLAUDECODE -u CURSOR_AGENT -u CODEX_SANDBOX \
         -u OPENCODE -u OPENCODE_CLIENT -u OPENCODE_PID \
         opencode run \
+            --dir "$PWD" \
             --format json \
             --model "$_oc_model" \
             --variant "$_oc_effort" \
