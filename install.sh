@@ -222,11 +222,16 @@ trap '_ui_cleanup' EXIT
 # Run a command silently; on failure show captured output then return 1.
 # During live sections: suppress output (callers handle failure via warn).
 quiet() {
-  local out
-  out=$("$@" 2>&1) || {
+  local out rc
+  # Close stdin so wrapped CLIs can never block on an interactive prompt
+  # (UI live lines would hide the prompt, producing a silent hang).
+  # 60s cap bounds runaway network stalls.
+  out=$(timeout 60 "$@" </dev/null 2>&1)
+  rc=$?
+  if [ "$rc" -ne 0 ]; then
     if [ "$_UI_LIVE_LINES" -eq 0 ]; then echo "$out" >&2; fi
-    return 1
-  }
+    return "$rc"
+  fi
 }
 
 # --- Backup helper ---
