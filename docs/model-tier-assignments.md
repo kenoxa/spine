@@ -1,5 +1,5 @@
 ---
-updated: 2026-04-02
+updated: 2026-04-17
 ---
 
 # Agent Tier Assignments
@@ -22,9 +22,17 @@ Source: `docs/model-selection.md` agent table + agent frontmatter.
 
 **Standard is the recommended default** (sonnet:medium / gpt-5.4:medium / auto).
 
-Sonnet 4.6 scores 79.6% SWE-Bench Verified vs Opus 4.6's 80.8% — 1.2-point gap at 40% lower input cost. On orchestration-adjacent tasks (tool use, structured task execution, agent coordination), Sonnet 4.6 matches or leads Opus 4.6. Frontier subagents (consultant, inspector, verifier, synthesizer) handle gate decisions regardless of session model.
+Frontier subagents (consultant, inspector, verifier, synthesizer) handle gate decisions regardless of session model — strong gates, efficient workers. Frontier gates absorb any benchmark gap by design; Standard is sufficient for session orchestration (tool use, structured task execution, agent coordination).
 
 Rolling window is cost-weighted: Opus drains the 5h/7-day window ~1.67× faster than Sonnet.
+
+## Narrative Durability
+
+Benchmark-anchored justifications ("Standard is safe because the gap is small") invalidate on every model release. Architecture-anchored justifications do not.
+
+**Durable anchor**: "Frontier gates absorb any benchmark gap by design." Gate authority lives in the agent architecture — Frontier subagents handle judgment; the gap's magnitude is irrelevant. Applies to any performance-safety claim in docs or session artifacts.
+
+**Anti-pattern**: citing a specific benchmark delta as the load-bearing reason for a tier default. When the delta widens, the recommendation looks wrong even when the architecture hasn't changed.
 
 ## Escalation: Session (Upgrade Mainthread to Frontier)
 

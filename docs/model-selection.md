@@ -32,7 +32,7 @@ When to switch tiers:
 - **Standard handles** — focused implementation, code review, straightforward debugging, pattern matching, most day-to-day work
 - **Downgrade to Fast** — quick lookups, simple file edits, boilerplate generation
 
-Standard is safe because the quality gap is small: Sonnet 4.6 scores 79.6% on SWE-Bench Verified — just 1.2 points below Opus 4.6 — at 40% lower input cost. GPT-5.4 and Sonnet 4.6 have identical output pricing ($15/M), making model selection between providers a pure quality decision.
+Standard is safe because the gate stack holds: Frontier subagents (consultant, inspector, verifier, synthesizer) handle gate decisions regardless of your session model — strong gates, efficient workers. Opus drains the rolling window ~1.67× faster than Sonnet; keeping the mainthread at Standard preserves budget for the subagent calls that matter. GPT-5.4 and Sonnet 4.6 have identical output pricing ($15/M), making model selection between providers a pure quality decision.
 
 ## Provider Selection
 
@@ -91,7 +91,7 @@ Example: `SPINE_ENVOY_FRONTIER_CLAUDE=opus:high` overrides the frontier tier for
 When Claude or Codex hits a rate limit, runs out of credits, or has an auth error, Spine automatically retries the same request through **cursor-agent** using the **same model**. If cursor-agent is also unavailable, the request fails — there are no further retry hops.
 
 **How it works:**
-- Claude fails → cursor-agent runs the same Claude model (e.g., `opus` → `claude-4.6-opus-high-thinking`)
+- Claude fails → cursor-agent runs the same Claude model (e.g., `opus` → `claude-opus-4-7-high-thinking`)
 - Codex fails → cursor-agent runs the same GPT model (e.g., `gpt-5.4` → `gpt-5.4-high`)
 - Cursor fails → no fallback (cursor-agent models aren't available elsewhere)
 - OpenCode fails → no fallback (MiMo/MiniMax models aren't available on cursor-agent)
@@ -111,7 +111,7 @@ When Claude or Codex hits a rate limit, runs out of credits, or has an auth erro
 
 | Your model | cursor-agent runs |
 |---|---|
-| `opus` | `claude-4.6-opus-high-thinking` |
+| `opus` | `claude-opus-4-7-high-thinking` |
 | `sonnet` | `claude-4.6-sonnet-medium-thinking` |
 | `haiku` | `auto` (Cursor's cheapest routing) |
 | `gpt-5.4` | `gpt-5.4-{effort}` |
@@ -172,9 +172,15 @@ Env var changes take effect immediately (runtime). Model mapping changes require
 
 | Model | SWE-Bench Verified | Terminal-Bench | Pricing (in/out per M) |
 |-------|-------------------|----------------|----------------------|
-| Opus 4.6 | 80.8% | — | $5 / $25 |
+| Opus 4.7 | 87.6% | 69.4% | $5 / $25 |
 | Sonnet 4.6 | 79.6% | ~59% | $3 / $15 |
 | Haiku 4.5 | >73% | — | $1 / $5 |
+
+### Claude — Superseded
+
+| Model | SWE-Bench Verified | Pricing (in/out per M) | Superseded |
+|-------|-------------------|----------------------|------------|
+| Opus 4.6 | 80.8% | $5 / $25 | 2026-04-16 |
 
 ### GPT (SWE-Bench Pro)
 
@@ -218,7 +224,7 @@ Four mapping points encode the tier tables:
 
 - **`install.sh`** `map_model_for_provider()` — maps tiers to provider models at install time, generating agent frontmatter for Codex TOML, Cursor `.md`, and OpenCode `.md` files.
 - **`_common.sh`** `resolve_tier()` — maps tier + provider to model at runtime for envoy CLI dispatch via `invoke-{provider}.sh`.
-- **`invoke-cursor.sh`** `to_cursor_model()` — maps canonical model + effort to cursor-agent model IDs for fallback after Claude/Codex failure. Version prefix `claude-4.6` is a named constant.
+- **`invoke-cursor.sh`** `to_cursor_model()` — maps canonical model + effort to cursor-agent model IDs for fallback after Claude/Codex failure. Each model owns its full cursor-agent ID (no shared prefix).
 - **`_opencode-common.sh`** — shared transport helper for OpenCode. Owns CLI invocation, JSONL parsing, `step_finish` completeness gate, and OpenCode env sanitization.
 
 All mapping points agree on tier:provider mappings. Intentional surface differences: Cursor Fast uses `fast` in install-time frontmatter (actual subagent dispatch) but `auto` in envoy CLI dispatch (tier table); Frontier and Standard are the only tiers meaningfully used in envoy for Cursor. Effort applies to Claude and Codex only — Cursor has no effort parameter. OpenCode uses full prefixed model strings (e.g., `opencode-go/mimo-v2-pro`) with no runtime prefix probing. OpenCode automatically detects Go subscription vs Free tier models.
@@ -235,7 +241,7 @@ All mapping points agree on tier:provider mappings. Intentional surface differen
 
 **Pinned to Standard** so the implementer never tracks a Fast session model down to Haiku-class quality. Implementation quality should not depend on whether you temporarily downgraded the mainthread for cheap exploration.
 
-**Gate dependency:** Frontier roles produce plans, merges, and review verdicts; the Sonnet/Opus gap on SWE-Bench Verified is small relative to that stack (see benchmarks above). Treating the implementer as a Standard worker behind Frontier gates matches the "strong gates, efficient workers" pattern described in [model-tier-assignments.md](model-tier-assignments.md).
+**Gate dependency:** Frontier roles produce plans, merges, and review verdicts; Frontier gates absorb any benchmark gap by design — the implementer executes partitioned writes behind those gates (see benchmarks above). Treating the implementer as a Standard worker behind Frontier gates matches the "strong gates, efficient workers" pattern described in [model-tier-assignments.md](model-tier-assignments.md).
 
 ### Escalation: session vs implementer
 

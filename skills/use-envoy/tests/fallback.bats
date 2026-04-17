@@ -10,18 +10,17 @@ load test_helper
 # Source _common.sh (for resolve_tier) and the function definitions from
 # invoke-cursor.sh. The function sets $_cursor_model (shell variable, not stdout).
 
-# Helper: source just the prefix constant and to_cursor_model function.
+# Helper: source to_cursor_model function from invoke-cursor.sh.
 _load_cursor_model_fn() {
     . "$SCRIPTS_DIR/_common.sh"
-    # Extract _CLAUDE_CURSOR_PREFIX and to_cursor_model from invoke-cursor.sh
-    eval "$(sed -n '/^_CLAUDE_CURSOR_PREFIX=/p' "$SCRIPTS_DIR/invoke-cursor.sh")"
+    # Extract to_cursor_model from invoke-cursor.sh
     eval "$(sed -n '/^to_cursor_model()/,/^}/p' "$SCRIPTS_DIR/invoke-cursor.sh")"
 }
 
-@test "to_cursor_model: opus + high → claude-4.6-opus-high-thinking" {
+@test "to_cursor_model: opus + high → claude-opus-4-7-high-thinking" {
     _load_cursor_model_fn
     to_cursor_model opus high
-    assert_equal "$_cursor_model" "claude-4.6-opus-high-thinking"
+    assert_equal "$_cursor_model" "claude-opus-4-7-high-thinking"
 }
 
 @test "to_cursor_model: sonnet + high → claude-4.6-sonnet-medium-thinking" {

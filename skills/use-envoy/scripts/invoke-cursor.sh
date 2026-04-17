@@ -48,40 +48,29 @@ _script_dir=$(cd "$(dirname "$0")" && pwd)
 
 # --- Model selection ---
 # Direct cursor invoke: tier → Cursor pool (composer / auto). Fallback after
-# Claude/Codex failure: deterministic two-step mapping from canonical model+effort
+# Claude/Codex failure: flat per-model mapping from canonical model+effort
 # to cursor-agent model IDs (see docs/model-selection.md).
 
-_CLAUDE_CURSOR_PREFIX="claude-4.6"
-
-# Two-step mapping: canonical model+effort → cursor-agent model ID.
-# Step 1: map model to cursor-agent base. Step 2: compose effort suffix.
-# Returns 1 if no cursor-agent equivalent exists for the model.
+# Flat per-model mapping: canonical model+effort → cursor-agent model ID.
+# Each model branch owns its full ID — no shared prefix constant.
+# Returns 1 for unknown models (fail-secure: caller must not silently proceed).
 to_cursor_model() {
-    _tcm_model="$1"
-    _tcm_effort="$2"
-
-    # Step 1 — map canonical model to cursor-agent base
-    case "$_tcm_model" in
-        opus)   _tcm_base="${_CLAUDE_CURSOR_PREFIX}-opus" ;;
-        sonnet) _tcm_base="${_CLAUDE_CURSOR_PREFIX}-sonnet" ;;
-        haiku)  _cursor_model="auto"; return 0 ;;  # terminal — skip step 2
-        gpt-*)  _tcm_base="$_tcm_model" ;;  # pass through — cursor-agent rejects unknown IDs
-        *)      return 1 ;;
-    esac
-
-    # Step 2 — compose cursor-agent model ID with effort
-    case "$_tcm_base" in
-        "${_CLAUDE_CURSOR_PREFIX}-sonnet")
-            # Sonnet: only medium-thinking variant available on cursor-agent
-            _cursor_model="${_tcm_base}-medium-thinking" ;;
-        "${_CLAUDE_CURSOR_PREFIX}"-*)
-            # Other Claude models: effort + thinking suffix
-            _cursor_model="${_tcm_base}-${_tcm_effort}-thinking" ;;
+    case "$1" in
+        opus)
+            # Opus 4.7: effort-aware thinking variants
+            _cursor_model="claude-opus-4-7-${2}-thinking" ;;
+        sonnet)
+            # Sonnet 4.6: cursor-agent offers only medium-thinking; effort parameter ignored
+            _cursor_model="claude-4.6-sonnet-medium-thinking" ;;
+        haiku)
+            # Haiku: routes to Cursor's cheapest pool — no named model to compose
+            _cursor_model="auto"; return 0 ;;
         gpt-*)
-            # GPT models: effort suffix, no thinking
-            _cursor_model="${_tcm_base}-${_tcm_effort}" ;;
+            # GPT models: pass through with effort suffix; no thinking variant
+            _cursor_model="${1}-${2}" ;;
+        *)
+            return 1 ;;
     esac
-    return 0
 }
 
 if [ -n "$fallback_for" ]; then
