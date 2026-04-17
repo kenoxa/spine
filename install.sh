@@ -1879,14 +1879,18 @@ run_skills_command() {
 # Usage: run_skills_spinning <label> <skills-args...>
 run_skills_spinning() {
   local label="$1"; shift
-  local timeout_s=90
+  # Cold nlx/bunx bootstrap + remote skill fetch can easily exceed 90s on slow
+  # links. 240s is generous without letting a truly stuck call hang forever.
+  # Override via SPINE_SKILLS_TIMEOUT for offline/constrained environments.
+  local timeout_s="${SPINE_SKILLS_TIMEOUT:-240}"
   local chars=('◐' '◓' '◑' '◒')
   local launcher pid rc elapsed
 
   for launcher in "${SKILLS_RUNTIME_CHOICES[@]}"; do
     set_skills_runtime_launcher "$launcher"
 
-    timeout "$timeout_s" "${SKILLS_RUNTIME_CMD[@]}" "$@" >/dev/null 2>&1 &
+    # Close stdin so the launcher or skills CLI can never block on a prompt.
+    timeout "$timeout_s" "${SKILLS_RUNTIME_CMD[@]}" "$@" </dev/null >/dev/null 2>&1 &
     pid=$!
     elapsed=0
 
