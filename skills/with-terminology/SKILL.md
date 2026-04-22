@@ -18,6 +18,17 @@ synonyms.
 
 If no glossary exists, use the `ubiquitous-language` skill to create one.
 
+When the glossary includes richer sections, apply them as follows.
+
+**Relationships** — when present, consult when naming multi-entity flows.
+
+**Example dialogue** — when present, use as a reference for domain phrasing.
+
+**Flagged ambiguities** — when present, check before introducing any new domain noun
+or verb. DO NOT reintroduce a listed term. This is a hard blocklist: if the candidate
+term appears (or is a close variant), stop, pick an unambiguous alternative, and note
+the conflict in review.
+
 ## Term Consistency
 
 Derive identifiers (variables, functions, types, modules) from glossary terms.

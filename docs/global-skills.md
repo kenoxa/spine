@@ -32,7 +32,7 @@ npx skills add mattpocock/skills -s tdd -a '*' -g -y
 | `reducing-entropy` | `softaworks/agent-toolkit` | run-review — net-complexity measurement, counters code bloat |
 | `differential-review` | `trailofbits/skills` | run-review — security-focused PR review with blast radius and regression detection |
 | `fp-check` | `trailofbits/skills` | run-review — systematic true/false positive verification for security findings |
-| `ubiquitous-language` | `mattpocock/skills` | with-terminology — DDD-style glossary extraction and canonical term formalization |
+| `ubiquitous-language` | `mattpocock/skills` | with-terminology — DDD-style glossary extraction and canonical term formalization (expects sections: Relationships, Example dialogue, Flagged ambiguities) |
 | `tdd` | `mattpocock/skills` | with-testing — TDD cycle enforcement and mock implementation rules once test boundaries are mapped |
 
 ## Standalone
