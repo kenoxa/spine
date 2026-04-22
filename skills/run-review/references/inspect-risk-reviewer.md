@@ -22,7 +22,7 @@ Dispatch provides:
 
 Examine three axes:
 
-- **Security** — auth boundaries, input trust, secret exposure, privilege escalation, injection surfaces.
+- **Security** — auth boundaries, input trust, secret exposure, privilege escalation, injection surfaces, noise-guard masking of real validation at internal paths.
 - **Performance** — hot-path allocations, unbounded loops/collections, N+1 queries.
 - **Scalability** — contention points, missing backpressure, absent timeouts.
 

@@ -15,6 +15,7 @@ Dispatch provides: changed file list, output path.
 - Read each changed file in full before classifying findings.
 - Look specifically for:
   - Redundant state and parameter sprawl
+  - Senior-engineer overcomplication — layered indirection, state machines, or helper chains where a direct straight-line implementation would read more clearly
   - Copy-paste blocks (3+ similar blocks)
   - Leaky abstractions and stringly-typed values where enums/types exist
   - `try/catch` blocks wrapping calls that cannot throw under normal control flow

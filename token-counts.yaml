@@ -6,7 +6,7 @@ agents/consultant.md: 259
 agents/curator.md: 487
 agents/debater.md: 289
 agents/envoy.md: 870
-agents/implementer.md: 314
+agents/implementer.md: 395
 agents/inspector.md: 497
 agents/miner.md: 155
 agents/navigator.md: 700
@@ -71,7 +71,7 @@ skills/run-insights/references/collect-miner.md: 256
 skills/run-insights/references/present-visualizer.md: 186
 skills/run-insights/references/synthesize-synthesizer.md: 665
 skills/run-insights/SKILL.md: 924
-skills/run-polish/references/advisory-complexity.md: 397
+skills/run-polish/references/advisory-complexity.md: 427
 skills/run-polish/references/advisory-conventions.md: 371
 skills/run-polish/references/advisory-efficiency.md: 397
 skills/run-polish/references/polish-apply.md: 309
@@ -88,7 +88,7 @@ skills/run-research/references/gather-scout.md: 325
 skills/run-research/references/template-prompt.md: 801
 skills/run-research/SKILL.md: 645
 skills/run-review/references/inspect-envoy.md: 377
-skills/run-review/references/inspect-risk-reviewer.md: 617
+skills/run-review/references/inspect-risk-reviewer.md: 628
 skills/run-review/references/inspect-synthesis.md: 465
 skills/run-review/references/inspect-verifier.md: 862
 skills/run-review/references/review-change-evidence-schema.md: 149
@@ -117,4 +117,4 @@ skills/with-backend/SKILL.md: 132
 skills/with-frontend/SKILL.md: 276
 skills/with-terminology/SKILL.md: 425
 skills/with-testing/SKILL.md: 417
-SPINE.md: 1515
+SPINE.md: 1594

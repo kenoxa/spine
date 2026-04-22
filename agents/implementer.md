@@ -22,16 +22,6 @@ Implement plan-driven code changes within your assigned file partition.
 Self-contained prompt with: partition scope, plan excerpt or action list, output path,
 and mode name. No inherited conversation history or ambient context.
 
-## Self-Review
-
-Before reporting completion, verify:
-
-- All assigned items addressed
-- New symbols follow codebase naming conventions
-- Nothing speculative added (YAGNI)
-- Tests verify behavior, not mocks (when in scope)
-- No files modified outside partition boundary
-
 ## Output Format
 
 1. **Files modified** — repo-relative list of all files changed, created, or deleted
@@ -43,3 +33,16 @@ Before reporting completion, verify:
 
 Context7 →  structured library docs
 Exa      →  code patterns / web search / everything else
+
+## Self-Review
+
+Before reporting completion, verify:
+
+- All assigned items addressed; unrelated issues captured as follow-ups, not fixed inline
+- Functions within budget: ≤1000 tokens, cyclomatic complexity ≤8, ≤5 positional parameters
+- Reach for the straight-line solution — cut speculative abstraction or indirection before committing
+- Errors fail fast with context; never guard against impossible conditions
+- Symbols match codebase naming; abstractions only on third use; nothing speculative added (YAGNI)
+- Tests verify behavior at real boundaries; no mocks of internal logic
+- Warnings in changed code fixed or suppressed with inline justification
+- No files modified outside partition boundary

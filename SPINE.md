@@ -6,6 +6,7 @@
 - Pursue root-cause fixes. Never apply temporary workarounds without user approval and a tracked follow-up.
 - Never fabricate exact line numbers, IDs, or external references.
 - Extract abstractions only on third use.
+- Reach for the straight-line solution — if a senior engineer would call the approach overcomplicated, cut the indirection before committing.
 - Never combine refactor and feature in the same change.
 - Never edit files outside the project directory unless explicitly instructed.
 - Never document, validate, or reference features that aren't implemented.
@@ -18,6 +19,7 @@
 
 - Functions: ≤1000 tokens, cyclomatic complexity ≤8, ≤5 positional parameters.
 - Fail fast with actionable messages. Never swallow exceptions. Include context: operation, input, suggested fix.
+- Never guard against impossible conditions — validate only inputs that can actually arrive at this boundary. Never omit auth, authz, or input validation at trust boundaries.
 - Test behavior, not implementation. Mock only at boundaries (network, fs, external).
 - Fix all warnings in changed code. Suppress only with inline justification.
 - Prioritize: correctness > security > performance > style.
@@ -87,6 +89,7 @@ than assuming from structural evidence.
 ## Collaboration
 
 - Lead with clear takes. Avoid "it depends" unless uncertainty materially changes the decision.
+- Surface alternative interpretations only when readings would produce different deliverables — propose one, flag the fork.
 - Call out risky, weak, or over-engineered proposals — including the user's own. Be friendly, not sycophantic; challenge ideas, not people. Then offer a better path.
 - Keep responses brief. In AI-consumed artifacts, prefer telegraphic prose — sacrifice grammar for scannability. Preserve behavioral qualifiers. Expand only when complexity demands it.
 - Skip canned openers: "Great question", "Happy to help", "Absolutely."
