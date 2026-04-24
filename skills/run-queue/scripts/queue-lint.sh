@@ -197,7 +197,11 @@ $_deps
 EOF
 done
 
-# --- Cycle detection via tsort (Slice B will also do transitive checks) ---
+# --- Cycle detection via tsort ---
+# Lint emits only real dep edges ("dep id") — self-edges are not needed here
+# because tsort cycle output doesn't require root inclusion. In contrast,
+# run.sh's _resolve_topo_order emits self-edges ("id id") for roots to ensure
+# they appear in tsort output when they have no dependents.
 
 if command -v tsort >/dev/null 2>&1 && [ "$_n_tasks" -gt 0 ]; then
     _edges=$(printf '%s' "$_qjson" | jq -r '

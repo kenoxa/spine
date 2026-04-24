@@ -4,7 +4,8 @@
 # Reads <queue-dir>/queue.yaml + per-handoff frontmatter, runs each task in a
 # fresh `claude -p` child on a dedicated local branch, writes queue-report.md.
 #
-# Slice A: linear task order (input order). DAG resolution arrives in Slice B.
+# Slice B: DAG-ordered execution via tsort; per-task on_failure policy
+#          (stop/skip/retry_once); merge-based branch derivation for dependents.
 # Slice A: single iteration per task. Intra-task loop arrives in Slice C.
 #
 # Usage:
@@ -211,7 +212,7 @@ _state_json=$(printf '%s' "$_qjson" | jq --arg rev "$_base_rev" --arg started "$
     run_id: .run_id,
     started_utc: $started,
     base_rev: $rev,
-    tasks: [.tasks[] | {id: .id, status: "pending", branch: null, head_rev: null, exit_reason: null, started_utc: null, ended_utc: null}]
+    tasks: [.tasks[] | {id: .id, status: "pending", branch: null, head_rev: null, exit_reason: null, started_utc: null, ended_utc: null, attempts: 0}]
 }')
 _write_state
 
@@ -282,6 +283,7 @@ _cleanup_on_signal() {
         _update_task_state "$_current_task_id" ended_utc   "\"$(_stamp)\""
         _update_task_state "$_current_task_id" head_rev    "\"$(git rev-parse HEAD 2>/dev/null || echo -)\""
     fi
+    _finalize_stale_pending_retries 2>/dev/null || true
     _write_report 2>/dev/null || true
     case "$_prev_branch" in
         "$_base_rev"|"") : ;;
@@ -318,10 +320,10 @@ _spawn_child() {
     # stdbuf -oL works around the macOS 64 KB pipe buffer cap.
     (
         export SPINE_QUEUE=1
-        export SPINE_SESSION_ID="$_task_session"
+        export SPINE_SESSION_ID="$_rot_task_session"
         export SPINE_QUEUE_DIR="$_qdir"
         export SPINE_QUEUE_RUN_ID="$_run_id"
-        export SPINE_QUEUE_TASK_ID="$_id"
+        export SPINE_QUEUE_TASK_ID="$_rot_id"
         export SPINE_QUEUE_REPO_ROOT="$_repo_root"
 
         # Push-disabled belt: even if a pattern-matching hook is bypassed,
@@ -396,54 +398,88 @@ _classify_terminal_status() {
 }
 
 _run_one_task() {
-    _id=$1
-    _current_task_id="$_id"
-    _task_json=$(printf '%s' "$_qjson" | jq -c --arg id "$_id" '.tasks[] | select(.id == $id)')
-    _handoff_rel=$(printf '%s' "$_task_json" | jq -r --arg id "$_id" '.handoff // ("handoff-" + $id + ".md")')
-    _handoff_abs="$_qdir/$_handoff_rel"
+    # _run_one_task <id> [parent-branch ...]
+    # Creates branch, optionally merges parent branches, spawns child, classifies.
+    # Returns: 0 = ran (task may be blocked/complete), 3 = trip-wire halt.
+    # Sets _task_status and _task_exit_reason in caller scope via _update_task_state.
+    # Uses _rot_* prefix to avoid clobbering the outer main-loop iteration variable _id.
+    _rot_id=$1
+    shift
+    # Remaining args are parent branches to merge (may be empty).
+    _rot_parent_branches="$*"
+
+    _current_task_id="$_rot_id"
+    _rot_task_json=$(printf '%s' "$_qjson" | jq -c --arg id "$_rot_id" '.tasks[] | select(.id == $id)')
+    _rot_handoff_rel=$(printf '%s' "$_rot_task_json" | jq -r --arg id "$_rot_id" '.handoff // ("handoff-" + $id + ".md")')
+    _rot_handoff_abs="$_qdir/$_rot_handoff_rel"
 
     # Frontmatter
-    _fm=$(awk 'BEGIN{n=0} /^---[[:space:]]*$/{n++; if(n==2) exit; next} n==1{print}' "$_handoff_abs")
-    _fm_json=$(printf '%s' "$_fm" | yq -o=json eval '.' -)
+    _rot_fm=$(awk 'BEGIN{n=0} /^---[[:space:]]*$/{n++; if(n==2) exit; next} n==1{print}' "$_rot_handoff_abs")
+    _rot_fm_json=$(printf '%s' "$_rot_fm" | yq -o=json eval '.' -)
 
-    _entry_skill=$(printf '%s' "$_fm_json" | jq -r '.entry_skill')
-    _max_budget=$(printf '%s' "$_fm_json" | jq -r '.max_budget_usd // empty')
-    _terminal_artifact=$(printf '%s' "$_fm_json" | jq -r '.terminal_artifact // empty')
-    _terminal_check=$(printf '%s' "$_fm_json" | jq -r '.terminal_check // empty')
+    _rot_entry_skill=$(printf '%s' "$_rot_fm_json" | jq -r '.entry_skill')
+    _rot_max_budget=$(printf '%s' "$_rot_fm_json" | jq -r '.max_budget_usd // empty')
+    _rot_terminal_artifact=$(printf '%s' "$_rot_fm_json" | jq -r '.terminal_artifact // empty')
+    _rot_terminal_check=$(printf '%s' "$_rot_fm_json" | jq -r '.terminal_check // empty')
 
-    _branch="queue/$_run_id/$_id"
-    _task_session="queue-$_run_id-$_id"
-    _task_scratch=".scratch/$_task_session"
-    _task_iter_dir="$_task_scratch/iterations"
+    _rot_branch="queue/$_run_id/$_rot_id"
+    _rot_task_session="queue-$_run_id-$_rot_id"
+    _rot_task_scratch=".scratch/$_rot_task_session"
+    _rot_task_iter_dir="$_rot_task_scratch/iterations"
 
-    mkdir -p "$_task_iter_dir"
+    mkdir -p "$_rot_task_iter_dir"
 
-    _qlog "task=$_id begin; branch=$_branch session=$_task_session"
-    _update_task_state "$_id" branch      "\"$_branch\""
-    _update_task_state "$_id" status      '"in_progress"'
-    _update_task_state "$_id" started_utc "\"$(_stamp)\""
+    # Increment attempt counter.
+    _rot_attempts=$(printf '%s' "$_state_json" | jq -r --arg id "$_rot_id" '
+        .tasks[] | select(.id == $id) | .attempts // 0
+    ')
+    _rot_attempts=$((_rot_attempts + 1))
+    _update_task_state "$_rot_id" attempts    "$_rot_attempts"
 
-    # Branch
-    git checkout -q -b "$_branch" "$_base_rev"
+    _qlog "task=$_rot_id begin attempt=$_rot_attempts; branch=$_rot_branch session=$_rot_task_session"
+    _update_task_state "$_rot_id" branch      "\"$_rot_branch\""
+    _update_task_state "$_rot_id" status      '"in_progress"'
+    _update_task_state "$_rot_id" started_utc "\"$(_stamp)\""
+
+    # Branch: always fork from base_rev, then merge parent branches if any.
+    git checkout -q -b "$_rot_branch" "$_base_rev"
+
+    if [ -n "$_rot_parent_branches" ]; then
+        _rot_merge_msg="queue/$_run_id merge deps for $_rot_id"
+        # shellcheck disable=SC2086  # _rot_parent_branches is space-separated; word-split intended
+        if ! git merge --no-ff -m "$_rot_merge_msg" $_rot_parent_branches 2>/dev/null; then
+            # Conflict — abort, mark blocked, restore base, signal caller.
+            git merge --abort 2>/dev/null || true
+            git checkout -q "$_base_rev"
+            git branch -D "$_rot_branch" 2>/dev/null || true
+            _update_task_state "$_rot_id" status      '"blocked"'
+            _update_task_state "$_rot_id" exit_reason '"dep-merge-conflict"'
+            _update_task_state "$_rot_id" ended_utc   "\"$(_stamp)\""
+            _qlog "task=$_rot_id blocked due to dep-merge-conflict"
+            _current_task_id=""
+            return 0
+        fi
+        _qlog "task=$_rot_id merged parent branches: $_rot_parent_branches"
+    fi
 
     # Body = handoff minus frontmatter
-    _body_tmp=$(mktemp -t run-queue-body.XXXXXX)
+    _rot_body_tmp=$(mktemp -t run-queue-body.XXXXXX)
     awk 'BEGIN{n=0; body=0} /^---[[:space:]]*$/{n++; if(n==2){body=1; next} next} body==1' \
-        "$_handoff_abs" > "$_body_tmp"
+        "$_rot_handoff_abs" > "$_rot_body_tmp"
 
     # Prompt: entry skill invocation + handoff body.
-    _prompt_tmp=$(mktemp -t run-queue-prompt.XXXXXX)
+    _rot_prompt_tmp=$(mktemp -t run-queue-prompt.XXXXXX)
     {
-        printf 'Your session id is: %s\n' "$_task_session"
-        printf 'Your scratch directory is: %s\n' "$_task_scratch"
-        printf 'Write the terminal build-status.json to: %s/build-status.json\n\n' "$_task_scratch"
-        printf 'Invoke %s with the following handoff as input:\n\n' "$_entry_skill"
-        cat "$_body_tmp"
-    } > "$_prompt_tmp"
+        printf 'Your session id is: %s\n' "$_rot_task_session"
+        printf 'Your scratch directory is: %s\n' "$_rot_task_scratch"
+        printf 'Write the terminal build-status.json to: %s/build-status.json\n\n' "$_rot_task_scratch"
+        printf 'Invoke %s with the following handoff as input:\n\n' "$_rot_entry_skill"
+        cat "$_rot_body_tmp"
+    } > "$_rot_prompt_tmp"
 
-    # Streaming: JSONL per iteration (Slice A = always iteration 1)
-    _iter_jsonl="$_task_iter_dir/1.jsonl"
-    _iter_stderr="$_task_iter_dir/1.stderr"
+    # Streaming: JSONL per iteration (Slice B = attempt counter; Slice C adds intra-task loop)
+    _rot_iter_jsonl="$_rot_task_iter_dir/${_rot_attempts}.jsonl"
+    _rot_iter_stderr="$_rot_task_iter_dir/${_rot_attempts}.stderr"
 
     # Build command — inherit global settings and layer the queue overlay
     # ADDITIVELY via --settings. The overlay registers the bundled
@@ -461,70 +497,433 @@ _run_one_task() {
         --include-partial-messages \
         --verbose \
         --no-session-persistence
-    if [ -n "$_max_budget" ]; then
-        set -- "$@" --max-budget-usd "$_max_budget"
+    if [ -n "$_rot_max_budget" ]; then
+        set -- "$@" --max-budget-usd "$_rot_max_budget"
     fi
 
     # Per-task liveness cap — overnight run should not hang on a stuck child.
     # Matches envoy's 1h default; queue tasks may run longer so we bump to 2h.
-    _task_timeout=${SPINE_QUEUE_TASK_TIMEOUT:-7200}
+    _rot_task_timeout=${SPINE_QUEUE_TASK_TIMEOUT:-7200}
 
     # Spawn child with full env isolation; wait for completion.
-    _spawn_child "$_prompt_tmp" "$_iter_jsonl" "$_iter_stderr" "$_task_timeout" "$@"
+    _spawn_child "$_rot_prompt_tmp" "$_rot_iter_jsonl" "$_rot_iter_stderr" "$_rot_task_timeout" "$@"
 
     case "$_child_rc" in
-        124|137) _qlog "task=$_id child timed out after ${_task_timeout}s" ;;
+        124|137) _qlog "task=$_rot_id child timed out after ${_rot_task_timeout}s" ;;
     esac
 
-    rm -f "$_body_tmp" "$_prompt_tmp"
+    rm -f "$_rot_body_tmp" "$_rot_prompt_tmp"
 
-    # Trip-wire check FIRST — halts everything.
+    # Trip-wire check FIRST — halts everything, supersedes on_failure.
     if [ -f "$_woke" ]; then
-        _qlog "task=$_id trip-wire — WOKE-ME-UP.md present; halting queue"
-        _update_task_state "$_id" status      '"blocked"'
-        _update_task_state "$_id" exit_reason '"trip-wire"'
-        _update_task_state "$_id" ended_utc   "\"$(_stamp)\""
-        _update_task_state "$_id" head_rev    "\"$(git rev-parse HEAD)\""
+        _qlog "task=$_rot_id trip-wire — WOKE-ME-UP.md present; halting queue"
+        _update_task_state "$_rot_id" status      '"blocked"'
+        _update_task_state "$_rot_id" exit_reason '"trip-wire"'
+        _update_task_state "$_rot_id" ended_utc   "\"$(_stamp)\""
+        _update_task_state "$_rot_id" head_rev    "\"$(git rev-parse HEAD)\""
         _current_task_id=""
         return 3
     fi
 
     # Classify terminal status via artifact or inline check.
     _classify_terminal_status \
-        "$_terminal_artifact" "$_terminal_check" \
-        "$_task_session" "$_task_scratch" "$_repo_root"
+        "$_rot_terminal_artifact" "$_rot_terminal_check" \
+        "$_rot_task_session" "$_rot_task_scratch" "$_repo_root"
 
-    _head_after=$(git rev-parse HEAD)
-    _update_task_state "$_id" status      "\"$_task_status\""
-    _update_task_state "$_id" exit_reason "\"$_task_exit_reason\""
-    _update_task_state "$_id" ended_utc   "\"$(_stamp)\""
-    _update_task_state "$_id" head_rev    "\"$_head_after\""
+    _rot_head_after=$(git rev-parse HEAD)
+    _update_task_state "$_rot_id" status      "\"$_task_status\""
+    _update_task_state "$_rot_id" exit_reason "\"$_task_exit_reason\""
+    _update_task_state "$_rot_id" ended_utc   "\"$(_stamp)\""
+    _update_task_state "$_rot_id" head_rev    "\"$_rot_head_after\""
 
-    _qlog "task=$_id end status=$_task_status exit_reason=$_task_exit_reason head=$(_short "$_head_after")"
+    _qlog "task=$_rot_id end status=$_task_status exit_reason=$_task_exit_reason head=$(_short "$_rot_head_after")"
 
-    # Return to base for the next independent task.
+    # Return to base for the next task.
     git checkout -q "$_base_rev"
     _current_task_id=""
     return 0
 }
 
+# --- DAG helpers ---
+
+_resolve_topo_order() {
+    # _resolve_topo_order — builds edge list from queue.yaml and runs tsort.
+    # Emits topological order on stdout (roots first).
+    # Self-edges ("id id") ensure roots appear in output even without any deps.
+    # Exits 1 on cycle (lint should have caught it; this is defense-in-depth).
+    # BSD tsort (macOS) exits 0 on cycles but prints "cycle" on stderr — mirror the
+    # lint pattern from queue-lint.sh to catch this portably.
+    _rto_edges=$(printf '%s' "$_qjson" | jq -r '
+        .tasks[] as $t
+        | if ($t.depends_on // []) == [] then
+              "\($t.id) \($t.id)"
+          else
+              ($t.depends_on[]) + " " + $t.id
+          end
+    ')
+    _rto_tsort_err=$(printf '%s\n' "$_rto_edges" | tsort 2>&1 >/dev/null || true)
+    _rto_topo=$(printf '%s\n' "$_rto_edges" | tsort 2>/dev/null) || {
+        _err "supervisor: tsort cycle detected at runtime — lint should have caught this"
+        return 1
+    }
+    if printf '%s' "$_rto_tsort_err" | grep -q 'cycle'; then
+        _err "supervisor: cycle detected in topology at runtime (lint should have caught this)"
+        return 1
+    fi
+    printf '%s\n' "$_rto_topo"
+}
+
+_get_on_failure() {
+    # _get_on_failure <id> — prints on_failure value for task (default: stop).
+    _gof_id=$1
+    _gof_hrel=$(printf '%s' "$_qjson" | jq -r --arg id "$_gof_id" '
+        .tasks[] | select(.id == $id) | .handoff // ("handoff-" + $id + ".md")
+    ')
+    _gof_habs="$_qdir/$_gof_hrel"
+    _gof_fm=$(awk 'BEGIN{n=0} /^---[[:space:]]*$/{n++; if(n==2) exit; next} n==1{print}' "$_gof_habs")
+    _gof_of=$(printf '%s' "$_gof_fm" | yq -o=json eval '.' - 2>/dev/null | jq -r '.on_failure // empty')
+    printf '%s' "${_gof_of:-stop}"
+}
+
+_get_task_status() {
+    # _get_task_status <id> — prints current status from state.
+    printf '%s' "$_state_json" | jq -r --arg id "$1" '
+        .tasks[] | select(.id == $id) | .status
+    '
+}
+
+_get_task_branch() {
+    # _get_task_branch <id> — prints branch name from state (empty if no branch).
+    printf '%s' "$_state_json" | jq -r --arg id "$1" '
+        .tasks[] | select(.id == $id) | .branch // empty
+    '
+}
+
+_get_dep_ids() {
+    # _get_dep_ids <id> — prints newline-separated depends_on ids.
+    printf '%s' "$_qjson" | jq -r --arg id "$1" '
+        .tasks[] | select(.id == $id) | (.depends_on // [])[]
+    '
+}
+
+_resolve_blocked_parent_verdict() {
+    # _resolve_blocked_parent_verdict <dep_status> <dep_on_failure> — classifies a
+    # blocked parent's contribution to the dependent's verdict.
+    # Sets _rbpv_verdict: "block" | "skip".
+    # Called only when dep_status == "blocked"; on_failure drives the outcome.
+    # retry_once+blocked means retry already exhausted → treat as stop (block).
+    _rbpv_status=$1
+    _rbpv_of=$2
+    case "$_rbpv_of" in
+        skip)
+            # blocked+skip → dependent skips; lower precedence than block.
+            _rbpv_verdict="skip"
+            ;;
+        *)
+            # retry_once exhausted, stop (default), or unrecognised → hard block.
+            _rbpv_verdict="block"
+            ;;
+    esac
+}
+
+_check_parent_states() {
+    # _check_parent_states <id> — inspects all parent statuses in two passes; sets:
+    #   _cps_verdict: "run" | "block" | "skip" | "pending_retry_wait"
+    #   _cps_parent_branches: space-separated complete/partial parent branch names to merge
+    # Returns 0 always (verdict is via globals).
+    #
+    # Precedence (highest to lowest): pending_retry_wait > block > skip > run.
+    # _cps_parent_branches is always populated from complete/partial parents regardless
+    # of verdict — a retry dependent may need it after the flush resolves.
+    #
+    # retry_once+blocked is treated as block (retry already exhausted its chance).
+    _cps_id=$1
+    _cps_deps=$(_get_dep_ids "$_cps_id")
+    _cps_verdict="run"
+    _cps_parent_branches=""
+    _cps_has_pending_retry=0
+    _cps_has_block=0
+    _cps_has_skip=0
+
+    if [ -z "$_cps_deps" ]; then
+        return 0
+    fi
+
+    # Pass 1 — collect flags and complete parent branches.
+    while IFS= read -r _cps_dep; do
+        [ -z "$_cps_dep" ] && continue
+        _cps_dep_status=$(_get_task_status "$_cps_dep")
+        _cps_dep_of=$(_get_on_failure "$_cps_dep")
+
+        case "$_cps_dep_status" in
+            pending_retry)
+                _cps_has_pending_retry=1
+                ;;
+            blocked)
+                _resolve_blocked_parent_verdict "$_cps_dep_status" "$_cps_dep_of"
+                case "$_rbpv_verdict" in
+                    skip)  _cps_has_skip=1 ;;
+                    block) _cps_has_block=1 ;;
+                esac
+                ;;
+            skipped)
+                _cps_has_skip=1
+                ;;
+            complete|partial)
+                _cps_dep_branch=$(_get_task_branch "$_cps_dep")
+                if [ -n "$_cps_dep_branch" ]; then
+                    _cps_parent_branches="${_cps_parent_branches:+$_cps_parent_branches }$_cps_dep_branch"
+                fi
+                ;;
+        esac
+    done <<EOF
+$_cps_deps
+EOF
+
+    # Pass 2 — explicit precedence: pending_retry_wait > block > skip > run.
+    if [ "$_cps_has_pending_retry" -eq 1 ]; then
+        _cps_verdict="pending_retry_wait"
+    elif [ "$_cps_has_block" -eq 1 ]; then
+        _cps_verdict="block"
+    elif [ "$_cps_has_skip" -eq 1 ]; then
+        _cps_verdict="skip"
+    else
+        _cps_verdict="run"
+    fi
+}
+
+_mark_task_skipped() {
+    # _mark_task_skipped <id> <exit_reason>
+    _update_task_state "$1" status      '"skipped"'
+    _update_task_state "$1" exit_reason "\"$2\""
+    _update_task_state "$1" ended_utc   "\"$(_stamp)\""
+    _qlog "task=$1 skipped exit_reason=$2"
+}
+
+_mark_task_blocked() {
+    # _mark_task_blocked <id> <exit_reason>
+    _update_task_state "$1" status      '"blocked"'
+    _update_task_state "$1" exit_reason "\"$2\""
+    _update_task_state "$1" ended_utc   "\"$(_stamp)\""
+    _qlog "task=$1 blocked exit_reason=$2"
+}
+
+_do_retry() {
+    # _do_retry <id> <tasks_since_fail> — flush a pending_retry task.
+    # Returns: 0 = ran (final status in state), 3 = trip-wire.
+    _dr_id=$1
+    _dr_tasks_since=$2
+    _dr_branch=$(_get_task_branch "$_dr_id")
+
+    # Resolve parent branches for the retry (same parents as attempt 1 —
+    # they haven't changed, but we re-derive to get their current branch names).
+    _check_parent_states "$_dr_id"
+    _dr_parent_branches="$_cps_parent_branches"
+
+    # Clear the pending_retry branch so _run_one_task can re-create it.
+    # The original branch from attempt 1 is deleted first.
+    if [ -n "$_dr_branch" ] && git show-ref --quiet --verify "refs/heads/$_dr_branch"; then
+        git branch -D "$_dr_branch" 2>/dev/null || true
+    fi
+    # Reset state so _run_one_task can write a new branch entry.
+    _update_task_state "$_dr_id" branch  'null'
+    _update_task_state "$_dr_id" status  '"pending"'
+
+    # Lazy backoff: if no siblings ran between the first fail and this retry,
+    # sleep 30s to avoid hammering the same resource immediately.
+    if [ "$_dr_tasks_since" -eq 0 ]; then
+        _qlog "task=$_dr_id retry backoff 30s (no siblings ran since first attempt)"
+        sleep 30
+    fi
+
+    # shellcheck disable=SC2086  # _dr_parent_branches is space-separated; word-split intended
+    _run_one_task "$_dr_id" $_dr_parent_branches || return $?
+    _dr_final_status=$(_get_task_status "$_dr_id")
+
+    if [ "$_dr_final_status" = "blocked" ]; then
+        # Only rewrite exit_reason to retry-exhausted for runtime/terminal-check failures.
+        # Preserve merge-conflict, signal, and trip-wire reasons — those are already definitive.
+        _dr_cur_reason=$(printf '%s' "$_state_json" | jq -r --arg id "$_dr_id" '
+            .tasks[] | select(.id == $id) | .exit_reason // empty
+        ')
+        case "$_dr_cur_reason" in
+            terminal-check-fail|missing-terminal-artifact|artifact-status-only|no-terminal-signal)
+                _mark_task_blocked "$_dr_id" "retry-exhausted"
+                _qlog "task=$_dr_id retry-exhausted (both attempts blocked)"
+                ;;
+            *)
+                # Preserve: dep-merge-conflict, trip-wire, signal-*, or any other definitive reason.
+                _qlog "task=$_dr_id retry also blocked; preserving exit_reason=$_dr_cur_reason"
+                ;;
+        esac
+    fi
+    return 0
+}
+
+_flush_pending_retries() {
+    # _flush_pending_retries — run any remaining pending_retry tasks at end of loop.
+    # Returns 3 if trip-wire fires; propagates non-zero rc from _do_retry otherwise.
+    _fpr_rc=0
+    _fpr_ids=$(printf '%s' "$_state_json" | jq -r '
+        .tasks[] | select(.status == "pending_retry") | .id
+    ')
+    [ -z "$_fpr_ids" ] && return 0
+
+    while IFS= read -r _fpr_id; do
+        [ -z "$_fpr_id" ] && continue
+        _qlog "task=$_fpr_id flushing pending_retry (no dependents)"
+        _do_retry "$_fpr_id" 0 || {
+            _fpr_rc=$?
+            [ "$_fpr_rc" -eq 3 ] && return 3
+        }
+    done <<EOF
+$_fpr_ids
+EOF
+    return "$_fpr_rc"
+}
+
+_finalize_stale_pending_retries() {
+    # _finalize_stale_pending_retries — safety sweep before report on abnormal exit.
+    # Marks any remaining pending_retry tasks as blocked/retry-not-flushed.
+    # Does NOT attempt to run retries — the queue is abandoning further work.
+    _fspr_ids=$(printf '%s' "$_state_json" | jq -r '
+        .tasks[] | select(.status == "pending_retry") | .id
+    ')
+    [ -z "$_fspr_ids" ] && return 0
+
+    while IFS= read -r _fspr_id; do
+        [ -z "$_fspr_id" ] && continue
+        _update_task_state "$_fspr_id" status      '"blocked"'
+        _update_task_state "$_fspr_id" exit_reason '"retry-not-flushed"'
+        _update_task_state "$_fspr_id" ended_utc   "\"$(_stamp)\""
+        _qlog "task=$_fspr_id finalized stale pending_retry as blocked/retry-not-flushed"
+    done <<EOF
+$_fspr_ids
+EOF
+}
+
 # --- Main loop ---
 
 _overall_rc=0
-for _id in $_task_ids; do
-    _run_one_task "$_id" || _rc=$?
-    _rc=${_rc:-0}
-    if [ "$_rc" -eq 3 ]; then
-        # Trip-wire: stop all further tasks.
-        _overall_rc=3
-        break
-    elif [ "$_rc" -ne 0 ]; then
-        _err "supervisor: task runner failed unexpectedly (rc=$_rc); preserving state"
-        _overall_rc=$_rc
-        break
-    fi
-    unset _rc
-done
+
+# Build topological order (exits 1 on cycle).
+_topo_order=$(_resolve_topo_order) || { _overall_rc=1; }
+
+if [ "$_overall_rc" -eq 0 ]; then
+    # _tasks_completed_since tracks work done since the last pending_retry mark,
+    # used to decide whether to apply the 30s backoff on retry.
+    _tasks_completed_since=0
+
+    for _id in $_topo_order; do
+        # Check if this task is in the queue at all (tsort may echo root self-edges).
+        _id_in_queue=$(printf '%s' "$_qjson" | jq -r --arg id "$_id" '
+            .tasks[] | select(.id == $id) | .id
+        ')
+        [ -z "$_id_in_queue" ] && continue
+
+        # Skip tasks already resolved (e.g. from a prior retry flush).
+        _cur_status=$(_get_task_status "$_id")
+        case "$_cur_status" in
+            complete|partial|blocked|skipped) continue ;;
+        esac
+
+        # Inspect parent states.
+        _check_parent_states "$_id"
+
+        case "$_cps_verdict" in
+            block)
+                _mark_task_blocked "$_id" "transitive-block"
+                # Synthetic cascade — no actual spawn; do NOT increment _tasks_completed_since.
+                # The 30s backoff for retry_once depends on real spawns only.
+                continue
+                ;;
+            skip)
+                _mark_task_skipped "$_id" "dependency-failed-skip"
+                # Synthetic cascade — no actual spawn; do NOT increment _tasks_completed_since.
+                continue
+                ;;
+            pending_retry_wait)
+                # Find which parent is pending_retry and flush it first.
+                _dep_ids=$(_get_dep_ids "$_id")
+                while IFS= read -r _dep; do
+                    [ -z "$_dep" ] && continue
+                    _dep_status=$(_get_task_status "$_dep")
+                    if [ "$_dep_status" = "pending_retry" ]; then
+                        _do_retry "$_dep" "$_tasks_completed_since" || {
+                            _rc_retry=$?
+                            if [ "$_rc_retry" -eq 3 ]; then
+                                _overall_rc=3
+                                break 2
+                            fi
+                            if [ "$_rc_retry" -ne 0 ]; then
+                                _err "supervisor: _do_retry failed unexpectedly (rc=$_rc_retry); preserving state"
+                                _overall_rc=$_rc_retry
+                                break 2
+                            fi
+                        }
+                        _tasks_completed_since=0
+                        # Check trip-wire after retry.
+                        [ -f "$_woke" ] && { _overall_rc=3; break 2; }
+                    fi
+                done <<EOF
+$_dep_ids
+EOF
+                # Re-evaluate parent states after retry.
+                _check_parent_states "$_id"
+                case "$_cps_verdict" in
+                    block) _mark_task_blocked "$_id" "transitive-block"; continue ;;
+                    skip)  _mark_task_skipped "$_id" "dependency-failed-skip"; continue ;;
+                esac
+                ;;
+        esac
+
+        # Run the task.
+        # shellcheck disable=SC2086  # _cps_parent_branches is space-separated; word-split is intentional
+        _run_one_task "$_id" $_cps_parent_branches || _rot_rc=$?
+        _rot_rc=${_rot_rc:-0}
+
+        if [ "$_rot_rc" -eq 3 ] || [ -f "$_woke" ]; then
+            _overall_rc=3
+            break
+        fi
+
+        if [ "$_rot_rc" -ne 0 ]; then
+            _err "supervisor: task runner failed unexpectedly (rc=$_rot_rc); preserving state"
+            _overall_rc=$_rot_rc
+            break
+        fi
+
+        # Check on_failure for retry_once.
+        _ran_status=$(_get_task_status "$_id")
+        _ran_of=$(_get_on_failure "$_id")
+        _ran_reason=$(printf '%s' "$_state_json" | jq -r --arg id "$_id" '
+            .tasks[] | select(.id == $id) | .exit_reason // empty
+        ')
+        _ran_attempts=$(printf '%s' "$_state_json" | jq -r --arg id "$_id" '
+            .tasks[] | select(.id == $id) | .attempts // 0
+        ')
+        # Guard: retry_once only applies when blocked on first attempt AND the failure
+        # is not a deterministic dep-merge-conflict (retrying a conflict is wasteful).
+        if [ "$_ran_status" = "blocked" ] && [ "$_ran_of" = "retry_once" ] \
+                && [ "$_ran_attempts" -lt 2 ] && [ "$_ran_reason" != "dep-merge-conflict" ]; then
+            _update_task_state "$_id" status '"pending_retry"'
+            _qlog "task=$_id blocked on attempt 1; marked pending_retry (lazy retry before first dependent)"
+            _tasks_completed_since=0
+        else
+            _tasks_completed_since=$((_tasks_completed_since + 1))
+        fi
+    done
+fi
+
+# Flush any pending_retry tasks with no dependents (happy path only — runs retries).
+if [ "$_overall_rc" -eq 0 ]; then
+    _flush_pending_retries || _overall_rc=$?
+fi
+
+# Unconditional sweep: finalize any pending_retry tasks that were not flushed
+# (abnormal termination — trip-wire or unexpected rc). Marks them blocked/retry-not-flushed
+# so the final report never shows transient pending_retry status.
+_finalize_stale_pending_retries
 
 # --- Final report ---
 
