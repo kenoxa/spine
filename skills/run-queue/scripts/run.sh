@@ -46,29 +46,29 @@ EOF
 _qdir=$1
 
 case "$_qdir" in /*) : ;; *) _qdir="$PWD/$_qdir" ;; esac
-[ -d "$_qdir" ] || { _err "queue directory does not exist: $_qdir"; exit 2; }
+[ -d "$_qdir" ] || { _err "supervisor: queue directory does not exist: $_qdir"; exit 2; }
 
 # --- Recursion + environment guards ---
 
 if [ "${SPINE_QUEUE_ACTIVE:-}" = "1" ]; then
-    _err "nested run-queue dispatch blocked — already inside supervisor context"
+    _err "supervisor: nested run-queue dispatch blocked — already inside supervisor context"
     exit 2
 fi
 export SPINE_QUEUE_ACTIVE=1
 
 if [ "${SPINE_QUEUE:-}" != "1" ]; then
-    _err "SPINE_QUEUE must be set to 1 before invoking this supervisor."
-    _err "Without it the PreToolUse guard hook is inert — the trust boundary is absent."
-    _err "Usage: SPINE_QUEUE=1 sh $(basename "$0") <queue-dir>"
+    _err "supervisor: SPINE_QUEUE must be set to 1 before invoking this supervisor."
+    _err "supervisor: Without it the PreToolUse guard hook is inert — the trust boundary is absent."
+    _err "supervisor: Usage: SPINE_QUEUE=1 sh $(basename "$0") <queue-dir>"
     exit 2
 fi
 
 # --- Tool preflight ---
 
 for _t in yq jq git tsort; do
-    command -v "$_t" >/dev/null 2>&1 || { _err "missing required tool: $_t"; exit 2; }
+    command -v "$_t" >/dev/null 2>&1 || { _err "supervisor: missing required tool: $_t"; exit 2; }
 done
-command -v claude >/dev/null 2>&1 || { _err "missing claude CLI"; exit 2; }
+command -v claude >/dev/null 2>&1 || { _err "supervisor: missing claude CLI"; exit 2; }
 
 # GNU coreutils binary selection for pipeline line-buffering.
 # On macOS (Homebrew), gstdbuf is Homebrew-native; on Linux, stdbuf is coreutils default.
@@ -77,7 +77,7 @@ if command -v gstdbuf >/dev/null 2>&1; then
 elif command -v stdbuf >/dev/null 2>&1 && stdbuf --version 2>&1 | grep -q GNU; then
     _stdbuf=stdbuf
 else
-    _err "missing required tool: stdbuf (install via: brew install coreutils)"
+    _err "supervisor: missing required tool: stdbuf (install via: brew install coreutils)"
     exit 2
 fi
 
@@ -86,20 +86,20 @@ _script_dir=$(cd "$(dirname "$0")" && pwd)
 # --- Enqueue lint ---
 
 sh "$_script_dir/queue-lint.sh" "$_qdir" || {
-    _err "enqueue lint failed — refusing to spawn any child process"
+    _err "supervisor: enqueue lint failed — refusing to spawn any child process"
     exit 1
 }
 
 # --- Git sanity ---
 
 _repo_root=$(cd "$_qdir" && git rev-parse --show-toplevel 2>/dev/null) || {
-    _err "queue directory is not inside a git repo: $_qdir"
+    _err "supervisor: queue directory is not inside a git repo: $_qdir"
     exit 2
 }
 cd "$_repo_root"
 
 if ! git diff-index --quiet HEAD --; then
-    _err "repo has uncommitted changes — refusing to start. Commit or stash first."
+    _err "supervisor: repo has uncommitted changes — refusing to start. Commit or stash first."
     exit 2
 fi
 
@@ -117,8 +117,8 @@ if [ -n "$_profile_rel" ]; then
         /*) _profile_abs=$_profile_rel ;;
          *) _profile_abs="$_qdir/$_profile_rel" ;;
     esac
-    [ -f "$_profile_abs" ] || { _err "profile.json referenced but not found: $_profile_abs"; exit 2; }
-    jq -e . "$_profile_abs" >/dev/null 2>&1 || { _err "profile.json not valid JSON: $_profile_abs"; exit 2; }
+    [ -f "$_profile_abs" ] || { _err "supervisor: profile.json referenced but not found: $_profile_abs"; exit 2; }
+    jq -e . "$_profile_abs" >/dev/null 2>&1 || { _err "supervisor: profile.json not valid JSON: $_profile_abs"; exit 2; }
 fi
 
 # Skill-bundled assets: hook script + settings overlay template.
@@ -129,14 +129,14 @@ _queue_hook="$_script_dir/guard-queue-shell.sh"
 _overlay_tmpl="$_skill_root/settings-overlay.tmpl.json"
 
 for _f in "$_queue_hook" "$_overlay_tmpl"; do
-    [ -e "$_f" ] || { _err "missing run-queue asset: $_f"; exit 2; }
+    [ -e "$_f" ] || { _err "supervisor: missing run-queue asset: $_f"; exit 2; }
 done
-[ -x "$_queue_hook" ] || { _err "run-queue hook not executable: $_queue_hook"; exit 2; }
+[ -x "$_queue_hook" ] || { _err "supervisor: run-queue hook not executable: $_queue_hook"; exit 2; }
 
 # Resolve base_rev once at supervisor entry (per handoff OQ2 + OQ3).
 if [ -n "$_base_branch" ]; then
     _base_rev=$(git rev-parse "$_base_branch" 2>/dev/null) || {
-        _err "cannot resolve base_branch '$_base_branch'"; exit 2
+        _err "supervisor: cannot resolve base_branch '$_base_branch'"; exit 2
     }
 else
     _base_rev=$(git rev-parse HEAD)
@@ -152,7 +152,7 @@ _prev_branch=$(git symbolic-ref --quiet --short HEAD 2>/dev/null || echo "$_base
 for _id in $_task_ids; do
     _b="queue/$_run_id/$_id"
     if git show-ref --quiet --verify "refs/heads/$_b"; then
-        _err "branch already exists: $_b — choose a different run_id or delete stale branches"
+        _err "supervisor: branch already exists: $_b — choose a different run_id or delete stale branches"
         exit 2
     fi
 done
@@ -165,8 +165,8 @@ _woke="$_qdir/WOKE-ME-UP.md"
 
 # Fresh run: truncate state and log (leave WOKE-ME-UP.md intact if present — it indicates a prior trip-wire the user hasn't addressed)
 if [ -f "$_woke" ]; then
-    _err "WOKE-ME-UP.md from a prior run is present at $_woke."
-    _err "Review and remove it before starting a new run."
+    _err "supervisor: WOKE-ME-UP.md from a prior run is present at $_woke."
+    _err "supervisor: Review and remove it before starting a new run."
     exit 2
 fi
 
@@ -176,7 +176,7 @@ fi
 _overlay_rendered="$_qdir/.run-queue-settings.json"
 sed "s|@@GUARD_PATH@@|$_queue_hook|g" "$_overlay_tmpl" > "$_overlay_rendered"
 jq -e . "$_overlay_rendered" >/dev/null 2>&1 || {
-    _err "failed to render settings overlay (bad template or jq)"
+    _err "supervisor: failed to render settings overlay (bad template or jq)"
     exit 2
 }
 
@@ -191,12 +191,12 @@ _atomic_write() {
     _tmp="${_dest}.tmp.$$"
     if ! cat > "$_tmp"; then
         rm -f "$_tmp"
-        _err "atomic_write: failed to write tmp file for $_dest"
+        _err "supervisor: atomic_write: failed to write tmp file for $_dest"
         return 1
     fi
     if ! mv "$_tmp" "$_dest"; then
         rm -f "$_tmp"
-        _err "atomic_write: failed to promote $_tmp → $_dest"
+        _err "supervisor: atomic_write: failed to promote $_tmp → $_dest"
         return 1
     fi
 }
@@ -221,9 +221,9 @@ _write_report() {
     _report="$_qdir/queue-report.md"
     {
         printf '# Queue report — %s\n\n' "$_run_id"
-        printf '- Started: %s\n' "$(printf '%s' "$_state_json" | jq -r '.started_utc')"
-        printf '- Ended: %s\n' "$(_stamp)"
-        printf '- Base rev: `%s` (%s)\n' "$(_short "$_base_rev")" "$_base_branch_display"
+        printf -- '- Started: %s\n' "$(printf '%s' "$_state_json" | jq -r '.started_utc')"
+        printf -- '- Ended: %s\n' "$(_stamp)"
+        printf -- '- Base rev: `%s` (%s)\n' "$(_short "$_base_rev")" "$_base_branch_display"
 
         if [ -f "$_woke" ]; then
             printf '\n> **Trip-wire fired.** See `WOKE-ME-UP.md`.\n'
@@ -237,23 +237,23 @@ _write_report() {
             _t=$(printf '%s' "$_b64" | base64 -d)
             _tid=$(printf '%s' "$_t" | jq -r '.id')
             printf '### %s\n\n' "$_tid"
-            printf '- status: %s\n' "$(printf '%s' "$_t" | jq -r '.status')"
-            printf '- exit_reason: %s\n' "$(printf '%s' "$_t" | jq -r '.exit_reason // "-"')"
-            printf '- branch: `%s`\n' "$(printf '%s' "$_t" | jq -r '.branch // "-"')"
-            printf '- head_rev: `%s`\n' "$(printf '%s' "$_t" | jq -r '.head_rev // "-"')"
-            printf '- started: %s\n' "$(printf '%s' "$_t" | jq -r '.started_utc // "-"')"
-            printf '- ended: %s\n' "$(printf '%s' "$_t" | jq -r '.ended_utc // "-"')"
+            printf -- '- status: %s\n' "$(printf '%s' "$_t" | jq -r '.status')"
+            printf -- '- exit_reason: %s\n' "$(printf '%s' "$_t" | jq -r '.exit_reason // "-"')"
+            printf -- '- branch: `%s`\n' "$(printf '%s' "$_t" | jq -r '.branch // "-"')"
+            printf -- '- head_rev: `%s`\n' "$(printf '%s' "$_t" | jq -r '.head_rev // "-"')"
+            printf -- '- started: %s\n' "$(printf '%s' "$_t" | jq -r '.started_utc // "-"')"
+            printf -- '- ended: %s\n' "$(printf '%s' "$_t" | jq -r '.ended_utc // "-"')"
             _iters=".scratch/queue-$_run_id-$_tid/iterations"
             if [ -d "$_iters" ]; then
-                printf '- iterations:\n'
+                printf -- '- iterations:\n'
                 for _j in "$_iters"/*.jsonl; do
                     [ -f "$_j" ] || continue
-                    printf '  - `%s`\n' "$_j"
+                    printf -- '  - `%s`\n' "$_j"
                 done
             fi
             printf '\n'
         done
-    } > "$_report"
+    } | _atomic_write "$_report"
     _qlog "wrote $(basename "$_report")"
 }
 
@@ -305,6 +305,94 @@ _update_task_state() {
         .tasks = (.tasks | map(if .id == $id then .[$k] = $v else . end))
     ')
     _write_state
+}
+
+_spawn_child() {
+    # _spawn_child <prompt_path> <iter_jsonl> <iter_stderr> <task_timeout> [claude-cmd-args...]
+    # Runs the child in a subshell with full env isolation, waits for it, and
+    # sets _child_rc. Sets _child_pid before wait so the signal trap can forward.
+    _sc_prompt=$1; _sc_jsonl=$2; _sc_stderr=$3; _sc_timeout=$4
+    shift 4
+
+    # Streaming stack: child stdout (stream-json) → live jq → tee per-iteration jsonl.
+    # stdbuf -oL works around the macOS 64 KB pipe buffer cap.
+    (
+        export SPINE_QUEUE=1
+        export SPINE_SESSION_ID="$_task_session"
+        export SPINE_QUEUE_DIR="$_qdir"
+        export SPINE_QUEUE_RUN_ID="$_run_id"
+        export SPINE_QUEUE_TASK_ID="$_id"
+        export SPINE_QUEUE_REPO_ROOT="$_repo_root"
+
+        # Push-disabled belt: even if a pattern-matching hook is bypassed,
+        # git itself refuses to push because pushInsteadOf rewrites the
+        # protocol to a URL that git cannot resolve. Env-scoped to this
+        # subshell — no repo config mutation, no cleanup required on exit.
+        # Covers both HTTPS (origin pushurls like https://github.com/...)
+        # and SSH (git@github.com:...) by matching both scheme prefixes.
+        export GIT_CONFIG_COUNT=2
+        export GIT_CONFIG_KEY_0="url.disabled:///.pushInsteadOf"
+        export GIT_CONFIG_VALUE_0="https://"
+        export GIT_CONFIG_KEY_1="url.disabled:///.pushInsteadOf"
+        export GIT_CONFIG_VALUE_1="git@"
+
+        # Credentials must not prompt — child has no stdin for the prompt.
+        export GIT_TERMINAL_PROMPT=0
+        export GIT_ASKPASS=/bin/false
+
+        # Env hygiene: shed the outer claude-code identity so the child is a
+        # fresh session, not a re-entry.
+        unset CLAUDECODE CLAUDE_CODE_ENTRYPOINT CLAUDE_CODE_EXECPATH \
+              CURSOR_AGENT CODEX_SANDBOX OPENCODE
+
+        # shellcheck disable=SC2086  # timeout wraps "$@"; quoting preserved via set --
+        timeout --kill-after=10 "$_sc_timeout" "$@" \
+            < "$_sc_prompt" \
+            2> "$_sc_stderr" \
+          | "$_stdbuf" -oL grep --line-buffered '^{' \
+          | "$_stdbuf" -oL tee "$_sc_jsonl" > /dev/null
+    ) &
+    _child_pid=$!
+
+    _child_rc=0
+    wait "$_child_pid" || _child_rc=$?
+    _child_pid=""
+}
+
+_classify_terminal_status() {
+    # _classify_terminal_status <terminal_artifact> <terminal_check> <task_session> <task_scratch> <repo_root>
+    # Sets _task_status and _task_exit_reason in the caller's scope.
+    _cts_artifact=$1; _cts_check=$2; _cts_session=$3; _cts_scratch=$4; _cts_root=$5
+
+    _task_status="unknown"
+    _task_exit_reason="no-terminal-signal"
+
+    if [ -n "$_cts_artifact" ]; then
+        # Resolve ${SESSION} template and relative paths.
+        _ta_path=$(printf '%s' "$_cts_artifact" | sed "s|\${SESSION}|$_cts_session|g")
+        case "$_ta_path" in
+            /*) : ;;
+            build-status.json) _ta_path="$_cts_scratch/build-status.json" ;;
+             *) _ta_path="$_cts_root/$_ta_path" ;;
+        esac
+
+        if [ -f "$_ta_path" ] && _bstatus=$(jq -er '.status' "$_ta_path" 2>/dev/null); then
+            _task_status=$_bstatus
+            _task_exit_reason=$(jq -r '.exit_reason // empty' "$_ta_path" 2>/dev/null)
+            [ -z "$_task_exit_reason" ] && _task_exit_reason="artifact-status-only"
+        else
+            _task_status="blocked"
+            _task_exit_reason="missing-terminal-artifact"
+        fi
+    elif [ -n "$_cts_check" ]; then
+        if sh -c "$_cts_check" >/dev/null 2>&1; then
+            _task_status="complete"
+            _task_exit_reason="terminal-check-pass"
+        else
+            _task_status="blocked"
+            _task_exit_reason="terminal-check-fail"
+        fi
+    fi
 }
 
 _run_one_task() {
@@ -381,49 +469,8 @@ _run_one_task() {
     # Matches envoy's 1h default; queue tasks may run longer so we bump to 2h.
     _task_timeout=${SPINE_QUEUE_TASK_TIMEOUT:-7200}
 
-    # Streaming stack: child stdout (stream-json) → live jq → tee per-iteration jsonl.
-    # stdbuf -oL works around the macOS 64 KB pipe buffer cap.
-    (
-        export SPINE_QUEUE=1
-        export SPINE_SESSION_ID="$_task_session"
-        export SPINE_QUEUE_DIR="$_qdir"
-        export SPINE_QUEUE_RUN_ID="$_run_id"
-        export SPINE_QUEUE_TASK_ID="$_id"
-        export SPINE_QUEUE_REPO_ROOT="$_repo_root"
-
-        # Push-disabled belt: even if a pattern-matching hook is bypassed,
-        # git itself refuses to push because pushInsteadOf rewrites the
-        # protocol to a URL that git cannot resolve. Env-scoped to this
-        # subshell — no repo config mutation, no cleanup required on exit.
-        # Covers both HTTPS (origin pushurls like https://github.com/...)
-        # and SSH (git@github.com:...) by matching both scheme prefixes.
-        export GIT_CONFIG_COUNT=2
-        export GIT_CONFIG_KEY_0="url.disabled:///.pushInsteadOf"
-        export GIT_CONFIG_VALUE_0="https://"
-        export GIT_CONFIG_KEY_1="url.disabled:///.pushInsteadOf"
-        export GIT_CONFIG_VALUE_1="git@"
-
-        # Credentials must not prompt — child has no stdin for the prompt.
-        export GIT_TERMINAL_PROMPT=0
-        export GIT_ASKPASS=/bin/false
-
-        # Env hygiene: shed the outer claude-code identity so the child is a
-        # fresh session, not a re-entry.
-        unset CLAUDECODE CLAUDE_CODE_ENTRYPOINT CLAUDE_CODE_EXECPATH \
-              CURSOR_AGENT CODEX_SANDBOX OPENCODE
-
-        # shellcheck disable=SC2086  # timeout wraps "$@"; quoting preserved via set --
-        timeout --kill-after=10 "$_task_timeout" "$@" \
-            < "$_prompt_tmp" \
-            2> "$_iter_stderr" \
-          | "$_stdbuf" -oL grep --line-buffered '^{' \
-          | "$_stdbuf" -oL tee "$_iter_jsonl" > /dev/null
-    ) &
-    _child_pid=$!
-
-    _child_rc=0
-    wait "$_child_pid" || _child_rc=$?
-    _child_pid=""
+    # Spawn child with full env isolation; wait for completion.
+    _spawn_child "$_prompt_tmp" "$_iter_jsonl" "$_iter_stderr" "$_task_timeout" "$@"
 
     case "$_child_rc" in
         124|137) _qlog "task=$_id child timed out after ${_task_timeout}s" ;;
@@ -442,36 +489,10 @@ _run_one_task() {
         return 3
     fi
 
-    # Terminal check
-    _task_status="unknown"
-    _task_exit_reason="no-terminal-signal"
-
-    if [ -n "$_terminal_artifact" ]; then
-        # Resolve ${SESSION} template and relative paths.
-        _ta_path=$(printf '%s' "$_terminal_artifact" | sed "s|\${SESSION}|$_task_session|g")
-        case "$_ta_path" in
-            /*) : ;;
-            build-status.json) _ta_path="$_task_scratch/build-status.json" ;;
-             *) _ta_path="$_repo_root/$_ta_path" ;;
-        esac
-
-        if [ -f "$_ta_path" ] && _bstatus=$(jq -er '.status' "$_ta_path" 2>/dev/null); then
-            _task_status=$_bstatus
-            _task_exit_reason=$(jq -r '.exit_reason // empty' "$_ta_path" 2>/dev/null)
-            [ -z "$_task_exit_reason" ] && _task_exit_reason="artifact-status-only"
-        else
-            _task_status="blocked"
-            _task_exit_reason="missing-terminal-artifact"
-        fi
-    elif [ -n "$_terminal_check" ]; then
-        if sh -c "$_terminal_check" >/dev/null 2>&1; then
-            _task_status="complete"
-            _task_exit_reason="terminal-check-pass"
-        else
-            _task_status="blocked"
-            _task_exit_reason="terminal-check-fail"
-        fi
-    fi
+    # Classify terminal status via artifact or inline check.
+    _classify_terminal_status \
+        "$_terminal_artifact" "$_terminal_check" \
+        "$_task_session" "$_task_scratch" "$_repo_root"
 
     _head_after=$(git rev-parse HEAD)
     _update_task_state "$_id" status      "\"$_task_status\""
@@ -498,7 +519,7 @@ for _id in $_task_ids; do
         _overall_rc=3
         break
     elif [ "$_rc" -ne 0 ]; then
-        _err "task runner failed unexpectedly (rc=$_rc); preserving state"
+        _err "supervisor: task runner failed unexpectedly (rc=$_rc); preserving state"
         _overall_rc=$_rc
         break
     fi
@@ -510,7 +531,7 @@ done
 _write_report
 
 if [ "$_overall_rc" -eq 3 ]; then
-    _err "queue halted by trip-wire — see $_woke and $_qdir/queue-report.md"
+    _err "supervisor: queue halted by trip-wire — see $_woke and $_qdir/queue-report.md"
 fi
 
 # Restore caller's branch if we know it.
