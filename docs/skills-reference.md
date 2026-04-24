@@ -113,7 +113,7 @@ Canonical entry: [`skills/run-polish/SKILL.md`](../skills/run-polish/SKILL.md).
 
 ### run-queue
 
-Overnight autonomous task queue. Run a pre-staged DAG of handoff tasks in fresh `claude -p` processes, one task per branch, with restricted permissions and a morning report. Two surfaces: the skill drives the human-facing workflow (Prepare → Kick → Monitor → Review); `scripts/run.sh` is the POSIX sh supervisor spawned under `tmux`/`nohup`. Trust boundary = tool-category flag gate + `hooks/guard-queue-shell.sh` behavioral deny (env-gated on `SPINE_QUEUE=1`). Rejects stop-hook-driven intra-session looping (Ralph plugin OOM failure mode).
+Overnight autonomous task queue. Run a pre-staged DAG of handoff tasks in fresh `claude -p` processes, one task per branch, with restricted permissions and a morning report. Two surfaces: the skill drives the human-facing workflow (Prepare → Kick → Monitor → Review); `scripts/run.sh` is the POSIX sh supervisor spawned under `tmux`/`nohup`. Trust boundary is the bundled PreToolUse hook `skills/run-queue/scripts/guard-queue-shell.sh` (env-gated on `SPINE_QUEUE=1`); it canonicalizes Edit/Write paths to keep writes inside the repo and tokenizes Bash commands to deny `git push`, `send-pack`, `bundle`, `format-patch`, and `-C` sidesteps. Rejects stop-hook-driven intra-session looping (Ralph plugin OOM failure mode).
 
 Canonical entry: [`skills/run-queue/SKILL.md`](../skills/run-queue/SKILL.md).
 
