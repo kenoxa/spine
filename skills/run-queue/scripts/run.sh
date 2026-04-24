@@ -390,6 +390,22 @@ _run_one_task() {
         export SPINE_QUEUE_TASK_ID="$_id"
         export SPINE_QUEUE_REPO_ROOT="$_repo_root"
 
+        # Push-disabled belt: even if a pattern-matching hook is bypassed,
+        # git itself refuses to push because pushInsteadOf rewrites the
+        # protocol to a URL that git cannot resolve. Env-scoped to this
+        # subshell — no repo config mutation, no cleanup required on exit.
+        # Covers both HTTPS (origin pushurls like https://github.com/...)
+        # and SSH (git@github.com:...) by matching both scheme prefixes.
+        export GIT_CONFIG_COUNT=2
+        export GIT_CONFIG_KEY_0="url.disabled:///.pushInsteadOf"
+        export GIT_CONFIG_VALUE_0="https://"
+        export GIT_CONFIG_KEY_1="url.disabled:///.pushInsteadOf"
+        export GIT_CONFIG_VALUE_1="git@"
+
+        # Credentials must not prompt — child has no stdin for the prompt.
+        export GIT_TERMINAL_PROMPT=0
+        export GIT_ASKPASS=/bin/false
+
         # Env hygiene: shed the outer claude-code identity so the child is a
         # fresh session, not a re-entry.
         unset CLAUDECODE CLAUDE_CODE_ENTRYPOINT CLAUDE_CODE_EXECPATH \
