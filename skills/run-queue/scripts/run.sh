@@ -110,17 +110,17 @@ if [ -n "$_profile_rel" ]; then
     jq -e . "$_profile_abs" >/dev/null 2>&1 || { _err "profile.json not valid JSON: $_profile_abs"; exit 2; }
 fi
 
-# Fail-secure proxy: verify the queue hook exists in the Spine install that
-# ships this script. Does NOT prove the hook is registered in the user's
-# claude settings — that contract is install.sh's — but catches the common
-# "broken install" case where the hook file is missing altogether.
-_spine_root=$(cd "$_script_dir/../../.." && pwd)
-_queue_hook="$_spine_root/hooks/guard-queue-shell.sh"
-[ -x "$_queue_hook" ] || {
-    _err "queue hook missing or not executable: $_queue_hook"
-    _err "re-run install.sh to repair the Spine hook stack"
-    exit 2
-}
+# Skill-bundled assets: hook script + settings overlay template.
+# The skill is self-contained — no dependency on project-level hooks.json
+# or opencode registration.
+_skill_root=$(cd "$_script_dir/.." && pwd)
+_queue_hook="$_script_dir/guard-queue-shell.sh"
+_overlay_tmpl="$_skill_root/settings-overlay.tmpl.json"
+
+for _f in "$_queue_hook" "$_overlay_tmpl"; do
+    [ -e "$_f" ] || { _err "missing run-queue asset: $_f"; exit 2; }
+done
+[ -x "$_queue_hook" ] || { _err "run-queue hook not executable: $_queue_hook"; exit 2; }
 
 # Resolve base_rev once at supervisor entry (per handoff OQ2 + OQ3).
 if [ -n "$_base_branch" ]; then
@@ -158,6 +158,16 @@ if [ -f "$_woke" ]; then
     _err "Review and remove it before starting a new run."
     exit 2
 fi
+
+# Render the settings overlay with the absolute path to the guard hook.
+# Written into the queue-dir so multiple concurrent queue runs against
+# different directories do not collide.
+_overlay_rendered="$_qdir/.run-queue-settings.json"
+sed "s|@@GUARD_PATH@@|$_queue_hook|g" "$_overlay_tmpl" > "$_overlay_rendered"
+jq -e . "$_overlay_rendered" >/dev/null 2>&1 || {
+    _err "failed to render settings overlay (bad template or jq)"
+    exit 2
+}
 
 printf '# Queue log — %s\n\nStarted %s on branch %s (base_rev %s).\n\n' \
     "$_run_id" "$(_stamp)" "$_base_branch_display" "$(_short "$_base_rev")" > "$_queue_log"
@@ -278,6 +288,7 @@ _run_one_task() {
     # so the child is a clean session), timeout+kill-after to bound runaway tasks.
     # Third-use abstraction (shared helper) deferred to Slice C per design.
     set -- claude --print \
+        --settings "$_overlay_rendered" \
         --permission-mode dontAsk \
         --output-format stream-json \
         --include-partial-messages \
@@ -299,6 +310,7 @@ _run_one_task() {
         export SPINE_QUEUE_DIR="$_qdir"
         export SPINE_QUEUE_RUN_ID="$_run_id"
         export SPINE_QUEUE_TASK_ID="$_id"
+        export SPINE_QUEUE_REPO_ROOT="$_repo_root"
 
         # Env hygiene: shed the outer claude-code identity so the child is a
         # fresh session, not a re-entry.

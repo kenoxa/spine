@@ -51,9 +51,9 @@ Inherits whatever permission posture your `~/.claude/settings.json` already prov
 - Deny `git -C /path` sidesteps.
 - On any deny → write `<queue-dir>/WOKE-ME-UP.md` and halt the queue.
 
-Mechanism: `hooks/guard-queue-shell.sh` is registered via `claude/hooks.json` like any other Spine hook. Its body opens with `[ "${SPINE_QUEUE:-}" = "1" ] || exit 0` — inert in interactive sessions, active only when the supervisor has armed `SPINE_QUEUE=1` in the child's env. Optional `<queue-dir>/profile.json` adds per-run extra deny patterns or out-of-repo allowances.
+Mechanism: the skill bundles its own hook at `skills/run-queue/scripts/guard-queue-shell.sh` and a settings-overlay template at `skills/run-queue/settings-overlay.tmpl.json`. The supervisor renders the overlay with absolute paths into `<queue-dir>/.run-queue-settings.json` and passes `claude -p --settings <that-file>` at each child spawn — additive on top of your global `~/.claude/settings.json`, not a replacement. The hook fires only for queue runs (because only they pass the overlay) AND env-gates on `SPINE_QUEUE=1` as defense-in-depth. Optional `<queue-dir>/profile.json` adds per-run extra deny patterns or out-of-repo allowances.
 
-Fail-secure: missing or non-executable `guard-queue-shell.sh` → supervisor refuses to start. Full story: [permission-profile.md](references/permission-profile.md).
+Fail-secure: missing or non-executable bundled assets → supervisor refuses to start. Full story: [permission-profile.md](references/permission-profile.md).
 
 ## Ralph Pattern — Known Pitfalls Rejected
 

@@ -1,0 +1,16 @@
+{
+  "//": "run-queue settings overlay template. The supervisor renders this with absolute paths at each task spawn and passes via `claude -p --settings`. Global user settings still apply — this only ADDS the queue guard hook.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "@@GUARD_PATH@@"
+          }
+        ]
+      }
+    ]
+  }
+}

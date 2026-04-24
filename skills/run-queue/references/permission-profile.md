@@ -4,11 +4,13 @@ run-queue does **not** replace your Claude settings. It inherits whatever permis
 
 ## Layered Model
 
-1. **Global / project settings** (`~/.claude/settings.json`, `.claude/settings.json`). Source of truth for cross-cutting allow/deny/ask rules, MCP access, the existing PreToolUse hook (e.g. `rtk hook claude` → `hooks/guard-shell.sh`). run-queue does **not** pass `--settings` to the child — global settings apply unchanged.
+1. **Global / project settings** (`~/.claude/settings.json`, `.claude/settings.json`). Source of truth for cross-cutting allow/deny/ask rules, MCP access, the existing PreToolUse hook (e.g. `rtk hook claude` → `hooks/guard-shell.sh`). Applied to every `claude -p` invocation the supervisor spawns.
 
-2. **Queue overlay** (`hooks/guard-queue-shell.sh`, env-gated). Registered via the project's `claude/hooks.json` so it's installed alongside other Spine hooks. The hook body begins with `[ "${SPINE_QUEUE:-}" = "1" ] || exit 0` — inert in interactive sessions, active only when the run-queue supervisor has armed `SPINE_QUEUE=1` in the child's environment.
+2. **Bundled skill overlay** (`skills/run-queue/settings-overlay.tmpl.json` + `skills/run-queue/scripts/guard-queue-shell.sh`). The supervisor renders the template with the absolute path to the bundled hook, writes `<queue-dir>/.run-queue-settings.json`, and passes `claude -p --settings <that-file>`. The `--settings` flag is additive — it augments user/project settings rather than replacing them. The bundled hook registration ONLY fires for queue runs because only queue runs pass the overlay. Defense-in-depth: the hook still env-gates on `SPINE_QUEUE=1` in case the overlay leaks into an unrelated invocation.
 
-3. **Per-queue profile** (`<queue-dir>/profile.json`, optional). A tiny declarative file the hook reads for rules that vary across runs (extra deny patterns, allowed-out-of-repo-paths). Absent profile → the hook falls back to built-in defaults (below). Most queues will not need a profile at all.
+3. **Per-queue profile** (`<queue-dir>/profile.json`, optional). A tiny declarative file the hook reads for rules that vary across runs (extra deny patterns, allowed-out-of-repo paths). Absent profile → the hook falls back to built-in defaults (below). Most queues will not need a profile at all.
+
+The skill is self-contained: installing run-queue installs its hook. No changes to the project `claude/hooks.json` or `opencode/spine-hooks.ts` are required.
 
 ## What the queue overlay adds beyond global settings
 
@@ -64,8 +66,8 @@ The `path_prefix` and `command_prefix`/`command_regex` semantics match `guard-sh
 The supervisor refuses to start when:
 
 - `SPINE_QUEUE=1` is not set in its environment (user bypassed the arming step).
-- `hooks/guard-queue-shell.sh` is missing or not executable.
-- The project's hook registration (`claude/hooks.json` or `opencode/spine-hooks.ts`) does not list `guard-queue-shell.sh`.
+- `skills/run-queue/scripts/guard-queue-shell.sh` is missing or not executable.
+- `skills/run-queue/settings-overlay.tmpl.json` is missing or the rendered overlay fails JSON validation.
 
 These are configuration errors — not user-recoverable at runtime. Every deny path ends with an explicit `exit 2` + stderr line.
 
