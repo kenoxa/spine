@@ -8,6 +8,10 @@ load "$BATS_LIB/bats-support/load.bash"
 load "$BATS_LIB/bats-assert/load.bash"
 
 SCRIPTS_DIR="$(cd "$(dirname "$BATS_TEST_DIRNAME")"/scripts && pwd)"
+# _script_dir must be set before sourcing _common.sh because _common.sh sources
+# _rate_limit.sh via ". $_script_dir/_rate_limit.sh". Unit tests that source
+# _common.sh directly inherit this var from the bats shell.
+export _script_dir="$SCRIPTS_DIR"
 
 # --- Stub CLI helpers ---
 
@@ -77,6 +81,7 @@ setup_fallback_scripts() {
     FALLBACK_SCRIPTS_DIR="$BATS_TMPDIR/fallback-scripts-$$"
     mkdir -p "$FALLBACK_SCRIPTS_DIR"
     cp "$SCRIPTS_DIR/_common.sh" "$FALLBACK_SCRIPTS_DIR/"
+    cp "$SCRIPTS_DIR/_rate_limit.sh" "$FALLBACK_SCRIPTS_DIR/"
     cp "$SCRIPTS_DIR/fallback.sh" "$FALLBACK_SCRIPTS_DIR/"
 
     # Stub check-cursor.sh

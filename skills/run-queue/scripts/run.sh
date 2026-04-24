@@ -84,6 +84,12 @@ fi
 
 _script_dir=$(cd "$(dirname "$0")" && pwd)
 
+# shellcheck source=../../use-envoy/scripts/_rate_limit.sh
+. "$_script_dir/../../use-envoy/scripts/_rate_limit.sh" 2>/dev/null || {
+    _err "supervisor: missing shared helper _rate_limit.sh (expected at skills/use-envoy/scripts/_rate_limit.sh)"
+    exit 2
+}
+
 # --- Enqueue lint ---
 
 sh "$_script_dir/queue-lint.sh" "$_qdir" || {
@@ -121,6 +127,17 @@ if [ -n "$_profile_rel" ]; then
     [ -f "$_profile_abs" ] || { _err "supervisor: profile.json referenced but not found: $_profile_abs"; exit 2; }
     jq -e . "$_profile_abs" >/dev/null 2>&1 || { _err "supervisor: profile.json not valid JSON: $_profile_abs"; exit 2; }
 fi
+
+# backoff_cap_ms — intra-task rate-limit backoff ceiling. Default 7200000 ms (2 h).
+_backoff_cap_ms=$(printf '%s' "$_qjson" | jq -r '.backoff_cap_ms // 7200000')
+case "$_backoff_cap_ms" in
+    ''|*[!0-9]*) _err "supervisor: backoff_cap_ms must be a positive integer (got '$_backoff_cap_ms')"; exit 2 ;;
+esac
+if [ "$_backoff_cap_ms" -lt 1000 ]; then
+    _err "supervisor: backoff_cap_ms must be >= 1000 (got '$_backoff_cap_ms'); use the default 7200000 or a larger value"
+    exit 2
+fi
+_backoff_cap_sec=$(( _backoff_cap_ms / 1000 ))
 
 # Skill-bundled assets: hook script + settings overlay template.
 # The skill is self-contained — no dependency on project-level hooks.json
@@ -379,9 +396,17 @@ _classify_terminal_status() {
         esac
 
         if [ -f "$_ta_path" ] && _bstatus=$(jq -er '.status' "$_ta_path" 2>/dev/null); then
-            _task_status=$_bstatus
-            _task_exit_reason=$(jq -r '.exit_reason // empty' "$_ta_path" 2>/dev/null)
-            [ -z "$_task_exit_reason" ] && _task_exit_reason="artifact-status-only"
+            case "$_bstatus" in
+                complete|partial|blocked|in_progress)
+                    _task_status=$_bstatus
+                    _task_exit_reason=$(jq -r '.exit_reason // empty' "$_ta_path" 2>/dev/null)
+                    [ -z "$_task_exit_reason" ] && _task_exit_reason="artifact-status-only"
+                    ;;
+                *)
+                    _task_status="blocked"
+                    _task_exit_reason="invalid-terminal-status"
+                    ;;
+            esac
         else
             _task_status="blocked"
             _task_exit_reason="missing-terminal-artifact"
@@ -397,9 +422,204 @@ _classify_terminal_status() {
     fi
 }
 
+_rot_compute_backoff() {
+    # _rot_compute_backoff <streak> <base_sec> <cap_sec> — prints sleep seconds to stdout.
+    # Uses iterative doubling (POSIX sh; no ** operator).
+    # streak=1 → base; streak=2 → base*2; etc., capped at cap_sec.
+    _rcb_n=$1
+    _rcb_base=$2
+    _rcb_cap=$3
+    _rcb_sleep=$_rcb_base
+    _rcb_i=1
+    while [ "$_rcb_i" -lt "$_rcb_n" ] && [ "$_rcb_sleep" -lt "$_rcb_cap" ]; do
+        _rcb_sleep=$((_rcb_sleep * 2))
+        _rcb_i=$((_rcb_i + 1))
+    done
+    [ "$_rcb_sleep" -gt "$_rcb_cap" ] && _rcb_sleep=$_rcb_cap
+    printf '%s\n' "$_rcb_sleep"
+}
+
+_rot_build_prompt() {
+    # _rot_build_prompt <iter> <body_path> — writes a prompt to a tmp file and prints its path.
+    # Reads _rot_* vars from caller scope (_rot_task_session, _rot_task_scratch,
+    # _rot_entry_skill, _rot_id, _rot_max_iter, _rot_attempts, _rot_task_iter_dir,
+    # _rot_branch, _rot_prev_status, _rot_prev_reason, _rot_prev_stamp).
+    _rbp_iter=$1
+    _rbp_body=$2
+    _rbp_tmp=$(mktemp -t run-queue-prompt.XXXXXX)
+
+    if [ "$_rbp_iter" -ge 2 ]; then
+        _rbp_prior_jsonl="$_rot_task_iter_dir/${_rot_attempts}-$((_rbp_iter - 1)).jsonl"
+        _rbp_sha=$(git rev-parse --short HEAD 2>/dev/null || echo -)
+        {
+            printf '## Continuing task %s (iteration %s of %s)\n' \
+                "$_rot_id" "$_rbp_iter" "$_rot_max_iter"
+            printf 'Prior iteration ended at %s with status=%s, exit_reason=%s.\n' \
+                "$_rot_prev_stamp" "$_rot_prev_status" "$_rot_prev_reason"
+            printf 'Session-log (if exists): %s/session-log.md\n' "$_rot_task_scratch"
+            printf 'Prior iteration transcript: %s\n' "$_rbp_prior_jsonl"
+            printf 'Branch: %s (current HEAD: %s)\n' "$_rot_branch" "$_rbp_sha"
+            printf '\nContinue per the original handoff body below. Pick up where the prior iteration stopped — do not restart from scratch.\n\n'
+            printf -- '---\n\n'
+            printf 'Your session id is: %s\n' "$_rot_task_session"
+            printf 'Your scratch directory is: %s\n' "$_rot_task_scratch"
+            printf 'Write the terminal build-status.json to: %s/build-status.json\n\n' "$_rot_task_scratch"
+            printf 'Invoke %s with the following handoff as input:\n\n' "$_rot_entry_skill"
+            cat "$_rbp_body"
+        } > "$_rbp_tmp"
+    else
+        {
+            printf 'Your session id is: %s\n' "$_rot_task_session"
+            printf 'Your scratch directory is: %s\n' "$_rot_task_scratch"
+            printf 'Write the terminal build-status.json to: %s/build-status.json\n\n' "$_rot_task_scratch"
+            printf 'Invoke %s with the following handoff as input:\n\n' "$_rot_entry_skill"
+            cat "$_rbp_body"
+        } > "$_rbp_tmp"
+    fi
+
+    printf '%s\n' "$_rbp_tmp"
+}
+
+_rot_halt_trip_wire() {
+    # _rot_halt_trip_wire <log_msg> — writes trip-wire state and returns 3.
+    # Reads caller scope: _rot_id, _rot_iter, _rot_prompt_tmp (optional).
+    # Writes caller scope via _update_task_state: status, exit_reason, ended_utc, head_rev.
+    # Writes _current_task_id="" (clear).
+    rm -f "${_rot_prompt_tmp:-}"
+    _qlog "task=$_rot_id iter=$_rot_iter $1"
+    _update_task_state "$_rot_id" status      '"blocked"'
+    _update_task_state "$_rot_id" exit_reason '"trip-wire"'
+    _update_task_state "$_rot_id" ended_utc   "\"$(_stamp)\""
+    _update_task_state "$_rot_id" head_rev    "\"$(git rev-parse HEAD 2>/dev/null || echo -)\""
+    _current_task_id=""
+    return 3
+}
+
+_rot_rate_limit_retry() {
+    # _rot_rate_limit_retry "$@" — inner rate-limit retry loop for one iteration.
+    # Reads caller scope: _rot_id, _rot_iter, _rot_attempts, _rot_prompt_tmp,
+    #   _rot_iter_jsonl, _rot_iter_stderr, _rot_task_timeout, _rot_rl_count,
+    #   _rot_rl_base_sec, _backoff_cap_sec, _woke.
+    # Writes caller scope: _rot_rl_count (incremented per rate-limit; reset to 0 on success).
+    # Returns: 0 = non-rate-limit spawn completed; 3 = trip-wire detected (caller propagates).
+    while : ; do
+        _qlog "task=$_rot_id iter=$_rot_iter attempt=$_rot_attempts spawn"
+        _spawn_child "$_rot_prompt_tmp" "$_rot_iter_jsonl" "$_rot_iter_stderr" "$_rot_task_timeout" "$@"
+
+        case "$_child_rc" in
+            124|137) _qlog "task=$_rot_id iter=$_rot_iter child timed out after ${_rot_task_timeout}s" ;;
+        esac
+
+        # Trip-wire check FIRST — invariant #3, supersedes rate-limit sleep.
+        if [ -f "$_woke" ]; then
+            _rot_halt_trip_wire "trip-wire detected post-spawn; halting before rate-limit check"
+            return 3
+        fi
+
+        if is_fast_failure "$_rot_iter_stderr"; then
+            _rot_rl_count=$((_rot_rl_count + 1))
+            _rot_rl_sleep=$(_rot_compute_backoff "$_rot_rl_count" "$_rot_rl_base_sec" "$_backoff_cap_sec")
+            _qlog "task=$_rot_id iter=$_rot_iter rate-limit detected (streak=$_rot_rl_count); sleeping ${_rot_rl_sleep}s"
+            sleep "$_rot_rl_sleep"
+            # Check trip-wire after sleep — sleep could be hours.
+            if [ -f "$_woke" ]; then
+                _rot_halt_trip_wire "trip-wire detected after rate-limit sleep; halting"
+                return 3
+            fi
+            continue   # retry SAME iteration (no counter advance)
+        fi
+        _rot_rl_count=0   # reset on non-rate-limit completion
+        break
+    done
+    return 0
+}
+
+_rot_iterate() {
+    # _rot_iterate — intra-task loop: spawn child per iteration until terminal or exhausted.
+    # Returns: 0 = ran (status written); 3 = trip-wire halt.
+    #
+    # Reads caller-scope vars:
+    #   _rot_* (from _run_one_task): _rot_id, _rot_fm_json, _rot_attempts,
+    #     _rot_task_session, _rot_task_scratch, _rot_task_iter_dir,
+    #     _rot_task_timeout, _rot_terminal_artifact, _rot_terminal_check,
+    #     _rot_body_tmp, _rot_branch, _rot_entry_skill.
+    #   Non-prefixed globals: _woke, _child_rc, _backoff_cap_sec, _repo_root.
+    #   Env: SPINE_QUEUE_RL_BASE_SEC (test-mode override; default 120).
+    # Writes caller-scope vars (direct assignment or via _update_task_state):
+    #   _task_status, _task_exit_reason, _rot_prev_status, _rot_prev_reason,
+    #   _rot_prev_stamp, _rot_iter, _rot_rl_count, _rot_rl_base_sec,
+    #   _rot_prompt_tmp.
+    #   Trip-wire state (_current_task_id clear, status/exit_reason) delegated to
+    #   _rot_halt_trip_wire; _rot_rl_count management delegated to _rot_rate_limit_retry.
+
+    # max_iterations from frontmatter — default 10 per spec C6 + queue-schema.
+    _rot_max_iter=$(printf '%s' "$_rot_fm_json" | jq -r '.max_iterations // 10')
+    case "$_rot_max_iter" in
+        ''|*[!0-9]*) _rot_max_iter=10 ;;   # defensive; lint should have caught
+    esac
+
+    _rot_iter=0
+    _rot_rl_count=0
+    _rot_prev_status="pending"
+    _rot_prev_reason=""
+    _rot_prev_stamp=""
+    # Rate-limit base (env override for test-mode; production default 120 s).
+    _rot_rl_base_sec=${SPINE_QUEUE_RL_BASE_SEC:-120}
+    case "$_rot_rl_base_sec" in
+        ''|*[!0-9]*|0)
+            _err "supervisor: SPINE_QUEUE_RL_BASE_SEC must be a positive integer (got '$_rot_rl_base_sec')"
+            exit 2
+            ;;
+    esac
+
+    while [ "$_rot_iter" -lt "$_rot_max_iter" ]; do
+        _rot_iter=$((_rot_iter + 1))
+        _rot_iter_jsonl="$_rot_task_iter_dir/${_rot_attempts}-${_rot_iter}.jsonl"
+        _rot_iter_stderr="$_rot_task_iter_dir/${_rot_attempts}-${_rot_iter}.stderr"
+
+        # Build per-iteration prompt; iteration 1 = original; iterations >= 2 prepend resumption header.
+        _rot_prompt_tmp=$(_rot_build_prompt "$_rot_iter" "$_rot_body_tmp")
+
+        # Inner rate-limit retry loop — does NOT advance iteration counter.
+        _rot_rate_limit_retry "$@" || return 3
+        rm -f "$_rot_prompt_tmp"
+
+        # Trip-wire check — supersedes on_failure.
+        if [ -f "$_woke" ]; then
+            _rot_halt_trip_wire "trip-wire — WOKE-ME-UP.md present; halting queue"
+            return 3
+        fi
+
+        # Classify and decide loop action.
+        _classify_terminal_status \
+            "$_rot_terminal_artifact" "$_rot_terminal_check" \
+            "$_rot_task_session" "$_rot_task_scratch" "$_repo_root"
+
+        # Preserve status/reason/timestamp for next iteration's resumption header.
+        _rot_prev_status="$_task_status"
+        _rot_prev_reason="$_task_exit_reason"
+        _rot_prev_stamp=$(_stamp)
+
+        case "$_task_status" in
+            complete|blocked) break ;;      # terminal — stop looping
+            partial|in_progress|unknown) ;; # non-terminal — keep looping
+            # "unknown" mid-loop means no terminal signal yet; keep iterating.
+            # Only at loop-exhaustion does unknown become blocked/max-iterations-exceeded.
+        esac
+    done
+
+    # If loop exhausted without terminal, mark blocked/max-iterations-exceeded.
+    if [ "$_rot_iter" -ge "$_rot_max_iter" ] \
+            && [ "$_task_status" != "complete" ] \
+            && [ "$_task_status" != "blocked" ]; then
+        _task_status="blocked"
+        _task_exit_reason="max-iterations-exceeded"
+    fi
+}
+
 _run_one_task() {
     # _run_one_task <id> [parent-branch ...]
-    # Creates branch, optionally merges parent branches, spawns child, classifies.
+    # Creates branch, optionally merges parent branches, runs intra-task loop, tears down.
     # Returns: 0 = ran (task may be blocked/complete), 3 = trip-wire halt.
     # Sets _task_status and _task_exit_reason in caller scope via _update_task_state.
     # Uses _rot_* prefix to avoid clobbering the outer main-loop iteration variable _id.
@@ -462,34 +682,13 @@ _run_one_task() {
         _qlog "task=$_rot_id merged parent branches: $_rot_parent_branches"
     fi
 
-    # Body = handoff minus frontmatter
+    # Body = handoff minus frontmatter (shared across all iterations via _rot_body_tmp).
     _rot_body_tmp=$(mktemp -t run-queue-body.XXXXXX)
     awk 'BEGIN{n=0; body=0} /^---[[:space:]]*$/{n++; if(n==2){body=1; next} next} body==1' \
         "$_rot_handoff_abs" > "$_rot_body_tmp"
 
-    # Prompt: entry skill invocation + handoff body.
-    _rot_prompt_tmp=$(mktemp -t run-queue-prompt.XXXXXX)
-    {
-        printf 'Your session id is: %s\n' "$_rot_task_session"
-        printf 'Your scratch directory is: %s\n' "$_rot_task_scratch"
-        printf 'Write the terminal build-status.json to: %s/build-status.json\n\n' "$_rot_task_scratch"
-        printf 'Invoke %s with the following handoff as input:\n\n' "$_rot_entry_skill"
-        cat "$_rot_body_tmp"
-    } > "$_rot_prompt_tmp"
-
-    # Streaming: JSONL per iteration (Slice B = attempt counter; Slice C adds intra-task loop)
-    _rot_iter_jsonl="$_rot_task_iter_dir/${_rot_attempts}.jsonl"
-    _rot_iter_stderr="$_rot_task_iter_dir/${_rot_attempts}.stderr"
-
-    # Build command — inherit global settings and layer the queue overlay
-    # ADDITIVELY via --settings. The overlay registers the bundled
-    # guard-queue-shell.sh hook for this child only. Per-queue rules come from
-    # profile.json read by the hook via SPINE_QUEUE_DIR.
-    #
-    # Reuses the invocation pattern from skills/use-envoy/scripts/invoke-claude.sh:
-    # stdin prompt feed (avoids argv length limits), env hygiene (unset CLAUDECODE
-    # so the child is a clean session), timeout+kill-after to bound runaway tasks.
-    # Third-use abstraction (shared helper) deferred to Slice C per design.
+    # Build command — layer the queue overlay via --settings (registers guard hook).
+    # stdin prompt feed; env hygiene; timeout+kill-after bound runaway tasks.
     set -- claude --print \
         --settings "$_overlay_rendered" \
         --permission-mode dontAsk \
@@ -505,31 +704,16 @@ _run_one_task() {
     # Matches envoy's 1h default; queue tasks may run longer so we bump to 2h.
     _rot_task_timeout=${SPINE_QUEUE_TASK_TIMEOUT:-7200}
 
-    # Spawn child with full env isolation; wait for completion.
-    _spawn_child "$_rot_prompt_tmp" "$_rot_iter_jsonl" "$_rot_iter_stderr" "$_rot_task_timeout" "$@"
+    # Run the intra-task loop (spawn + classify, up to max_iterations).
+    _rot_iterate "$@" || {
+        _rot_iterate_rc=$?
+        rm -f "$_rot_body_tmp"
+        return "$_rot_iterate_rc"
+    }
 
-    case "$_child_rc" in
-        124|137) _qlog "task=$_rot_id child timed out after ${_rot_task_timeout}s" ;;
-    esac
+    rm -f "$_rot_body_tmp"
 
-    rm -f "$_rot_body_tmp" "$_rot_prompt_tmp"
-
-    # Trip-wire check FIRST — halts everything, supersedes on_failure.
-    if [ -f "$_woke" ]; then
-        _qlog "task=$_rot_id trip-wire — WOKE-ME-UP.md present; halting queue"
-        _update_task_state "$_rot_id" status      '"blocked"'
-        _update_task_state "$_rot_id" exit_reason '"trip-wire"'
-        _update_task_state "$_rot_id" ended_utc   "\"$(_stamp)\""
-        _update_task_state "$_rot_id" head_rev    "\"$(git rev-parse HEAD)\""
-        _current_task_id=""
-        return 3
-    fi
-
-    # Classify terminal status via artifact or inline check.
-    _classify_terminal_status \
-        "$_rot_terminal_artifact" "$_rot_terminal_check" \
-        "$_rot_task_session" "$_rot_task_scratch" "$_repo_root"
-
+    # Write final state after loop completes.
     _rot_head_after=$(git rev-parse HEAD)
     _update_task_state "$_rot_id" status      "\"$_task_status\""
     _update_task_state "$_rot_id" exit_reason "\"$_task_exit_reason\""
@@ -815,6 +999,7 @@ if [ "$_overall_rc" -eq 0 ]; then
     _tasks_completed_since=0
 
     for _id in $_topo_order; do
+        _rot_rc=0   # reset per iteration to avoid latent rc leak from prior task
         # Check if this task is in the queue at all (tsort may echo root self-edges).
         _id_in_queue=$(printf '%s' "$_qjson" | jq -r --arg id "$_id" '
             .tasks[] | select(.id == $id) | .id

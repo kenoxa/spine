@@ -5,6 +5,8 @@
 # Reserved prefixes: _meta_* (assemble_output), _timer_* (timer helpers).
 # Ordering: call finalize_output() AFTER trust-boundary marker assembly (which reads $_sanitize_tmp).
 # shellcheck disable=SC2154  # all vars are caller-provided (sourced file pattern)
+# shellcheck source=_rate_limit.sh
+. "$_script_dir/_rate_limit.sh"
 
 preflight_check() {
     chmod 600 "$prompt_file"
@@ -74,13 +76,6 @@ resolve_tier() {
         fast:opencode-free)     _tier_model=opencode/mimo-v2-pro-free;     _tier_effort=minimal ;;
         *)               _tier_model=;               _tier_effort= ;;
     esac
-}
-
-# Fast-failure detection — rate-limit, auth, and model-rejection patterns.
-# Reusable by any invoke/fallback script that sources _common.sh.
-is_fast_failure() {
-    [ -f "$1" ] || return 1
-    grep -qiE 'rate[ _-]limit|rate_limited|hit a rate limit|quota|credits.*exhaust|out of usage|increase.*limit|not logged in|not authenticated|authorization.*error|usage.limit|too many requests|overloaded|credit balance|payment.*past due|account.*disabled|cannot use this model' "$1"
 }
 
 # Shell-level timing (POSIX date +%s, second precision).
