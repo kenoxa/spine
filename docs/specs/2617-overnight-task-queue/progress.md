@@ -2,7 +2,7 @@
 id: 2617-overnight-task-queue
 updated: 2026-04-24
 source_session: autonomous-overnight-task-queue-1034
-latest_session: slice-b-dag-executor-6f6a
+latest_session: slice-c-intra-task-loop-32e7
 ---
 
 # Progress — overnight-task-queue
@@ -142,9 +142,75 @@ From polish deferrals + review follow-ups, all tracked:
 - **GNU tool detection 3rd-use extraction** — Slice C `_rate_limit.sh` is the natural site.
 - **`_qlog` / `_qlog_line` naming split** — Slice C.
 
-## Slice C — Intra-task loop + rate-limit backoff (not started)
+## Slice C — Intra-task loop + rate-limit backoff
 
-See `design-artifact.md §Slice C`. Third-use of `is_fast_failure()` extraction — confirmed second use in `_GNU_realpath`/`_stdbuf` detection patterns (iter-1 of this session). Slice C will make it the third site and justify extraction to `skills/run-queue/scripts/_rate_limit.sh` per SPINE.md third-use rule.
+**Status: COMPLETE (code-level).** Review (2 iterations) ACCEPT; polish applied; POSIX parse + envoy bats 45/45 regression green. Live `claude -p` integration demos (loop demo + rate-limit demo) deferred to user-triggered run — see build-status.json §deferred_exit_validation.
+
+### Delivered (uncommitted — 6 files)
+
+| File | Change |
+|------|--------|
+| `skills/use-envoy/scripts/_rate_limit.sh` | NEW — shared `is_fast_failure()` helper sourced by both use-envoy and run-queue |
+| `skills/use-envoy/scripts/_common.sh` | Refactored — sources `_rate_limit.sh`; function body removed |
+| `skills/use-envoy/tests/test_helper.bash` | Exports `_script_dir=$SCRIPTS_DIR`; copies `_rate_limit.sh` into fixture tmpdir (B1 fix — bats regressed 45/45→1/45 without this) |
+| `skills/run-queue/scripts/run.sh` | Intra-task loop (`_rot_iterate`) + rate-limit retry (`_rot_rate_limit_retry`) + trip-wire halt helper (`_rot_halt_trip_wire`) + backoff schedule (`_rot_compute_backoff`) + resumption prompt builder (`_rot_build_prompt`); artifact-status schema gate; `backoff_cap_ms` + `SPINE_QUEUE_RL_BASE_SEC` validators; `_rot_rc=0` reset; `max-iterations-exceeded` / `invalid-terminal-status` exit reasons |
+| `skills/run-queue/scripts/queue-lint.sh` | task_id whitespace rejection (F3 from Slice B) |
+| `skills/run-queue/references/queue-schema.md` | New sections: Iteration artifacts (JSONL grid), Intra-task loop (decision table), Rate-limit backoff (schedule + test override); split missing-vs-invalid artifact rows; exit-reasons table additions; `backoff_cap_ms` default reconciled 1800000 → 7200000 ms |
+| `skills/run-queue/SKILL.md` | Intra-task loop + rate-limit behavior bullet |
+
+### Surfaces delivered
+
+- **Intra-task loop** — `_rot_iterate` re-invokes `claude -p` per iteration until `build-status.json.status` is terminal (`complete` or `blocked`) or `max_iterations` (default 10) exhausts. Status decision table: complete/blocked → break; partial/in_progress/unknown → continue; missing artifact → `blocked/missing-terminal-artifact`; invalid artifact status → `blocked/invalid-terminal-status`; exhaustion → `blocked/max-iterations-exceeded`.
+- **Rate-limit backoff** — on `is_fast_failure` stderr match, inner retry loop sleeps exponentially (120/240/480/960/1920 s; cap = `backoff_cap_ms`/1000, default 7200 s = 2 h) and retries the SAME iteration. Counter resets on non-rate-limit completion. Test-mode env override `SPINE_QUEUE_RL_BASE_SEC` (default 120) for integration tests.
+- **Trip-wire precedence (B2)** — `WOKE-ME-UP.md` check fires immediately after every `_spawn_child` return, BEFORE rate-limit sleep, AND after rate-limit sleep (sleeps can be 2 h). Invariant #3 honored literally.
+- **Artifact-status schema gate (B3)** — `_classify_terminal_status` accepts only `{complete, partial, blocked, in_progress}` from `.status`; non-enumerated values → `blocked/invalid-terminal-status` (fail-secure per SPINE.md).
+- **Resumption prompt** — iter-1 uses original handoff body; iter-2+ prepends a short header referencing prior iteration's JSONL path, captured iter-end timestamp (`_rot_prev_stamp`), branch + HEAD short-sha.
+- **Shared `_rate_limit.sh`** — third-use extraction (envoy + run-queue). Envoy's bats fixture updated in-scope to preserve 45/45.
+- **Validators** — `backoff_cap_ms` must be ≥ 1000 positive integer; `SPINE_QUEUE_RL_BASE_SEC` must be positive integer; task_id must contain no whitespace.
+- **CC reduction** — `_rot_iterate` split into 3 cohesive functions via polish extraction; 3× halt-block duplication eliminated.
+
+### E3 verification (this session)
+
+- `sh -n` PASS on all 4 modified shell files.
+- `bats skills/use-envoy/tests/fallback.bats` → **45/45** (pre-fix: 1/45; post-fix re-run: 45/45 verified 3×).
+- Verifier probes E3: `_rot_compute_backoff` schedule correct; `backoff_cap_ms=0` rejected; `SPINE_QUEUE_RL_BASE_SEC=abc` rejected; `status:foo` → `blocked/invalid-terminal-status`.
+- Preflight #7 (SIGINT forwarding): PASS via stub-supervisor probe under `setsid`; no orphan processes; 30 s grace honored; SIGKILL fallback fires correctly.
+
+### Review + polish summary
+
+- **Iter-1 review:** verifier FAIL + inspector 0B/3S/4F + codex [S]×2 + opencode [S]×2/[F] → synthesis **3 blocking + 5 should_fix + 5 follow_up**. Verifier caught B1 (bats regression) via E3; codex's two [S] findings elevated to blocking per invariant #3 + fail-secure mandate.
+- **Fix iter-1:** all 3 blocking + 4 of 5 should_fix applied; S5 (unit tests) deferred to F6 per inspector escalation clause.
+- **Iter-2 review:** verifier PASS + inspector 0B/1S (doc-comment drift) → ACCEPT. 1 residual should_fix bucketed as polish candidate.
+- **Polish:** conventions 4S + complexity 2S/3F → 5 actions applied (doc Reads/Writes accuracy × 2, SKILL.md terminal-status wording fix, queue-schema.md decision-table row split, `_rot_halt_trip_wire` + `_rot_rate_limit_retry` extraction). 3 polish follow-ups preserved for future slice triggers.
+
+### Live integration demos deferred
+
+Per handoff §5 exit validation — the two cost-gated scenarios have NOT been run this session; code is review-passed + polish-applied and ready for user-triggered demo:
+
+- **Loop demo** — task with `terminal_check` that passes only on iteration 3 (counter ≥ 3). Expected: 3 JSONL files `1-1.jsonl` `1-2.jsonl` `1-3.jsonl`, `attempts=1`, final status `complete`.
+- **Rate-limit demo** — stub task writes `rate_limited` on iter-1 stderr, succeeds on retry. Use `SPINE_QUEUE_RL_BASE_SEC=1` for a 1-second first-sleep. Expected: queue-log shows sleep + retry; iter counter does NOT advance across retries.
+
+### Key learnings (from build-learnings.md)
+
+- **L1** — shared-helper extractions must update test-fixture helpers (test_helper.bash) in the SAME change; not-a-knowledge-candidate but a concrete Slice C scar.
+- **L2 (knowledge candidate, weak)** — invariant-first review brief lets synthesizers elevate severity correctly (codex [S] × 2 → blocking via brief invariants). User approval requested for addition to `docs/skill-guardrail-patterns.md` or `docs/research-findings.md`.
+- **L4 (knowledge candidate)** — verifier running real tests caught a defect inspector + envoy missed (B1 bats regression). Validates `docs/research-findings.md` multi-perspective claim with a concrete Slice C instance. User approval requested for 1-sentence addition.
+- **L6 (knowledge candidate, weak)** — usage-limit mid-dispatch: write-skeleton-early pattern in subagent prompts survives a context cut-off. Candidate tip in `docs/tips.md`. User approval requested.
+- L3 (third-use rule) and L5 (defense-in-depth doc visibility) — reinforcement only, no new knowledge.
+
+### Open follow-ups deferred past Slice C
+
+From review + polish synthesis:
+
+- F1: Cross-skill relative-path smoke check in `queue-lint.sh` (verifier + inspector + codex consolidated).
+- F2: Doc `retry_once × max-iterations-exceeded` interaction in queue-schema.md (inspector).
+- F3: `unknown` row in decision table (mostly mooted by B3 artifact-status gate; doc consistency only).
+- F4: `_rot_prompt_tmp` mktemp-failure cleanup guard (verifier).
+- F5: Golden-file test for resumption prompt (blocked on F6).
+- F6 (was S5): Unit tests for `_rot_compute_backoff` + `_rot_build_prompt` + `_rot_iterate` (inspector; deferred pending live demos).
+- Polish-F1: `_rot_build_prompt` 5-line footer duplication (2-of-2 uses; third-use threshold not met).
+- Polish-F2: `_classify_terminal_status` CC at bar 8 after B3 — extract on next touch.
+- Polish-F3: Positive-integer validator pattern at 3 sites; extract on fourth addition.
 
 ## Slice D — Claude skill integration (not started)
 
