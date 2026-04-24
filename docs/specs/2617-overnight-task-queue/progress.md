@@ -2,6 +2,7 @@
 id: 2617-overnight-task-queue
 updated: 2026-04-24
 source_session: autonomous-overnight-task-queue-1034
+latest_session: slice-b-dag-executor-6f6a
 ---
 
 # Progress — overnight-task-queue
@@ -67,14 +68,79 @@ Documented in `.scratch/autonomous-overnight-task-queue-1034/preflight-report.md
 - **`yq` IS in `install.sh`** (line 551). The prior progress.md flagged this as missing — corrected.
 - **`coreutils` is in `install.sh`** (line 544). Required for `grealpath` (B1/B3 canonicalization) and `gstdbuf` (B5 preflight) on macOS. Consider surfacing in `skills/run-queue/SKILL.md` prerequisites per learning L6.
 
-## Slice B — DAG executor (not started)
+## Slice B — DAG executor
 
-See `design-artifact.md §Slice B`. Entry gate: Slice A complete ✓. Ready to start.
+**Status: COMPLETE.** Code, review (2 iterations), polish (1 iteration), live 5-task integration test, `build-status.json` round-trip all landed and verified.
 
-Additional context for Slice B kickoff:
-- `_current_task_id` pattern already in place for parallel-safe state management.
-- DAG resolution via `tsort` already scaffolded in `queue-lint.sh:186-198`.
-- Slice-B-specific handoff frontmatter fields (`depends_on`, `on_failure`) already validated by lint.
+### Delivered (2 commits)
+
+| Commit | Scope |
+|--------|-------|
+| `29c65fb` | `feat(run-queue)`: DAG executor + failure propagation + merge-based branching — run.sh (+478/-75) + queue-lint.sh (+3) |
+| `60e762b` | `docs(run-queue)`: Slice B schema refresh + coreutils prereq — queue-schema.md (+55/-6) + SKILL.md (+6/-1) |
+
+### Surfaces delivered
+
+- **Topological traversal** via `tsort` (self-edges for roots + real edges for dependents). Belt-and-suspenders cycle detection (BSD-safe stderr-grep pattern mirrored from lint).
+- **`_check_parent_states` two-pass**: collects all parent states, then applies explicit precedence `pending_retry_wait > block > skip > run`. Populates `_cps_parent_branches` from complete parents regardless of verdict. CC ≤ 8 via `_resolve_blocked_parent_verdict` helper extraction.
+- **`on_failure` enforcement**:
+  - `stop` (default) cascades `blocked/transitive-block` to direct dependents; grandchildren cascade per their own `on_failure`.
+  - `skip` cascades `skipped/dependency-failed-skip`.
+  - `retry_once` defers retry lazily until first dependent; 30s backoff only when no real siblings ran since first fail.
+- **`_do_retry` + `_flush_pending_retries` + `_finalize_stale_pending_retries`**: happy-path flush + unconditional pre-report sweep on ALL exit paths (main-loop break, trip-wire, unexpected rc, SIGINT/SIGTERM).
+- **Merge-based branch derivation**: `git merge --no-ff` of all `depends_on` parent branches into child branch. Conflicts abort cleanly, mark `blocked/dep-merge-conflict` (retry_once excludes this class — deterministic failure).
+- **`attempts` counter per task** in `queue-state.json`. Per-iteration JSONL at `${_attempts}.jsonl`. Report-surfacing deferred to later slice per scope.
+- **Exit-reason preservation** in retry path: `_do_retry` preserves `dep-merge-conflict` / `signal-*` / `trip-wire` and only rewrites to `retry-exhausted` for runtime/terminal-check classes.
+- **Trust boundary unchanged**: PreToolUse hook + `GIT_CONFIG` `pushInsteadOf` belt from Slice A untouched. Trip-wire halts queue regardless of any `on_failure` policy.
+
+### Review + polish summary
+
+- **Review iter-1**: verifier PARTIAL + inspector 2B/3S/4F + envoy codex 2B/1S (E3) + envoy opencode 1B/4S/2F (cursor gap) → synthesis **3 blocking + 8 should-fix + 8 follow-up + 1 conflict**. Codex envoy caught `_id` global-clobber defect (B1) via E3 temp-repo repro — internal probes missed. Conflict resolved to should-fix (skip-cascade is doc-precision, code is correct).
+- **Fix iter-1**: 11 findings applied in single dispatch.
+- **Review iter-2**: targeted verifier + inspector. Verifier caught B2-partial (signal path `pending_retry` leak — flush gated on rc==0). Inspector 0B/1S/3F (dep-merge-conflict doc gap, 3 latent follow-ups).
+- **Fix iter-2**: B2-partial + S1 doc + F2 bundle applied.
+- **Review iter-3**: targeted verifier PASS. All fixes landed, no regressions.
+- **Polish**: conventions 5S/2F + complexity 3S/3F → 6 actions applied (dead var removal, prefix hygiene, doc corrections, CC-reduction extraction), 7 deferrals with rationale (Slice C seam protection).
+
+### E3 verification (live)
+
+**Consolidated 5-task DAG integration test** (`.scratch/queue-demo-b/`, 2026-04-24T16:06-16:08):
+- Queue: A (retry_once) → B; C (stop/fail) → D; E (independent).
+- **Total: 2m43s, 5 spawns (D saved via transitive-block cascade).**
+- Report confirms:
+  - A: complete, attempts=2 (retry succeeded on sentinel pattern), 2 JSONL iterations captured.
+  - B: complete, merged queue/demo-b/A branch.
+  - C: blocked/terminal-check-fail, attempts=1.
+  - D: blocked/**transitive-block**, branch=null, attempts=0 — **never spawned, scratch dir never created**.
+  - E: complete, attempts=1 (independent root).
+- Log shows retry-backoff fired with "no siblings ran since first attempt" — S2 fix validated (synthetic cascade marks don't count as sibling progress).
+- `pending_retry` correctly resolved to `complete` — no leak to final report.
+
+All 10 Slice B EARS success criteria and the design-artifact §Slice B exit-validation scenarios hit with E3 evidence.
+
+### Key learnings
+
+Captured in `.scratch/slice-b-dag-executor-6f6a/build-learnings.md`:
+
+- **L1**: Multi-perspective review yields defects internal probes miss (codex envoy found B1 via E3 repro; material validation of `docs/multi-model-council-sizing.md`).
+- **L2** (knowledge candidate): POSIX sh function-parameter prefix discipline — `_run_one_task` slip showed that every multi-step helper must use a unique scratch-var prefix. **User approval requested** for promoting to sh-craft convention.
+- **L4** (weak candidate): Transient-state invariants require enumerating ALL exit paths — happy-path-only enforcement misses signal/abnormal-rc leaks.
+- **L6** (weak candidate): Consolidated integration tests cover more state-machine surface at similar cost vs separate narrow tests.
+
+### Open items deferred to Slice C (not blockers)
+
+From polish deferrals + review follow-ups, all tracked:
+
+- **Complexity S2**: `_run_one_task` 146 lines — natural split in Slice C when loop-orchestration work lands (don't pre-extract before the third responsibility materializes).
+- **Complexity S3**: `pending_retry_wait` main-loop arm → extract `_flush_pending_retry_parent` — natural composition with `_do_retry`/`_flush_pending_retries` after Slice C rate-limit work.
+- **F1 (verifier)**: `attempts` increments before merge-attempt, so persists as 1 on dep-merge-conflict despite no spawn — consider moving to post-merge-success or documenting "setup attempts including conflict aborts."
+- **F3 (verifier)**: `task_id` whitespace not validated by lint — pre-existing, amplified by Slice B's `_cps_parent_branches` space-splitting.
+- **F6 (inspector)**: `_get_on_failure` re-parses frontmatter per call — cache candidate when Slice C shared-helper extraction lands.
+- **F7 (inspector)**: Now mooted by consolidated 5-task test (exercises `pending_retry_wait` mid-loop path that 1-task retry demo would miss).
+- **S5 (Slice A)**: pipefail for timeout status — polish candidate if touched.
+- **Inspector B4 (Slice A)**: trap-on-EXIT for `_atomic_write` abort orphan — deferred per Slice B scope.
+- **GNU tool detection 3rd-use extraction** — Slice C `_rate_limit.sh` is the natural site.
+- **`_qlog` / `_qlog_line` naming split** — Slice C.
 
 ## Slice C — Intra-task loop + rate-limit backoff (not started)
 
