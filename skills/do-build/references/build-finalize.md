@@ -67,9 +67,18 @@ When any learning has `knowledge_candidate: yes`, invoke `/run-curate` with thos
 
 Append: completion declaration, question-answered assessment, final `files_modified`, learnings proposals if any, open items.
 
+### 7. Structured Completion Artifact
+
+Write `.scratch/<session>/build-status.json` on every terminal outcome (ACCEPT, cap-reached, partial, question-answered=no). Schema and field semantics: [build-status-schema.md](build-status-schema.md). Atomic write via `.tmp + mv` — never emit half-written JSON.
+
+Required fields on emission: `schema_version`, `status`, `exit_reason`, `session_id`, `timestamp_utc`, `base_rev`, `head_rev`, `dirty_start`, `dirty_end`, `iteration`, `commits`, `files_modified`. Optional: `iteration_cost_usd` (only when invoking harness set `--max-budget-usd`).
+
+The artifact is additive — it does not replace the natural-language declaration. Existing consumers reading stdout/session-log continue to work unchanged. Downstream consumers (e.g., `skills/run-queue/` supervisor) read the JSON as the terminal signal.
+
 ## Constraints
 
 - Never declare `Build complete.` without evaluating question-answered assessment.
 - Never auto-apply learnings — proposal only, user approval required.
 - No mandatory test/doc content gates. Surface test/doc suggestions as learnings, not blockers.
 - Gate completion declaration on ACCEPT. Surface learnings on ALL outcomes (ACCEPT, cap-reached, partial).
+- Always emit `build-status.json`. A missing artifact is a bug, not a silent skip — downstream consumers (queue supervisors) treat absence as `in_progress` and may stall.
