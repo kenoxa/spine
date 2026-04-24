@@ -58,7 +58,8 @@ _stamp() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 _qlog_line() {
     # Append a single audit line to queue-log.md in the queue-dir.
     # Safe with concurrent writes inside a single task (one writer per task).
-    [ -z "$_qdir" ] || [ ! -d "$_qdir" ] && return 0
+    [ -z "$_qdir" ] && return 0
+    [ ! -d "$_qdir" ] && return 0
     printf '%s  guard: %s\n' "$(_stamp)" "$*" >> "$_qdir/queue-log.md" 2>/dev/null || true
 }
 
@@ -66,7 +67,8 @@ _woke() {
     # Create or append to WOKE-ME-UP.md — stops the run at the next supervisor check.
     _reason=$1
     _detail=$2
-    [ -z "$_qdir" ] || [ ! -d "$_qdir" ] && return 0
+    [ -z "$_qdir" ] && return 0
+    [ ! -d "$_qdir" ] && return 0
     _woke_file="$_qdir/WOKE-ME-UP.md"
     if [ ! -f "$_woke_file" ]; then
         {
@@ -112,6 +114,13 @@ _input=$(cat)
 _tool=$(printf '%s' "$_input" | jq -r '.tool_name // empty')
 _agent_id=$(printf '%s' "$_input" | jq -r '.agent_id // empty')
 _agent_type=$(printf '%s' "$_input" | jq -r '.agent_type // empty')
+
+# --- Profile.json cached once per hook invocation (may be absent) ---
+_profile_path="$_qdir/profile.json"
+_profile_json=""
+if [ -f "$_profile_path" ]; then
+    _profile_json=$(jq -c . "$_profile_path" 2>/dev/null) || _profile_json=""
+fi
 
 # --- Per-tool inspection ---
 
@@ -166,8 +175,10 @@ Bash)
         shift
         for _a in "$@"; do
             case "$_a" in
-                push|send-pack|bundle|format-patch|--git-dir=*|--work-tree=*|-C)
+                push|send-pack|bundle|format-patch|-C)
                     printf '%s' "$_a"; return 0 ;;
+                --git-dir=*)  printf 'git-dir';   return 0 ;;
+                --work-tree=*) printf 'work-tree'; return 0 ;;
             esac
         done
         return 1
@@ -177,12 +188,11 @@ Bash)
     fi
 
     # Optional profile.json: extra_deny list.
-    _profile="$_qdir/profile.json"
-    if [ -f "$_profile" ] && jq -e . "$_profile" >/dev/null 2>&1; then
-        _n=$(jq -r '.extra_deny | length // 0' "$_profile" 2>/dev/null)
+    if [ -n "$_profile_json" ]; then
+        _n=$(printf '%s' "$_profile_json" | jq -r '.extra_deny | length // 0')
         _i=0
         while [ "$_i" -lt "$_n" ]; do
-            _rule=$(jq -c --argjson i "$_i" '.extra_deny[$i]' "$_profile")
+            _rule=$(printf '%s' "$_profile_json" | jq -c --argjson i "$_i" '.extra_deny[$i]')
             _i=$((_i + 1))
             _match=$(printf '%s' "$_rule" | jq -r '.match // empty')
             [ "$_match" != "Bash" ] && continue
@@ -209,10 +219,10 @@ Edit|Write|NotebookEdit)
     # Without it we cannot safely resolve `..` traversal or symlinks.
     [ -n "${_GNU_realpath:-}" ] || _deny "missing-gnu-realpath" "brew install coreutils"
 
-    # Resolve to absolute first (relative paths joined to CWD or repo root)
+    # Resolve to absolute first (relative paths joined to repo root)
     case "$_path" in
         /*) _abs=$_path ;;
-         *) _abs="${SPINE_QUEUE_CHILD_CWD:-$_repo_root}/$_path" ;;
+         *) _abs="$_repo_root/$_path" ;;
     esac
 
     # Canonicalize: resolves `..` traversal (B1) AND follows symlinks (B3).
@@ -228,12 +238,11 @@ Edit|Write|NotebookEdit)
     esac
 
     # Check allow_out_of_repo from profile.json (entries also canonicalized)
-    _profile="$_qdir/profile.json"
-    if [ -f "$_profile" ] && jq -e . "$_profile" >/dev/null 2>&1; then
+    if [ -n "$_profile_json" ]; then
         _i=0
-        _n=$(jq -r '.allow_out_of_repo | length // 0' "$_profile" 2>/dev/null)
+        _n=$(printf '%s' "$_profile_json" | jq -r '.allow_out_of_repo | length // 0')
         while [ "$_i" -lt "$_n" ]; do
-            _allow=$(jq -r --argjson i "$_i" '.allow_out_of_repo[$i]' "$_profile")
+            _allow=$(printf '%s' "$_profile_json" | jq -r --argjson i "$_i" '.allow_out_of_repo[$i]')
             _i=$((_i + 1))
             _allow_canon=$("$_GNU_realpath" -m -- "$_allow" 2>/dev/null) || continue
             case "$_canon" in
