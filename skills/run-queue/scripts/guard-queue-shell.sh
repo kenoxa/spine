@@ -130,17 +130,24 @@ Bash)
     #    (e.g. `git --git-dir=/other push`, `git -c K=V push`).
 
     # Layer 1: fast substring pre-check (B2 + F4 blast coverage for chained cmds)
+    #
+    # Dual-layer deny: unbounded substring catches chain/wrap/quote-prefix forms
+    # (e.g. `(git push)`, `bash -c "git push"`, `/usr/bin/git push`, `foo && git push`);
+    # tokenizer (_is_blocked_git) catches option-bearing forms where `git` and the
+    # blocked subcommand are non-adjacent (e.g. `git --git-dir=/X push`).
+    #
+    # Known limitation: fully-obfuscated program tokens (`"git" push`, `$(which git)
+    # push`) bypass both layers because the literal substring `git push` does not
+    # appear and the tokenizer's first-word check rejects non-literal `git`. The
+    # supervisor adds a git-config belt (url.disabled:///.pushInsteadOf) in the child
+    # spawn env so push attempts fail at git itself regardless of hook bypass.
+    # See skills/run-queue/references/permission-profile.md for the trust model.
     case "$_cmd_norm" in
-        *" git push"*|"git push"*)
-            _deny "git-push-blocked" "$_cmd_norm" ;;
-        *" git send-pack"*|"git send-pack"*)
-            _deny "git-send-pack-blocked" "$_cmd_norm" ;;
-        *" git bundle"*|"git bundle"*)
-            _deny "git-bundle-blocked" "$_cmd_norm" ;;
-        *" git format-patch"*|"git format-patch"*)
-            _deny "git-format-patch-blocked" "$_cmd_norm" ;;
-        *" git -C "*|"git -C "*)
-            _deny "git-C-sidestep-blocked" "$_cmd_norm" ;;
+        *"git push"*)         _deny "git-push-blocked"         "$_cmd_norm" ;;
+        *"git send-pack"*)    _deny "git-send-pack-blocked"    "$_cmd_norm" ;;
+        *"git bundle"*)       _deny "git-bundle-blocked"       "$_cmd_norm" ;;
+        *"git format-patch"*) _deny "git-format-patch-blocked" "$_cmd_norm" ;;
+        *"git -C "*)          _deny "git-C-sidestep-blocked"   "$_cmd_norm" ;;
     esac
 
     # Layer 2: tokenized scan — catches option-bearing bypasses (B2 + F4)
