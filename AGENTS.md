@@ -41,11 +41,14 @@ Managed by `/run-curate`; style: telegraphic, 250-800 tokens, `updated:` frontma
 - `docs/model-tier-assignments.md` — agent tier table, session model guidance, session vs implementer escalation triggers
 - `docs/cross-provider-hooks.md` — per-provider hook formats, Cursor camelCase schema, capability matrix, cross-provider gotchas
 - `docs/skill-guardrail-patterns.md` — anti-rationalization format, inline vs hook enforcement, layered defense for autonomous runs, ecosystem context
+- `docs/machine-verifiable-terminal-contracts.md` — JSON terminal artifact pattern (build-status.json), status→consumer action table, atomicity contract
 
 ## Deep Dives
 
 - Skill/agent authoring: CONTRIBUTING.md
 - **Design specs (index):** [docs/specs/README.md](docs/specs/README.md) — thin orchestrator, evidence fidelity, archived prototype-first notes
-- Architecture: [docs/specs/2612-thin-orchestrator/spec.md](docs/specs/2612-thin-orchestrator/spec.md)
+- Architecture rationale: [docs/architecture.md](docs/architecture.md) — three-phase workflow, execution-based verification, multi-perspective analysis grounded in 2023-2026 research
+- Thin-orchestrator spec: [docs/specs/2612-thin-orchestrator/spec.md](docs/specs/2612-thin-orchestrator/spec.md)
+- Model selection + pricing: [docs/model-selection.md](docs/model-selection.md) — session model, subagent tiers, provider pricing, benchmark scores (time-sensitive — check `updated` frontmatter)
 - Skill catalog: docs/skills-reference.md
 - External skills: docs/global-skills.md
