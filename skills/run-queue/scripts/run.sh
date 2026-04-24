@@ -273,20 +273,21 @@ _cleanup_on_signal() {
         done
         kill -KILL "$_child_pid" 2>/dev/null || true
     fi
-    # Mark the interrupted task if one was running.
+    # State updates and report are best-effort — do not let a disk
+    # failure during shutdown swallow the exit 130/143 that follows.
+    set +e
     if [ -n "$_current_task_id" ]; then
         _update_task_state "$_current_task_id" status      '"blocked"'
         _update_task_state "$_current_task_id" exit_reason "\"signal-$_sig\""
         _update_task_state "$_current_task_id" ended_utc   "\"$(_stamp)\""
         _update_task_state "$_current_task_id" head_rev    "\"$(git rev-parse HEAD 2>/dev/null || echo -)\""
     fi
-    # Best-effort: write report so queue-dir is inspectable.
     _write_report 2>/dev/null || true
-    # Restore caller's branch.
     case "$_prev_branch" in
         "$_base_rev"|"") : ;;
         *) git checkout -q "$_prev_branch" 2>/dev/null || true ;;
     esac
+    set -e
     _qlog "supervisor exiting due to SIG${_sig}"
     case "$_sig" in
         INT)  exit 130 ;;
@@ -437,6 +438,7 @@ _run_one_task() {
         _update_task_state "$_id" exit_reason '"trip-wire"'
         _update_task_state "$_id" ended_utc   "\"$(_stamp)\""
         _update_task_state "$_id" head_rev    "\"$(git rev-parse HEAD)\""
+        _current_task_id=""
         return 3
     fi
 
