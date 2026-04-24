@@ -66,6 +66,8 @@ After `do-design` emits a recommendation, STOP and await explicit user approval 
 
 **Dependencies:** Batch dependency updates by risk. Verify after each batch. Never update all at once.
 
+**Autonomous queues:** `skills/run-queue/` runs pre-staged handoff DAGs in fresh `claude -p` processes — one task per branch under `queue/<run-id>/<task-id>`. Terminal signal is machine-readable `build-status.json` (emitted by `do-build` finalize). A bundled PreToolUse hook (env-gated on `SPINE_QUEUE=1`) denies git push, `git -C` sidesteps, and out-of-repo writes; any deny writes `<queue-dir>/WOKE-ME-UP.md` and halts the queue. Fresh process per task is the rule — no stop-hook-driven in-session loops.
+
 **Project Layout:** `TODO.md` (flat task list) · `docs/specs/{YY}{WW}-<slug>/` (spec directory: spec.md + progress.md) · `.scratch/<session>/` (ephemeral session output)
 
 **Spec IDs:** `{YY}{WW}` = 2-digit year + ISO week. Multiple specs per week share the same prefix with different slugs (e.g., `2614-implementer-standard-tier`).
