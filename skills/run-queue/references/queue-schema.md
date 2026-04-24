@@ -30,7 +30,7 @@ description: "Apr-25 overnight: 3 UI fixes + 1 refactor"   # optional; shown in 
 
 # --- git + trust ---
 base_branch: main                            # OPTIONAL; defaults to HEAD at supervisor start
-profile: profile.json                        # REQUIRED; path relative to queue-dir
+profile: profile.json                        # OPTIONAL; per-queue permission overlay; absent → hook defaults
 backoff_cap_ms: 1800000                      # OPTIONAL; default 1800000 (30 min); Slice C
 
 # --- tasks ---
@@ -46,8 +46,10 @@ tasks:
     depends_on: [refactor-auth]              # runs in parallel with fix-login-bug in Slice B
 ```
 
-Required top-level: `run_id`, `profile`, `tasks`.
+Required top-level: `run_id`, `tasks`.
 Required per task: `id`. Other task fields default as documented.
+
+`profile` is optional — when absent, the queue hook uses built-in defaults (see [permission-profile.md](permission-profile.md)). Add a profile only when you need queue-specific overrides like extra deny patterns or out-of-repo write allowances.
 
 ## Per-Handoff Frontmatter — Task Intrinsics
 
@@ -96,7 +98,7 @@ Enqueue-time static validation. Refuses invalid queues before spawning any proce
 | Handoff frontmatter parses + has required fields | `<handoff>: missing <field>` |
 | `depends_on` references existing task ids | `<task>: unknown dep: <id>` |
 | DAG has no cycles (via `tsort`) | `cycle: <a> → <b> → ... → <a>` (Slice B) |
-| `profile` file exists and is valid JSON | `profile not found \| profile invalid json` |
+| `profile` (when declared) file exists and is valid JSON | `profile not found \| profile invalid json` |
 | `on_failure` in {stop, skip, retry_once} | `<task>: invalid on_failure: <v>` |
 | `max_iterations` is a positive integer | `<task>: invalid max_iterations: <v>` |
 

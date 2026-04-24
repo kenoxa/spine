@@ -42,7 +42,7 @@ _record() { _err "queue-lint: $*"; _n_err=$((_n_err + 1)); }
 
 # --- Top-level required fields ---
 
-for _f in run_id profile tasks; do
+for _f in run_id tasks; do
     _v=$(printf '%s' "$_qjson" | jq -r --arg f "$_f" '.[$f] // empty')
     [ -z "$_v" ] && _record "queue.yaml missing required field: $_f"
 done
@@ -52,7 +52,7 @@ case "$_run_id" in
     ''|*' '*|*'/'*) [ -z "$_run_id" ] || _record "run_id contains invalid characters (no spaces or slashes): $_run_id" ;;
 esac
 
-# --- Profile ---
+# --- Profile (optional overlay) ---
 
 _profile_path=$(printf '%s' "$_qjson" | jq -r '.profile // empty')
 if [ -n "$_profile_path" ]; then

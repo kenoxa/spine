@@ -44,12 +44,16 @@ In Slice A, tasks run linearly (input order). DAG resolution arrives in Slice B.
 
 ## Trust Boundary
 
-Every task runs under a restricted permission profile enforced by **two layers**:
+Inherits whatever permission posture your `~/.claude/settings.json` already provides; the supervisor does **not** pass `--settings` and does **not** build a parallel permission stack. A narrow queue-specific overlay adds only what makes sense for overnight autonomous runs (not for interactive sessions):
 
-1. `claude -p --allowed-tools` / `--disallowed-tools` — tool-category gate (keep Bash on, keep Edit off, etc.). Structural. Cannot reliably block subcommand patterns (E3: preflight #1 of 2617).
-2. `hooks/guard-queue-shell.sh` registered via `--settings` — behavioral deny on subcommand patterns (git push, rm -rf, curl uploads, out-of-project writes). **Primary gate.** Fires env-gated on `SPINE_QUEUE=1`; silent in interactive sessions.
+- Deny **all** `git push` (interactive sessions routinely push; overnight runs should never publish).
+- Deny writes outside the queue's repo root.
+- Deny `git -C /path` sidesteps.
+- On any deny → write `<queue-dir>/WOKE-ME-UP.md` and halt the queue.
 
-A hook-deny event writes `<queue-dir>/WOKE-ME-UP.md` and halts the queue. Fail-secure: missing `profile.json` OR missing hook binary → supervisor refuses to start.
+Mechanism: `hooks/guard-queue-shell.sh` is registered via `claude/hooks.json` like any other Spine hook. Its body opens with `[ "${SPINE_QUEUE:-}" = "1" ] || exit 0` — inert in interactive sessions, active only when the supervisor has armed `SPINE_QUEUE=1` in the child's env. Optional `<queue-dir>/profile.json` adds per-run extra deny patterns or out-of-repo allowances.
+
+Fail-secure: missing or non-executable `guard-queue-shell.sh` → supervisor refuses to start. Full story: [permission-profile.md](references/permission-profile.md).
 
 ## Ralph Pattern — Known Pitfalls Rejected
 

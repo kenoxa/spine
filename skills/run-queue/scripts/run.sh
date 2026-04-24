@@ -97,13 +97,30 @@ fi
 _qjson=$(yq -o=json eval '.' "$_qdir/queue.yaml")
 _run_id=$(printf '%s' "$_qjson" | jq -r '.run_id')
 _base_branch=$(printf '%s' "$_qjson" | jq -r '.base_branch // empty')
-_profile_rel=$(printf '%s' "$_qjson" | jq -r '.profile')
+_profile_rel=$(printf '%s' "$_qjson" | jq -r '.profile // empty')
 
-case "$_profile_rel" in
-    /*) _profile_abs=$_profile_rel ;;
-     *) _profile_abs="$_qdir/$_profile_rel" ;;
-esac
-[ -f "$_profile_abs" ] || { _err "profile.json not found: $_profile_abs"; exit 2; }
+# profile.json is optional — hook falls back to built-in defaults when absent.
+_profile_abs=""
+if [ -n "$_profile_rel" ]; then
+    case "$_profile_rel" in
+        /*) _profile_abs=$_profile_rel ;;
+         *) _profile_abs="$_qdir/$_profile_rel" ;;
+    esac
+    [ -f "$_profile_abs" ] || { _err "profile.json referenced but not found: $_profile_abs"; exit 2; }
+    jq -e . "$_profile_abs" >/dev/null 2>&1 || { _err "profile.json not valid JSON: $_profile_abs"; exit 2; }
+fi
+
+# Fail-secure proxy: verify the queue hook exists in the Spine install that
+# ships this script. Does NOT prove the hook is registered in the user's
+# claude settings — that contract is install.sh's — but catches the common
+# "broken install" case where the hook file is missing altogether.
+_spine_root=$(cd "$_script_dir/../../.." && pwd)
+_queue_hook="$_spine_root/hooks/guard-queue-shell.sh"
+[ -x "$_queue_hook" ] || {
+    _err "queue hook missing or not executable: $_queue_hook"
+    _err "re-run install.sh to repair the Spine hook stack"
+    exit 2
+}
 
 # Resolve base_rev once at supervisor entry (per handoff OQ2 + OQ3).
 if [ -n "$_base_branch" ]; then
@@ -251,9 +268,16 @@ _run_one_task() {
     _iter_jsonl="$_task_iter_dir/1.jsonl"
     _iter_stderr="$_task_iter_dir/1.stderr"
 
-    # Build command
-    set -- claude -p \
-        --settings "$_profile_abs" \
+    # Build command — inherit global settings (no --settings override).
+    # The queue overlay activates via SPINE_QUEUE=1 + the project-registered
+    # guard-queue-shell.sh hook; per-queue rules come from profile.json read
+    # by the hook from SPINE_QUEUE_DIR.
+    #
+    # Reuses the invocation pattern from skills/use-envoy/scripts/invoke-claude.sh:
+    # stdin prompt feed (avoids argv length limits), env hygiene (unset CLAUDECODE
+    # so the child is a clean session), timeout+kill-after to bound runaway tasks.
+    # Third-use abstraction (shared helper) deferred to Slice C per design.
+    set -- claude --print \
         --permission-mode dontAsk \
         --output-format stream-json \
         --include-partial-messages \
@@ -263,25 +287,40 @@ _run_one_task() {
         set -- "$@" --max-budget-usd "$_max_budget"
     fi
 
-    # Spawn via a helper script that applies the streaming stack.
-    # Child stdout (stream-json) → grep live JSON lines → tee jsonl → discard stdout.
-    # stdbuf -oL handles macOS 64 KB pipe buffer cap.
+    # Per-task liveness cap — overnight run should not hang on a stuck child.
+    # Matches envoy's 1h default; queue tasks may run longer so we bump to 2h.
+    _task_timeout=${SPINE_QUEUE_TASK_TIMEOUT:-7200}
+
+    # Streaming stack: child stdout (stream-json) → live jq → tee per-iteration jsonl.
+    # stdbuf -oL works around the macOS 64 KB pipe buffer cap.
     (
         export SPINE_QUEUE=1
         export SPINE_SESSION_ID="$_task_session"
         export SPINE_QUEUE_DIR="$_qdir"
         export SPINE_QUEUE_RUN_ID="$_run_id"
         export SPINE_QUEUE_TASK_ID="$_id"
-        # Unset CLAUDECODE so child knows it's a fresh invocation
-        unset CLAUDECODE CLAUDE_CODE_ENTRYPOINT CLAUDE_CODE_EXECPATH
-        "$@" "$(cat "$_prompt_tmp")" 2> "$_iter_stderr" \
-            | stdbuf -oL grep --line-buffered '^{' \
-            | stdbuf -oL tee "$_iter_jsonl" > /dev/null
+
+        # Env hygiene: shed the outer claude-code identity so the child is a
+        # fresh session, not a re-entry.
+        unset CLAUDECODE CLAUDE_CODE_ENTRYPOINT CLAUDE_CODE_EXECPATH \
+              CURSOR_AGENT CODEX_SANDBOX OPENCODE
+
+        # shellcheck disable=SC2086  # timeout wraps "$@"; quoting preserved via set --
+        timeout --kill-after=10 "$_task_timeout" "$@" \
+            < "$_prompt_tmp" \
+            2> "$_iter_stderr" \
+          | stdbuf -oL grep --line-buffered '^{' \
+          | stdbuf -oL tee "$_iter_jsonl" > /dev/null
     ) &
     _child_pid=$!
 
-    wait "$_child_pid" || true
+    _child_rc=0
+    wait "$_child_pid" || _child_rc=$?
     _child_pid=""
+
+    case "$_child_rc" in
+        124|137) _qlog "task=$_id child timed out after ${_task_timeout}s" ;;
+    esac
 
     rm -f "$_body_tmp" "$_prompt_tmp"
 
