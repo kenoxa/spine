@@ -70,6 +70,17 @@ for _t in yq jq git tsort; do
 done
 command -v claude >/dev/null 2>&1 || { _err "missing claude CLI"; exit 2; }
 
+# GNU coreutils binary selection for pipeline line-buffering.
+# On macOS (Homebrew), gstdbuf is Homebrew-native; on Linux, stdbuf is coreutils default.
+if command -v gstdbuf >/dev/null 2>&1; then
+    _stdbuf=gstdbuf
+elif command -v stdbuf >/dev/null 2>&1 && stdbuf --version 2>&1 | grep -q GNU; then
+    _stdbuf=stdbuf
+else
+    _err "missing required tool: stdbuf (install via: brew install coreutils)"
+    exit 2
+fi
+
 _script_dir=$(cd "$(dirname "$0")" && pwd)
 
 # --- Enqueue lint ---
@@ -178,8 +189,16 @@ _atomic_write() {
     # _atomic_write <dest> writes stdin to dest atomically via .tmp + mv.
     _dest=$1
     _tmp="${_dest}.tmp.$$"
-    cat > "$_tmp"
-    mv "$_tmp" "$_dest"
+    if ! cat > "$_tmp"; then
+        rm -f "$_tmp"
+        _err "atomic_write: failed to write tmp file for $_dest"
+        return 1
+    fi
+    if ! mv "$_tmp" "$_dest"; then
+        rm -f "$_tmp"
+        _err "atomic_write: failed to promote $_tmp → $_dest"
+        return 1
+    fi
 }
 
 _write_state() {
@@ -196,9 +215,53 @@ _state_json=$(printf '%s' "$_qjson" | jq --arg rev "$_base_rev" --arg started "$
 }')
 _write_state
 
+# --- Report writer (defined early so the signal trap can call it) ---
+
+_write_report() {
+    _report="$_qdir/queue-report.md"
+    {
+        printf '# Queue report — %s\n\n' "$_run_id"
+        printf '- Started: %s\n' "$(printf '%s' "$_state_json" | jq -r '.started_utc')"
+        printf '- Ended: %s\n' "$(_stamp)"
+        printf '- Base rev: `%s` (%s)\n' "$(_short "$_base_rev")" "$_base_branch_display"
+
+        if [ -f "$_woke" ]; then
+            printf '\n> **Trip-wire fired.** See `WOKE-ME-UP.md`.\n'
+        fi
+
+        printf '\n## Summary\n\n| Task | Status | Branch | Head | Exit reason |\n|------|--------|--------|------|-------------|\n'
+        printf '%s' "$_state_json" | jq -r '.tasks[] | "| \(.id) | \(.status) | `\(.branch // "-")` | `\((.head_rev // "-")[0:8])` | \(.exit_reason // "-") |"'
+
+        printf '\n## Per-task detail\n\n'
+        printf '%s' "$_state_json" | jq -r '.tasks[] | @base64' | while IFS= read -r _b64; do
+            _t=$(printf '%s' "$_b64" | base64 -d)
+            _tid=$(printf '%s' "$_t" | jq -r '.id')
+            printf '### %s\n\n' "$_tid"
+            printf '- status: %s\n' "$(printf '%s' "$_t" | jq -r '.status')"
+            printf '- exit_reason: %s\n' "$(printf '%s' "$_t" | jq -r '.exit_reason // "-"')"
+            printf '- branch: `%s`\n' "$(printf '%s' "$_t" | jq -r '.branch // "-"')"
+            printf '- head_rev: `%s`\n' "$(printf '%s' "$_t" | jq -r '.head_rev // "-"')"
+            printf '- started: %s\n' "$(printf '%s' "$_t" | jq -r '.started_utc // "-"')"
+            printf '- ended: %s\n' "$(printf '%s' "$_t" | jq -r '.ended_utc // "-"')"
+            _iters=".scratch/queue-$_run_id-$_tid/iterations"
+            if [ -d "$_iters" ]; then
+                printf '- iterations:\n'
+                for _j in "$_iters"/*.jsonl; do
+                    [ -f "$_j" ] || continue
+                    printf '  - `%s`\n' "$_j"
+                done
+            fi
+            printf '\n'
+        done
+    } > "$_report"
+    _qlog "wrote $(basename "$_report")"
+}
+
 # --- Cleanup trap (forward SIGINT/SIGTERM to child) ---
 
 _child_pid=""
+_current_task_id=""
+
 _cleanup_on_signal() {
     _sig=$1
     _qlog "supervisor received SIG${_sig}; forwarding to child pid=$_child_pid"
@@ -210,6 +273,20 @@ _cleanup_on_signal() {
         done
         kill -KILL "$_child_pid" 2>/dev/null || true
     fi
+    # Mark the interrupted task if one was running.
+    if [ -n "$_current_task_id" ]; then
+        _update_task_state "$_current_task_id" status      '"blocked"'
+        _update_task_state "$_current_task_id" exit_reason "\"signal-$_sig\""
+        _update_task_state "$_current_task_id" ended_utc   "\"$(_stamp)\""
+        _update_task_state "$_current_task_id" head_rev    "\"$(git rev-parse HEAD 2>/dev/null || echo -)\""
+    fi
+    # Best-effort: write report so queue-dir is inspectable.
+    _write_report 2>/dev/null || true
+    # Restore caller's branch.
+    case "$_prev_branch" in
+        "$_base_rev"|"") : ;;
+        *) git checkout -q "$_prev_branch" 2>/dev/null || true ;;
+    esac
     _qlog "supervisor exiting due to SIG${_sig}"
     case "$_sig" in
         INT)  exit 130 ;;
@@ -231,6 +308,7 @@ _update_task_state() {
 
 _run_one_task() {
     _id=$1
+    _current_task_id="$_id"
     _task_json=$(printf '%s' "$_qjson" | jq -c --arg id "$_id" '.tasks[] | select(.id == $id)')
     _handoff_rel=$(printf '%s' "$_task_json" | jq -r --arg id "$_id" '.handoff // ("handoff-" + $id + ".md")')
     _handoff_abs="$_qdir/$_handoff_rel"
@@ -278,10 +356,10 @@ _run_one_task() {
     _iter_jsonl="$_task_iter_dir/1.jsonl"
     _iter_stderr="$_task_iter_dir/1.stderr"
 
-    # Build command — inherit global settings (no --settings override).
-    # The queue overlay activates via SPINE_QUEUE=1 + the project-registered
-    # guard-queue-shell.sh hook; per-queue rules come from profile.json read
-    # by the hook from SPINE_QUEUE_DIR.
+    # Build command — inherit global settings and layer the queue overlay
+    # ADDITIVELY via --settings. The overlay registers the bundled
+    # guard-queue-shell.sh hook for this child only. Per-queue rules come from
+    # profile.json read by the hook via SPINE_QUEUE_DIR.
     #
     # Reuses the invocation pattern from skills/use-envoy/scripts/invoke-claude.sh:
     # stdin prompt feed (avoids argv length limits), env hygiene (unset CLAUDECODE
@@ -321,8 +399,8 @@ _run_one_task() {
         timeout --kill-after=10 "$_task_timeout" "$@" \
             < "$_prompt_tmp" \
             2> "$_iter_stderr" \
-          | stdbuf -oL grep --line-buffered '^{' \
-          | stdbuf -oL tee "$_iter_jsonl" > /dev/null
+          | "$_stdbuf" -oL grep --line-buffered '^{' \
+          | "$_stdbuf" -oL tee "$_iter_jsonl" > /dev/null
     ) &
     _child_pid=$!
 
@@ -387,6 +465,7 @@ _run_one_task() {
 
     # Return to base for the next independent task.
     git checkout -q "$_base_rev"
+    _current_task_id=""
     return 0
 }
 
@@ -409,46 +488,6 @@ for _id in $_task_ids; do
 done
 
 # --- Final report ---
-
-_write_report() {
-    _report="$_qdir/queue-report.md"
-    {
-        printf '# Queue report — %s\n\n' "$_run_id"
-        printf '- Started: %s\n' "$(printf '%s' "$_state_json" | jq -r '.started_utc')"
-        printf '- Ended: %s\n' "$(_stamp)"
-        printf '- Base rev: `%s` (%s)\n' "$(_short "$_base_rev")" "$_base_branch_display"
-
-        if [ -f "$_woke" ]; then
-            printf '\n> **Trip-wire fired.** See `WOKE-ME-UP.md`.\n'
-        fi
-
-        printf '\n## Summary\n\n| Task | Status | Branch | Head | Exit reason |\n|------|--------|--------|------|-------------|\n'
-        printf '%s' "$_state_json" | jq -r '.tasks[] | "| \(.id) | \(.status) | `\(.branch // "-")` | `\((.head_rev // "-")[0:8])` | \(.exit_reason // "-") |"'
-
-        printf '\n## Per-task detail\n\n'
-        printf '%s' "$_state_json" | jq -r '.tasks[] | @base64' | while IFS= read -r _b64; do
-            _t=$(printf '%s' "$_b64" | base64 -d)
-            _tid=$(printf '%s' "$_t" | jq -r '.id')
-            printf '### %s\n\n' "$_tid"
-            printf '- status: %s\n' "$(printf '%s' "$_t" | jq -r '.status')"
-            printf '- exit_reason: %s\n' "$(printf '%s' "$_t" | jq -r '.exit_reason // "-"')"
-            printf '- branch: `%s`\n' "$(printf '%s' "$_t" | jq -r '.branch // "-"')"
-            printf '- head_rev: `%s`\n' "$(printf '%s' "$_t" | jq -r '.head_rev // "-"')"
-            printf '- started: %s\n' "$(printf '%s' "$_t" | jq -r '.started_utc // "-"')"
-            printf '- ended: %s\n' "$(printf '%s' "$_t" | jq -r '.ended_utc // "-"')"
-            _iters=".scratch/queue-$_run_id-$_tid/iterations"
-            if [ -d "$_iters" ]; then
-                printf '- iterations:\n'
-                for _j in "$_iters"/*.jsonl; do
-                    [ -f "$_j" ] || continue
-                    printf '  - `%s`\n' "$_j"
-                done
-            fi
-            printf '\n'
-        done
-    } > "$_report"
-    _qlog "wrote $(basename "$_report")"
-}
 
 _write_report
 
