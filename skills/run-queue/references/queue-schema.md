@@ -31,7 +31,7 @@ description: "Apr-25 overnight: 3 UI fixes + 1 refactor"   # optional; shown in 
 # --- git + trust ---
 base_branch: main                            # OPTIONAL; defaults to HEAD at supervisor start
 profile: profile.json                        # OPTIONAL; per-queue permission overlay; absent → hook defaults
-backoff_cap_ms: 1800000                      # OPTIONAL; default 1800000 (30 min); Slice C
+backoff_cap_ms: 7200000                      # OPTIONAL; default 7200000 (2 h); Slice C
 
 # --- tasks ---
 tasks:
@@ -101,6 +101,7 @@ Enqueue-time static validation. Refuses invalid queues before spawning any proce
 | `profile` (when declared) file exists and is valid JSON | `profile not found \| profile invalid json` |
 | `on_failure` in {stop, skip, retry_once} | `<task>: invalid on_failure: <v>` |
 | `max_iterations` is a positive integer | `<task>: invalid max_iterations: <v>` |
+| `task_id` (queue.yaml `id` + frontmatter) contains no whitespace | `<task>: task_id may not contain whitespace` |
 
 ## Failure propagation (`on_failure`)
 
@@ -128,7 +129,7 @@ If the retry attempt also blocks, the task becomes final `blocked` with exit_rea
 
 If the queue ends with `pending_retry` tasks that had no dependents, they are flushed (retried with the 30s backoff) before the report is written.
 
-**Attempt counter:** each spawn increments `attempts` in the task's state. Attempts are tracked in `queue-state.json`; report surfacing is deferred to a later slice.
+**Attempt counter:** each spawn increments `attempts` in the task's state. Attempts are tracked in `queue-state.json`; report surfacing is deferred to a later slice. Note: `attempts` counts setup attempts including dep-merge-conflict aborts; it does NOT count intra-task loop iterations. Iterations are observable via the JSONL naming grid.
 
 ## Branch naming
 
@@ -141,6 +142,43 @@ Per task, the supervisor creates local branch `queue/<run_id>/<task_id>`. The su
 If the merge has conflicts, the dependent task is marked `blocked` with exit_reason `dep-merge-conflict`. The child process is not spawned. `git merge --abort` is called and the partially-created branch is deleted.
 
 If ALL parents are `blocked` or `skipped` (no parent branch exists), the task is blocked with `transitive-block` — no merge, no spawn.
+
+### Iteration artifacts
+
+Each intra-task loop iteration writes a JSONL file under the task's scratch directory. The naming grid is `<attempts>-<iter>.jsonl`:
+
+- `attempts` — outer retry counter: `1` for a normal run, `2` when `retry_once` fires a second spawn.
+- `iter` — intra-task loop counter within that attempt, starting at `1`.
+- A `.stderr` sibling file is written alongside each JSONL.
+
+Files live at `.scratch/queue-<run_id>-<task_id>/iterations/<attempts>-<iter>.jsonl`. Examples: `1-1.jsonl` and `1-2.jsonl` are the first and second iterations of the first attempt; `2-1.jsonl` is the first iteration after `retry_once` fires.
+
+## Intra-task loop
+
+The supervisor re-invokes `claude -p` per iteration until the task is terminal, `max_iterations` (default 10) is reached, or a trip-wire fires. Each iteration is a fresh `claude -p` process.
+
+**Iteration 1** uses the original handoff body unchanged. **Iterations ≥ 2** prepend a short resumption header referencing the prior iteration's JSONL path, the current branch state, and the session-log location; the rest of the handoff body follows unchanged.
+
+**Decision table** (terminal status → supervisor action):
+
+| Status | Action |
+|--------|--------|
+| `complete` | Loop breaks; task final `complete`. |
+| `blocked` | Loop breaks; task final `blocked` (outer `retry_once` may still fire). |
+| `partial` | Loop continues — another iteration; resumption prompt references prior iteration's JSONL. |
+| `in_progress` | Loop continues — treated as non-terminal (child did not finish writing final status). |
+| missing artifact | Loop breaks; task `blocked/missing-terminal-artifact`. |
+| invalid artifact status | Loop breaks; task `blocked/invalid-terminal-status` (`.status` not in `{complete, partial, blocked, in_progress}`). |
+
+`max_iterations` default: `10`. When the cap is reached the task is marked `blocked/max-iterations-exceeded`.
+
+## Rate-limit backoff
+
+When a child exits and its stderr matches the rate-limit pattern (from `skills/use-envoy/scripts/_rate_limit.sh`), the supervisor treats the spawn as a fast failure and sleeps before retrying the **same iteration** (the iteration counter does not advance).
+
+**Backoff schedule (seconds):** 120 → 240 → 480 → 960 → 1920 → cap at 7200 (2 h). The counter resets on any non-rate-limited spawn completion.
+
+**Test-mode override:** set `SPINE_QUEUE_RL_BASE_SEC` to a small value (e.g. `1`) to use a shorter base for timing-sensitive integration tests. This variable is intended for test use only; do not set it in production.
 
 ## Exit reasons
 
@@ -157,6 +195,8 @@ If ALL parents are `blocked` or `skipped` (no parent branch exists), the task is
 | `retry-exhausted` | `on_failure: retry_once`; both attempts blocked |
 | `retry-not-flushed` | Task was in `pending_retry` when the queue halted abnormally (trip-wire or unexpected error); retry was not attempted |
 | `dep-merge-conflict` | `git merge --no-ff` of parent branches had conflicts |
+| `max-iterations-exceeded` | Intra-task loop reached `max_iterations` without a terminal status |
+| `invalid-terminal-status` | `terminal_artifact` file present but `.status` value not in `{complete, partial, blocked, in_progress}` |
 
 ## Open Questions (deferred past Slice B)
 

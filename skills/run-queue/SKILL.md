@@ -61,6 +61,8 @@ Fail-secure: missing or non-executable bundled assets → supervisor refuses to 
 
 The Anthropic Ralph plugin OOMs at ~8 h due to stop-hook context accumulation. `run-queue` rejects stop-hook-driven looping entirely — every task boundary is a fresh process. Intra-task looping (Slice C) also uses fresh `claude -p` invocations with a resumption prompt, not in-session loops.
 
+- **Intra-task loop + rate-limit backoff (Slice C):** the supervisor re-invokes `claude -p` per task until `build-status.json.status` is terminal (`complete` or `blocked`) or `max_iterations` (default 10) is reached; on rate-limit signals the supervisor sleeps exponentially (120 s → 2 h cap) and retries the same iteration.
+
 ## References
 
 - [queue-schema.md](references/queue-schema.md) — `queue.yaml` + handoff frontmatter
