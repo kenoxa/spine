@@ -24,6 +24,20 @@ set -eu
 # --- Hard deps ---
 command -v jq >/dev/null 2>&1 || exit 0   # jq missing: fail-open with no action
 
+# --- GNU tool detection (Homebrew coreutils preferred on macOS) ---
+# Fail-secure: missing GNU realpath → deny with diagnostic at first Edit/Write call.
+# On macOS with Homebrew coreutils: grealpath. On Linux: realpath (GNU default).
+for _bin in realpath; do
+    if command -v "g${_bin}" >/dev/null 2>&1; then
+        eval "_GNU_${_bin}=g${_bin}"
+    elif command -v "$_bin" >/dev/null 2>&1 && "$_bin" --version 2>&1 | grep -q GNU; then
+        eval "_GNU_${_bin}=$_bin"
+    else
+        # Cannot canonicalize paths → deny at first Edit/Write tool call.
+        eval "_GNU_${_bin}="
+    fi
+done
+
 # --- Required queue-context env ---
 
 _missing=
@@ -109,13 +123,51 @@ Bash)
     # Normalize: collapse newlines/tabs, strip leading rtk proxy prefix.
     _cmd_norm=$(printf '%s' "$_cmd" | tr '\n\t' '  ' | sed 's/^rtk //')
 
-    # Built-in deny patterns.
+    # Built-in deny patterns — two layers:
+    # 1. Substring pre-check catches chained forms (e.g. `foo && git push`)
+    #    where the tokenizer would only see the first command.
+    # 2. Tokenized scan catches option-bearing forms the substring misses
+    #    (e.g. `git --git-dir=/other push`, `git -c K=V push`).
+
+    # Layer 1: fast substring pre-check (B2 + F4 blast coverage for chained cmds)
     case "$_cmd_norm" in
-        *"git push"*)
+        *" git push"*|"git push"*)
             _deny "git-push-blocked" "$_cmd_norm" ;;
-        *"git -C "*)
+        *" git send-pack"*|"git send-pack"*)
+            _deny "git-send-pack-blocked" "$_cmd_norm" ;;
+        *" git bundle"*|"git bundle"*)
+            _deny "git-bundle-blocked" "$_cmd_norm" ;;
+        *" git format-patch"*|"git format-patch"*)
+            _deny "git-format-patch-blocked" "$_cmd_norm" ;;
+        *" git -C "*|"git -C "*)
             _deny "git-C-sidestep-blocked" "$_cmd_norm" ;;
     esac
+
+    # Layer 2: tokenized scan — catches option-bearing bypasses (B2 + F4)
+    # Skip leading VAR=value env-var assignments; then expect "git" as program.
+    _is_blocked_git() {
+        _cmd_in=$1
+        # shellcheck disable=SC2086  # intentional word-split on normalized command
+        set -- $_cmd_in
+        while [ $# -gt 0 ]; do
+            case "$1" in
+                *=*) shift ;;
+                *) break ;;
+            esac
+        done
+        [ "${1:-}" = "git" ] || return 1
+        shift
+        for _a in "$@"; do
+            case "$_a" in
+                push|send-pack|bundle|format-patch|--git-dir=*|--work-tree=*|-C)
+                    printf '%s' "$_a"; return 0 ;;
+            esac
+        done
+        return 1
+    }
+    if _blocked_arg=$(_is_blocked_git "$_cmd_norm"); then
+        _deny "git-${_blocked_arg}-blocked" "$_cmd_norm"
+    fi
 
     # Optional profile.json: extra_deny list.
     _profile="$_qdir/profile.json"
@@ -146,18 +198,29 @@ Edit|Write|NotebookEdit)
     _path=$(printf '%s' "$_input" | jq -r '.tool_input.file_path // .tool_input.notebook_path // empty')
     [ -z "$_path" ] && exit 0
 
-    # Resolve to absolute
+    # Fail-secure: require GNU realpath for canonicalization (B1 + B3).
+    # Without it we cannot safely resolve `..` traversal or symlinks.
+    [ -n "${_GNU_realpath:-}" ] || _deny "missing-gnu-realpath" "brew install coreutils"
+
+    # Resolve to absolute first (relative paths joined to CWD or repo root)
     case "$_path" in
         /*) _abs=$_path ;;
          *) _abs="${SPINE_QUEUE_CHILD_CWD:-$_repo_root}/$_path" ;;
     esac
 
-    # Is it inside the repo root?
-    case "$_abs" in
-        "$_repo_root"/*|"$_repo_root") exit 0 ;;
+    # Canonicalize: resolves `..` traversal (B1) AND follows symlinks (B3).
+    # `-m` allows non-existent path components (needed for Write-to-new-file).
+    _canon=$("$_GNU_realpath" -m -- "$_abs" 2>/dev/null) || \
+        _deny "realpath-failed" "$_abs"
+    _canon_root=$("$_GNU_realpath" -m -- "$_repo_root" 2>/dev/null) || \
+        _deny "realpath-repo-root-failed" "$_repo_root"
+
+    # Is the canonicalized path inside the canonicalized repo root?
+    case "$_canon" in
+        "$_canon_root"/*|"$_canon_root") exit 0 ;;
     esac
 
-    # Check allow_out_of_repo from profile.json
+    # Check allow_out_of_repo from profile.json (entries also canonicalized)
     _profile="$_qdir/profile.json"
     if [ -f "$_profile" ] && jq -e . "$_profile" >/dev/null 2>&1; then
         _i=0
@@ -165,13 +228,14 @@ Edit|Write|NotebookEdit)
         while [ "$_i" -lt "$_n" ]; do
             _allow=$(jq -r --argjson i "$_i" '.allow_out_of_repo[$i]' "$_profile")
             _i=$((_i + 1))
-            case "$_abs" in
-                "$_allow"*) exit 0 ;;
+            _allow_canon=$("$_GNU_realpath" -m -- "$_allow" 2>/dev/null) || continue
+            case "$_canon" in
+                "$_allow_canon"/*|"$_allow_canon") exit 0 ;;
             esac
         done
     fi
 
-    _deny "out-of-repo-write" "$_abs"
+    _deny "out-of-repo-write" "$_abs (resolved: $_canon)"
     ;;
 
 esac
