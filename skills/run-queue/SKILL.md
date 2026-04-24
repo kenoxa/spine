@@ -32,15 +32,17 @@ A queue is a directory containing:
 
 Full schema: [queue-schema.md](references/queue-schema.md). Permission profile: [permission-profile.md](references/permission-profile.md).
 
-## Entry Point (Slice A)
+## Prerequisites
+
+Requires GNU `coreutils` — provides `grealpath` / `gstdbuf` on macOS via Homebrew (`brew install coreutils`); system `realpath` / `stdbuf` on Linux already cover this. Supervisor preflight refuses to start if absent.
+
+## Entry Point
 
 ```sh
 SPINE_QUEUE=1 sh skills/run-queue/scripts/run.sh <queue-dir>
 ```
 
-Reads `<queue-dir>/queue.yaml`; validates via `queue-lint.sh`; spawns one fresh `claude -p` per task on a dedicated `queue/<run-id>/<task-id>` local branch; returns to `base_rev` between independent tasks; writes `queue-report.md` at completion.
-
-In Slice A, tasks run linearly (input order). DAG resolution arrives in Slice B.
+Reads `<queue-dir>/queue.yaml`; validates via `queue-lint.sh`; resolves topological order via `tsort`; spawns one fresh `claude -p` per task on a dedicated `queue/<run-id>/<task-id>` local branch; merges parent branches for DAG-child tasks; writes `queue-report.md` at completion.
 
 ## Trust Boundary
 

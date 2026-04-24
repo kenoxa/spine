@@ -43,7 +43,7 @@ tasks:
     depends_on: [refactor-auth]
 
   - id: add-signup-page
-    depends_on: [refactor-auth]              # runs in parallel with fix-login-bug in Slice B
+    depends_on: [refactor-auth]              # runs sequentially after refactor-auth (parallel execution is a future slice)
 ```
 
 Required top-level: `run_id`, `tasks`.
@@ -102,13 +102,64 @@ Enqueue-time static validation. Refuses invalid queues before spawning any proce
 | `on_failure` in {stop, skip, retry_once} | `<task>: invalid on_failure: <v>` |
 | `max_iterations` is a positive integer | `<task>: invalid max_iterations: <v>` |
 
+## Failure propagation (`on_failure`)
+
+Each task's `on_failure` (declared in handoff frontmatter, default `stop`) governs what happens to its dependents when it ends `blocked`:
+
+| `on_failure` | Effect on the blocked task | Effect on dependents |
+|---|---|---|
+| `stop` (default) | Remains `blocked` | Direct dependents marked `blocked`, exit_reason `transitive-block`. NOT spawned. Propagation walks the DAG: those direct dependents cascade `blocked/transitive-block` to their own direct dependents, and so on, each step respecting the intermediate task's own `on_failure` policy. |
+| `skip` | Remains `blocked` | Direct dependents marked `skipped`, exit_reason `dependency-failed-skip`. NOT spawned. Propagation walks the DAG respecting each intermediate task's own `on_failure`. A `skipped` parent at any depth cascades `skipped/dependency-failed-skip` to its direct dependents; those dependents in turn cascade according to their OWN `on_failure` policy to their direct dependents. |
+| `retry_once` | First block → marked `pending_retry` (transient). Exception: if the block reason is `dep-merge-conflict`, the task is NOT retried — the same merge will conflict again, so it stays `blocked/dep-merge-conflict` and dependents propagate as if `retry_once` were `stop`. | Dependents wait until retry resolves (or propagate `transitive-block` on the merge-conflict exception). |
+
+Independent branches (tasks not in the failed task's transitive dependency set) continue running regardless of another branch's failure.
+
+**Trip-wire always supersedes `on_failure`.** If `WOKE-ME-UP.md` appears after any task or retry, the queue halts unconditionally.
+
+### retry_once timing
+
+Retry is lazy: when a `retry_once` task blocks on the first attempt, it is marked `pending_retry` and the supervisor continues with subsequent topological-order tasks that do not depend on it (siblings proceed). The retry fires just-in-time when the loop reaches the first task that depends on the `pending_retry` parent.
+
+**Backoff:** if no other tasks ran between the first failure and the retry trigger (i.e., there were no siblings and the retry would fire immediately), the supervisor sleeps 30 seconds before respawning. If siblings ran, their runtime already provides implicit backoff — sleep is skipped.
+
+If the retry attempt also blocks, the task becomes final `blocked` with exit_reason `retry-exhausted`, and its dependents receive `transitive-block`.
+
+**dep-merge-conflict exception:** a task blocked with `dep-merge-conflict` is never retried, even when `retry_once` is set. The supervisor marks it final `blocked/dep-merge-conflict` immediately and propagates `transitive-block` to dependents.
+
+If the queue ends with `pending_retry` tasks that had no dependents, they are flushed (retried with the 30s backoff) before the report is written.
+
+**Attempt counter:** each spawn increments `attempts` in the task's state. Attempts are tracked in `queue-state.json`; report surfacing is deferred to a later slice.
+
 ## Branch naming
 
 Per task, the supervisor creates local branch `queue/<run_id>/<task_id>`. The supervisor refuses to start if any such branch already exists — to namespace a re-run, change `run_id` or delete old branches.
 
-For independent tasks, the branch forks from `base_rev = rev-parse(base_branch or HEAD-at-start)`. For DAG-child tasks (Slice B), the branch forks from a merge of all `depends_on` branch heads (`git merge --no-ff`).
+**Independent tasks** (`depends_on: []`): branch forks from `base_rev = rev-parse(base_branch or HEAD-at-start)`.
 
-## Open Questions (deferred past Slice A)
+**DAG-child tasks** (tasks with `depends_on` entries): the supervisor forks from `base_rev`, then merges all parent branches via `git merge --no-ff -m "queue/<run_id> merge deps for <id>" <parent-branches...>`. Only parent branches that produced a branch (i.e., reached `complete` or `partial`) are included in the merge list. Parents with no branch (blocked or skipped before spawn) are omitted.
+
+If the merge has conflicts, the dependent task is marked `blocked` with exit_reason `dep-merge-conflict`. The child process is not spawned. `git merge --abort` is called and the partially-created branch is deleted.
+
+If ALL parents are `blocked` or `skipped` (no parent branch exists), the task is blocked with `transitive-block` — no merge, no spawn.
+
+## Exit reasons
+
+| `exit_reason` | Meaning |
+|---|---|
+| `trip-wire` | Guard hook denied a tool call; `WOKE-ME-UP.md` written |
+| `terminal-check-pass` | `terminal_check` shell expression exited 0 |
+| `terminal-check-fail` | `terminal_check` exited non-zero |
+| `artifact-status-only` | `terminal_artifact` file present; exit_reason came from artifact (not supervisor) |
+| `missing-terminal-artifact` | `terminal_artifact` path not found after child exits |
+| `signal-INT` / `signal-TERM` | Supervisor received SIGINT/SIGTERM during this task |
+| `transitive-block` | A `depends_on` parent is blocked with `on_failure: stop` |
+| `dependency-failed-skip` | A `depends_on` parent is blocked with `on_failure: skip` |
+| `retry-exhausted` | `on_failure: retry_once`; both attempts blocked |
+| `retry-not-flushed` | Task was in `pending_retry` when the queue halted abnormally (trip-wire or unexpected error); retry was not attempted |
+| `dep-merge-conflict` | `git merge --no-ff` of parent branches had conflicts |
+
+## Open Questions (deferred past Slice B)
 
 - Schema evolution: currently v1 is implicit. Adding a `schema_version` field at `queue.yaml` root is planned for v2 when the first breaking change lands.
 - Distributed queues across multiple machines / repos: out of v1 scope.
+- Parallel execution within topological order: Slice B is still linear within topo order. Concurrent independent branches arrive in a future slice.
