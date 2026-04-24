@@ -49,7 +49,12 @@ done
 
 _run_id=$(printf '%s' "$_qjson" | jq -r '.run_id // empty')
 case "$_run_id" in
-    ''|*' '*|*'/'*) [ -z "$_run_id" ] || _record "run_id contains invalid characters (no spaces or slashes): $_run_id" ;;
+    '') _record "run_id missing" ;;
+    .*) _record "run_id may not start with '.' (git refname rule): $_run_id" ;;
+    *..*) _record "run_id may not contain '..' (git refname rule): $_run_id" ;;
+    *.git) _record "run_id may not end with '.git': $_run_id" ;;
+    *[[:space:]]*) _record "run_id may not contain whitespace: $_run_id" ;;
+    *'/'*) _record "run_id may not contain '/': $_run_id" ;;
 esac
 
 # --- Profile (optional overlay) ---
@@ -137,6 +142,17 @@ while [ "$_i" -lt "$_n_tasks" ]; do
     fi
     if [ -n "$_tc" ] && [ -n "$_ta" ]; then
         _record "$_id: frontmatter sets both terminal_check and terminal_artifact (choose one)"
+    fi
+    if [ -n "$_tc" ]; then
+        case "$_tc" in
+            *'`'*|*'$'*|*'|'*|*';'*|*'&'*|*'>'*|*'<'*|*\\*)
+                _record "$_id: terminal_check contains shell metachars (\`\$|;&><\\ not permitted): $_tc" ;;
+        esac
+        # Newline check — $'\n' is a bash extension; compare stripped vs original
+        _tc_stripped=$(printf '%s' "$_tc" | tr -d '\n')
+        if [ "$_tc_stripped" != "$_tc" ]; then
+            _record "$_id: terminal_check contains newline"
+        fi
     fi
 
     # on_failure enum
