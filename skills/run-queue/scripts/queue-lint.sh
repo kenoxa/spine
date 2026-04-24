@@ -50,9 +50,9 @@ done
 _run_id=$(printf '%s' "$_qjson" | jq -r '.run_id // empty')
 case "$_run_id" in
     '') _record "run_id missing" ;;
-    .*) _record "run_id may not start with '.' (git refname rule): $_run_id" ;;
     *..*) _record "run_id may not contain '..' (git refname rule): $_run_id" ;;
     *.git) _record "run_id may not end with '.git': $_run_id" ;;
+    .*) _record "run_id may not start with '.' (git refname rule): $_run_id" ;;
     *[[:space:]]*) _record "run_id may not contain whitespace: $_run_id" ;;
     *'/'*) _record "run_id may not contain '/': $_run_id" ;;
 esac
