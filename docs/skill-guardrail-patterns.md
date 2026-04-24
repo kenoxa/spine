@@ -4,6 +4,8 @@ paths:
   - skills/use-skill-craft/SKILL.md
   - CONTRIBUTING.md
   - SPINE.md
+  - skills/do-build/references/build-review-gate.md
+  - skills/run-review/references/template-review-brief.md
 ---
 
 # Skill Guardrail Patterns
@@ -137,3 +139,29 @@ else. No explicit ordering needed when trigger is narrow enough.
 for decide/ask tension. If the new rule expands ask-surface, add `only when` or
 `only if` to narrow the trigger. Advisory — not a gate, but catches the most
 common multi-rule conflict pattern in Spine's history.
+
+## Invariant-First Review Briefs
+
+List explicit numbered invariants in the review brief `## invariants` block.
+Synthesizer treats them as higher-authority source than individual envoy severity
+labels — reconciliation is synthesizer's job.
+
+Pattern that works: brief invariant #3 ("trip-wire supersedes everything") +
+SPINE.md fail-secure mandate → synthesizer elevates codex [S] to blocking [B2]
+and [B3]; iter-2 verifier confirmed both elevations. Without invariants in the
+brief, these would have shipped as should_fix.
+
+**Audit trigger**: before writing a review brief, enumerate: trust boundaries,
+state-machine contracts, schema enumerations, purity constraints. One sentence
+per invariant. Reference the contract document when applicable (e.g.,
+`build-status-schema.md`). Envoy labels are advisory; brief invariants gate
+severity.
+
+[E2: `.scratch/slice-c-intra-task-loop-32e7/review-brief.md §invariants`,
+`review-synthesis.md §Conflicts Resolved` rows 1-2; E3:
+`review-verifier-iter2.md` VERDICT PASS; commits `4cea877`, `b6b1b85`]
+
+*Prior art: Design-by-Contract / Invariant-Driven Development (Fairbanks 2019;
+Trail of Bits 2025). Cap invariants at 5–10 high-signal trip-wires — IDD warns
+against "invariant inflation" that collapses review heuristics into test cases.*
+`[ADVISORY: envoy]`

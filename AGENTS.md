@@ -35,12 +35,12 @@ Durable cross-provider insights in `docs/`. Backticked paths — not auto-loaded
 Managed by `/run-curate`; style: telegraphic, 250-800 tokens, `updated:` frontmatter.
 
 - `docs/code-intelligence-stack.md` — tool composition (rg/sg/fd/probe/LSP/hook), design rationale, routing
-- `docs/multi-model-council-sizing.md` — 3-model default, diversity > performance, anti-patterns
+- `docs/multi-model-council-sizing.md` — 3-model default, diversity > performance, verifier E3 differentiator, anti-patterns
 - `docs/provider-privacy.md` — training/retention/residency per provider (Claude, Codex, Cursor, OpenCode)
 - `docs/browser-automation-selection.md` — dev-browser chosen over 5 alternatives, benchmarks, install model, limitations
 - `docs/model-tier-assignments.md` — agent tier table, session model guidance, session vs implementer escalation triggers
 - `docs/cross-provider-hooks.md` — per-provider hook formats, Cursor camelCase schema, capability matrix, cross-provider gotchas
-- `docs/skill-guardrail-patterns.md` — anti-rationalization format, inline vs hook enforcement, layered defense for autonomous runs, ecosystem context
+- `docs/skill-guardrail-patterns.md` — anti-rationalization format, invariant-first review briefs, inline vs hook enforcement, layered defense for autonomous runs, ecosystem context
 - `docs/machine-verifiable-terminal-contracts.md` — JSON terminal artifact pattern (build-status.json), status→consumer action table, atomicity contract
 
 ## Deep Dives
