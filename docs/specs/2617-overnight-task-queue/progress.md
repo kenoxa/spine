@@ -1,8 +1,8 @@
 ---
 id: 2617-overnight-task-queue
-updated: 2026-04-24
+updated: 2026-04-26
 source_session: autonomous-overnight-task-queue-1034
-latest_session: slice-d-claude-skill-e254
+latest_session: slice-f-per-task-model-6ba6
 ---
 
 # Progress — overnight-task-queue
@@ -359,6 +359,74 @@ All under `.scratch/slice-e-loop-semantics-bf48/`:
 - `polish-advisory-conventions.md` — single-lens polish advisory
 - `build-status.json` — structured finalize artifact
 - `build-learnings.md` — this session's learnings
+
+## Slice F — Per-task main-thread `model:` field
+
+**Status: COMPLETE (code-level).** Single partition; ~30 LOC code + ~25 LOC doc; full do-build loop (scope → implement → review-ACCEPT → polish-iter1 → finalize). Closes user-priority backlog from Slice D + 2026-04-24 usage-limit incident.
+
+### Delivered (uncommitted — 4 files staged)
+
+| File | Scope |
+|---|---|
+| `skills/run-queue/scripts/run.sh` | `_rot_model` lookup at `:643`; conditional `_update_task_state ... model` at `:663-667` (JSON null when omitted, quoted string when set); conditional `--model "$_rot_model"` argv append at `:704` |
+| `skills/run-queue/scripts/queue-lint.sh` | `model:` validator block at `:181-201`: bare `LC_ALL=C`, then sequential checks (whitespace → shell metachar → length 128 → charset allowlist `[A-Za-z0-9._:/\[\]_-]`). Each violation calls `_record`. |
+| `skills/run-queue/references/queue-schema.md` | `model: sonnet` example at `:68`; new `### model` subsection at `:79-83` (provider-scoped runtime selector framing, "main-thread model" terminology, subagent-tier distinction, Q-D Anthropic-CLI-feature callout, forward-ref to Lint Rules table); lint-rule row at `:154` |
+| `token-counts.yaml` | queue-schema.md 3782 → 4044 tokens (pre-existing >1000 flag carries) |
+
+### Resolved decisions (per design synthesis + mainthread refinement)
+
+- **Q-A field location**: handoff-only (A1) — reversibility argument; layered `default_model:` is strict-superset additive future scope. [4-angle synthesis 2v2; mainthread tiebreak.]
+- **Q-B validation**: thin sanity (no enum). Permissive charset `[A-Za-z0-9._:/\[\]_-]` (B2) — covers Anthropic CLI's full input space (aliases, versioned IDs, ARN, Vertex paths, `[1m]` suffix). Length cap 128. [4-angle convergence + navigator-external E1: `claude --model bad-value` does NOT exit non-zero at startup; child burns API calls.]
+- **Q-C state recording**: configured `model:` recorded into `queue-state.json` at task init (C1, cheap). Resolved-on-inherit recording (C2) deferred to observability slice — needs stream-json `system.init` parser. [Preflight: `_write_report()` reads state-json exclusively; split made the question binary.]
+- **Q-D doc callout**: included — disambiguates per-task child-process pinning from in-session orchestrator-process model switching (the latter is an Anthropic-CLI feature request per memory `project_main_thread_model_override.md`).
+- **Q-E value shape**: flat string. Creative angle's structured-value form `{tier: standard}` rejected by 3-of-4 internal angles + mainthread (Constraint 7: subagent-tier ≠ main-thread model; reusing tier vocab leaks abstraction; lint complexity exceeds creative's own threshold).
+- **F1 (worked-trace wrapper omission)**: separate slice. Re-eval gate at build time confirmed `### model` lands at `queue-schema.md:79+`, F1 target at `:103-115` — physically distinct paragraphs.
+- **F2 (SKILL.md:68 bullet style)**: dropped (E0; SKILL.md not touched).
+
+### E3 verification
+
+- **Lint fixtures (post-implement, mainthread inline)**: 6 cases — `model: sonnet` accept; omitted accept; `"claude opus"` reject (whitespace); `"opus;rm"` reject (metachar); `"opus*v2"` reject (charset); 129-char value reject (length). Exit 0 on clean fixture; exit 1 on dirty. All error messages match expected format.
+- **LC_ALL=C unicode bypass fix (post-polish)**: `model: "modèle"` under default `LANG=en_US.UTF-8` — REJECTED with "contains characters outside allowed set". Pre-polish, this case slipped past the negated character class because `LC_CTYPE` classified multi-byte UTF-8 letters as `[:alpha:]`. The bare `LC_ALL=C` assignment before the validator block forces byte-level matching.
+- **No supervisor smoke test executed** — no formal shell test surface for run.sh; E2 code-trace + lint E3 sufficient at this risk level.
+
+### Review + polish summary
+
+- **Review iter-1 ACCEPT** — 4-agent batch (verifier + risk-reviewer + envoy/codex + envoy/opencode); verifier VERDICT PASS; 0 blocking, 3 should_fix, 3 follow_up. Risk-reviewer cleared all 4 production-survivability categories with E2+. Envoy gaps: cursor exit 1 (auth); opencode log 0 bytes (substantive output not persisted; summary file claims not corroborated by other reviewers — flagged in synthesis as unverifiable hearsay).
+- **Polish iter-1** — 2-lens advisory (conventions + complexity). 5 actions bundled and applied: `LC_ALL=C` (review S1, complexity-advisor's bare-assignment shape avoids subshell `_n_err` scope-leak); doc forward-reference to Lint Rules table (review S2; lower-cost than inline duplication); `_mod` → `_mo` rename (matches sibling 2-char convention); colon drop in 4 error messages (matches sibling `terminal_check contains shell metachars` format); flatten nested `case` (matches `max_iterations` shape, auto-resolves complexity-advisor's length-check-opacity F1). Explicit reject: review S3 YAML-type tighten — codebase-wide pattern (14 sites use same `jq -r '.model // empty'` idiom), out of slice scope.
+- **Inline P_F2 doc-completion** — Polish implementer applied colon-drop to lint error strings but missed the corresponding Lint Rules table description in `queue-schema.md:154`. Mainthread caught + fixed inline (1-line edit) as a "trust but verify" follow-through. Pattern reinforces L2 below.
+
+### Key learnings (from build-learnings.md)
+
+- **L1 — locale-dependent shell character-class semantics** (knowledge_candidate: yes). Negated POSIX `[!…]` honors `LC_CTYPE`; multi-byte UTF-8 chars classified as letters in `en_US.UTF-8` slip past the byte-level reject. Validators that need byte-level rejection MUST set `LC_ALL=C`. Two pre-existing run-queue sibling validators have the same vulnerability (`_run_id` at `queue-lint.sh:51-58`, `_tc` charset at `:152-155`) — flagged as out-of-slice follow-up. **User approval requested** to curate as `docs/shell-validator-locale-guard.md`.
+- **L2 — polish doc-string mirroring gap** (knowledge_candidate: yes). Polish action P_F2 dropped colon from code error strings but did not propagate to the doc table describing those strings. Second occurrence (Slice E was first). Suggests advisory passes should explicitly check for doc-string-mirroring on rename/wording polish actions. **User approval requested** to add a section to `skills/run-polish/references/polish-apply.md` checklist.
+- **L3 — multi-provider envoy operational instability** (knowledge_candidate: maybe). Cursor failed twice this slice (do-design + run-review); opencode review log 0 bytes. Synthesis must remain robust to N-1 providers. Watch 1-2 more sessions before curating.
+- **L4 — preflight-collapsing-divergence pattern** (knowledge_candidate: maybe). Mainthread cheap preflights (Gap-3: `_write_report()` data sources) split Q-C from divergence into binary. Same pattern observed in Slice E — re-elevate if it recurs in Slice G.
+- **L5 — bundling-rule confirmation** (knowledge_candidate: no). AGENTS.md "bundleable should_fix" rule worked cleanly: 2 of 3 bundled, 1 explicitly rejected (correct rejection of S3 codebase-wide pattern).
+
+### Open follow-ups deferred past Slice F
+
+- **Locale-guard sweep** (from L1) — apply `LC_ALL=C` shape to `queue-lint.sh:51-58` (`_run_id` validator) and `queue-lint.sh:152-155` (`terminal_check` charset). Pre-existing locale vulnerability in 2 sibling validators. Cheap follow-up; bundleable.
+- **YAML-type-tighten codebase pass** (from review S3) — would add explicit string-type assertion across 14 lint sites that use `jq -r '.field // empty'` idiom; affects fields beyond `model:`. Out of Slice F scope; standalone hygiene slice candidate.
+- **Polish-apply checklist for doc-string mirroring** (from L2) — process improvement; deferred to skill-craft slice.
+- **Argv-leading-hyphen tightening** (review F1) — `model: "-evil"` passes lint; informational, no shell-injection risk (argv exec'd directly). Not actioned.
+- **Empty-string contract crispness** (review F2; [CONFLICT] — verifier=pass / codex=`F` recommend doc-or-reject) — preserved as conflict, not actioned.
+- **Bracket-class escape style note** (review F3) — maintenance note only.
+- **Envoy provider reliability** (from L3) — watch-list, not actioned.
+- **F1 (Slice E carried; worked-trace wrapper omission at `queue-schema.md:103-115`)** — confirmed separate from Slice F. Bundleable into next doc-hygiene slice.
+- **Branch auto-cleanup** (`run.sh:722`) — Slice E follow-up still pending. Standalone Slice G candidate.
+- **Parallel partition + dirty-tree note** — Slice E doc follow-up still pending.
+
+### Session artifacts
+
+All under `.scratch/slice-f-per-task-model-6ba6/`:
+
+- `session-log.md` — Phase Trace (catchup → 4-phase do-design → 6-phase do-build)
+- `design-intake.md`, `advise-batch-{rigorous,creative,navigator,envoy.codex,envoy.opencode}.md`, `advise-synthesis.md`, `design-artifact.md` — design phase
+- `scope-artifact.md` — single partition P_F1
+- `implement-P_F1.md`, `implement-artifact.md` — implementer outputs + aggregate
+- `review-brief.md`, `review-change-evidence.md`, `review-{verifier,risk,envoy.codex,envoy.opencode,envoy.cursor}.md`, `review-synthesis.md` — review phase
+- `polish-advisory-{conventions,complexity}.md`, `polish-synthesis.md`, `polish-apply.md` — polish phase
+- `build-learnings.md` — this section's learnings
 
 ## Open items deferred to future slices
 
