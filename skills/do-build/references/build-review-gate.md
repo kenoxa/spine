@@ -32,6 +32,24 @@ Extract blocking findings as `fix_context` for `/run-implement` fix mode:
 
 Proceed to polish phase. Log should_fix items as polish candidates.
 
+## Budget-aware inline ACCEPT (conditional)
+
+Re-invoking `/run-review` after fix-mode is the default. Inline mainthread
+verification is acceptable when ALL conditions hold:
+
+- Prior review round had 0 consensus `[B]` findings AND verifier was PASS
+  or PARTIAL-by-design (NOT verifier FAIL).
+- All fixes are prose-local within previously-reviewed files
+  (no new files, no new attack surface, no structural changes).
+- `git status` shows no scope creep beyond the partition_scope.
+- Invariants and trust-boundary prose structurally preserved.
+- User has explicit budget-sensitivity guidance on file
+  (e.g., user memory or SPINE.md workflow note).
+
+When applied, log the inline-ACCEPT decision in session-log.md with the
+five conditions checked. Default to the standard re-dispatch protocol
+when any condition is uncertain.
+
 ## Constraints
 
 - Binary verdict: ITERATE or ACCEPT. No partial states.

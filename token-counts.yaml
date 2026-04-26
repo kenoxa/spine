@@ -24,7 +24,7 @@ claude/skills/run-skill-eval/SKILL.md: 3207
 skills/catchup/SKILL.md: 552
 skills/commit/SKILL.md: 539
 skills/do-build/references/build-finalize.md: 941
-skills/do-build/references/build-review-gate.md: 298
+skills/do-build/references/build-review-gate.md: 475
 skills/do-build/references/build-status-schema.md: 1123
 skills/do-build/SKILL.md: 1042
 skills/do-design/references/design-artifact.md: 405
