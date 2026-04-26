@@ -292,6 +292,74 @@ All under `.scratch/slice-d-claude-skill-e254/`:
 - `build-status.json` — structured finalize artifact
 - `build-learnings.md` — this session's learnings (pending)
 
+## Slice E — Terminal-status semantics + loop demo
+
+**Status: COMPLETE (code-level).** Two partitions shipped in one session: P_A (doc, committed) + P_B (loop demo, ephemeral). Slice D's `deferred_exit_validation` retired E3 via P_B. Review iter-1 ITERATE → iter-2 ACCEPT (1 [B] resolved); polish iter-1 applied inline (3 [S] + 1 [F]); finalize gates met.
+
+### Delivered (uncommitted — 4 files staged)
+
+| Partition | Files | Scope |
+|-----------|-------|-------|
+| P_A — doc | `skills/run-queue/references/queue-schema.md`, `skills/run-queue/SKILL.md` | line-82 prose drift fixed; new `### Terminal-status semantics` under §Per-Handoff Frontmatter (worked 3-iter trace + supervisor-perspective resumption header + cross-ref + bold-callout source-of-truth); SKILL.md:68 → pointer |
+| P_B — demo | `.scratch/queue-demo-e-bf48/*` (gitignored) | deterministic shell stub via `.iter-counter`; 24-second run; 3 iterations; final `complete` / `stub-iter-3-terminal` |
+| Finalize | `docs/specs/2617-overnight-task-queue/progress.md`, `token-counts.yaml` | this entry; queue-schema.md 3177 → 3782 tokens (pre-existing >1000 flag, +19%) |
+
+### Surfaces delivered
+
+- **Prose drift fix** at `queue-schema.md:82` — separates "artifact-read condition" (parseable status set: `complete|partial|blocked|in_progress`, matching `run.sh:400`) from "loop-termination condition" (break only on `complete`/`blocked`, matching `run.sh:603-605`).
+- **`### Terminal-status semantics`** subsection at `queue-schema.md:87` — under §Per-Handoff Frontmatter alongside §Terminal check. Single-shot vs intra-task-loop asymmetry documented in prose; worked 3-iteration trace shows iter1+2 = `in_progress`, iter3 = `complete` plus the supervisor-emitted resumption header at iter ≥ 2 (verbatim match to `run.sh:454-463`).
+- **Bold-callout source-of-truth** with symbol names (`run.sh:_classify_terminal_status`, `run.sh:_rot_iterate`) — rendered-visible (vs HTML comment which renders invisibly), survives line-number drift.
+- **Cross-reference** to existing `## Intra-task loop` decision table at line 198 via Markdown link `[§Intra-task loop](#intra-task-loop)` — no re-enumeration in prose.
+- **`SKILL.md:68` pointer** — replaces enumerated terminal status set with one-line link to the new schema subsection. Eliminates re-rot vector.
+- **Properly-designed loop demo** at `.scratch/queue-demo-e-bf48/` — `terminal_artifact: build-status.json`; shell stub uses `.iter-counter` for iter detection (independent of resumption-header parsing). Retires Slice D's `deferred_exit_validation` (`.scratch/slice-d-claude-skill-e254/build-status.json §deferred_exit_validation`).
+
+### E3 verification (this session)
+
+- **Verifier round-1 PASS**: 7 probes — symbol names exist, anchor lands, resumption-header trace matches `run.sh:454-463` line-for-line, status sets in prose match `run.sh:400` + `:603-605`, `terminal_check` single-shot claim accurate, SKILL.md:68 is one-line pointer, diff confined to 2 files.
+- **Loop demo run**: `.scratch/queue-demo-e-bf48/queue-report.md` shows task `loop` status `complete`, exit_reason `stub-iter-3-terminal`, 3 iteration JSONLs (`1-1.jsonl`, `1-2.jsonl`, `1-3.jsonl`), 24-second runtime.
+- **Iter source-of-truth probe** (validate phase): `run.sh:451-469` confirmed resumption header is prepended at iter ≥ 2; `run.sh:577-578` confirmed iteration JSONLs are written by supervisor post-claude-exit (so stub uses separate `.iter-counter` to avoid the read-before-write race).
+
+### Review + polish summary
+
+- **Review iter-1**: verifier PASS + risk-reviewer 1B/2F → ITERATE. B1: line 128 said "above" but §Intra-task loop is below at line 198 (same drift-pattern family as the line-82 bug being fixed — caught fittingly by the lens looking for that class).
+- **Review iter-2 (regate)**: B1 closed via fix-mode (directional word removed entirely — drift-resistant); F1+F2 carried forward unchanged. Risk-reviewer-iter2 → ACCEPT.
+- **Polish iter-1**: conventions analyst found 3 [S] + 2 [F]. Applied inline (heading hierarchy `##` → `###`; HTML comment → bold-lead callout; italic `_Iter N:_` → bold `**Iter N:**`; bare §Intra-task loop → Markdown link). Skipped F2 (E0 confidence; SKILL.md:68 phrasing minor).
+
+### Key learnings (from build-learnings.md)
+
+- **L1** (reinforcement) — Implementer caught design factual error: design-artifact named `_run_intra_task_loop` but actual symbol is `_rot_iterate`. E3 grep confirmed correct name; implementer used it. **Knowledge candidate: NO** — already covered by E3 verification discipline.
+- **L2** (reinforcement) — Risk-reviewer caught adjacent instance of the bug class being fixed (line 128 directional drift; same family as line-82). Multi-perspective lens-specific catches. **Knowledge candidate: NO** — pattern documented in `docs/research-findings.md`.
+- **L3** (reinforcement) — Conventions analyst caught H2-vs-H3 heading-level error that neither implementer nor risk-reviewer flagged. Lens-specific advisory has unique catch surface. **Knowledge candidate: NO** — covered in `docs/multi-model-council-sizing.md`.
+- **L4** (weak knowledge candidate) — Inline polish application (vs polish-apply dispatch) is the polish-phase analog of budget-aware inline ACCEPT for review-gate. Saved one dispatch on 4 narrow prose tweaks (3 [S] + 1 [F]) to recently-reviewed prose-local surface. Pattern: when polish findings are mechanical edits within partition_scope and verifier already PASSED, mainthread inline application is a defensible alternative to polish-apply dispatch. **User approval requested** for promotion as a sidebar under `skills/do-build/references/build-review-gate.md §Budget-aware inline ACCEPT (conditional)` or as a section in `build-finalize.md`.
+
+### Open follow-ups deferred past Slice E
+
+- **Branch auto-cleanup** — `run.sh:722` returns to base after task completion but does NOT delete the task branch (`queue/<run_id>/<task_id>`). P_B implementer flagged. Slice F+ candidate; could add `branch_cleanup: after_success` schema option.
+- **Parallel partition + dirty-tree interaction** — supervisor requires clean tree for runs; parallel P_A + P_B partitions in this session coordinated via stash dance. Future scope-time partitioning for run-queue-touching slices should note the constraint. Documentation candidate, not a behavior bug.
+- **F1 (review iter-1)** — worked-trace iter-2 prompt block omits 4 wrapper lines (`Your session id is`, etc.) that `run.sh:_rot_build_prompt` emits. Demoted because wrapper is identical across iterations and orthogonal to the loop-semantics asymmetry. Defer to future doc-hygiene pass.
+- **F2 (polish)** — SKILL.md:68 bullet style (compound + slightly wordier than surrounding telegraphic style). E0 confidence; not promoted.
+- **Per-task main-thread `model:` selection** — heaviest backlog candidate; deferred to Slice F+.
+- **Demo promotion to versioned `skills/run-queue/examples/`** — separate structural decision; deferred to future slice if regression coverage demands it.
+- **Delta-aware Monitor (O1 v2)** / **Monitor stuck-task heuristic** — Slice D backlog; defer until first overnight-run signals inadequacy.
+
+### Session artifacts
+
+All under `.scratch/slice-e-loop-semantics-bf48/`:
+
+- `session-log.md` — Phase Trace (catchup → 4-phase do-frame → 4-phase do-design → 6-phase do-build)
+- `frame-artifact.md`, `orient-explore.md`, `clarify-discuss.md`, `investigate-zero-dispatch.md` — frame phases
+- `advise-batch-{rigorous,creative,navigator,envoy.codex,envoy.opencode}.md` — advise round (envoy.cursor 0B `[COVERAGE_GAP]`)
+- `advise-synthesis.md` — 5-source merge with 4-of-5 convergence on U1/U2/U3
+- `validate-feasibility.md` — 2 risks resolved E2 inline, 1 deferred
+- `design-artifact.md` — 9 resolved decisions, 10 constraints, HIGH confidence
+- `scope-artifact.md` — P_A + P_B partitions
+- `implement-P_A-report.md`, `implement-P_B-report.md` — implementer outputs
+- `review-brief.md`, `inspect-{verifier,risk-reviewer,risk-reviewer-iter2}.md` — review rounds 1+2
+- `fix-P_A-report.md` — fix-mode for B1
+- `polish-advisory-conventions.md` — single-lens polish advisory
+- `build-status.json` — structured finalize artifact
+- `build-learnings.md` — this session's learnings
+
 ## Open items deferred to future slices
 
 From review/polish synthesis, iter-2/iter-3 findings deferred past Slice A:
