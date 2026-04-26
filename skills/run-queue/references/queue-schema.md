@@ -67,6 +67,7 @@ max_iterations: 10                          # default 10; Slice C loop cap
 on_failure: stop                            # stop | skip | retry_once; default stop
 scope_files: [src/auth/**]                  # informational; supervisor does not enforce
 commit_ceiling: 8                           # advisory; supervisor warns if exceeded
+model: sonnet                               # optional; pins the spawned child's main-thread model (see §model below)
 ---
 
 # Handoff body — the actual prompt / task description
@@ -74,6 +75,12 @@ commit_ceiling: 8                           # advisory; supervisor warns if exce
 ```
 
 Required: `task_id`, `entry_skill`, and exactly one of `terminal_check` or `terminal_artifact`.
+
+### model
+
+`model:` is a provider-scoped runtime selector passed as `--model <value>` to the `claude --print` child process the supervisor spawns for this task. It is a flat string — the value is handed to the CLI verbatim; lint catches structural problems (whitespace, shell metachars, length, and charset — see Lint Rules table) but does not validate against an enum. Omit to inherit whatever model the parent `claude` process defaults to.
+
+`model:` pins the **spawned child's main-thread model** — the model the queue task itself runs as. It does not affect subagents dispatched inside that task; those are governed by `docs/model-tier-assignments.md`. In-session main-thread model switching of the orchestrator process is an Anthropic CLI feature and is outside the scope of this field.
 
 ### Terminal check
 
@@ -144,6 +151,7 @@ Enqueue-time static validation. Refuses invalid queues before spawning any proce
 | `on_failure` in {stop, skip, retry_once} | `<task>: invalid on_failure: <v>` |
 | `max_iterations` is a positive integer | `<task>: invalid max_iterations: <v>` |
 | `task_id` (queue.yaml `id` + frontmatter) contains no whitespace | `<task>: task_id may not contain whitespace` |
+| `model` (when set) contains no whitespace, no shell metachars, ≤128 chars, charset `[A-Za-z0-9._:/[]_-]` | `<task>: model contains whitespace \| contains shell metachars \| exceeds 128 characters \| contains characters outside allowed set` |
 
 ## Failure propagation (`on_failure`)
 

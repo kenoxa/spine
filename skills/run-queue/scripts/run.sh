@@ -640,6 +640,7 @@ _run_one_task() {
     _rot_entry_skill=$(printf '%s' "$_rot_fm_json" | jq -r '.entry_skill')
     _rot_terminal_artifact=$(printf '%s' "$_rot_fm_json" | jq -r '.terminal_artifact // empty')
     _rot_terminal_check=$(printf '%s' "$_rot_fm_json" | jq -r '.terminal_check // empty')
+    _rot_model=$(printf '%s' "$_rot_fm_json" | jq -r '.model // empty')
 
     _rot_branch="queue/$_run_id/$_rot_id"
     _rot_task_session="queue-$_run_id-$_rot_id"
@@ -659,6 +660,11 @@ _run_one_task() {
     _update_task_state "$_rot_id" branch      "\"$_rot_branch\""
     _update_task_state "$_rot_id" status      '"in_progress"'
     _update_task_state "$_rot_id" started_utc "\"$(_stamp)\""
+    if [ -n "$_rot_model" ]; then
+        _update_task_state "$_rot_id" model "\"$_rot_model\""
+    else
+        _update_task_state "$_rot_id" model 'null'
+    fi
 
     # Branch: always fork from base_rev, then merge parent branches if any.
     git checkout -q -b "$_rot_branch" "$_base_rev"
@@ -695,6 +701,7 @@ _run_one_task() {
         --include-partial-messages \
         --verbose \
         --no-session-persistence
+    [ -n "$_rot_model" ] && set -- "$@" --model "$_rot_model"
 
     # Per-task liveness cap — overnight run should not hang on a stuck child.
     # Matches envoy's 1h default; queue tasks may run longer so we bump to 2h.

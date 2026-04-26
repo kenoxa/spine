@@ -177,6 +177,25 @@ while [ "$_i" -lt "$_n_tasks" ]; do
             0)           _record "$_id: max_iterations must be > 0" ;;
         esac
     fi
+
+    # model — optional; flat string; provider-scoped runtime selector for the spawned child
+    _mo=$(printf '%s' "$_fm_json" | jq -r '.model // empty')
+    LC_ALL=C
+    if [ -n "$_mo" ]; then
+        case "$_mo" in
+            *[[:space:]]*)
+                _record "$_id: model contains whitespace" ;;
+            *'`'*|*'$'*|*'|'*|*';'*|*'&'*|*'>'*|*'<'*|*\\*)
+                _record "$_id: model contains shell metachars (\`\$|;&><\\ not permitted)" ;;
+        esac
+        if [ ${#_mo} -gt 128 ]; then
+            _record "$_id: model exceeds 128 characters"
+        fi
+        case "$_mo" in
+            *[!A-Za-z0-9._:/\[\]_-]*)
+                _record "$_id: model contains characters outside allowed set [A-Za-z0-9._:/[]_-]" ;;
+        esac
+    fi
 done
 
 # --- depends_on references existing task ids ---
