@@ -638,7 +638,6 @@ _run_one_task() {
     _rot_fm_json=$(printf '%s' "$_rot_fm" | yq -o=json eval '.' -)
 
     _rot_entry_skill=$(printf '%s' "$_rot_fm_json" | jq -r '.entry_skill')
-    _rot_max_budget=$(printf '%s' "$_rot_fm_json" | jq -r '.max_budget_usd // empty')
     _rot_terminal_artifact=$(printf '%s' "$_rot_fm_json" | jq -r '.terminal_artifact // empty')
     _rot_terminal_check=$(printf '%s' "$_rot_fm_json" | jq -r '.terminal_check // empty')
 
@@ -696,9 +695,6 @@ _run_one_task() {
         --include-partial-messages \
         --verbose \
         --no-session-persistence
-    if [ -n "$_rot_max_budget" ]; then
-        set -- "$@" --max-budget-usd "$_rot_max_budget"
-    fi
 
     # Per-task liveness cap — overnight run should not hang on a stuck child.
     # Matches envoy's 1h default; queue tasks may run longer so we bump to 2h.

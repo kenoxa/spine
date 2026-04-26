@@ -67,7 +67,6 @@ max_iterations: 10                          # default 10; Slice C loop cap
 on_failure: stop                            # stop | skip | retry_once; default stop
 scope_files: [src/auth/**]                  # informational; supervisor does not enforce
 commit_ceiling: 8                           # advisory; supervisor warns if exceeded
-max_budget_usd: 2.50                        # forwarded to claude -p --max-budget-usd
 ---
 
 # Handoff body — the actual prompt / task description
