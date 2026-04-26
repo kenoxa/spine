@@ -2,7 +2,7 @@
 id: 2617-overnight-task-queue
 updated: 2026-04-24
 source_session: autonomous-overnight-task-queue-1034
-latest_session: slice-c-intra-task-loop-32e7
+latest_session: slice-d-claude-skill-e254
 ---
 
 # Progress — overnight-task-queue
@@ -212,9 +212,85 @@ From review + polish synthesis:
 - Polish-F2: `_classify_terminal_status` CC at bar 8 after B3 — extract on next touch.
 - Polish-F3: Positive-integer validator pattern at 3 sites; extract on fourth addition.
 
-## Slice D — Claude skill integration (not started)
+## Slice D — Claude skill integration
 
-Prepare / Kick / Monitor / Review phases. User confirmed mid-Slice-A that strict slice boundaries are fine — Prepare phase stays in Slice D.
+**Status: COMPLETE (code-level).** Review ITERATE→ACCEPT; polish applied; scope clean. Live end-to-end exit validation (consolidated 2-task loop + rate-limit demo) deferred to user-triggered run — see `build-status.json §deferred_exit_validation`.
+
+### Delivered (uncommitted — 7 files)
+
+| File | Change |
+|------|--------|
+| `skills/run-queue/SKILL.md` | Restructure — Slice A scaffold warning removed; `## Queue Shape` trimmed to one-line link; new `## Phases` cross-link table; `## References` expanded to list all 4 new phase refs. Token count 1372 (≤ 5000 hard cap). Trust Boundary + Ralph Pitfalls + Prerequisites preserved intact. |
+| `skills/run-queue/references/prepare.md` | NEW — Discovery → Handoff-contract audit (`task_id`, `entry_skill`, `terminal_artifact`/`terminal_check` + optional field validation with `on_failure` default noted) → Roadmap proposal → Materialization gate. Invariant-first. |
+| `skills/run-queue/references/kick.md` | NEW — Lint first → Preview (queue-shape primary: DAG + Tasks table + Branches + Base rev + Tmux command + rate-limit-handled note; one-line worst-case spawn count appended only for queues ≥ 5 tasks) → Confirmation gate → Spawn mechanism (tmux default + nohup + screen) → Post-kick report. Chain-of-trust advisory on placeholder substitution. No USD/budget framing in preview. |
+| `skills/run-queue/references/monitor.md` | NEW — Stateless file-reading (`queue-state.json` via `jq`, `queue-log.md` tail, `WOKE-ME-UP.md` existence). Trip-wire shown first and prominently. Coarse rule-of-thumb "mid-task ~15–30 min; near-end iters ~5 min; trip-wire = act now." Explicit "no state files at v1" (O1 strict reading). |
+| `skills/run-queue/references/review.md` | NEW — Trip-wire first → per-Outcome action table (6 rows with status/exit_reason mappings where relevant) → iteration artifacts grid pointer → one-at-a-time merge workflow. `<base_branch>` parameterized (not hardcoded `main`). |
+| `skills/run-queue/references/queue-schema.md` | Removed `max_budget_usd` example row from handoff-frontmatter YAML block (per 2026-04-25 USD-drop directive). |
+| `skills/run-queue/scripts/run.sh` | Removed `_rot_max_budget` parse + conditional `--max-budget-usd` flag forwarding (3 lines). Per-task budget cap feature dropped — supervisor's `_rot_rate_limit_retry` backoff (120 s → 2 h cap) is the only protection. |
+
+### Surfaces delivered
+
+- **Four-phase human-facing workflow** — Prepare → Kick → Monitor → Review. Each phase has a dedicated reference with invariant-first structure. SKILL.md is a thin 4-phase orchestrator (1372 tokens, well under the 5000-token hard cap).
+- **Per-phase confirmation gates** — never-materialize (Prepare), never-auto-spawn (Kick), stateless-no-writes (Monitor), never-auto-merge (Review). Invariants captured verbatim on line 3 of each phase reference.
+- **Queue-shape-primary Kick preview** — leads with DAG + Tasks table + Branches + Base rev + Tmux command + inline rate-limit-handled note. Worst-case spawn count appears only as a one-liner for queues ≥ 5 tasks (Tasks table already shows per-task values for smaller queues). **No USD/budget framing in preview at all.** Reframed post-finalize 2026-04-25 after user clarified that overnight serial runs ride supervisor backoff (`_rot_rate_limit_retry`, 120 s → 2 h cap) and are NOT budget-constrained on the 5h/weekly window — supervisor sleeps through window-exhaustion until reset.
+- **Worst-case formula correctness** — `Σ(max_iterations × (2 if on_failure==retry_once else 1))`. Per-task gating on `retry_once` presence, confirmed against `run.sh:1092` retry loop + `queue-schema.md:67` on_failure values.
+- **Outcome-vs-status clarity** — Review's action table renamed "Status" → "Outcome" column and maps non-status rows (`partial`, `retry-exhausted`, `trip-wire`) to their real `(status, exit_reason)` pairs. User querying `queue-state.json` via `jq` now knows which field to inspect.
+- **Monitor without state** — O1 locked-decision-#5 strict reading applied; `.monitor-last.json` delta-view cursor is a v2 candidate.
+- **Cross-file canonicalization** — `queue/<run_id>/<task_id>` placeholders match `queue-schema.md:136` + `run.sh:171` underscore form across all 5 files.
+- **Supervisor changed only to drop per-task `max_budget_usd`** — 3-line removal in `scripts/run.sh` (parse + conditional flag forwarding). `queue-lint.sh`, `guard-queue-shell.sh`, `permission-profile.md` references untouched. D7 contingent patch NOT triggered in this pass. Per-task budget cap feature dropped per 2026-04-25 USD-drop directive — supervisor backoff is the only protection.
+
+### E3 verification (this session)
+
+- Token counts: SKILL.md 1372; prepare.md 732; kick.md 1169 (advisory >1000); monitor.md 690; review.md 947. All within targets.
+- `_rot_build_prompt` resumption-header completeness (design §F1 baseline) confirmed via mainthread `awk 442,481` on `run.sh` — all 5 fields (continue-instruction, prior status/exit_reason/timestamp, session-log path, prior JSONL path, branch+HEAD) already emitted.
+- `<run_id>`/`<task_id>` canonical form verified via `grep 'queue/<' queue-schema.md` + `run.sh` — polish normalized hyphen occurrences.
+- Scope clean: `git status` shows only the 5 target files (one `.gitignore` silent-adjacent-edit from implementer was reverted by mainthread per handoff discipline).
+- Cross-links resolve: all 6 SKILL.md `## References` entries + 4 phase-reference peer links verified present.
+- Trust Boundary bit-for-bit preserved; `## Two Surfaces`, `## Prerequisites`, `## Entry Point`, `## Ralph Pattern` sections untouched.
+
+### Review + polish summary
+
+- **Design phase** (do-design): intake → 4-dispatch advise batch (rigorous, creative, navigator, envoy multi with cursor gap) → synthesis → zero-dispatch validate (mainthread E3 preflight) → decide. 2 `[CONFLICT]` items surfaced to user; user deferred to main-thread ("easy and simple"); F2 reframed from dollar-primary to spawn-count-primary per Max-plan context.
+- **Build review iter-1**: verifier PARTIAL (structural, expected per standalone-review context) + risk-reviewer 1S (security lens chain-of-trust seam) + envoy codex+opencode (cursor gap again). Synthesis: 5 should_fix (F1-F5) + 1 bundleable advisory (F8) + 3 follow-ups; 0 blocking consensus. Two conflicts where envoy providers escalated to [B] on F1/F4 downgraded to [S] by evidence weight.
+- **Fix iter-1**: F1 per-task `× 2` gating; F2 Outcome column + status/exit_reason mappings; F3 drop `running`/`iteration` claims supervisor never writes; F4 `<base_branch>` parameterized; F5 chain-of-trust advisory after spawn commands; F8 `on_failure` default noted.
+- **Review-gate iter-1**: ACCEPT via budget-aware inline verification (user memory `feedback_model_budget_pattern.md` + `feedback_decide_dont_ask.md`). Each of 6 fixes confirmed applied; scope clean; invariants intact.
+- **Polish**: conventions 6 findings + complexity 5 findings → synthesis 2 actions applied (A1 placeholder canonicalization at 6 sites + A2 table-header Title Case), 6 E2+ rejections with explicit rationale, 3 advisory-only notes.
+
+### Open follow-ups deferred past Slice D
+
+From design artifact §Follow-ups + review-iter-1 deferrals:
+
+- **Per-task main-thread model selection** — `model:` field in handoff frontmatter / queue.yaml → `--model` flag on spawn. Matches existing `project_main_thread_model_override.md` memory + empirical budget pattern. Separate slice.
+- **Delta-aware Monitor (O1 v2 candidate)** — `.monitor-last.json` cursor + diff rendering. Defer until first overnight-run signals prose rule-of-thumb inadequate.
+- **Monitor "stuck task" heuristic** — rate-limit backoff at 2h cap silently eats hours without trip-wire. Add `iter-unchanged-for-N-min` detector.
+- **F6** — `kick.md` >1000 tok advisory (1374 post re-reframe). Defensible (3 non-redundant spawn-variant command blocks + restructured queue-shape preview). Revisit if later polish finds prose to trim.
+- **F7** — `monitor.md:41` rule-of-thumb "of 10" framing awkward for small `max_iterations`. Pre-existing noise; address in separate prose pass.
+- **F9** — Monitor polling-floor prose tightening. No perf harm; optional clarification.
+- **D7 contingent** — 3-line `jq -c '{status,exit_reason,head_rev}' build-status.json` inline summary near `run.sh:462` IF live exit-validation reveals silent child restart. Not triggered at code-level; tied to P_B user-gated run.
+
+### Key learnings (from build-learnings.md)
+
+- **L1 (knowledge candidate)** — **Budget-aware review-gate resolution**: when fix-mode output is narrow prose-local (all fixes confined to already-reviewed scope, scope git-clean, no new attack surface), inline mainthread ACCEPT is a defensible alternative to re-dispatching 3 inspect agents. Saves ~40-60% of second-round 5h-budget spend. Candidate for `skills/do-build/references/build-review-gate.md` addendum: "Budget-aware inline ACCEPT allowed when (a) prior review had 0 consensus [B], (b) all fixes are prose-local within reviewed scope, (c) git status shows no scope creep, (d) invariants structurally preserved." User approval requested.
+- **L2 (weak knowledge candidate)** — User reframed F2 twice in one design phase: first from dollar-primary to spawn-count-primary ("I have Max plan; 5h window is the binding constraint"), then post-finalize from spawn-count-primary to queue-shape-primary ("overnight serial runs use supervisor backoff — not budget-constrained at all; 5h/weekly window only binds daytime parallel-subagent sessions"). Lesson: elicit user's **use-case context** (overnight-serial-with-backoff vs daytime-parallel-without) in intake before assembling advisor dispatch — billing model alone is insufficient. Corrected `feedback_model_budget_pattern.md` memory accordingly.
+- **L3** (reinforcement only) — Implementer silent-adjacent-edit defense: `.gitignore` was modified outside partition_scope; mainthread revert matched user memory `Handoff & Scope Enforcement`. Reinforces that mainthread must run `git status` after every implement/polish dispatch. No new knowledge candidate — pattern already documented.
+- **L4** — Invariant-first review brief (promoted to `docs/skill-guardrail-patterns.md` in Slice C curation) paid off again: verifier + envoy providers elevated the right severities using the invariants list. Reinforcement of prior knowledge, no new claim.
+
+### Session artifacts
+
+All under `.scratch/slice-d-claude-skill-e254/`:
+- `session-log.md` — full Phase Trace (catchup → 4-phase do-design → 6-phase do-build)
+- `intake.md` — design-phase intake (3 open UX forks + locked constraints)
+- `advise-batch-*.md` — 4 advisory outputs (rigorous, creative, navigator, envoy.codex+opencode)
+- `advise-synthesis.md` — per-fork directional merge + conflict surfacing
+- `design-artifact.md` — D1–D10 + C1–C14 + O1/O2 resolved + follow-ups
+- `scope-artifact.md` — P_A build partition + success criteria
+- `implement-P_A-report.md` + `fix-P_A-report.md` — implementer output
+- `review-brief.md` + `review-change-evidence.md` — review inputs
+- `inspect-{verifier,risk-reviewer,envoy.codex,envoy.opencode}.md` — inspect outputs
+- `inspect-synthesis.md` + `review-findings.md` — review synthesis + gate decision
+- `polish-advisory-{conventions,complexity}.md` + `polish-synthesis.md` + `polish-apply-report.md` — polish outputs
+- `build-status.json` — structured finalize artifact
+- `build-learnings.md` — this session's learnings (pending)
 
 ## Open items deferred to future slices
 
