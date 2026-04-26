@@ -1,5 +1,5 @@
 ---
-updated: 2026-04-24
+updated: 2026-04-26
 paths:
   - skills/do-build/references/build-status-schema.md
   - skills/do-build/references/build-finalize.md

@@ -1,5 +1,5 @@
 ---
-updated: 2026-04-24
+updated: 2026-04-26
 paths:
   - skills/use-skill-craft/SKILL.md
   - CONTRIBUTING.md
@@ -39,6 +39,29 @@ enforcement. Per rjmurillo/ai-agents post-mortem: trust-based inline instruction
 
 Spine mitigation: skills reactivate per-session — activation-time salience is
 the relevant mode. For true enforcement, pair with PostToolUse hooks.
+
+## Budget-Aware Inline ACCEPT
+
+Re-invoking `/run-review` after fix-mode is the default. Mainthread can
+skip the re-dispatch and accept inline when ALL five conditions hold:
+
+1. Prior review had 0 consensus `[B]` findings AND verifier was PASS or
+   PARTIAL-by-design (NOT verifier FAIL).
+2. All fixes are prose-local within previously-reviewed files — no new
+   files, no new attack surface, no structural changes.
+3. `git status` shows no scope creep beyond `partition_scope`.
+4. Invariants and trust-boundary prose structurally preserved.
+5. User has explicit budget-sensitivity guidance on file.
+
+Log the inline-ACCEPT decision in `session-log.md` with all five
+conditions checked. Default to re-dispatch when any condition is uncertain.
+
+**Audit trigger**: if a session skip is tempting because "the fix was
+tiny," run the checklist. Condition 2 (no new files/attack surface) and
+Condition 1 (prior verifier was PASS) are the most common failure points.
+
+[E2: `skills/do-build/references/build-review-gate.md` §Budget-aware
+inline ACCEPT (conditional); commit `fc79e12`]
 
 ## Layered Defense for Autonomous Runs
 

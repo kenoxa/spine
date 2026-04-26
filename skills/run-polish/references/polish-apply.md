@@ -20,6 +20,7 @@ Dispatch provides:
 - If two actions conflict (e.g., rename + restructure same symbol), report the conflict and skip both.
 - If an action targets code that no longer matches what synthesis saw, report the conflict rather than applying blindly.
 - Every E2+ finding in synthesis must map to an applied action or explicit skip with reason. Silent drops prohibited.
+- When an action renames, reformats, or drops a literal string (e.g. error messages, status codes, doc-table row labels), check for mirroring occurrences in adjacent doc tables, schema files, or README references that describe the same string. Apply both code and doc edits as a single action.
 
 ## Output
 
