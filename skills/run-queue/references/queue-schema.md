@@ -77,12 +77,55 @@ Required: `task_id`, `entry_skill`, and exactly one of `terminal_check` or `term
 
 ### Terminal check
 
-The supervisor decides a task is terminal when EITHER:
+The supervisor decides how to proceed after each child exits using two paths:
 
-- `terminal_artifact` is set and the file exists AND parses as valid `build-status.json` with `status ∈ {complete, partial, blocked}` (not `in_progress`). This is the default and recommended path.
-- `terminal_check` is set and is a shell expression returning exit 0. Escape hatch for tasks whose entry skill is not do-build.
+- `terminal_artifact` is set: supervisor reads `.status` from the artifact. **Artifact-read condition** (parseable): `.status ∈ {complete, partial, blocked, in_progress}`. **Loop-termination condition** (break): only `complete` or `blocked` stop the loop; `partial` and `in_progress` continue iteration. This is the default and recommended path; enables intra-task looping.
+- `terminal_check` is set and is a shell expression returning exit 0. Single-shot: exit 0 → `complete`; non-zero → `blocked`. No loop continuation. Escape hatch for tasks whose entry skill is not do-build.
 
 The sentinel `build-status.json` (string literal) is shorthand for `.scratch/${SESSION}/build-status.json` — the supervisor resolves `${SESSION}` from its own per-task scratch directory.
+
+### Terminal-status semantics
+
+**Supervisor implementation:** `run.sh:_classify_terminal_status` (artifact read and terminal-check logic) and `run.sh:_rot_iterate` (loop control case). Pinned line numbers drift; symbol names are stable.
+
+**`terminal_check`** is single-shot: the shell expression runs once after each child exits. Exit 0 → task `complete`. Non-zero → task `blocked`. The loop never continues from `terminal_check`. Use this path for tasks whose entry skill is not `do-build` and that have no multi-iteration contract.
+
+**`terminal_artifact`** enables intra-task looping. The supervisor reads `.status` from the artifact after each child exits. `complete` or `blocked` breaks the loop (terminal). `partial` or `in_progress` keeps the loop running — the supervisor respawns `claude -p` with a resumption header prepended to the original handoff body.
+
+**Worked trace — 3-iteration task:**
+
+**Iter 1:** Child starts from the original handoff body. Child writes:
+```json
+{"status": "in_progress", "exit_reason": "iter-1-not-done"}
+```
+Supervisor reads `in_progress` → non-terminal → loop continues.
+
+**Iter 2:** Supervisor prepends a resumption header before the handoff body. The child receives:
+```
+## Continuing task <task-id> (iteration 2 of 10)
+Prior iteration ended at <timestamp> with status=in_progress, exit_reason=iter-1-not-done.
+Session-log (if exists): .scratch/queue-<run_id>-<task_id>/session-log.md
+Prior iteration transcript: .scratch/queue-<run_id>-<task_id>/iterations/1-1.jsonl
+Branch: queue/<run_id>/<task_id> (current HEAD: <sha>)
+
+Continue per the original handoff body below. Pick up where the prior iteration stopped — do not restart from scratch.
+
+---
+...original handoff body follows...
+```
+Child writes:
+```json
+{"status": "in_progress", "exit_reason": "iter-2-not-done"}
+```
+Supervisor reads `in_progress` → non-terminal → loop continues.
+
+**Iter 3:** Same resumption header pattern (references `1-2.jsonl`). Child writes:
+```json
+{"status": "complete", "exit_reason": "all-done"}
+```
+Supervisor reads `complete` → loop breaks; task is final `complete`.
+
+See [§Intra-task loop](#intra-task-loop) for the full decision table mapping each status to supervisor action.
 
 ## Lint Rules (`scripts/queue-lint.sh`)
 
