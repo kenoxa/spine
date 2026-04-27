@@ -155,8 +155,9 @@ _skill_root=$(cd "$_script_dir/.." && pwd)
 _queue_hook="$_script_dir/guard-queue-shell.sh"
 _overlay_tmpl="$_skill_root/settings-overlay.tmpl.json"
 _overlay_review_tmpl="$_skill_root/settings-overlay-review.tmpl.json"
+_overlay_merge_tmpl="$_skill_root/settings-overlay-merge.tmpl.json"
 
-for _f in "$_queue_hook" "$_overlay_tmpl" "$_overlay_review_tmpl"; do
+for _f in "$_queue_hook" "$_overlay_tmpl" "$_overlay_review_tmpl" "$_overlay_merge_tmpl"; do
     [ -e "$_f" ] || { _err "supervisor: missing run-queue asset: $_f"; exit 2; }
 done
 [ -x "$_queue_hook" ] || { _err "supervisor: run-queue hook not executable: $_queue_hook"; exit 2; }
@@ -225,6 +226,14 @@ _overlay_review_rendered="$_qdir/.run-queue-settings-review.json"
 sed "s|@@GUARD_PATH@@|$_queue_hook|g" "$_overlay_review_tmpl" > "$_overlay_review_rendered"
 jq -e . "$_overlay_review_rendered" >/dev/null 2>&1 || {
     _err "supervisor: failed to render review settings overlay (bad template or jq)"
+    exit 2
+}
+
+# Render the merge-stage settings overlay (edit-permitted; agent must resolve conflict markers).
+_overlay_merge_rendered="$_qdir/.run-queue-settings-merge.json"
+sed "s|@@GUARD_PATH@@|$_queue_hook|g" "$_overlay_merge_tmpl" > "$_overlay_merge_rendered"
+jq -e . "$_overlay_merge_rendered" >/dev/null 2>&1 || {
+    _err "supervisor: failed to render merge settings overlay (bad template or jq)"
     exit 2
 }
 
@@ -862,9 +871,25 @@ _rot_run_pipeline() {
                                     _update_task_state "$_rot_id" outcome '"merged"'
                                     _qlog "task=$_rot_id pipeline complete: merged into $_integration_branch"
                                 else
-                                    _update_task_state "$_rot_id" outcome '"blocked-by-merge-conflict"'
-                                    _update_task_state "$_rot_id" exit_reason '"merge-conflict-aborted"'
-                                    _qlog "task=$_rot_id merge conflict; branch retained for morning"
+                                    _mrg_resolve_stage
+
+                                    if [ -f "$_woke" ]; then
+                                        git checkout -q "$_base_rev"
+                                        _current_task_id=""
+                                        return 3
+                                    fi
+
+                                    if [ "$_mrg_resolve_ok" = "1" ]; then
+                                        _update_task_state "$_rot_id" status  '"merged"'
+                                        _update_task_state "$_rot_id" outcome '"merged"'
+                                        _update_task_state "$_rot_id" exit_reason '"merge-resolved-accepted"'
+                                        _qlog "task=$_rot_id merge-stage: resolved and integrated"
+                                    else
+                                        _update_task_state "$_rot_id" outcome '"blocked-by-merge-conflict"'
+                                        _update_task_state "$_rot_id" status  '"blocked"'
+                                        _update_task_state "$_rot_id" exit_reason "\"$_mrg_resolve_exit_reason\""
+                                        _qlog "task=$_rot_id merge-stage: escalating ($_mrg_resolve_exit_reason); branch retained for morning"
+                                    fi
                                 fi
                                 ;;
                         esac
@@ -925,6 +950,10 @@ _get_branch_cleanup() {
 #   review-malformed-verdict  — review-verdict.json missing or invalid JSON
 #   merge-conflict-aborted    — git merge --no-ff produced conflict; abort succeeded
 #   review-passed-pending-merge — merge_policy=manual; review passed but no auto-merge
+# New exit_reasons added by Slice I (for documentation/reference):
+#   merge-resolved-accepted         — /run-merge resolved all conflicts; re-review ACCEPT; integration ff'd
+#   merge-resolve-failed            — /run-merge verdict=failed/aborted or verdict file missing/malformed
+#   merge-conflict-after-resolution — second conflict after resolution (another task merged to integration)
 
 _rev_run_stage() {
     # _rev_run_stage — spawn /run-review for the current task; parse verdict.
@@ -1014,6 +1043,238 @@ _rev_run_stage() {
         esac
     fi
     _qlog "task=$_rot_id review-stage verdict=$_rev_verdict blocking=$_rev_blocking"
+    return 0
+}
+
+_mrg_scratch_cleanup() {
+    # Exit-path cleanup for _mrg_resolve_stage.
+    # --abort: run git merge --abort first. --retain: skip branch delete (forensic preservation).
+    _msc_abort=0; _msc_retain=0
+    for _msc_a in "$@"; do
+        case "$_msc_a" in
+            --abort)  _msc_abort=1 ;;
+            --retain) _msc_retain=1 ;;
+        esac
+    done
+    [ "$_msc_abort" = "1" ] && { git merge --abort 2>/dev/null || true; }
+    git checkout -q "$_base_rev" 2>/dev/null || true
+    [ "$_msc_retain" = "0" ] && { git branch -D "$_mrg_scratch_branch" 2>/dev/null || true; }
+}
+
+_mrg_resolve_stage() {
+    # _mrg_resolve_stage — attempt agentic conflict resolution via /run-merge for the current task.
+    # Called when _mrg_into_integration failed (conflict) and merge_policy != manual.
+    # Reads caller scope: _rot_id, _rot_branch, _rot_task_scratch,
+    #   _overlay_merge_rendered, _overlay_review_rendered, _woke, _integration_branch,
+    #   _run_id, _base_rev, _repo_root, _rot_review_depth.
+    # Sets caller scope: _mrg_resolve_ok ("1" on full success, "0" on failure),
+    #   _mrg_resolve_exit_reason.
+    # Returns: 0 always (caller reads _mrg_resolve_ok and checks _woke).
+    _mrg_resolve_ok=0
+    _mrg_resolve_exit_reason="merge-resolve-failed"
+
+    _mrg_verdict_path="$_rot_task_scratch/merge-verdict.json"
+    _mrg_verdict_abs="$_repo_root/$_mrg_verdict_path"
+    _mrg_brief_path="$_rot_task_scratch/merge-brief.md"
+    _mrg_scratch_branch="queue/$_run_id/$_rot_id-merge"
+    _merge_timeout=${SPINE_QUEUE_MERGE_TIMEOUT:-1800}
+    _qlog "task=$_rot_id merge-stage timeout=${_merge_timeout}s (SPINE_QUEUE_MERGE_TIMEOUT=${SPINE_QUEUE_MERGE_TIMEOUT:-unset})"
+
+    _mrg_base_ref=$(git merge-base "$_integration_branch" "$_rot_branch" 2>/dev/null) || {
+        _qlog "task=$_rot_id merge-stage: cannot compute merge-base; escalating"
+        return 0
+    }
+    _mrg_integration_head=$(git rev-parse "$_integration_branch" 2>/dev/null) || {
+        _qlog "task=$_rot_id merge-stage: cannot resolve integration HEAD; escalating"
+        return 0
+    }
+
+    # Create scratch branch from integration HEAD and re-attempt merge (produces conflict in working tree).
+    git checkout -q -b "$_mrg_scratch_branch" "$_integration_branch" 2>/dev/null || {
+        _qlog "task=$_rot_id merge-stage: cannot create scratch branch $_mrg_scratch_branch; escalating"
+        _mrg_scratch_cleanup
+        return 0
+    }
+    git merge --no-ff "$_rot_branch" 2>/dev/null || true
+
+    _mrg_conflicted=$(git diff --name-only --diff-filter=U 2>/dev/null)
+    if [ -z "$_mrg_conflicted" ]; then
+        # Rare: merge succeeded without conflict on scratch branch (e.g., integration advanced
+        # between the first attempt and now, resolving the conflict structurally).
+        # git merge --no-ff already created the merge commit; git commit --no-edit is a no-op.
+        # Must fast-forward integration branch before declaring success.
+        _qlog "task=$_rot_id merge-stage: scratch merge clean; fast-forwarding integration"
+        git checkout -q "$_integration_branch" 2>/dev/null || {
+            _qlog "task=$_rot_id merge-stage: cannot checkout integration branch for rare-clean ff; escalating"
+            _mrg_scratch_cleanup
+            return 0
+        }
+        if git merge --ff-only "$_mrg_scratch_branch" 2>/dev/null; then
+            _mrg_resolve_ok=1
+            _mrg_resolve_exit_reason="merge-resolved-accepted"
+            _qlog "task=$_rot_id merge-stage: rare-clean ff succeeded"
+        else
+            _mrg_resolve_exit_reason="merge-conflict-after-resolution"
+            _qlog "task=$_rot_id merge-stage: rare-clean ff failed (second conflict)"
+        fi
+        _mrg_scratch_cleanup
+        return 0
+    fi
+
+    # Write merge brief: YAML frontmatter + per-file (A, B, O) triples + commit context.
+    _mrg_brief_tmp=$(mktemp -t run-queue-merge-brief.XXXXXX)
+    {
+        printf -- '---\n'
+        printf 'task_id: %s\n' "$_rot_id"
+        printf 'branch: %s\n' "$_rot_branch"
+        printf 'integration_branch: %s\n' "$_integration_branch"
+        printf 'base_ref: %s\n' "$_mrg_base_ref"
+        printf 'verdict_path: %s\n' "$_mrg_verdict_abs"
+        printf -- '---\n\n'
+        for _cf in $_mrg_conflicted; do
+            printf '## Conflict: %s\n\n### Commit Context\n\n' "$_cf"
+            printf '**Integration side (A)**:\n'
+            git log --oneline "$_mrg_base_ref..$_integration_branch" -- "$_cf" 2>/dev/null | head -5 | sed 's/^/- /' || true
+            printf '\n**Task side (B)**:\n'
+            git log --oneline "$_mrg_base_ref..$_rot_branch" -- "$_cf" 2>/dev/null | head -5 | sed 's/^/- /' || true
+            printf '\n\n### (A, B, O) Triple\n\n**O — common ancestor**:\n```\n'
+            git show "$_mrg_base_ref:$_cf" 2>/dev/null || printf '(new file)\n'
+            printf '\n```\n\n**A — integration branch (ours)**:\n```\n'
+            git show "$_integration_branch:$_cf" 2>/dev/null || printf '(deleted)\n'
+            printf '\n```\n\n**B — task branch (theirs)**:\n```\n'
+            git show "$_rot_branch:$_cf" 2>/dev/null || printf '(deleted)\n'
+            printf '\n```\n\n### Conflict Markers (in-tree)\n\n```\n'
+            cat "$_cf" 2>/dev/null || true
+            printf '\n```\n\n'
+        done
+    } > "$_mrg_brief_tmp"
+    mv "$_mrg_brief_tmp" "$_mrg_brief_path"
+
+    _mrg_prompt_tmp=$(mktemp -t run-queue-merge-prompt.XXXXXX)
+    printf '/run-merge %s\n' "$_mrg_brief_path" > "$_mrg_prompt_tmp"
+    _qlog "task=$_rot_id merge-stage spawn branch=$_mrg_scratch_branch brief=$_mrg_brief_path"
+
+    # Export stage signal so guard hook can apply merge-specific deny rules.
+    SPINE_QUEUE_STAGE=merge
+    export SPINE_QUEUE_STAGE
+    _spawn_child "$_mrg_prompt_tmp" "$_rot_task_scratch/merge.jsonl" \
+        "$_rot_task_scratch/merge.stderr" "$_merge_timeout" \
+        claude --print \
+        --settings "$_overlay_merge_rendered" \
+        --permission-mode dontAsk \
+        --output-format stream-json \
+        --include-partial-messages \
+        --verbose \
+        --no-session-persistence
+    unset SPINE_QUEUE_STAGE
+    rm -f "$_mrg_prompt_tmp"
+
+    if [ -f "$_woke" ]; then
+        _qlog "task=$_rot_id merge-stage: trip-wire after spawn; scratch branch $_mrg_scratch_branch retained for forensics"
+        _mrg_scratch_cleanup --abort --retain
+        return 0
+    fi
+
+    # Parse verdict (fail-secure: missing or malformed → failed).
+    _mrg_v="MALFORMED"
+    _mrg_files=""
+    if [ -f "$_mrg_verdict_abs" ]; then
+        _mrg_sv=$(jq -r '.schema_version // empty' "$_mrg_verdict_abs" 2>/dev/null) || _mrg_sv=""
+        if [ "$_mrg_sv" = "1" ]; then
+            _mrg_v=$(jq -r '.verdict // empty' "$_mrg_verdict_abs" 2>/dev/null) || _mrg_v=""
+            _mrg_files=$(jq -r '.files_resolved[]? // empty' "$_mrg_verdict_abs" 2>/dev/null) || _mrg_files=""
+        else
+            _qlog "task=$_rot_id merge verdict schema_version='$_mrg_sv' unsupported (expected: 1)"
+        fi
+    fi
+    _qlog "task=$_rot_id merge-stage verdict=$_mrg_v"
+
+    if [ "$_mrg_v" != "resolved" ]; then
+        _mrg_scratch_cleanup --abort
+        return 0
+    fi
+
+    # Ensure we are on the scratch branch before post-spawn verification.
+    # The agent may have checked out a different branch; re-establish position.
+    git checkout -q "$_mrg_scratch_branch" 2>/dev/null || {
+        _qlog "task=$_rot_id merge-stage: post-verify FAIL: cannot checkout scratch branch after spawn"
+        _mrg_scratch_cleanup
+        return 0
+    }
+
+    # Post-spawn verification:
+    # (1) no unmerged files, (2) HEAD advanced, (3) no residual markers in resolved files,
+    # (4) files_resolved ⊆ _mrg_conflicted (agent only claimed files that were actually in conflict).
+    _mrg_unmerged=$(git diff --name-only --diff-filter=U 2>/dev/null)
+    if [ -n "$_mrg_unmerged" ]; then
+        _qlog "task=$_rot_id merge-stage: post-verify FAIL: unmerged files remain: $(printf '%s' "$_mrg_unmerged" | tr '\n' ' ')"
+        _mrg_scratch_cleanup --abort
+        return 0
+    fi
+    _mrg_head_now=$(git rev-parse HEAD 2>/dev/null)
+    if [ "$_mrg_head_now" = "$_mrg_integration_head" ]; then
+        _qlog "task=$_rot_id merge-stage: post-verify FAIL: HEAD did not advance (no commit)"
+        _mrg_scratch_cleanup
+        return 0
+    fi
+    # shellcheck disable=SC2086  # _mrg_files is newline-separated; word-split intended
+    if [ -n "$_mrg_files" ] && git diff "$_mrg_integration_head" HEAD -- $_mrg_files 2>/dev/null | grep -q '^+<<<<<<< '; then
+        _qlog "task=$_rot_id merge-stage: post-verify FAIL: residual conflict markers in resolved files"
+        _mrg_scratch_cleanup
+        return 0
+    fi
+    # Check (4): every file in files_resolved must have been in the conflict set.
+    # This prevents the agent from claiming resolution of non-conflicted files and
+    # avoids false positives from auto-merged files appearing in the merge commit diff.
+    for _rf in $_mrg_files; do
+        _rf_in_conflict=0
+        for _cf2 in $_mrg_conflicted; do
+            [ "$_rf" = "$_cf2" ] && { _rf_in_conflict=1; break; }
+        done
+        if [ "$_rf_in_conflict" = "0" ]; then
+            _qlog "task=$_rot_id merge-stage: post-verify FAIL: files_resolved contains '$_rf' not in conflict set"
+            _mrg_scratch_cleanup
+            return 0
+        fi
+    done
+    _qlog "task=$_rot_id merge-stage: post-verify PASS; spawning re-review at depth=focused"
+
+    # Re-review the resolution (C4: re-review is the empirical gate; Merge-Bench ceiling <60%).
+    # Temporarily override branch/base_rev so _rev_run_stage scopes to the resolution delta.
+    _rot_branch_saved="$_rot_branch"
+    _base_rev_saved="$_base_rev"
+    _rot_review_depth_saved="$_rot_review_depth"
+    _rot_branch="$_mrg_scratch_branch"
+    _base_rev="$_mrg_integration_head"
+    _rot_review_depth="focused"
+    _rev_run_stage
+    _rot_branch="$_rot_branch_saved"
+    _base_rev="$_base_rev_saved"
+    _rot_review_depth="$_rot_review_depth_saved"
+
+    _qlog "task=$_rot_id merge-re-review verdict=$_rev_verdict blocking=$_rev_blocking"
+
+    if [ "$_rev_verdict" = "ACCEPT" ] && [ "$_rev_blocking" -eq 0 ]; then
+        # Fast-forward integration branch to the resolved scratch branch.
+        git checkout -q "$_integration_branch" 2>/dev/null || {
+            _qlog "task=$_rot_id merge-stage: cannot checkout integration branch for ff; escalating"
+            _mrg_scratch_cleanup
+            return 0
+        }
+        if git merge --ff-only "$_mrg_scratch_branch" 2>/dev/null; then
+            _qlog "task=$_rot_id merge-stage: integration branch fast-forwarded to resolved scratch"
+            _mrg_resolve_ok=1
+            _mrg_resolve_exit_reason="merge-resolved-accepted"
+        else
+            # Another task merged to integration between resolution and ff — distinct failure mode.
+            _qlog "task=$_rot_id merge-stage: ff failed (second conflict after resolution)"
+            _mrg_resolve_exit_reason="merge-conflict-after-resolution"
+        fi
+    else
+        _qlog "task=$_rot_id merge-stage: re-review rejected (verdict=$_rev_verdict blocking=$_rev_blocking)"
+    fi
+
+    _mrg_scratch_cleanup
     return 0
 }
 

@@ -159,6 +159,16 @@ Bash)
         *"git -C "*)          _deny "git-C-sidestep-blocked"   "$_cmd_norm" ;;
     esac
 
+    # Merge-stage additional restrictions (SPINE_QUEUE_STAGE=merge).
+    # Deny history-corrupting ops on the scratch branch — agent must not rewrite
+    # commits it did not author, which would invalidate the post-spawn verification.
+    if [ "${SPINE_QUEUE_STAGE:-}" = "merge" ]; then
+        case "$_cmd_norm" in
+            *"git reset"*"--hard"*) _deny "merge-stage-reset-hard" "$_cmd_norm" ;;
+            *"git commit"*"--amend"*) _deny "merge-stage-commit-amend" "$_cmd_norm" ;;
+        esac
+    fi
+
     # Layer 2: tokenized scan — catches option-bearing bypasses (B2 + F4)
     # Skip leading VAR=value env-var assignments; then expect "git" as program.
     _is_blocked_git() {

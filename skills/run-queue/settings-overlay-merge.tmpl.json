@@ -1,0 +1,21 @@
+{
+  "//": "run-queue merge-stage settings overlay template. Rendered with absolute paths at merge-stage spawn; passed via `claude -p --settings`. Unlike the review overlay, Write(*) and Edit(*) are NOT denied — /run-merge must resolve conflict markers in tracked source files. The guard hook (guard-queue-shell.sh, SPINE_QUEUE_STAGE=merge) blocks git push, git reset --hard, git commit --amend, and out-of-repo writes.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "@@GUARD_PATH@@"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "deny": [
+      "NotebookEdit(*)"
+    ]
+  }
+}

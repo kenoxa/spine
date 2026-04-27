@@ -1,5 +1,5 @@
 ---
-updated: 2026-04-26
+updated: 2026-04-27
 paths:
   - skills/use-skill-craft/SKILL.md
   - CONTRIBUTING.md
@@ -110,6 +110,22 @@ substring.
 **Pattern:** hook layer + git-config belt = two independent failure surfaces.
 Any LLM-wrapping context that needs to neutralize git push operations can reuse
 the env-var set verbatim — no repo state required, no cleanup contract.
+
+**Post-spawn scope verification: set membership, not diff scope.** When a
+supervisor spawns an agent over a bounded file set, verify the agent's claimed
+`files_resolved` against the pre-spawn conflict set — not against `git diff
+HEAD^..HEAD --name-only`. Merge commits include all auto-merged files,
+producing false positives for any file the agent touched incidentally. Capture
+the constrained set before spawn (`git diff --name-only --diff-filter=U`),
+then check `files_resolved ⊆ conflict_set` after. Pair with: residual
+unmerged-index check (`--diff-filter=U` empty), HEAD-advance check after
+re-checkout of scratch branch, and marker scan over claimed paths only.
+Fail-secure: any claimed file outside the pre-spawn set is a post-verify FAIL.
+
+[E2: `skills/run-queue/scripts/run.sh:1100` (pre-spawn capture),
+`run.sh:1226–1239` `_mrg_resolve_stage` set-membership loop;
+`run.sh:1197,1205` (re-checkout, unmerged re-check); B1 blocking
+finding, review iter 1]
 
 ## Ecosystem Context
 
