@@ -24,6 +24,11 @@ _cleanup() {
             "$stderr_log" > "${stderr_log}.tmp" && mv "${stderr_log}.tmp" "$stderr_log"
         chmod 600 "$stderr_log"
     fi
+    if [ -f "${stderr_log}.orig" ]; then
+        sed -E 's/(sk-|key-|AKIA|ghp_|gho_|xai-|ant-|github_pat_|ghu_|ghs_|ghr_|eyJ|xoxb-|xoxp-|glpat-|npm_|pypi-)[A-Za-z0-9_-]{16,}/[REDACTED]/g' \
+            "${stderr_log}.orig" > "${stderr_log}.orig.tmp" && mv "${stderr_log}.orig.tmp" "${stderr_log}.orig"
+        chmod 600 "${stderr_log}.orig"
+    fi
 }
 init_cleanup() { trap _cleanup EXIT INT TERM; }
 
@@ -41,7 +46,10 @@ emit_auth_hint() {
     [ "$_rc" -eq 0 ] && return 0
     [ -f "$stderr_log" ] || return 0
     grep -qiE 'not logged in|not authenticated|authentication required|authorization.*error|please.*sign in|please.*log in' "$stderr_log" 2>/dev/null || return 0
-    error "Hint: re-authenticate — $1"
+    _hint_msg="Hint: re-authenticate — $1"
+    error "$_hint_msg"
+    _hint_file="${output_file%.md}.hint"
+    printf '%s\n' "$_hint_msg" > "$_hint_file"
 }
 
 validate_output() {

@@ -53,6 +53,10 @@ fi
 
 printf '%s failed (exit %s), attempting cursor-agent fallback\n' "$_provider" "$_exit_code" >&2
 
+# Preserve original provider's stderr before cursor overwrites it.
+# Without this, the original error is permanently lost on successful fallback.
+[ -f "$_stderr_log" ] && cp "$_stderr_log" "${_stderr_log}.orig" 2>/dev/null || :
+
 _model_args=""
 [ -n "$_model" ]  && _model_args="$_model_args --model $_model"
 [ -n "$_effort" ] && _model_args="$_model_args --effort $_effort"

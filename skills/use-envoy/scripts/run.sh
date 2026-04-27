@@ -5,6 +5,7 @@
 # Exit: propagates exit code from provider script.
 
 set -eu
+umask 077
 
 error() { printf 'Error: %s\n' "$*" >&2; }
 
@@ -133,7 +134,7 @@ if [ "$mode" = "multi" ]; then
         case " $_seen " in *" $_p "*) continue ;; esac
         _seen="$_seen $_p"
         # Exclude self
-        [ "$_p" = "$_self" ] && continue
+        [ "$_p" = "$_self" ] && [ "$_p" != opencode ] && continue
         _launched="$_launched $_p"
     done
 
@@ -168,6 +169,7 @@ if [ "$mode" = "multi" ]; then
 
     # --- Wait + progressive manifest (emit each path as its provider completes) ---
     _aggregate=0
+    _manifest_result=""
     set -- $_launched
     for _pid in $_child_pids; do
         _rc=0
@@ -176,19 +178,36 @@ if [ "$mode" = "multi" ]; then
         if [ "$1" = "opencode" ]; then
             # OpenCode multi-model: glob for per-model output files
             set +f
+            _ofiles=""
             for _f in "${_base}.opencode."*.md; do
-                [ -f "$_f" ] && [ -s "$_f" ] && printf '%s\n' "$_f"
+                [ -f "$_f" ] && [ -s "$_f" ] && printf '%s\n' "$_f" && _ofiles="$_ofiles $_f"
             done
-            set -f
             # success if at least one output file exists
-            if ls "${_base}.opencode."*.md >/dev/null 2>&1; then
+            if [ -n "$_ofiles" ]; then
                 [ "$_aggregate" -ne 0 ] && _aggregate=0
+                _manifest_result="${_manifest_result}opencode: OK${_ofiles}\n"
+            else
+                _manifest_result="${_manifest_result}opencode: FAIL(${_rc})\n"
             fi
+            set -f
         else
-            [ -s "${_base}.${1}.md" ] && printf '%s\n' "${_base}.${1}.md"
+            if [ -s "${_base}.${1}.md" ]; then
+                printf '%s\n' "${_base}.${1}.md"
+                _manifest_result="${_manifest_result}${1}: OK ${_base}.${1}.md\n"
+            else
+                _manifest_result="${_manifest_result}${1}: FAIL(${_rc})\n"
+            fi
         fi
         shift
     done
+
+    # --- Emit dispatch manifest so post-hoc triage can reconstruct what happened ---
+    {
+        printf 'self: %s\n' "$_self"
+        printf 'candidates: %s\n' "${_seen# }"
+        printf 'launched: %s\n' "${_launched# }"
+        printf '%b' "$_manifest_result"
+    } > "${_base}.manifest"
 
     exit "$_aggregate"
 fi
