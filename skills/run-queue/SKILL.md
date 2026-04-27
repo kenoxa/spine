@@ -28,7 +28,7 @@ The skill walks four phases in order. Each phase has a dedicated reference.
 | **Prepare** | Scan for handoff candidates, audit resumption contracts, propose a DAG, materialize queue only after user confirmation. | [references/prepare.md](references/prepare.md) |
 | **Kick** | Lint the queue, show queue preview (DAG + tasks + branches + tmux command), confirm with user, spawn the supervisor under tmux. | [references/kick.md](references/kick.md) |
 | **Monitor** | Stateless check-in: read `queue-state.json` + `queue-log.md`, surface trip-wire if present, report per-task progress. | [references/monitor.md](references/monitor.md) |
-| **Review** | Morning walk-through of `queue-report.md`; propose merge/discard/re-queue per task; merge only after per-task confirmation. | [references/review.md](references/review.md) |
+| **Review** | Morning walk-through of `queue-report.md`; propose merge/discard/re-queue per task; merge only after per-task confirmation. When `review_check: true` (default), the supervisor automatically spawned `/run-review` per task after `complete` status and merged accepted branches into `queue/<run_id>/result`; fast-forward to `main` happened at queue end — morning review consumes the results, not raw branches. | [references/review.md](references/review.md) |
 
 ## Queue Shape (v1)
 

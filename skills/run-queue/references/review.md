@@ -4,6 +4,12 @@
 
 Phase goal: morning walk-through of `queue-report.md` per task — show what each task produced, propose merge/discard/re-queue per status, and merge only after per-task user confirmation.
 
+## Auto-Review and Integration Branch
+
+When `review_check: true` (the default), the supervisor ran `/run-review` automatically for each task that reached `complete` status, then merged accepted branches into `queue/<run_id>/result` (the integration branch). At queue end, `main` was fast-forwarded to the integration branch HEAD — a single atomic mutation. Tasks that passed all three stages (implement → review → merge) are already on `main`; no morning merge is needed for those.
+
+The JSON verdict written by each review spawn lives at `.scratch/queue-<run_id>-<task_id>/review-verdict.json`. The queue-report outcome column reflects the pipeline result directly.
+
 ## Steps
 
 ### 1. Read inputs
@@ -45,7 +51,11 @@ Statuses come from `queue-state.json`; `exit_reason` disambiguates within `block
 
 | Outcome | Proposed action |
 |---------|-----------------|
-| `complete` | Show `git diff <base_branch> queue/<run_id>/<task_id>` summary. Offer `git merge queue/<run_id>/<task_id>` after the user reviews the diff. |
+| `merged` | Task is already on `main` via the integration branch. No morning merge needed. Confirm with user and move on. |
+| `review-passed-pending-merge` (`merge_policy: manual`) | Review passed but `merge_policy: manual` was set — the supervisor did not auto-merge. Show the verdict path (`.scratch/queue-<run_id>-<task_id>/review-verdict.json`) and branch reference (`queue/<run_id>/<task_id>`). User manually merges into `main` after reviewing the diff. |
+| `blocked-by-review` | `/run-review` found ≥1 blocking finding. Show the verdict path. User reviews findings, may amend the branch, and may rerun `/run-review` manually before re-queuing or merging. |
+| `blocked-by-merge-conflict` | `git merge --no-ff` aborted due to a conflict; branch retained. User resolves the conflict manually (Slice I will add `/run-merge` for auto-resolve). After resolving, merge the branch into `main` by hand. |
+| `complete` | `review_check: false` was set — no auto-review ran. Show `git diff <base_branch> queue/<run_id>/<task_id>` summary. Offer `git merge queue/<run_id>/<task_id>` after the user reviews the diff. |
 | `partial` (per-iteration status from `build-status.json`; task continues its loop — not a terminal queue status) | Show diff + exit_reason. Present three choices: merge as-is / discard branch / re-queue for another run. User decides. |
 | `blocked` | Show `exit_reason` + tail of the final iteration JSONL (`<attempts>-<iter>.jsonl` — see step 4). Propose: re-queue with adjusted handoff / abandon. |
 | `skipped` | Confirm the transitive skip was expected (parent task failed with `on_failure: skip`). No branch to merge. |

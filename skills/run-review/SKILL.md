@@ -63,6 +63,8 @@ Mainthread. Load [review-output.md](references/review-output.md).
 
 Conflict resolution → re-sort → user output → visual diff → findings artifact.
 
+- Phase 4 also emits `review-verdict.json` (machine-readable verdict) — see [review-verdict-schema.md](references/review-verdict-schema.md).
+
 ---
 
 ## Shared Rules
@@ -116,3 +118,5 @@ Before raising any finding, verify:
 ## See Also
 
 `security-reviewer` (deeper heuristics), `@visualizer` (visual diff review — dispatched after findings), `reducing-entropy` (net-complexity measurement), `differential-review` (security-focused PR review with blast radius detection), `fp-check` (systematic true/false positive verification).
+
+Machine verdict: see [`review-verdict-schema.md`](references/review-verdict-schema.md).

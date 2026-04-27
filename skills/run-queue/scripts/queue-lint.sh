@@ -78,6 +78,83 @@ if [ -n "$_profile_path" ]; then
     fi
 fi
 
+# --- Queue-level pipeline fields (optional) ---
+
+# review_check — queue-level default; bool; true|false
+_q_rc=$(printf '%s' "$_qjson" | jq -r '.review_check // empty')
+if [ -n "$_q_rc" ]; then
+    case "$_q_rc" in
+        true|false) : ;;
+        *) _record "queue.yaml: invalid review_check '$_q_rc' (expected: true|false)" ;;
+    esac
+fi
+
+# review_depth — queue-level default; string-enum
+_q_rd=$(printf '%s' "$_qjson" | jq -r '.review_depth // empty')
+if [ -n "$_q_rd" ]; then
+    case "$_q_rd" in
+        *[[:space:]]*)
+            _record "queue.yaml: review_depth contains whitespace" ;;
+        *'`'*|*'$'*|*'|'*|*';'*|*'&'*|*'>'*|*'<'*|*\\*)
+            _record "queue.yaml: review_depth contains shell metachars (\`\$|;&><\\ not permitted)" ;;
+    esac
+    if [ ${#_q_rd} -gt 64 ]; then
+        _record "queue.yaml: review_depth exceeds 64 characters"
+    fi
+    case "$_q_rd" in
+        *[!A-Za-z0-9_-]*)
+            _record "queue.yaml: review_depth contains characters outside allowed set [A-Za-z0-9_-]" ;;
+    esac
+    case "$_q_rd" in
+        focused|standard|deep) : ;;
+        *) _record "queue.yaml: invalid review_depth '$_q_rd' (expected: focused|standard|deep)" ;;
+    esac
+fi
+
+# merge_policy — queue-level default; string-enum
+_q_mp=$(printf '%s' "$_qjson" | jq -r '.merge_policy // empty')
+if [ -n "$_q_mp" ]; then
+    case "$_q_mp" in
+        *[[:space:]]*)
+            _record "queue.yaml: merge_policy contains whitespace" ;;
+        *'`'*|*'$'*|*'|'*|*';'*|*'&'*|*'>'*|*'<'*|*\\*)
+            _record "queue.yaml: merge_policy contains shell metachars (\`\$|;&><\\ not permitted)" ;;
+    esac
+    if [ ${#_q_mp} -gt 64 ]; then
+        _record "queue.yaml: merge_policy exceeds 64 characters"
+    fi
+    case "$_q_mp" in
+        *[!A-Za-z0-9_-]*)
+            _record "queue.yaml: merge_policy contains characters outside allowed set [A-Za-z0-9_-]" ;;
+    esac
+    case "$_q_mp" in
+        auto|manual) : ;;
+        *) _record "queue.yaml: invalid merge_policy '$_q_mp' (expected: auto|manual)" ;;
+    esac
+fi
+
+# branch_cleanup — queue-level ONLY; string-enum
+_q_bc=$(printf '%s' "$_qjson" | jq -r '.branch_cleanup // empty')
+if [ -n "$_q_bc" ]; then
+    case "$_q_bc" in
+        *[[:space:]]*)
+            _record "queue.yaml: branch_cleanup contains whitespace" ;;
+        *'`'*|*'$'*|*'|'*|*';'*|*'&'*|*'>'*|*'<'*|*\\*)
+            _record "queue.yaml: branch_cleanup contains shell metachars (\`\$|;&><\\ not permitted)" ;;
+    esac
+    if [ ${#_q_bc} -gt 64 ]; then
+        _record "queue.yaml: branch_cleanup exceeds 64 characters"
+    fi
+    case "$_q_bc" in
+        *[!A-Za-z0-9_-]*)
+            _record "queue.yaml: branch_cleanup contains characters outside allowed set [A-Za-z0-9_-]" ;;
+    esac
+    case "$_q_bc" in
+        after_success|never) : ;;
+        *) _record "queue.yaml: invalid branch_cleanup '$_q_bc' (expected: after_success|never)" ;;
+    esac
+fi
+
 # --- Tasks: unique ids, handoff files, frontmatter, dependency refs ---
 
 _n_tasks=$(printf '%s' "$_qjson" | jq -r '.tasks | length // 0')
@@ -199,6 +276,59 @@ while [ "$_i" -lt "$_n_tasks" ]; do
         case "$_mo" in
             *[!A-Za-z0-9._:/\[\]_-]*)
                 _record "$_id: model contains characters outside allowed set [A-Za-z0-9._:/[]_-]" ;;
+        esac
+    fi
+
+    # review_check — optional bool; per-handoff override; accepts true|false only
+    _rc=$(printf '%s' "$_fm_json" | jq -r '.review_check // empty')
+    if [ -n "$_rc" ]; then
+        case "$_rc" in
+            true|false) : ;;
+            *) _record "$_id: invalid review_check '$_rc' (expected: true|false)" ;;
+        esac
+    fi
+
+    # review_depth — optional string-enum; per-handoff override
+    _rd=$(printf '%s' "$_fm_json" | jq -r '.review_depth // empty')
+    if [ -n "$_rd" ]; then
+        case "$_rd" in
+            *[[:space:]]*)
+                _record "$_id: review_depth contains whitespace" ;;
+            *'`'*|*'$'*|*'|'*|*';'*|*'&'*|*'>'*|*'<'*|*\\*)
+                _record "$_id: review_depth contains shell metachars (\`\$|;&><\\ not permitted)" ;;
+        esac
+        if [ ${#_rd} -gt 64 ]; then
+            _record "$_id: review_depth exceeds 64 characters"
+        fi
+        case "$_rd" in
+            *[!A-Za-z0-9_-]*)
+                _record "$_id: review_depth contains characters outside allowed set [A-Za-z0-9_-]" ;;
+        esac
+        case "$_rd" in
+            focused|standard|deep) : ;;
+            *) _record "$_id: invalid review_depth '$_rd' (expected: focused|standard|deep)" ;;
+        esac
+    fi
+
+    # merge_policy — optional string-enum; per-handoff override
+    _mp=$(printf '%s' "$_fm_json" | jq -r '.merge_policy // empty')
+    if [ -n "$_mp" ]; then
+        case "$_mp" in
+            *[[:space:]]*)
+                _record "$_id: merge_policy contains whitespace" ;;
+            *'`'*|*'$'*|*'|'*|*';'*|*'&'*|*'>'*|*'<'*|*\\*)
+                _record "$_id: merge_policy contains shell metachars (\`\$|;&><\\ not permitted)" ;;
+        esac
+        if [ ${#_mp} -gt 64 ]; then
+            _record "$_id: merge_policy exceeds 64 characters"
+        fi
+        case "$_mp" in
+            *[!A-Za-z0-9_-]*)
+                _record "$_id: merge_policy contains characters outside allowed set [A-Za-z0-9_-]" ;;
+        esac
+        case "$_mp" in
+            auto|manual) : ;;
+            *) _record "$_id: invalid merge_policy '$_mp' (expected: auto|manual)" ;;
         esac
     fi
 done

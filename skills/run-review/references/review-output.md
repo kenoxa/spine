@@ -38,6 +38,8 @@ At `standard`/`deep`: intermediate artifacts in `.scratch/<session>/`. User-faci
 
 **Findings table**: write `.scratch/<session>/review-findings.md` as severity-bucketed table. Non-blocking, after user output.
 
+**Machine verdict sidecar**: emit `.scratch/<session>/review-verdict.json` per [review-verdict-schema.md](review-verdict-schema.md) AFTER the findings table. Write atomically (temp + rename: write to `.scratch/<session>/review-verdict.json.tmp`, then `mv` to final path). Mandatory at `standard`/`deep`; also required at `focused` (path may differ — see schema doc). Populate `verdict` from severity counts: `"ACCEPT"` if `blocking == 0`, `"ITERATE"` if `blocking >= 1` and fixable, `"REJECT"` if scope mismatch or irrecoverable.
+
 ### Deferral
 
 Any finding deferrable with explicit user approval. Deferred findings remain visible — never silently removed.
@@ -52,3 +54,4 @@ Any finding deferrable with explicit user approval. Deferred findings remain vis
 - Re-sorting by evidence instead of severity is an error.
 - Silent [CONFLICT] resolution is an error — present both or apply tiebreaker rules explicitly.
 - Read-only except review artifacts in `.scratch/<session>/`.
+- `review-verdict.json` write is the only file write Phase 4 makes besides `review-findings.md`.

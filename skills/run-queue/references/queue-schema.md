@@ -33,6 +33,12 @@ base_branch: main                            # OPTIONAL; defaults to HEAD at sup
 profile: profile.json                        # OPTIONAL; per-queue permission overlay; absent → hook defaults
 backoff_cap_ms: 7200000                      # OPTIONAL; default 7200000 (2 h); Slice C
 
+# --- pipeline ---
+review_check: true                           # OPTIONAL; default true — spawn /run-review per task
+review_depth: standard                       # OPTIONAL; default standard — focused|standard|deep
+merge_policy: auto                           # OPTIONAL; default auto — auto|manual
+branch_cleanup: after_success                # OPTIONAL; default after_success — after_success|never
+
 # --- tasks ---
 tasks:
   - id: refactor-auth                        # REQUIRED; matches handoff-<id>.md
@@ -68,6 +74,11 @@ on_failure: stop                            # stop | skip | retry_once; default 
 scope_files: [src/auth/**]                  # informational; supervisor does not enforce
 commit_ceiling: 8                           # advisory; supervisor warns if exceeded
 model: sonnet                               # optional; pins the spawned child's main-thread model (see §model below)
+
+# --- pipeline overrides (win over queue.yaml defaults) ---
+review_check: true                          # override queue-level default; true|false
+review_depth: deep                          # override queue-level default; focused|standard|deep
+merge_policy: manual                        # override queue-level default; auto|manual
 ---
 
 # Handoff body — the actual prompt / task description
@@ -81,6 +92,62 @@ Required: `task_id`, `entry_skill`, and exactly one of `terminal_check` or `term
 `model:` is a provider-scoped runtime selector passed as `--model <value>` to the `claude --print` child process the supervisor spawns for this task. It is a flat string — the value is handed to the CLI verbatim; lint catches structural problems (whitespace, shell metachars, length, and charset — see Lint Rules table) but does not validate against an enum. Omit to inherit whatever model the parent `claude` process defaults to.
 
 `model:` pins the **spawned child's main-thread model** — the model the queue task itself runs as. It does not affect subagents dispatched inside that task; those are governed by `docs/model-tier-assignments.md`. In-session main-thread model switching of the orchestrator process is an Anthropic CLI feature and is outside the scope of this field.
+
+### review_check
+
+`review_check:` controls whether the supervisor spawns `/run-review` after the implementation stage completes with `complete`.
+
+- **Default**: `true` (queue-level and per-handoff).
+- **Allowed values**: `true` | `false`.
+- **Placement**: queue.yaml top-level (queue default) and per-handoff frontmatter (task override). Per-handoff value wins.
+
+`review_check: false` skips the review stage entirely. The task branch is left on disk and the task is marked `complete` — the same behavior as pre-Slice-H. Use this for tasks where review is not meaningful (e.g. doc-only updates, generated files).
+
+`review_check: true` requires the review stage to pass before the task branch is merged into the integration branch. A blocking finding from `/run-review` marks the task `blocked/review-blocking-findings`.
+
+**Precedence**: supervisor checks handoff frontmatter first → falls back to `queue.yaml` → falls back to `true`.
+
+### review_depth
+
+`review_depth:` sets the depth argument forwarded to `/run-review` when it is spawned.
+
+- **Default**: `standard`.
+- **Allowed values**: `focused` | `standard` | `deep`.
+- **Placement**: queue.yaml top-level (queue default) and per-handoff frontmatter (task override). Per-handoff value wins.
+
+`focused` is permitted but the supervisor logs a warning: "review_depth: focused writes no findings artifact at /run-review side; sidecar is still emitted." The warning is advisory — lint does not reject `focused`.
+
+`deep` triggers a more exhaustive review and may increase spawn time. Suitable for high-risk tasks where thoroughness matters more than speed.
+
+**Precedence**: supervisor checks handoff frontmatter first → falls back to `queue.yaml` → falls back to `standard`.
+
+### merge_policy
+
+`merge_policy:` governs what happens when `/run-review` accepts the implementation (no blocking findings).
+
+- **Default**: `auto`.
+- **Allowed values**: `auto` | `manual`.
+- **Placement**: queue.yaml top-level (queue default) and per-handoff frontmatter (task override). Per-handoff value wins.
+
+`auto`: on review-accept the supervisor merges the task branch into the integration branch (`queue/<run_id>/result`) via `git merge --no-ff`. At queue end the integration branch is fast-forwarded into `base_branch`.
+
+`manual`: review still runs in full. On review-accept the branch is flagged but NOT merged automatically. The task is marked with exit_reason `review-passed-pending-merge`. The morning engineer inspects and merges by hand. The integration branch is not touched for this task.
+
+**Precedence**: supervisor checks handoff frontmatter first → falls back to `queue.yaml` → falls back to `auto`.
+
+### branch_cleanup
+
+`branch_cleanup:` controls whether task branches are deleted at queue end after a successful merge.
+
+- **Default**: `after_success`.
+- **Allowed values**: `after_success` | `never`.
+- **Placement**: queue.yaml top-level ONLY. No per-handoff override (applies to the whole queue run).
+
+`after_success`: task branches (`queue/<run_id>/<task_id>`) whose merge into the integration branch succeeded are deleted at queue end. Failed, blocked, and flagged branches (including `review-passed-pending-merge`) are retained for morning inspection.
+
+`never`: all task branches are retained regardless of outcome. Useful for post-mortems and when the engineer wants to inspect every branch.
+
+The integration branch (`queue/<run_id>/result`) is NOT a task branch and is not subject to `branch_cleanup`. It is retained until the end-of-queue fast-forward into `base_branch`; on successful delivery it is then deleted. If the fast-forward fails, it is retained for inspection.
 
 ### Terminal check
 
@@ -152,6 +219,10 @@ Enqueue-time static validation. Refuses invalid queues before spawning any proce
 | `max_iterations` is a positive integer | `<task>: invalid max_iterations: <v>` |
 | `task_id` (queue.yaml `id` + frontmatter) contains no whitespace | `<task>: task_id may not contain whitespace` |
 | `model` (when set) contains no whitespace, no shell metachars, ≤128 chars, charset `[A-Za-z0-9._:/[]_-]` | `<task>: model contains whitespace \| contains shell metachars \| exceeds 128 characters \| contains characters outside allowed set` |
+| `review_check` (queue or per-handoff, when set) is `true` or `false` | `queue.yaml: invalid review_check '<v>' \| <task>: invalid review_check '<v>'` |
+| `review_depth` (queue or per-handoff, when set) in {focused, standard, deep}; no whitespace, no shell metachars, ≤64 chars, charset `[A-Za-z0-9_-]` | `queue.yaml: review_depth contains whitespace \| ... \| invalid review_depth '<v>' (expected: focused\|standard\|deep)` |
+| `merge_policy` (queue or per-handoff, when set) in {auto, manual}; no whitespace, no shell metachars, ≤64 chars, charset `[A-Za-z0-9_-]` | `queue.yaml: merge_policy contains whitespace \| ... \| invalid merge_policy '<v>' (expected: auto\|manual)` |
+| `branch_cleanup` (queue-level only, when set) in {after_success, never}; no whitespace, no shell metachars, ≤64 chars, charset `[A-Za-z0-9_-]` | `queue.yaml: branch_cleanup contains whitespace \| ... \| invalid branch_cleanup '<v>' (expected: after_success\|never)` |
 
 ## Failure propagation (`on_failure`)
 
@@ -192,6 +263,17 @@ Per task, the supervisor creates local branch `queue/<run_id>/<task_id>`. The su
 If the merge has conflicts, the dependent task is marked `blocked` with exit_reason `dep-merge-conflict`. The child process is not spawned. `git merge --abort` is called and the partially-created branch is deleted.
 
 If ALL parents are `blocked` or `skipped` (no parent branch exists), the task is blocked with `transitive-block` — no merge, no spawn.
+
+### Integration branch
+
+The supervisor creates `queue/<run_id>/result` at queue start. This is the integration branch — the moving accumulation target for all accepted task branches.
+
+- **Created**: at queue start, forking from `base_rev`.
+- **Updated**: each task branch that passes review (and has `merge_policy: auto`) is merged into it via `git merge --no-ff`. The integration branch moves forward; `base_rev` stays frozen.
+- **Delivered**: at queue end, the integration branch is fast-forwarded into `base_branch` (typically `main`) as a single atomic operation. This is the only point where `main` is written.
+- **Retained/deleted**: on successful delivery, deleted (cleanup). On failed or partial delivery, retained for morning inspection.
+
+The integration branch is NOT subject to `branch_cleanup`. It follows its own lifecycle above.
 
 ### Iteration artifacts
 
@@ -247,6 +329,10 @@ When a child exits and its stderr matches the rate-limit pattern (from `skills/u
 | `dep-merge-conflict` | `git merge --no-ff` of parent branches had conflicts |
 | `max-iterations-exceeded` | Intra-task loop reached `max_iterations` without a terminal status |
 | `invalid-terminal-status` | `terminal_artifact` file present but `.status` value not in `{complete, partial, blocked, in_progress}` |
+| `review-blocking-findings` | `/run-review` returned ≥1 blocking finding; task marked `blocked`; branch retained for inspection |
+| `review-malformed-verdict` | `review-verdict.json` missing or unparseable after `/run-review` exits; fail-secure; task marked `blocked` |
+| `merge-conflict-aborted` | `git merge --squash` (integration-branch merge) aborted on conflict; branch retained; no `/run-merge` in Slice H |
+| `review-passed-pending-merge` | Review accepted but `merge_policy: manual`; branch flagged for manual merge; not auto-merged into integration branch |
 
 ## Open Questions (deferred past Slice B)
 

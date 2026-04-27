@@ -117,6 +117,15 @@ _run_id=$(printf '%s' "$_qjson" | jq -r '.run_id')
 _base_branch=$(printf '%s' "$_qjson" | jq -r '.base_branch // empty')
 _profile_rel=$(printf '%s' "$_qjson" | jq -r '.profile // empty')
 
+# Queue-level pipeline fields (Slice H). Per-task frontmatter wins; these are queue defaults.
+# review_check: true (default). Old queues without the field default to review_check=true.
+# Users who want the old behavior (no review) must set review_check: false in queue.yaml.
+_q_review_check=$(printf '%s' "$_qjson" | jq -r '.review_check // "true"')
+_q_review_depth=$(printf '%s' "$_qjson" | jq -r '.review_depth // "standard"')
+_q_merge_policy=$(printf '%s' "$_qjson" | jq -r '.merge_policy // "auto"')
+# branch_cleanup is queue-level only (no per-task override).
+_branch_cleanup=$(printf '%s' "$_qjson" | jq -r '.branch_cleanup // "after_success"')
+
 # profile.json is optional — hook falls back to built-in defaults when absent.
 _profile_abs=""
 if [ -n "$_profile_rel" ]; then
@@ -162,10 +171,21 @@ fi
 
 _base_branch_display=${_base_branch:-HEAD}
 
+# Integration branch — created once at supervisor startup; serves as the accumulation
+# target for all reviewed+accepted task branches. Left on disk on any exit path;
+# it is the recovery truth for morning inspection if delivery to main fails.
+_integration_branch="queue/${_run_id}/result"
+
 # --- Precheck: no branch name collisions ---
 
 _task_ids=$(printf '%s' "$_qjson" | jq -r '.tasks[].id')
 _prev_branch=$(git symbolic-ref --quiet --short HEAD 2>/dev/null || echo "$_base_rev")
+
+# Check integration branch collision before task branches.
+if git show-ref --quiet --verify "refs/heads/$_integration_branch"; then
+    _err "supervisor: integration branch already exists: $_integration_branch — choose a different run_id or delete stale branches"
+    exit 2
+fi
 
 for _id in $_task_ids; do
     _b="queue/$_run_id/$_id"
@@ -198,10 +218,32 @@ jq -e . "$_overlay_rendered" >/dev/null 2>&1 || {
     exit 2
 }
 
+# Render the review-stage settings overlay (read-only permission profile).
+# Uses the dedicated review template if P_D has created it; falls back to the
+# implement overlay with a warning (less restrictive but safe — guard hook still active).
+_overlay_review_tmpl="$_skill_root/settings-overlay-review.tmpl.json"
+_overlay_review_rendered="$_qdir/.run-queue-settings-review.json"
+if [ -f "$_overlay_review_tmpl" ]; then
+    sed "s|@@GUARD_PATH@@|$_queue_hook|g" "$_overlay_review_tmpl" > "$_overlay_review_rendered"
+    jq -e . "$_overlay_review_rendered" >/dev/null 2>&1 || {
+        _err "supervisor: failed to render review settings overlay (bad template or jq)"
+        exit 2
+    }
+else
+    _err "supervisor: WARNING — settings-overlay-review.tmpl.json not found; falling back to implement overlay for review stage"
+    _overlay_review_rendered="$_overlay_rendered"
+fi
+
 printf '# Queue log — %s\n\nStarted %s on branch %s (base_rev %s).\n\n' \
     "$_run_id" "$(_stamp)" "$_base_branch_display" "$(_short "$_base_rev")" > "$_queue_log"
 
 _qlog() { printf '%s  %s\n' "$(_stamp)" "$*" >> "$_queue_log"; }
+
+# Create the integration branch at base_rev. We then return to base_rev for task work.
+# The integration branch accumulates reviewed+accepted task squash-commits.
+git checkout -q -b "$_integration_branch" "$_base_rev"
+git checkout -q "$_base_rev"
+_qlog "integration branch created: $_integration_branch at $(_short "$_base_rev")"
 
 _atomic_write() {
     # _atomic_write <dest> writes stdin to dest atomically via .tmp + mv.
@@ -225,11 +267,14 @@ _write_state() {
 }
 
 # Initial state
+# outcome field tracks pipeline result beyond status:
+#   merged | complete (review skipped) | blocked-by-review | blocked-by-merge-conflict
+#   | review-passed-pending-merge | existing blocked states
 _state_json=$(printf '%s' "$_qjson" | jq --arg rev "$_base_rev" --arg started "$(_stamp)" '{
     run_id: .run_id,
     started_utc: $started,
     base_rev: $rev,
-    tasks: [.tasks[] | {id: .id, status: "pending", branch: null, head_rev: null, exit_reason: null, started_utc: null, ended_utc: null, attempts: 0}]
+    tasks: [.tasks[] | {id: .id, status: "pending", branch: null, head_rev: null, exit_reason: null, outcome: null, started_utc: null, ended_utc: null, attempts: 0}]
 }')
 _write_state
 
@@ -247,8 +292,8 @@ _write_report() {
             printf '\n> **Trip-wire fired.** See `WOKE-ME-UP.md`.\n'
         fi
 
-        printf '\n## Summary\n\n| Task | Status | Branch | Head | Exit reason |\n|------|--------|--------|------|-------------|\n'
-        printf '%s' "$_state_json" | jq -r '.tasks[] | "| \(.id) | \(.status) | `\(.branch // "-")` | `\((.head_rev // "-")[0:8])` | \(.exit_reason // "-") |"'
+        printf '\n## Summary\n\n| Task | Status | Outcome | Branch | Head | Exit reason |\n|------|--------|---------|--------|------|-------------|\n'
+        printf '%s' "$_state_json" | jq -r '.tasks[] | "| \(.id) | \(.status) | \(.outcome // "-") | `\(.branch // "-")` | `\((.head_rev // "-")[0:8])` | \(.exit_reason // "-") |"'
 
         printf '\n## Per-task detail\n\n'
         printf '%s' "$_state_json" | jq -r '.tasks[] | @base64' | while IFS= read -r _b64; do
@@ -256,6 +301,7 @@ _write_report() {
             _tid=$(printf '%s' "$_t" | jq -r '.id')
             printf '### %s\n\n' "$_tid"
             printf -- '- status: %s\n' "$(printf '%s' "$_t" | jq -r '.status')"
+            printf -- '- outcome: %s\n' "$(printf '%s' "$_t" | jq -r '.outcome // "-"')"
             printf -- '- exit_reason: %s\n' "$(printf '%s' "$_t" | jq -r '.exit_reason // "-"')"
             printf -- '- branch: `%s`\n' "$(printf '%s' "$_t" | jq -r '.branch // "-"')"
             printf -- '- head_rev: `%s`\n' "$(printf '%s' "$_t" | jq -r '.head_rev // "-"')"
@@ -642,6 +688,12 @@ _run_one_task() {
     _rot_terminal_check=$(printf '%s' "$_rot_fm_json" | jq -r '.terminal_check // empty')
     _rot_model=$(printf '%s' "$_rot_fm_json" | jq -r '.model // empty')
 
+    # Per-task pipeline fields (Slice H) — mirror Slice F model: pattern.
+    # _rot_fm_json is set above; queue-level _q_* globals are the fallbacks.
+    _rot_review_check=$(_get_review_check)
+    _rot_review_depth=$(_get_review_depth)
+    _rot_merge_policy=$(_get_merge_policy)
+
     _rot_branch="queue/$_run_id/$_rot_id"
     _rot_task_session="queue-$_run_id-$_rot_id"
     _rot_task_scratch=".scratch/$_rot_task_session"
@@ -725,6 +777,74 @@ _run_one_task() {
 
     _qlog "task=$_rot_id end status=$_task_status exit_reason=$_task_exit_reason head=$(_short "$_rot_head_after")"
 
+    # --- Slice H: Review + Merge pipeline ---
+    # Only proceeds when task reached complete status. Non-complete tasks skip
+    # review/merge; their outcome reflects the blocked state.
+
+    if [ "$_task_status" = "complete" ]; then
+        if [ "$_rot_review_check" = "false" ]; then
+            # Review explicitly disabled — mark outcome as complete (review skipped).
+            _update_task_state "$_rot_id" outcome '"complete"'
+            _qlog "task=$_rot_id review_check=false; skipping review stage"
+        else
+            # --- Review stage ---
+            _rev_run_stage
+
+            # Trip-wire fires inside _rev_run_stage; check and propagate.
+            if [ -f "$_woke" ]; then
+                git checkout -q "$_base_rev"
+                _current_task_id=""
+                return 3
+            fi
+
+            case "$_rev_verdict" in
+                ACCEPT)
+                    if [ "$_rev_blocking" -gt 0 ]; then
+                        # Verdict=ACCEPT but blocking count > 0 — treat as blocking per R10.
+                        _update_task_state "$_rot_id" outcome '"blocked-by-review"'
+                        _update_task_state "$_rot_id" exit_reason '"review-blocking-findings"'
+                        _qlog "task=$_rot_id review ACCEPT but blocking=$_rev_blocking; blocked"
+                    else
+                        # Clean accept — proceed to merge stage.
+                        case "$_rot_merge_policy" in
+                            manual)
+                                _update_task_state "$_rot_id" outcome '"review-passed-pending-merge"'
+                                _update_task_state "$_rot_id" exit_reason '"review-passed-pending-merge"'
+                                _qlog "task=$_rot_id review accepted; merge_policy=manual — skipping auto-merge"
+                                ;;
+                            *)
+                                # auto (default) — merge into integration branch.
+                                _mrg_into_integration
+                                if [ "$_mrg_ok" = "1" ]; then
+                                    _update_task_state "$_rot_id" status  '"merged"'
+                                    _update_task_state "$_rot_id" outcome '"merged"'
+                                    _qlog "task=$_rot_id pipeline complete: merged into $_integration_branch"
+                                else
+                                    _update_task_state "$_rot_id" outcome '"blocked-by-merge-conflict"'
+                                    _update_task_state "$_rot_id" exit_reason '"merge-conflict-aborted"'
+                                    _qlog "task=$_rot_id merge conflict; branch retained for morning"
+                                fi
+                                ;;
+                        esac
+                    fi
+                    ;;
+                ITERATE|REJECT)
+                    _update_task_state "$_rot_id" outcome '"blocked-by-review"'
+                    _update_task_state "$_rot_id" exit_reason '"review-blocking-findings"'
+                    _qlog "task=$_rot_id review verdict=$_rev_verdict; branch retained"
+                    ;;
+                MALFORMED|*)
+                    _update_task_state "$_rot_id" outcome '"blocked-by-review"'
+                    _update_task_state "$_rot_id" exit_reason '"review-malformed-verdict"'
+                    _qlog "task=$_rot_id review verdict file missing or malformed; branch retained"
+                    ;;
+            esac
+        fi
+    else
+        # Non-complete tasks: outcome mirrors exit_reason for morning triage.
+        _update_task_state "$_rot_id" outcome "\"$_task_exit_reason\""
+    fi
+
     # Return to base for the next task.
     git checkout -q "$_base_rev"
     _current_task_id=""
@@ -770,6 +890,140 @@ _get_on_failure() {
     _gof_fm=$(awk 'BEGIN{n=0} /^---[[:space:]]*$/{n++; if(n==2) exit; next} n==1{print}' "$_gof_habs")
     _gof_of=$(printf '%s' "$_gof_fm" | yq -o=json eval '.' - 2>/dev/null | jq -r '.on_failure // empty')
     printf '%s' "${_gof_of:-stop}"
+}
+
+# --- Per-task pipeline field getters (Slice H) ---
+# Parse precedence: per-task frontmatter JSON → queue-level default → hardcoded default.
+# All four helpers read _rot_fm_json (from _run_one_task scope) + queue-level _q_* globals.
+# Mirror the Slice F model: field pattern (run.sh:643).
+
+_get_review_check() {
+    # _get_review_check — prints "true" or "false".
+    # Reads: _rot_fm_json, _q_review_check.
+    _grc=$(printf '%s' "$_rot_fm_json" | jq -r '.review_check // empty')
+    printf '%s' "${_grc:-$_q_review_check}"
+}
+
+_get_review_depth() {
+    # _get_review_depth — prints "focused", "standard", or "deep".
+    # Reads: _rot_fm_json, _q_review_depth.
+    _grd=$(printf '%s' "$_rot_fm_json" | jq -r '.review_depth // empty')
+    printf '%s' "${_grd:-$_q_review_depth}"
+}
+
+_get_merge_policy() {
+    # _get_merge_policy — prints "auto" or "manual".
+    # Reads: _rot_fm_json, _q_merge_policy.
+    _gmp=$(printf '%s' "$_rot_fm_json" | jq -r '.merge_policy // empty')
+    printf '%s' "${_gmp:-$_q_merge_policy}"
+}
+
+_get_branch_cleanup() {
+    # _get_branch_cleanup — queue-level only (no per-task override).
+    # Reads: _branch_cleanup global.
+    printf '%s' "$_branch_cleanup"
+}
+
+# New exit_reasons added by Slice H (for documentation/reference):
+#   review-blocking-findings  — /run-review returned ITERATE/REJECT or blocking>0
+#   review-malformed-verdict  — review-verdict.json missing or invalid JSON
+#   merge-conflict-aborted    — git merge --no-ff produced conflict; abort succeeded
+#   review-passed-pending-merge — merge_policy=manual; review passed but no auto-merge
+
+_rev_run_stage() {
+    # _rev_run_stage — spawn /run-review for the current task; parse verdict.
+    # Reads caller scope: _rot_id, _rot_branch, _rot_task_scratch, _rot_task_session,
+    #   _rot_review_check, _rot_review_depth, _overlay_review_rendered, _woke.
+    # Sets caller scope: _rev_verdict ("ACCEPT"|"ITERATE"|"REJECT"|"MALFORMED"),
+    #   _rev_blocking (blocking finding count; 0 on MALFORMED).
+    # Returns: 0 always (verdict in _rev_verdict; caller decides action).
+
+    _rev_brief_dir="$_rot_task_scratch"
+    _rev_brief_path="$_rev_brief_dir/review-brief.md"
+    _rev_verdict_path="$_rev_brief_dir/review-verdict.json"
+    _rev_prompt_tmp=$(mktemp -t run-queue-review-prompt.XXXXXX)
+    _rev_iter_jsonl="$_rot_task_scratch/review.jsonl"
+    _rev_iter_stderr="$_rot_task_scratch/review.stderr"
+    _review_timeout=1200
+
+    # Write brief file. Instructs /run-review to write the verdict sidecar at a
+    # known absolute path so the supervisor can parse it without scanning .scratch/.
+    {
+        printf 'task_id: %s\n' "$_rot_id"
+        printf 'branch: %s\n' "$_rot_branch"
+        printf 'base_ref: %s\n' "$_base_rev"
+        printf 'depth: %s\n' "$_rot_review_depth"
+        printf 'risk_level: medium\n'
+        printf 'change_evidence_inline: true\n'
+        printf '\n'
+        printf 'Review the changes on the task branch listed above against base. '
+        printf 'Focus on correctness and spec compliance per /run-review standard.\n'
+        printf '\n'
+        printf 'Write review-verdict.json at: %s\n' "$_rev_verdict_path"
+    } | _atomic_write "$_rev_brief_path"
+
+    # Write the prompt that tells claude to invoke /run-review with the brief path.
+    # _spawn_child feeds this file as stdin to claude; claude interprets it as the
+    # conversation prompt. The /run-review skill is triggered by the slash-prefix.
+    printf '/run-review %s\n' "$_rev_brief_path" > "$_rev_prompt_tmp"
+
+    _qlog "task=$_rot_id review-stage spawn depth=$_rot_review_depth brief=$_rev_brief_path"
+
+    # Spawn review child. Same flags as implement-stage _spawn_child.
+    _spawn_child "$_rev_prompt_tmp" "$_rev_iter_jsonl" "$_rev_iter_stderr" "$_review_timeout" \
+        claude --print \
+        --settings "$_overlay_review_rendered" \
+        --permission-mode dontAsk \
+        --output-format stream-json \
+        --include-partial-messages \
+        --verbose \
+        --no-session-persistence
+
+    rm -f "$_rev_prompt_tmp"
+
+    # Trip-wire check immediately after spawn.
+    if [ -f "$_woke" ]; then
+        _rev_verdict="MALFORMED"
+        _rev_blocking=0
+        _qlog "task=$_rot_id review-stage: trip-wire after spawn"
+        return 0
+    fi
+
+    # Parse verdict sidecar (fail-secure: missing/malformed → MALFORMED).
+    _rev_verdict="MALFORMED"
+    _rev_blocking=0
+    if [ -f "$_rev_verdict_path" ]; then
+        _rev_v=$(jq -r '.verdict // empty' "$_rev_verdict_path" 2>/dev/null) || _rev_v=""
+        _rev_b=$(jq -r '.severity_counts.blocking // 0' "$_rev_verdict_path" 2>/dev/null) || _rev_b=0
+        case "$_rev_v" in
+            ACCEPT|ITERATE|REJECT)
+                _rev_verdict="$_rev_v"
+                _rev_blocking="$_rev_b"
+                ;;
+        esac
+    fi
+    _qlog "task=$_rot_id review-stage verdict=$_rev_verdict blocking=$_rev_blocking"
+    return 0
+}
+
+_mrg_into_integration() {
+    # _mrg_into_integration — squash-merge accepted task branch into integration branch.
+    # Reads caller scope: _rot_id, _rot_branch, _integration_branch, _base_rev.
+    # Sets caller scope: _mrg_ok ("1" on success, "0" on conflict).
+    # On conflict: aborts cleanly and restores base_rev checkout.
+    _mrg_ok=0
+    _mrg_msg="queue/${_run_id}: ${_rot_id}"
+
+    git checkout -q "$_integration_branch"
+    if git merge --no-ff -m "$_mrg_msg" "$_rot_branch" 2>/dev/null; then
+        _mrg_ok=1
+        _qlog "task=$_rot_id merged into $_integration_branch (no-ff)"
+    else
+        git merge --abort 2>/dev/null || true
+        _qlog "task=$_rot_id merge-conflict into $_integration_branch; aborted"
+    fi
+    git checkout -q "$_base_rev"
+    return 0
 }
 
 _get_task_status() {
@@ -1112,6 +1366,93 @@ fi
 # (abnormal termination — trip-wire or unexpected rc). Marks them blocked/retry-not-flushed
 # so the final report never shows transient pending_retry status.
 _finalize_stale_pending_retries
+
+# --- End-of-queue delivery (Slice H) ---
+# Atomically fast-forward the original base_branch to the integration branch HEAD.
+# Only runs on happy-path (_overall_rc == 0). On any error, integration branch is
+# left as recovery truth — do not force-update or discard it.
+
+_int_deliver_to_main() {
+    # _int_deliver_to_main — fast-forward base_branch to integration branch HEAD.
+    # Reads globals: _integration_branch, _base_rev, _base_branch, _prev_branch.
+    # Returns 0 on success; 1 on failure (logs error; integration branch preserved).
+    _idm_int_head=$(git rev-parse "$_integration_branch" 2>/dev/null) || {
+        _err "supervisor: delivery: cannot resolve integration branch $_integration_branch"
+        return 1
+    }
+
+    # If integration branch HEAD == base_rev, no tasks were merged — nothing to deliver.
+    if [ "$_idm_int_head" = "$_base_rev" ]; then
+        _qlog "delivery: integration branch is empty (no tasks merged); skipping main FF"
+        return 0
+    fi
+
+    # Determine the target branch for FF delivery.
+    # Use base_branch from queue.yaml if set; otherwise _prev_branch (the branch
+    # the supervisor was invoked from).
+    _idm_target="${_base_branch:-$_prev_branch}"
+    if [ -z "$_idm_target" ] || [ "$_idm_target" = "$_base_rev" ]; then
+        _err "supervisor: delivery: cannot determine target branch for FF (base_branch unset and no symbolic HEAD)"
+        _err "supervisor: integration branch $_integration_branch preserved as recovery truth"
+        return 1
+    fi
+
+    git checkout -q "$_idm_target" 2>/dev/null || {
+        _err "supervisor: delivery: cannot checkout target branch $_idm_target"
+        _err "supervisor: integration branch $_integration_branch preserved as recovery truth"
+        return 1
+    }
+
+    if git merge --ff-only "$_integration_branch" 2>/dev/null; then
+        _qlog "delivery: fast-forwarded $_idm_target to $_integration_branch HEAD ($(_short "$_idm_int_head"))"
+        return 0
+    else
+        _err "supervisor: delivery: --ff-only failed (non-fast-forward or conflict); integration branch $_integration_branch preserved"
+        # Return to base_rev so branch_cleanup and report are consistent.
+        git checkout -q "$_base_rev" 2>/dev/null || true
+        return 1
+    fi
+}
+
+_int_branch_cleanup() {
+    # _int_branch_cleanup — delete merged task branches and integration branch.
+    # Only runs after successful FF delivery (integration branch content is in main).
+    # Reads globals: _branch_cleanup, _integration_branch, _run_id.
+    [ "$(_get_branch_cleanup)" = "after_success" ] || return 0
+
+    # Delete merged task branches.
+    _ibc_merged=$(printf '%s' "$_state_json" | jq -r '.tasks[] | select(.status == "merged") | .branch // empty')
+    while IFS= read -r _ibc_branch; do
+        [ -z "$_ibc_branch" ] && continue
+        if git show-ref --quiet --verify "refs/heads/$_ibc_branch"; then
+            if git branch -D "$_ibc_branch" 2>/dev/null; then
+                _qlog "cleanup: deleted merged task branch $_ibc_branch"
+            else
+                _err "supervisor: cleanup: failed to delete branch $_ibc_branch (non-fatal)"
+            fi
+        fi
+    done <<EOF
+$_ibc_merged
+EOF
+
+    # Delete integration branch — its content is now in the delivery target.
+    # Explicit deletion is safe: the FF above transferred all commits to the target branch.
+    if git show-ref --quiet --verify "refs/heads/$_integration_branch"; then
+        if git branch -D "$_integration_branch" 2>/dev/null; then
+            _qlog "cleanup: deleted integration branch $_integration_branch (content now in delivery target)"
+        else
+            _err "supervisor: cleanup: failed to delete integration branch (non-fatal)"
+        fi
+    fi
+}
+
+if [ "$_overall_rc" -eq 0 ]; then
+    if _int_deliver_to_main; then
+        _int_branch_cleanup
+    else
+        _overall_rc=1
+    fi
+fi
 
 # --- Final report ---
 
