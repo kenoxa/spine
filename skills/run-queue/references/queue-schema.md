@@ -129,9 +129,9 @@ Required: `task_id`, `entry_skill`, and exactly one of `terminal_check` or `term
 - **Allowed values**: `auto` | `manual`.
 - **Placement**: queue.yaml top-level (queue default) and per-handoff frontmatter (task override). Per-handoff value wins.
 
-`auto`: on review-accept the supervisor merges the task branch into the integration branch (`queue/<run_id>/result`) via `git merge --no-ff`. At queue end the integration branch is fast-forwarded into `base_branch`.
+`auto`: on review-accept the supervisor merges the task branch into the integration branch (`queue/<run_id>/result`) via `git merge --no-ff`. At queue end the integration branch is fast-forwarded into `base_branch`. When the merge has conflicts, the supervisor spawns `/run-merge` to attempt agentic resolution (one attempt per task, capped by `SPINE_QUEUE_MERGE_TIMEOUT`). If resolution succeeds and re-review passes, the integration branch is fast-forwarded from the resolved scratch branch. If resolution fails, the task is retained with `blocked-by-merge-conflict` for morning triage.
 
-`manual`: review still runs in full. On review-accept the branch is flagged but NOT merged automatically. The task is marked with exit_reason `review-passed-pending-merge`. The morning engineer inspects and merges by hand. The integration branch is not touched for this task.
+`manual`: review still runs in full. On review-accept the branch is flagged but NOT merged automatically — the task is marked `review-passed-pending-merge`. No merge into the integration branch occurs; `/run-merge` is never spawned. The morning engineer inspects and merges by hand.
 
 **Precedence**: supervisor checks handoff frontmatter first → falls back to `queue.yaml` → falls back to `auto`.
 

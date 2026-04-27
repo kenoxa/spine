@@ -77,4 +77,5 @@ The Anthropic Ralph plugin OOMs at ~8 h due to stop-hook context accumulation. `
 - [permission-profile.md](references/permission-profile.md) — two-layer trust model + `profile.json` format
 - `scripts/run.sh` — supervisor entry point
 - `scripts/queue-lint.sh` — enqueue-time static validation
+- `skills/run-merge/SKILL.md` — agentic merge conflict resolver spawned by supervisor on `merge_policy: auto` conflicts
 - Design: `docs/specs/2617-overnight-task-queue/spec.md`
