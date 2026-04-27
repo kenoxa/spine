@@ -46,7 +46,11 @@ Zero-dispatch when advisory is self-contained — log with justification. (Zero-
 
 ### 4. User Decision Gate
 
-Assemble `design_artifact` per [design-artifact.md](references/design-artifact.md) from `advise_artifact` + `frame_artifact`. Write to `.scratch/<session>/design-artifact.md`. Present to user — direction and delivery slicing reviewed together. Main thread = sole decision authority.
+Assemble `design_artifact` per [design-artifact.md](references/design-artifact.md) from `advise_artifact` + `frame_artifact`. Write to `.scratch/<session>/design-artifact.md`.
+
+Before presenting: scan for `[DIVERGENCE]`, `[CONFLICT]`, `${LETTER}-${kebab}`, `V__`/`R__` labels — rewrite each as plain English. Self-test: user must not need advise-synthesis.md to understand any question.
+
+Present to user — direction and delivery slicing reviewed together. Main thread = sole decision authority.
 
 | User action | Response |
 |------------|----------|

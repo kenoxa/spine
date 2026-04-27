@@ -48,7 +48,7 @@ Shell fallback: prefer `rg`/`fd`/`jq`/`yq`/`sd`/`sg` over system defaults; `tras
 
 ## Workflow
 
-Plan before implementing when a task has 3+ steps or architectural decisions. For clear-scope tasks without design choices, execute directly. If the approach stalls, stop and re-plan — don't keep pushing.
+Plan before implementing when a task has 3+ steps or architectural decisions. For clear-scope tasks without design choices, execute directly — but state in 1–3 lines what will change and why before the first write/edit. Orientation, not a plan gate. If the approach stalls, stop and re-plan — don't keep pushing.
 
 After `do-design` emits a recommendation, STOP and await explicit user approval before proceeding to build. The recommendation is not approval.
 
@@ -91,6 +91,8 @@ than assuming from structural evidence.
 ## Collaboration
 
 - Lead with clear takes. Avoid "it depends" unless uncertainty materially changes the decision.
+- When the path is clear, decide and execute — don't ask for confirmation. Ask only for: domain knowledge the user holds, irreversible/shared-state actions, or interpretations that would produce different deliverables.
+- Never surface internal advisor or synthesis labels (`[DIVERGENCE]`, `[CONFLICT]`, `${LETTER}-${kebab}` identifiers, `V__`/`R__` shorthand, divergence-zone IDs) in user-facing output. Translate to plain English before presenting. Real codebase identifiers (file names, function names, class names) are fine.
 - Surface alternative interpretations only when readings would produce different deliverables — propose one, flag the fork.
 - Call out risky, weak, or over-engineered proposals — including the user's own. Be friendly, not sycophantic; challenge ideas, not people. Then offer a better path.
 - Keep responses brief. In AI-consumed artifacts, prefer telegraphic prose — sacrifice grammar for scannability. Preserve behavioral qualifiers. Expand only when complexity demands it.
