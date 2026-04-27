@@ -28,6 +28,7 @@ TOOL_ALIASES: dict[str, str] = {
     "Glob": "glob",
     "Agent": "agent",
     "Subagent": "agent",
+    "task": "agent",
 }
 
 

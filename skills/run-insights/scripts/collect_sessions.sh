@@ -114,7 +114,7 @@ fi
 
 SINCE=$(compute_since "$DAYS") || error "unable to compute date range for --days=$DAYS"
 
-for script_name in parse_claude.py parse_codex.py parse_cursor.py aggregate.py; do
+for script_name in parse_claude.py parse_codex.py parse_cursor.py parse_opencode.py aggregate.py; do
 	[ -f "$SCRIPTS_DIR/$script_name" ] || error "missing parser script: $SCRIPTS_DIR/$script_name"
 done
 
@@ -129,4 +129,5 @@ mkdir -p "$SCRATCH"
 PYTHONPATH="$SCRIPTS_DIR" "$PYTHON" "$SCRIPTS_DIR/parse_claude.py" --since "$SINCE" --output "$SCRATCH"
 PYTHONPATH="$SCRIPTS_DIR" "$PYTHON" "$SCRIPTS_DIR/parse_codex.py" --since "$SINCE" --output "$SCRATCH"
 PYTHONPATH="$SCRIPTS_DIR" "$PYTHON" "$SCRIPTS_DIR/parse_cursor.py" --since "$SINCE" --output "$SCRATCH"
+PYTHONPATH="$SCRIPTS_DIR" "$PYTHON" "$SCRIPTS_DIR/parse_opencode.py" --since "$SINCE" --output "$SCRATCH"
 PYTHONPATH="$SCRIPTS_DIR" "$PYTHON" "$SCRIPTS_DIR/aggregate.py" --input "$SCRATCH" --output "$SCRATCH/analytics.json"
