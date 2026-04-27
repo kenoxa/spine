@@ -41,6 +41,8 @@ Read AGENTS.md `## Project Knowledge` section and each referenced knowledge file
 
 **Staleness detection** (incremental): for each knowledge file declaring `paths:` frontmatter, run `git log --since=<updated_date> --name-only -- <paths>`; skip files with zero changes. Build staleness matrix (knowledge_file, last_updated, changed_neighbors, stale) and pass to `@curator`.
 
+**Memo-drift audit** (standalone mode only): for each `.claude/.../memory/project_*.md` file whose `description` references mutable state (model picks, tier mappings, dependency versions, infrastructure defaults), run `git log --since=<memo_updated> --oneline -- <referenced_code_paths>` to check whether code moved on. Surface drifted memos as follow_up items in the curate plan — do NOT auto-update memory files; the user owns memory content.
+
 **Glossary discovery** (optional): check for `UBIQUITOUS_LANGUAGE.md` at project root. If present, extract a lightweight term list (term + aliases if available). If absent, record `[GLOSSARY_SKIP: not found]` in session trace and continue — do not suggest creating one.
 
 ### 2. Dispatch

@@ -1,5 +1,5 @@
 ---
-updated: 2026-04-24
+updated: 2026-04-27
 ---
 
 # Multi-Model Council Sizing
@@ -43,6 +43,27 @@ commit `4cea877`]
 CodeX-Verify shows +39.7pp accuracy when agents differ by detection method
 (ρ ≈ 0.05–0.25). Differentiate by method (static vs execution), not by model
 provider — same-method duplicates add zero coverage.* `[ADVISORY: envoy]`
+
+### Evidence Conflict Resolution
+
+When external doc research (E1) conflicts with executable observation (E3 — CLI probe,
+in-repo test, live behavioral output), E3 wins. Document the conflict; trust observation.
+
+Concrete instance (spec 2618-opencode-multi-model-tier, slice 1, 2026-04-27):
+navigator (@navigator) cited opencode.ai/docs/it/go/ claiming April 2026 Go roster
+excluded Kimi K2.6, MiMo-V2.5-Pro, DeepSeek V4 Pro/Flash. envoy-codex E3 probe
+(`opencode models opencode-go` on local v1.14.26) returned the full April lineup.
+User screenshot of the official Go page corroborated envoy-codex. Resolution: E3 +
+direct observation override E1 external docs.
+
+**Pattern**: vendor docs lag live product state — especially true for fast-moving LLM
+model rosters. Preflight: re-run the live probe at build time; lock picks against
+that output, not against docs/external research.
+
+Constraint 6 in advise-synthesis.md distills this: "Re-selection picks MUST be locked
+against a live `opencode models opencode-go` probe at build time, not against external
+docs." [E3: `.scratch/opencode-models-tier-frame-97c5/advise-synthesis.md` §Constraint 6
++ §CONFLICT — Go roster availability]
 
 ## Anti-Patterns
 

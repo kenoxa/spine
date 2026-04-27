@@ -391,7 +391,7 @@ The envoy skill defaults to high-capability models per provider. Override via `~
 # Format: model[:effort]  (effort defaults to "high" if omitted)
 export SPINE_ENVOY_CLAUDE=opus:high
 export SPINE_ENVOY_CODEX=gpt-5.4:high
-export SPINE_ENVOY_OPENCODE=opencode-go/mimo-v2-pro:high
+export SPINE_ENVOY_OPENCODE=opencode-go/mimo-v2.5-pro:high
 
 # Per-tier overrides: SPINE_ENVOY_{TIER}_{PROVIDER}=model:effort
 export SPINE_ENVOY_FAST_OPENCODE=opencode/minimax-m2.5-free:minimal
