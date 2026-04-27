@@ -1,8 +1,8 @@
 ---
 id: 2617-overnight-task-queue
-updated: 2026-04-26
+updated: 2026-04-27
 source_session: autonomous-overnight-task-queue-1034
-latest_session: slice-f-per-task-model-6ba6
+latest_session: slice-i-agentic-merge-5b53
 ---
 
 # Progress — overnight-task-queue
@@ -427,6 +427,35 @@ All under `.scratch/slice-f-per-task-model-6ba6/`:
 - `review-brief.md`, `review-change-evidence.md`, `review-{verifier,risk,envoy.codex,envoy.opencode,envoy.cursor}.md`, `review-synthesis.md` — review phase
 - `polish-advisory-{conventions,complexity}.md`, `polish-synthesis.md`, `polish-apply.md` — polish phase
 - `build-learnings.md` — this section's learnings
+
+## Slice G — `_run_id` locale guard
+
+**Status: COMPLETE.** Single commit `1a30419`.
+
+Layered defense: script-wide `LC_ALL=C` + explicit allowlist gate on `_run_id`. Closes UTF-8 and NBSP bypass class for branch-name components. Curated `docs/shell-validator-locale-guard.md` rewritten to document Shape A vs Shape B opposite locale polarity (negated charset needs `LC_ALL=C`; positive class breaks under it).
+
+## Slice H — `review_check` auto-gate + integration branch
+
+**Status: COMPLETE.** Two commits `ec99617` + `b34f07c` (fix-pass).
+
+Queue supervisor spawns `/run-review` after each task completes when `review_check: true` (default). Accepted branches merge via `--no-ff` into `queue/<run_id>/result` integration branch; morning review walks results. Added `review_depth`, `merge_policy`, `branch_cleanup` schema fields; `settings-overlay-review.tmpl.json`; `_rev_run_stage`; `_mrg_into_integration`. Fix-pass resolved: Write/Edit deny-list removal (verdict file must be written), integer guard on `_rev_blocking`, hard-precondition loop for overlay template, `schema_version` gate before verdict field reads.
+
+## Slice I — `/run-merge` skill + agentic conflict resolver
+
+**Status: COMPLETE.** Commit `cc03c47`; vacuous-pass correctness fix `{next}`.
+
+Supervisor attempts agentic merge conflict resolution via `/run-merge` child before escalating to morning triage. Key constraints: scratch-branch isolation (C2), machine-readable verdict (C3), 4-check post-verify (C4), re-review at `depth=focused` (C5), ff-only integration promote (C5). `_mrg_scratch_cleanup` helper consolidates 12 exit-path cleanup blocks. Post-commit fix: `verdict=resolved` + empty `files_resolved` now fail-secure (vacuous claim bypassed marker scan and subset check).
+
+### Key learnings
+
+- **L1** — Post-spawn scope verification must use set membership (`files_resolved ⊆ conflict_set`), not diff scope. Promoted to `docs/skill-guardrail-patterns.md` §Layered Defense for Autonomous Runs.
+- **L2** — `verdict=resolved` + empty `files_resolved` is vacuous: agent must claim ≥1 file or supervisor escalates fail-secure. Closed by post-commit fix.
+
+### Open follow-ups deferred past Slice I
+
+- **`files_resolved` under-reporting** — subset check passes if agent resolves extra files but omits from claim. Watch item; no gate change without E3 evidence of real occurrence.
+- **Octopus/squash topology** — subset predicate assumes standard merge parent topology. Deferred.
+- **Branch auto-cleanup** (Slice E + F backlog) — `queue/<run_id>/<task_id>-merge` scratch branch retained on successful resolution; cleanup candidate.
 
 ## Open items deferred to future slices
 

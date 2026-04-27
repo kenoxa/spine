@@ -1189,6 +1189,13 @@ _mrg_resolve_stage() {
     fi
     _qlog "task=$_rot_id merge-stage verdict=$_mrg_v"
 
+    # Fail-secure: resolved with empty files_resolved is vacuous — agent must claim ≥1 file.
+    # An empty list would skip both the marker scan and the subset check below.
+    if [ "$_mrg_v" = "resolved" ] && [ -z "$_mrg_files" ]; then
+        _qlog "task=$_rot_id merge-stage: verdict=resolved but files_resolved empty; fail-secure escalating"
+        _mrg_v="MALFORMED"
+    fi
+
     if [ "$_mrg_v" != "resolved" ]; then
         _mrg_scratch_cleanup --abort
         return 0

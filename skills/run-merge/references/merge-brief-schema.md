@@ -68,11 +68,12 @@ Written atomically (`.tmp` → `mv`) by `/run-merge` to `verdict_path` from the 
 |---|---|
 | `schema_version` | `"1"`. Consumers MUST refuse unknown versions. |
 | `verdict` | `"resolved"` \| `"failed"` \| `"aborted"` |
-| `files_resolved` | Paths staged as part of resolution. Empty on `failed`/`aborted`. |
+| `files_resolved` | Paths staged as part of resolution. Non-empty on `resolved`; empty on `failed`/`aborted`. |
 
 | Verdict | Supervisor action |
 |---|---|
 | `resolved` | Post-verify → re-review at `depth=focused` → fast-forward integration or escalate |
+| `resolved` + empty `files_resolved` | `merge-resolve-failed` fail-secure (vacuous claim) |
 | `failed` | `status=blocked`, `exit_reason=merge-resolve-failed`; branch retained |
 | `aborted` | Same as `failed`; indicates unrecoverable error before resolution attempt |
 | missing/malformed/wrong schema | `merge-resolve-failed` fail-secure |
@@ -82,4 +83,5 @@ Written atomically (`.tmp` → `mv`) by `/run-merge` to `verdict_path` from the 
 - `/run-merge` must NOT call `git push`, `git reset --hard`, or `git commit --amend`. Guard hook (`SPINE_QUEUE_STAGE=merge`) denies these.
 - Supervisor enforces a 1-attempt cap — `/run-merge` spawned at most once per task.
 - Timeout: `SPINE_QUEUE_MERGE_TIMEOUT` (default 1800s).
+- `files_resolved` must be non-empty when `verdict=resolved` — an empty list is treated as a vacuous claim and escalates fail-secure.
 - `files_resolved` must be a subset of the pre-spawn conflict set — supervisor verifies via set membership (`files_resolved ⊆ conflict_set`), not diff scope (merge commits include auto-merged files).
