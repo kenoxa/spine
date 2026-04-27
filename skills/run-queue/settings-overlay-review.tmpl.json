@@ -1,12 +1,5 @@
 {
-  "//": [
-    "run-queue review-stage settings overlay template.",
-    "Rendered with absolute paths at review-stage spawn; passed via `claude -p --settings`.",
-    "Defense-in-depth: /run-review is read-only by skill design; this overlay enforces it at",
-    "the permission layer. Bash is NOT denied globally — @verifier needs git diff, git log,",
-    "and syntax-check commands. The PreToolUse hook (guard-queue-shell.sh) already blocks",
-    "destructive Bash patterns (push, out-of-repo writes, git -C sidesteps)."
-  ],
+  "//": "run-queue review-stage settings overlay template. Rendered with absolute paths at review-stage spawn; passed via `claude -p --settings`. Write(*) and Edit(*) are NOT denied — /run-review Phase 4 must write review-findings.md and review-verdict.json into .scratch/; the guard hook (guard-queue-shell.sh) already blocks destructive patterns and out-of-repo writes.",
   "hooks": {
     "PreToolUse": [
       {
@@ -22,8 +15,6 @@
   },
   "permissions": {
     "deny": [
-      "Edit(*)",
-      "Write(*)",
       "NotebookEdit(*)"
     ]
   }

@@ -79,7 +79,7 @@ Skip for smaller queues — the Tasks table already shows the per-task values.
 
 **Per-task spawn budget.** For tasks with `review_check: true` (the default), each task costs 1 implement spawn + 1 review spawn, plus 1 additional implement spawn if `retry_once` fires. Worst-case per-task wall time: implement (~4500 s default) + review (~1200 s) = ~5700 s/task ceiling before the outer `commit_ceiling` (default 7200 s) caps it.
 
-**Integration branch.** Successful tasks (review-pass + clean merge) are squash-merged into `queue/<run_id>/result`; `main` is fast-forwarded to that branch at queue end. Tasks that fail review or hit a merge conflict are retained on their own branch for morning triage.
+**Integration branch.** Successful tasks (review-pass + clean merge) are merged (no-ff) into `queue/<run_id>/result`. At queue end, `base_branch` (or the branch the supervisor was launched from if `base_branch` is unset) is fast-forwarded to the integration branch HEAD. Tasks that fail review or hit a merge conflict are retained on their own branch for morning triage.
 
 ### 3. Confirmation gate
 

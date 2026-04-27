@@ -1,8 +1,8 @@
 # review-verdict.json — Schema
 
-Machine-readable verdict emitted by `/run-review` Phase 4. Consumed by `skills/run-queue/` supervisor (review-gate check per task). The human-readable `review-findings.md` remains authoritative for humans; the JSON sidecar is authoritative for machine consumers.
+Machine-readable verdict emitted by `/run-review` Phase 4; consumed by `skills/run-queue/` supervisor. `review-findings.md` is authoritative for humans; this sidecar is authoritative for machines.
 
-> **Note on `review-findings.md` frontmatter**: frontmatter fields on `review-findings.md` are a convention family, not a schema — 5-file audit found 3 distinct verdict field names and 2 files with no frontmatter at all. Machine consumers MUST NOT parse frontmatter for the verdict; use this sidecar instead.
+> **Note**: `review-findings.md` frontmatter field names are inconsistent across files. Machine consumers MUST NOT parse frontmatter for the verdict — use this sidecar.
 
 ## Path
 
@@ -10,9 +10,7 @@ Machine-readable verdict emitted by `/run-review` Phase 4. Consumed by `skills/r
 
 ## Write Contract
 
-Atomic: write to `.scratch/<session>/review-verdict.json.tmp`, then `mv` to final path. Mid-run readers must never observe truncated JSON. Emit on every terminal outcome (ACCEPT, ITERATE, REJECT). A missing artifact is a bug, not a silent skip — treat absence as ITERATE-equivalent fail-secure. Mode 0644.
-
-Mirrors the atomicity contract in `docs/machine-verifiable-terminal-contracts.md` and `build-status-schema.md`.
+Write to `.scratch/<session>/review-verdict.json.tmp`, then `mv` to final path (atomic). Emit on every terminal outcome. Missing artifact = ITERATE-equivalent fail-secure. Mode 0644. Mirrors `build-status-schema.md` atomicity contract.
 
 ## Schema v1
 
@@ -36,13 +34,13 @@ Mirrors the atomicity contract in `docs/machine-verifiable-terminal-contracts.md
 
 | Field | Type | Semantics |
 |-------|------|-----------|
-| `schema_version` | string | `"1"`. Bump on breaking change. Consumers MUST refuse versions higher than they understand. |
-| `verdict` | enum | `"ACCEPT"` \| `"ITERATE"` \| `"REJECT"` — see verdict values below. |
-| `severity_counts` | object | Counts of findings per severity bucket: `blocking` (int), `should_fix` (int), `follow_up` (int). |
-| `findings_path` | string | Repo-relative or `.scratch`-relative path to `review-findings.md`. Empty string `""` when no artifact was written (may occur at `focused` depth — see below). |
+| `schema_version` | string | `"1"`. Bump on breaking change. Consumers MUST refuse unknown versions. |
+| `verdict` | enum | `"ACCEPT"` \| `"ITERATE"` \| `"REJECT"` |
+| `severity_counts` | object | `blocking`, `should_fix`, `follow_up` counts (int each). |
+| `findings_path` | string | Path to `review-findings.md`; `""` when not written (focused depth). |
 | `session_id` | string | `/run-review` session id matching `<session>` in `findings_path`. |
-| `depth` | enum | `"focused"` \| `"standard"` \| `"deep"`. Matches Phase 1 depth classification. |
-| `risk_level` | enum | `"low"` \| `"medium"` \| `"high"`. Derived from risk scaling in Shared Rules. |
+| `depth` | enum | `"focused"` \| `"standard"` \| `"deep"`. |
+| `risk_level` | enum | `"low"` \| `"medium"` \| `"high"`. |
 
 ## Verdict Values
 
@@ -52,67 +50,20 @@ Mirrors the atomicity contract in `docs/machine-verifiable-terminal-contracts.md
 | `"ITERATE"` | ≥1 `blocking` finding, considered fixable | Block merge; retain branch; mark task `blocked-by-review`. |
 | `"REJECT"` | Irrecoverable or scope mismatch (e.g., wrong target branch, wrong artifact entirely) | Block merge; retain branch; mark task `blocked-by-review`. Do not retry. |
 
-Verdict gate criterion: any `blocking` finding stops merge for that task. `should_fix` and `follow_up` do not block merge (user reviews at morning triage). Per-task threshold override deferred to a future slice.
-
-## Worked Examples
-
-### ACCEPT — zero blocking findings
-
-```json
-{
-  "schema_version": "1",
-  "verdict": "ACCEPT",
-  "severity_counts": { "blocking": 0, "should_fix": 2, "follow_up": 1 },
-  "findings_path": ".scratch/my-feature-abc1/review-findings.md",
-  "session_id": "my-feature-abc1",
-  "depth": "standard",
-  "risk_level": "medium"
-}
-```
-
-### ITERATE — one or more blocking findings, fixable
-
-```json
-{
-  "schema_version": "1",
-  "verdict": "ITERATE",
-  "severity_counts": { "blocking": 1, "should_fix": 0, "follow_up": 3 },
-  "findings_path": ".scratch/my-feature-abc1/review-findings.md",
-  "session_id": "my-feature-abc1",
-  "depth": "deep",
-  "risk_level": "high"
-}
-```
-
-### REJECT — scope mismatch or irrecoverable
-
-```json
-{
-  "schema_version": "1",
-  "verdict": "REJECT",
-  "severity_counts": { "blocking": 2, "should_fix": 0, "follow_up": 0 },
-  "findings_path": ".scratch/my-feature-abc1/review-findings.md",
-  "session_id": "my-feature-abc1",
-  "depth": "standard",
-  "risk_level": "high"
-}
-```
+Gate: any `blocking` finding stops merge. `should_fix`/`follow_up` do not block (morning triage).
 
 ## Depth Behavior
 
-At `focused` depth: the sidecar is still written (mandatory). `review-findings.md` may not be produced; in that case `findings_path` is `""`. `session_id` may be ephemeral but path resolution still works — the `.tmp`+`mv` write contract applies regardless of depth.
-
-At `standard`/`deep` depth: `review-findings.md` is always written; `findings_path` is non-empty.
+`focused`: sidecar always written; `review-findings.md` may be absent (`findings_path = ""`). `standard`/`deep`: `review-findings.md` always written; `findings_path` non-empty.
 
 ## Error Cases
 
-**Missing artifact** — consumer treats a missing `review-verdict.json` as ITERATE-equivalent fail-secure (i.e., assume at least one blocking finding; block the merge stage and flag for morning triage).
-
-**Malformed JSON** — consumer treats unreadable or non-object JSON as ITERATE-equivalent fail-secure; log the parse error for morning triage visibility.
-
-**`schema_version` mismatch** — consumer MUST refuse any `schema_version` value higher than `"1"`. On refusal, treat as ITERATE-equivalent fail-secure.
-
-**`findings_path` unresolvable** — consumer proceeds with verdict from `verdict` field; notes path resolution failure in queue-report. Does not override the verdict.
+| Condition | Consumer action |
+|-----------|----------------|
+| Missing artifact | ITERATE-equivalent fail-secure; flag for morning triage. |
+| Malformed JSON | ITERATE-equivalent fail-secure; log parse error. |
+| `schema_version` > `"1"` | MUST refuse; treat as ITERATE-equivalent fail-secure. |
+| `findings_path` unresolvable | Proceed with `verdict` field; note failure in queue-report. |
 
 ## Compatibility
 

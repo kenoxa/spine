@@ -312,6 +312,14 @@ When a child exits and its stderr matches the rate-limit pattern (from `skills/u
 
 **Test-mode override:** set `SPINE_QUEUE_RL_BASE_SEC` to a small value (e.g. `1`) to use a shorter base for timing-sensitive integration tests. This variable is intended for test use only; do not set it in production.
 
+## Supervisor environment variables
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `SPINE_QUEUE` | _(required)_ | Must be `1`; arms the PreToolUse guard hook |
+| `SPINE_QUEUE_RL_BASE_SEC` | `120` | Rate-limit backoff base (seconds); test-mode only |
+| `SPINE_QUEUE_REVIEW_TIMEOUT` | `1200` | Per-task review-stage wall-time cap (seconds). Mirrors the role of the implement-stage timeout. Increase for deep reviews on large diffs. |
+
 ## Exit reasons
 
 | `exit_reason` | Meaning |
@@ -331,7 +339,7 @@ When a child exits and its stderr matches the rate-limit pattern (from `skills/u
 | `invalid-terminal-status` | `terminal_artifact` file present but `.status` value not in `{complete, partial, blocked, in_progress}` |
 | `review-blocking-findings` | `/run-review` returned ≥1 blocking finding; task marked `blocked`; branch retained for inspection |
 | `review-malformed-verdict` | `review-verdict.json` missing or unparseable after `/run-review` exits; fail-secure; task marked `blocked` |
-| `merge-conflict-aborted` | `git merge --squash` (integration-branch merge) aborted on conflict; branch retained; no `/run-merge` in Slice H |
+| `merge-conflict-aborted` | `git merge --no-ff` (integration-branch merge) aborted on conflict; branch retained; no `/run-merge` in Slice H |
 | `review-passed-pending-merge` | Review accepted but `merge_policy: manual`; branch flagged for manual merge; not auto-merged into integration branch |
 
 ## Open Questions (deferred past Slice B)

@@ -222,6 +222,11 @@ while [ "$_i" -lt "$_n_tasks" ]; do
         *[[:space:]]*) _record "$_id: task_id may not contain whitespace (breaks parent-branch splitting)" ;;
     esac
 
+    # Reserved task ids — collide with supervisor-managed branch names
+    case "$_id" in
+        result) _record "$_id: task id 'result' is reserved — conflicts with integration branch name (queue/<run_id>/result)" ;;
+    esac
+
     # One of terminal_check / terminal_artifact
     _tc=$(printf '%s' "$_fm_json" | jq -r '.terminal_check // empty')
     _ta=$(printf '%s' "$_fm_json" | jq -r '.terminal_artifact // empty')

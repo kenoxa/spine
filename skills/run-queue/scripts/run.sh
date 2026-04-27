@@ -148,14 +148,15 @@ if [ "$_backoff_cap_ms" -lt 1000 ]; then
 fi
 _backoff_cap_sec=$(( _backoff_cap_ms / 1000 ))
 
-# Skill-bundled assets: hook script + settings overlay template.
+# Skill-bundled assets: hook script + settings overlay templates.
 # The skill is self-contained — no dependency on project-level hooks.json
 # or opencode registration.
 _skill_root=$(cd "$_script_dir/.." && pwd)
 _queue_hook="$_script_dir/guard-queue-shell.sh"
 _overlay_tmpl="$_skill_root/settings-overlay.tmpl.json"
+_overlay_review_tmpl="$_skill_root/settings-overlay-review.tmpl.json"
 
-for _f in "$_queue_hook" "$_overlay_tmpl"; do
+for _f in "$_queue_hook" "$_overlay_tmpl" "$_overlay_review_tmpl"; do
     [ -e "$_f" ] || { _err "supervisor: missing run-queue asset: $_f"; exit 2; }
 done
 [ -x "$_queue_hook" ] || { _err "supervisor: run-queue hook not executable: $_queue_hook"; exit 2; }
@@ -219,28 +220,23 @@ jq -e . "$_overlay_rendered" >/dev/null 2>&1 || {
 }
 
 # Render the review-stage settings overlay (read-only permission profile).
-# Uses the dedicated review template if P_D has created it; falls back to the
-# implement overlay with a warning (less restrictive but safe — guard hook still active).
-_overlay_review_tmpl="$_skill_root/settings-overlay-review.tmpl.json"
+# Template existence is a hard precondition checked above; no fallback.
 _overlay_review_rendered="$_qdir/.run-queue-settings-review.json"
-if [ -f "$_overlay_review_tmpl" ]; then
-    sed "s|@@GUARD_PATH@@|$_queue_hook|g" "$_overlay_review_tmpl" > "$_overlay_review_rendered"
-    jq -e . "$_overlay_review_rendered" >/dev/null 2>&1 || {
-        _err "supervisor: failed to render review settings overlay (bad template or jq)"
-        exit 2
-    }
-else
-    _err "supervisor: WARNING — settings-overlay-review.tmpl.json not found; falling back to implement overlay for review stage"
-    _overlay_review_rendered="$_overlay_rendered"
-fi
+sed "s|@@GUARD_PATH@@|$_queue_hook|g" "$_overlay_review_tmpl" > "$_overlay_review_rendered"
+jq -e . "$_overlay_review_rendered" >/dev/null 2>&1 || {
+    _err "supervisor: failed to render review settings overlay (bad template or jq)"
+    exit 2
+}
 
 printf '# Queue log — %s\n\nStarted %s on branch %s (base_rev %s).\n\n' \
     "$_run_id" "$(_stamp)" "$_base_branch_display" "$(_short "$_base_rev")" > "$_queue_log"
 
 _qlog() { printf '%s  %s\n' "$(_stamp)" "$*" >> "$_queue_log"; }
 
+_qlog "delivery target: ${_base_branch:-$_prev_branch} (base_branch: ${_base_branch:-(unset; using HEAD-at-start)})"
+
 # Create the integration branch at base_rev. We then return to base_rev for task work.
-# The integration branch accumulates reviewed+accepted task squash-commits.
+# The integration branch accumulates reviewed+accepted task branches as no-ff merge commits.
 git checkout -q -b "$_integration_branch" "$_base_rev"
 git checkout -q "$_base_rev"
 _qlog "integration branch created: $_integration_branch at $(_short "$_base_rev")"
@@ -778,72 +774,7 @@ _run_one_task() {
     _qlog "task=$_rot_id end status=$_task_status exit_reason=$_task_exit_reason head=$(_short "$_rot_head_after")"
 
     # --- Slice H: Review + Merge pipeline ---
-    # Only proceeds when task reached complete status. Non-complete tasks skip
-    # review/merge; their outcome reflects the blocked state.
-
-    if [ "$_task_status" = "complete" ]; then
-        if [ "$_rot_review_check" = "false" ]; then
-            # Review explicitly disabled — mark outcome as complete (review skipped).
-            _update_task_state "$_rot_id" outcome '"complete"'
-            _qlog "task=$_rot_id review_check=false; skipping review stage"
-        else
-            # --- Review stage ---
-            _rev_run_stage
-
-            # Trip-wire fires inside _rev_run_stage; check and propagate.
-            if [ -f "$_woke" ]; then
-                git checkout -q "$_base_rev"
-                _current_task_id=""
-                return 3
-            fi
-
-            case "$_rev_verdict" in
-                ACCEPT)
-                    if [ "$_rev_blocking" -gt 0 ]; then
-                        # Verdict=ACCEPT but blocking count > 0 — treat as blocking per R10.
-                        _update_task_state "$_rot_id" outcome '"blocked-by-review"'
-                        _update_task_state "$_rot_id" exit_reason '"review-blocking-findings"'
-                        _qlog "task=$_rot_id review ACCEPT but blocking=$_rev_blocking; blocked"
-                    else
-                        # Clean accept — proceed to merge stage.
-                        case "$_rot_merge_policy" in
-                            manual)
-                                _update_task_state "$_rot_id" outcome '"review-passed-pending-merge"'
-                                _update_task_state "$_rot_id" exit_reason '"review-passed-pending-merge"'
-                                _qlog "task=$_rot_id review accepted; merge_policy=manual — skipping auto-merge"
-                                ;;
-                            *)
-                                # auto (default) — merge into integration branch.
-                                _mrg_into_integration
-                                if [ "$_mrg_ok" = "1" ]; then
-                                    _update_task_state "$_rot_id" status  '"merged"'
-                                    _update_task_state "$_rot_id" outcome '"merged"'
-                                    _qlog "task=$_rot_id pipeline complete: merged into $_integration_branch"
-                                else
-                                    _update_task_state "$_rot_id" outcome '"blocked-by-merge-conflict"'
-                                    _update_task_state "$_rot_id" exit_reason '"merge-conflict-aborted"'
-                                    _qlog "task=$_rot_id merge conflict; branch retained for morning"
-                                fi
-                                ;;
-                        esac
-                    fi
-                    ;;
-                ITERATE|REJECT)
-                    _update_task_state "$_rot_id" outcome '"blocked-by-review"'
-                    _update_task_state "$_rot_id" exit_reason '"review-blocking-findings"'
-                    _qlog "task=$_rot_id review verdict=$_rev_verdict; branch retained"
-                    ;;
-                MALFORMED|*)
-                    _update_task_state "$_rot_id" outcome '"blocked-by-review"'
-                    _update_task_state "$_rot_id" exit_reason '"review-malformed-verdict"'
-                    _qlog "task=$_rot_id review verdict file missing or malformed; branch retained"
-                    ;;
-            esac
-        fi
-    else
-        # Non-complete tasks: outcome mirrors exit_reason for morning triage.
-        _update_task_state "$_rot_id" outcome "\"$_task_exit_reason\""
-    fi
+    _rot_run_pipeline || return $?
 
     # Return to base for the next task.
     git checkout -q "$_base_rev"
@@ -892,10 +823,75 @@ _get_on_failure() {
     printf '%s' "${_gof_of:-stop}"
 }
 
+_rot_run_pipeline() {
+    # _rot_run_pipeline — review + merge pipeline for one task (Slice H).
+    # Reads caller scope from _run_one_task: _task_status, _task_exit_reason,
+    #   _rot_id, _rot_review_check, _rot_merge_policy, _woke, _base_rev,
+    #   _current_task_id, _integration_branch.
+    # Returns: 0 on normal completion; 3 on trip-wire (caller must propagate).
+    if [ "$_task_status" = "complete" ]; then
+        if [ "$_rot_review_check" = "false" ]; then
+            _update_task_state "$_rot_id" outcome '"complete"'
+            _qlog "task=$_rot_id review_check=false; skipping review stage"
+        else
+            _rev_run_stage
+
+            if [ -f "$_woke" ]; then
+                git checkout -q "$_base_rev"
+                _current_task_id=""
+                return 3
+            fi
+
+            case "$_rev_verdict" in
+                ACCEPT)
+                    if [ "$_rev_blocking" -gt 0 ]; then
+                        _update_task_state "$_rot_id" outcome '"blocked-by-review"'
+                        _update_task_state "$_rot_id" exit_reason '"review-blocking-findings"'
+                        _qlog "task=$_rot_id review ACCEPT but blocking=$_rev_blocking; blocked"
+                    else
+                        case "$_rot_merge_policy" in
+                            manual)
+                                _update_task_state "$_rot_id" outcome '"review-passed-pending-merge"'
+                                _update_task_state "$_rot_id" exit_reason '"review-passed-pending-merge"'
+                                _qlog "task=$_rot_id review accepted; merge_policy=manual — skipping auto-merge"
+                                ;;
+                            *)
+                                _mrg_into_integration
+                                if [ "$_mrg_ok" = "1" ]; then
+                                    _update_task_state "$_rot_id" status  '"merged"'
+                                    _update_task_state "$_rot_id" outcome '"merged"'
+                                    _qlog "task=$_rot_id pipeline complete: merged into $_integration_branch"
+                                else
+                                    _update_task_state "$_rot_id" outcome '"blocked-by-merge-conflict"'
+                                    _update_task_state "$_rot_id" exit_reason '"merge-conflict-aborted"'
+                                    _qlog "task=$_rot_id merge conflict; branch retained for morning"
+                                fi
+                                ;;
+                        esac
+                    fi
+                    ;;
+                ITERATE|REJECT)
+                    _update_task_state "$_rot_id" outcome '"blocked-by-review"'
+                    _update_task_state "$_rot_id" exit_reason '"review-blocking-findings"'
+                    _qlog "task=$_rot_id review verdict=$_rev_verdict; branch retained"
+                    ;;
+                MALFORMED|*)
+                    _update_task_state "$_rot_id" outcome '"blocked-by-review"'
+                    _update_task_state "$_rot_id" exit_reason '"review-malformed-verdict"'
+                    _qlog "task=$_rot_id review verdict file missing or malformed; branch retained"
+                    ;;
+            esac
+        fi
+    else
+        _update_task_state "$_rot_id" outcome "\"$_task_exit_reason\""
+    fi
+    return 0
+}
+
 # --- Per-task pipeline field getters (Slice H) ---
 # Parse precedence: per-task frontmatter JSON → queue-level default → hardcoded default.
 # All four helpers read _rot_fm_json (from _run_one_task scope) + queue-level _q_* globals.
-# Mirror the Slice F model: field pattern (run.sh:643).
+# Mirror the Slice F model: field pattern used in _run_one_task.
 
 _get_review_check() {
     # _get_review_check — prints "true" or "false".
@@ -944,17 +940,19 @@ _rev_run_stage() {
     _rev_prompt_tmp=$(mktemp -t run-queue-review-prompt.XXXXXX)
     _rev_iter_jsonl="$_rot_task_scratch/review.jsonl"
     _rev_iter_stderr="$_rot_task_scratch/review.stderr"
-    _review_timeout=1200
+    _review_timeout=${SPINE_QUEUE_REVIEW_TIMEOUT:-1200}
+    _qlog "task=$_rot_id review-stage timeout=${_review_timeout}s (SPINE_QUEUE_REVIEW_TIMEOUT=${SPINE_QUEUE_REVIEW_TIMEOUT:-unset})"
 
     # Write brief file. Instructs /run-review to write the verdict sidecar at a
     # known absolute path so the supervisor can parse it without scanning .scratch/.
+    # change_evidence_inline is omitted: /run-review Phase 1 Gate A2 rebuilds change
+    # evidence from disk; inline annotation in the brief has no consumer.
     {
         printf 'task_id: %s\n' "$_rot_id"
         printf 'branch: %s\n' "$_rot_branch"
         printf 'base_ref: %s\n' "$_base_rev"
         printf 'depth: %s\n' "$_rot_review_depth"
         printf 'risk_level: medium\n'
-        printf 'change_evidence_inline: true\n'
         printf '\n'
         printf 'Review the changes on the task branch listed above against base. '
         printf 'Focus on correctness and spec compliance per /run-review standard.\n'
@@ -993,8 +991,21 @@ _rev_run_stage() {
     _rev_verdict="MALFORMED"
     _rev_blocking=0
     if [ -f "$_rev_verdict_path" ]; then
+        # schema_version must be "1"; refuse unknown versions immediately.
+        _rev_sv=$(jq -r '.schema_version // empty' "$_rev_verdict_path" 2>/dev/null) || _rev_sv=""
+        if [ "$_rev_sv" != "1" ]; then
+            _qlog "task=$_rot_id review verdict schema_version='$_rev_sv' unsupported (expected: 1)"
+            _rev_verdict="MALFORMED"
+            _rev_blocking=0
+            return 0
+        fi
         _rev_v=$(jq -r '.verdict // empty' "$_rev_verdict_path" 2>/dev/null) || _rev_v=""
         _rev_b=$(jq -r '.severity_counts.blocking // 0' "$_rev_verdict_path" 2>/dev/null) || _rev_b=0
+        # Integer guard: non-numeric _rev_b (float or string) would fail [ -gt 0 ] with rc=2
+        # inside an if-block (set -e does not fire), causing the else branch to silently fire.
+        case "$_rev_b" in
+            ''|*[!0-9]*) _rev_verdict="MALFORMED"; _rev_b=0 ;;
+        esac
         case "$_rev_v" in
             ACCEPT|ITERATE|REJECT)
                 _rev_verdict="$_rev_v"
@@ -1007,14 +1018,19 @@ _rev_run_stage() {
 }
 
 _mrg_into_integration() {
-    # _mrg_into_integration — squash-merge accepted task branch into integration branch.
+    # _mrg_into_integration — no-ff merge accepted task branch into integration branch.
     # Reads caller scope: _rot_id, _rot_branch, _integration_branch, _base_rev.
     # Sets caller scope: _mrg_ok ("1" on success, "0" on conflict).
     # On conflict: aborts cleanly and restores base_rev checkout.
     _mrg_ok=0
     _mrg_msg="queue/${_run_id}: ${_rot_id}"
 
-    git checkout -q "$_integration_branch"
+    git checkout -q "$_integration_branch" 2>/dev/null || {
+        _err "supervisor: merge: cannot checkout integration branch $_integration_branch; task=$_rot_id"
+        _mrg_ok=0
+        git checkout -q "$_base_rev" 2>/dev/null || true
+        return 0
+    }
     if git merge --no-ff -m "$_mrg_msg" "$_rot_branch" 2>/dev/null; then
         _mrg_ok=1
         _qlog "task=$_rot_id merged into $_integration_branch (no-ff)"
@@ -1022,7 +1038,7 @@ _mrg_into_integration() {
         git merge --abort 2>/dev/null || true
         _qlog "task=$_rot_id merge-conflict into $_integration_branch; aborted"
     fi
-    git checkout -q "$_base_rev"
+    git checkout -q "$_base_rev" 2>/dev/null || true
     return 0
 }
 
