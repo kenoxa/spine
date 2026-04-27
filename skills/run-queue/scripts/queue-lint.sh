@@ -7,6 +7,11 @@
 
 set -eu
 
+# Locale guard for byte-level validation. POSIX `case` charset patterns
+# consult LC_CTYPE in locale-aware shells; validators below pair this
+# with explicit allowlists. See docs/shell-validator-locale-guard.md.
+LC_ALL=C
+
 _err() { printf '%s\n' "$*" >&2; }
 
 _usage() {
@@ -55,6 +60,7 @@ case "$_run_id" in
     .*) _record "run_id may not start with '.' (git refname rule): $_run_id" ;;
     *[[:space:]]*) _record "run_id may not contain whitespace: $_run_id" ;;
     *'/'*) _record "run_id may not contain '/': $_run_id" ;;
+    *[!A-Za-z0-9._-]*) _record "run_id contains chars outside [A-Za-z0-9._-]: $_run_id" ;;
 esac
 
 # --- Profile (optional overlay) ---
@@ -180,7 +186,6 @@ while [ "$_i" -lt "$_n_tasks" ]; do
 
     # model — optional; flat string; provider-scoped runtime selector for the spawned child
     _mo=$(printf '%s' "$_fm_json" | jq -r '.model // empty')
-    LC_ALL=C
     if [ -n "$_mo" ]; then
         case "$_mo" in
             *[[:space:]]*)
