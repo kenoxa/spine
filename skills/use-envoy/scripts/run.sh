@@ -173,7 +173,20 @@ if [ "$mode" = "multi" ]; then
         _rc=0
         wait "$_pid" || _rc=$?
         [ "$_aggregate" -eq 0 ] && _aggregate="$_rc"
-        [ -s "${_base}.${1}.md" ] && printf '%s\n' "${_base}.${1}.md"
+        if [ "$1" = "opencode" ]; then
+            # OpenCode multi-model: glob for per-model output files
+            set +f
+            for _f in "${_base}.opencode."*.md; do
+                [ -f "$_f" ] && [ -s "$_f" ] && printf '%s\n' "$_f"
+            done
+            set -f
+            # success if at least one output file exists
+            if ls "${_base}.opencode."*.md >/dev/null 2>&1; then
+                [ "$_aggregate" -ne 0 ] && _aggregate=0
+            fi
+        else
+            [ -s "${_base}.${1}.md" ] && printf '%s\n' "${_base}.${1}.md"
+        fi
         shift
     done
 

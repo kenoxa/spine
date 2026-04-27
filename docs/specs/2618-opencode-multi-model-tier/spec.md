@@ -44,11 +44,11 @@ Quality-first per role; usage limits explicitly excluded from selection criteria
 
 | Tier | Models | Selection rationale |
 |------|--------|---------------------|
-| **Frontier** (gate authority — consultant, inspector, verifier, synthesizer) | `mimo-v2.5-pro` + `deepseek-v4-pro` + `kimi-k2.6` | Top three coding-benchmark leaders in the roster. Three labs (Xiaomi / DeepSeek / Moonshot). MiMo: TB2 leader (68.4), 1M context, harness-aware long-horizon. DeepSeek V4 Pro: SWE-V #1 (80.6), LCB #1 (93.5), Codeforces #1, competitive-programming + math heritage. Kimi K2.6: SWE-V 80.2, SWE-P #1 among open-weights (58.6), TB2 66.7, 300-agent swarm-trained long-horizon. **Accepted trade-off**: K2.6 + MiMo share Cluster B failure mode (long-horizon agentic specialists); quality wins over diversity-when-they-conflict. |
-| **Standard** (implementation — implementer, analyst) | `qwen3.6-plus` + `glm-5.1` | Two labs (Alibaba / Z.AI-Tsinghua) distinct from Frontier — preserves implementation-vs-gate separation. Qwen3.6 Plus: SWE-V 78.8 (#2 in roster), TB2 61.6, 1M context, always-on chain-of-thought. GLM-5.1: SWE-P 58.4 (#1 globally), Code Arena Elo 1530 (#3 globally), 203K context. GLM's HLE 31% reasoning weakness is irrelevant for code implementation. |
+| **Frontier** (gate authority — consultant, inspector, verifier, synthesizer) | Primary: `deepseek-v4-pro`; Fanout: TBD | DeepSeek V4 Pro: SWE-V #1 (80.6), LCB #1 (93.5), Codeforces #1 — best fit for code review/verification/synthesis. Decided 2026-04-27 (session: opencode-models-tier-frame-97c5). |
+| **Standard** (implementation — implementer, analyst) | Primary: `kimi-k2.6`; Fanout: TBD | Kimi K2.6: SWE-P 58.6, SWE-V 80.2, TB2 66.7 — strongest all-round implementer. Different lab (Moonshot) from DeepSeek (Frontier primary). Decided 2026-04-27. |
 | **Fast** (recon/extraction — scout, runner) | `deepseek-v4-flash` (single) | 1M context, architecturally fast (13B active params), latency-optimized. Single-model: extraction doesn't synthesize. |
 
-Replaces: `mimo-v2-pro`, `minimax-m2.7`, `minimax-m2.5`.
+Replaces: `mimo-v2-pro` (Frontier), `minimax-m2.7` (Standard), `minimax-m2.5` (Fast).
 
 ## Key design constraints
 

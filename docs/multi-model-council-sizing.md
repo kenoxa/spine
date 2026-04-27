@@ -73,3 +73,7 @@ docs." [E3: `.scratch/opencode-models-tier-frame-97c5/advise-synthesis.md` §Con
 ## Spine Implication
 
 Default envoy dispatches 3 providers. Tiered routing possible: single model for simple tasks, 3-model panel for review/planning, full matrix only for high-stakes architecture decisions via `SPINE_ENVOY_PROVIDERS` override.
+
+## OpenCode Intra-Provider Multi-Model
+
+Within OpenCode envoy dispatch, each tier fans out to multiple models (Frontier: 3, Standard: 2, Fast: 1) with per-process `XDG_DATA_HOME` isolation. See [model-selection.md](model-selection.md) §OpenCode Multi-Model Dispatch for fanout composition. Concurrency verified: slice 2 of spec 2618, 4/4 criteria PASS (2026-04-27).

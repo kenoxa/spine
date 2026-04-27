@@ -14,8 +14,8 @@
 
 | Tier | Purpose | Claude | Codex | Cursor | OpenCode (Go) | OpenCode (Free) |
 |------|---------|--------|-------|--------|---------------|-----------------|
-| Frontier | Complex reasoning, gate authority | opus:high | gpt-5.4:high | composer-2 | opencode-go/mimo-v2.5-pro | opencode/qwen3.6-plus-free |
-| Standard | Advisory, research, pattern matching | sonnet:medium | gpt-5.4:medium | composer-2 | opencode-go/qwen3.6-plus | opencode/minimax-m2.5-free |
+| Frontier | Complex reasoning, gate authority | opus:high | gpt-5.4:high | composer-2 | opencode-go/deepseek-v4-pro | opencode/qwen3.6-plus-free |
+| Standard | Advisory, research, pattern matching | sonnet:medium | gpt-5.4:medium | composer-2 | opencode-go/kimi-k2.6 | opencode/minimax-m2.5-free |
 | Fast | Reconnaissance, extraction | haiku:medium | gpt-5.4-mini:medium | auto¹ | opencode-go/deepseek-v4-flash | opencode/mimo-v2-pro-free |
 
 Session quality/cost is chosen on the mainthread.
@@ -43,7 +43,7 @@ For day-to-day work, each provider has different strengths:
 | **Strength** | Code reasoning (SWE-Bench) | Agentic tool use (Terminal-Bench 75.1%) | IDE integration, cheapest agentic model | Multi-model gateway (MiMo, MiniMax, GLM); Go subscription + Free tier |
 | **Budget** | 5h / 7-day rolling (generous) | 5h / 7-day rolling (generous) | ~$20-30 / month (tight) | Go subscription (free at margin) or Free tier (zero cost) |
 | **Best for** | Planning, debugging, complex reasoning | Sandboxed execution, tool-heavy tasks | Focused implementation, inline edits | Analytical diversity, cost-sensitive workloads, chain terminus fallback |
-| **Default model** | sonnet | gpt-5.4 | auto | opencode-go/qwen3.6-plus (Go) / opencode/minimax-m2.5-free (Free) |
+| **Default model** | sonnet | gpt-5.4 | auto | opencode-go/kimi-k2.6 (Go) / opencode/minimax-m2.5-free (Free) |
 
 **Recommended primary**: Claude Code — highest code quality benchmarks, generous rolling budget, full Spine skill and subagent support. Use Standard (sonnet) as daily driver.
 
@@ -60,14 +60,14 @@ Heavy multi-agent sessions can exhaust Claude Code Max 5x Opus hours in 2-3 days
 | Claude Code | 5h / 7-day rolling | sonnet:medium | opus:high | Generous budget — upgrade to opus freely for complex phases |
 | Codex | 5h / 7-day rolling | gpt-5.4:medium | gpt-5.4:high | Generous budget — upgrade effort freely for complex phases |
 | Cursor | ~$20-30 / month | auto | composer-2 | Tight monthly cap — stay on auto, upgrade selectively to composer-2 |
-| OpenCode Go | $60/mo flat ($10 sub), $12/5h · $30/wk rolling caps | deepseek-v4-flash (Fast) | mimo-v2.5-pro (Frontier) | Pick by quality per role — Fast for recon/extraction, Frontier for gate authority. Caps rarely bind in practice; fall back to free models if hit. |
+| OpenCode Go | $60/mo flat ($10 sub), $12/5h · $30/wk rolling caps | deepseek-v4-flash (Fast) | deepseek-v4-pro (Frontier) | Pick by quality per role — Fast for recon/extraction, Frontier for gate authority. Multi-model fanout within OpenCode via envoy (Frontier: deepseek-v4-pro + mimo-v2.5-pro + qwen3.6-plus; Standard: kimi-k2.6 + glm-5.1). Caps rarely bind in practice; fall back to free models if hit. |
 
 ### Cost per million tokens
 
 | Tier | Claude | Codex | Cursor | OpenCode (Go) | OpenCode (Free) |
 |------|--------|-------|--------|---------------|-----------------|
-| Frontier | opus ($5/$25) | gpt-5.4 ($2.50/$15) | composer-2 ($0.50/$2.50) | mimo-v2.5-pro ($0, sub) | qwen3.6-plus-free (**free**) |
-| Standard | sonnet ($3/$15) | gpt-5.4 ($2.50/$15) | auto ($1.25/$6.00) | qwen3.6-plus ($0, sub) | minimax-m2.5-free (**free**) |
+| Frontier | opus ($5/$25) | gpt-5.4 ($2.50/$15) | composer-2 ($0.50/$2.50) | deepseek-v4-pro ($0, sub) | qwen3.6-plus-free (**free**) |
+| Standard | sonnet ($3/$15) | gpt-5.4 ($2.50/$15) | auto ($1.25/$6.00) | kimi-k2.6 ($0, sub) | minimax-m2.5-free (**free**) |
 | Fast | haiku ($1/$5) | gpt-5.4-mini¹ ($0.75/$4.50) | composer-2 ($0.50/$2.50) | deepseek-v4-flash ($0, sub) | mimo-v2-pro-free (**free**) |
 
 > Cursor models draw from the Auto+Composer pool with a monthly allowance. Per-token cost matters less than staying within your monthly budget. Composer 2 Fast ($1.50/$7.50) offers the same quality at higher speed but 3× the cost — use selectively when latency matters. For higher quality beyond the pool, override to API-pool models (e.g., gpt-5.4) at provider pricing.
@@ -94,7 +94,7 @@ When Claude or Codex hits a rate limit, runs out of credits, or has an auth erro
 - Claude fails → cursor-agent runs the same Claude model (e.g., `opus` → `claude-opus-4-7-high-thinking`)
 - Codex fails → cursor-agent runs the same GPT model (e.g., `gpt-5.4` → `gpt-5.4-high`)
 - Cursor fails → no fallback (cursor-agent models aren't available elsewhere)
-- OpenCode fails → no fallback (MiMo/MiniMax models aren't available on cursor-agent)
+- OpenCode fails → no fallback (OpenCode Go/Free models aren't available on cursor-agent)
 
 **What you'll see:** A stderr message like `claude failed (exit 1), attempting cursor-agent fallback`, and the output header will note the fallback: `Claude Code -> Cursor-Agent Fallback`.
 
@@ -208,17 +208,32 @@ Env var changes take effect immediately (runtime). Model mapping changes require
 
 | Model | Coding bench | Context | Pricing |
 |-------|--------------|---------|---------|
-| MiMo-V2.5-Pro (Frontier) | TB2 68.4†† (#1 in dataset), SWE-P 57.2†, ClawEval 63.8† | 1M | $0 (Go sub) |
-| Qwen3.6 Plus (Standard) | SWE-V 78.8†, TB2 61.6†, MCPMark 48.2† | 1M | $0 (Go sub) |
+| DeepSeek V4 Pro (Frontier) | SWE-V 80.6† (#1), LCB 93.5† (#1), Codeforces #1† | 1M | $0 (Go sub) |
+| Kimi K2.6 (Standard) | SWE-P 58.6†, SWE-V 80.2†, TB2 66.7† | 256K | $0 (Go sub) |
 | DeepSeek V4 Flash (Fast) | 13B active (284B MoE), latency-optimized V4 variant; ~7–10pp below V4-Pro on agentic† | 1M | $0 (Go sub) |
 
 † vendor-self-reported benchmark score
 
-†† MiMo-V2.5-Pro TB2 score is self-reported by Xiaomi; partially corroborated by third-party commentary (marktechpost.com, dayahimour.org).
+Tier assignments maximize quality-per-role while preserving lab diversity:
+- **Frontier** (gate authority): DeepSeek V4 Pro — leads SWE-V, LCB, and Codeforces; best fit for code review, verification, and synthesis.
+- **Standard** (implementation, advisory): Kimi K2.6 — strongest all-round implementer (SWE-P 58.6, SWE-V 80.2, TB2 66.7); Moonshot lab distinct from DeepSeek (Frontier).
+- **Fast** (recon, extraction): DeepSeek V4 Flash — 13B active parameters, latency-optimized; single-model (extraction doesn't synthesize).
 
-These three models were chosen to maximize quality-per-role while preserving lab and RLHF diversity for multi-model council use (slice 3). MiMo-V2.5-Pro (Xiaomi, Frontier) leads on Terminal-Bench 2.0 and brings 1M context for full-repo gate-authority visibility. Qwen3.6 Plus (Alibaba, Standard) leads SWE-Bench Verified in its class with always-on chain-of-thought, making it well-suited for advisory and implementation tasks. DeepSeek V4 Flash (DeepSeek, Fast) uses the same Hybrid-CSA/HCA architecture as V4-Pro at 13B active parameters — adequate for recon and extraction at lower cost. Three distinct labs and distinct RLHF objectives (harness-aware token efficiency / terminal-agentic CoT / competitive-programming distillation) produce genuinely different failure modes, which is the load-bearing property for council dispatch in slice 3.
+### OpenCode Multi-Model Dispatch
 
-Additional models available on the Go subscription — GLM-5 / GLM-5.1, MiniMax M2.5/M2.7, Kimi K2.5/K2.6, MiMo-V2-Pro, and DeepSeek V4 Pro — remain accessible and are wired into multi-model dispatch in slice 3 (forward reference; not implemented here).
+Envoy dispatch within OpenCode uses multi-model fanout per tier. Each model runs in an isolated `XDG_DATA_HOME` process and produces a separate output file under `<base>.opencode.<slug>.md`.
+
+| Tier | Models | Fanout |
+|------|--------|--------|
+| Frontier | DeepSeek V4 Pro + MiMo V2.5 Pro + Qwen3.6 Plus | 3 models, 3 labs (DeepSeek / Xiaomi / Alibaba) |
+| Standard | Kimi K2.6 + GLM-5.1 | 2 models, 2 labs (Moonshot / Z.AI-Tsinghua) |
+| Fast | DeepSeek V4 Flash | 1 model (extraction) |
+
+**Success semantics**: ≥1 model succeeds → provider round = success. All fail → provider round = failure.
+
+**Override**: `SPINE_ENVOY_{TIER}_OPENCODE` env vars disable fanout. When set, the tier runs single-model (same as other providers).
+
+Additional models available on the Go subscription — MiMo-V2/Omni, Kimi K2.5, MiniMax M2.5/M2.7, Qwen3.5 Plus, GLM-5 — remain accessible via env override.
 
 ## Implementation Notes
 
@@ -229,7 +244,7 @@ Four mapping points encode the tier tables:
 - **`invoke-cursor.sh`** `to_cursor_model()` — maps canonical model + effort to cursor-agent model IDs for fallback after Claude/Codex failure. Each model owns its full cursor-agent ID (no shared prefix).
 - **`_opencode-common.sh`** — shared transport helper for OpenCode. Owns CLI invocation, JSONL parsing, `step_finish` completeness gate, and OpenCode env sanitization.
 
-All mapping points agree on tier:provider mappings. Intentional surface differences: Cursor Fast uses `fast` in install-time frontmatter (actual subagent dispatch) but `auto` in envoy CLI dispatch (tier table); Frontier and Standard are the only tiers meaningfully used in envoy for Cursor. Effort applies to Claude and Codex only — Cursor has no effort parameter. OpenCode uses full prefixed model strings (e.g., `opencode-go/mimo-v2.5-pro`) with no runtime prefix probing. OpenCode automatically detects Go subscription vs Free tier models.
+All mapping points agree on tier:provider mappings. Intentional surface differences: Cursor Fast uses `fast` in install-time frontmatter (actual subagent dispatch) but `auto` in envoy CLI dispatch (tier table); Frontier and Standard are the only tiers meaningfully used in envoy for Cursor. Effort applies to Claude and Codex only — Cursor has no effort parameter. OpenCode uses full prefixed model strings (e.g., `opencode-go/deepseek-v4-pro`) with no runtime prefix probing. OpenCode automatically detects Go subscription vs Free tier models. OpenCode envoy dispatch fans out to multiple models per tier (see Multi-Model Dispatch above); subagent pinning uses the primary model only.
 
 ### Agent Tier Assignments
 

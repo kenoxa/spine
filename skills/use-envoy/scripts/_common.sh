@@ -68,6 +68,7 @@ finalize_output() {
 # Tier-to-model resolution for envoy dispatch.
 # Canonical mapping reference: docs/model-selection.md
 resolve_tier() {
+    _tier_model=; _tier_effort=; _tier_primary=; _tier_fanout=
     case "$1:$2" in
         frontier:claude) _tier_model=opus;          _tier_effort=high ;;
         frontier:codex)  _tier_model=gpt-5.4;       _tier_effort=high ;;
@@ -78,14 +79,25 @@ resolve_tier() {
         fast:claude)     _tier_model=haiku;          _tier_effort=medium ;;
         fast:codex)      _tier_model=gpt-5.4-mini;  _tier_effort=medium ;;
         fast:cursor)     _tier_model=auto;           _tier_effort= ;;
-        frontier:opencode) _tier_model=opencode-go/mimo-v2.5-pro;        _tier_effort=high ;;
-        standard:opencode) _tier_model=opencode-go/qwen3.6-plus;       _tier_effort=high ;;
-        fast:opencode)     _tier_model=opencode-go/deepseek-v4-flash;  _tier_effort=high ;;
+        frontier:opencode)
+            _tier_model=opencode-go/deepseek-v4-pro
+            _tier_fanout="opencode-go/deepseek-v4-pro opencode-go/mimo-v2.5-pro opencode-go/qwen3.6-plus"
+            _tier_effort=high ;;
+        standard:opencode)
+            _tier_model=opencode-go/kimi-k2.6
+            _tier_fanout="opencode-go/kimi-k2.6 opencode-go/glm-5.1"
+            _tier_effort=high ;;
+        fast:opencode)
+            _tier_model=opencode-go/deepseek-v4-flash
+            _tier_fanout="opencode-go/deepseek-v4-flash"
+            _tier_effort=high ;;
         frontier:opencode-free) _tier_model=opencode/qwen3.6-plus-free;    _tier_effort=high ;;
         standard:opencode-free) _tier_model=opencode/minimax-m2.5-free;    _tier_effort=high ;;
         fast:opencode-free)     _tier_model=opencode/mimo-v2-pro-free;     _tier_effort=minimal ;;
         *)               _tier_model=;               _tier_effort= ;;
     esac
+    [ -z "${_tier_primary:-}" ] && _tier_primary="$_tier_model"
+    [ -z "${_tier_fanout:-}" ] && _tier_fanout="$_tier_primary"
 }
 
 # Shell-level timing (POSIX date +%s, second precision).
