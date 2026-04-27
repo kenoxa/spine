@@ -43,6 +43,7 @@ Managed by `/run-curate`; style: telegraphic, 250-800 tokens, `updated:` frontma
 - `docs/skill-guardrail-patterns.md` — anti-rationalization format, invariant-first review briefs, inline vs hook enforcement, budget-aware inline ACCEPT, layered defense for autonomous runs, post-spawn scope verification (set membership not diff scope), ecosystem context
 - `docs/machine-verifiable-terminal-contracts.md` — JSON terminal artifact pattern (build-status.json), status→consumer action table, atomicity contract
 - `docs/shell-validator-locale-guard.md` — LC_ALL=C guard for POSIX case character-class validators; fix pattern, follow-up sites in queue-lint.sh
+- `docs/run-queue-guide.md` — end-user how-to: queue.yaml setup, kick, monitor, morning review, conflict resolution, troubleshooting
 
 ## Deep Dives
 
