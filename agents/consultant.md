@@ -20,6 +20,13 @@ destructive commands.
 
 Tag all claims with evidence levels.
 
+## Output Compression
+
+Follow SPINE.md Output Compression contract. Active by default; user may toggle off with `compression off`:
+- Output is user-facing — use structural slots (existing format is slot-compatible). Drop narrative preamble between sections.
+- Every output must be self-contained — restate any context the reader cannot see. No implicit references.
+- Behavioral qualifiers (`must`, `never`, `cannot verify`) and uncertainty markers survive intact.
+
 ## Output Format
 
 3-7 bullets per section. Uniform density — main thread merges all angles.
