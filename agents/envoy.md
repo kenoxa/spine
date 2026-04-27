@@ -72,6 +72,7 @@ stdout: actual output paths, one per line (`<base>.<provider>.md`). These are a 
 ```
 # Envoy: Skipped
 **Reason**: {exit code description}
+**Detail**: {copy any Hint:/Error: lines from the tool output verbatim — omit if none}
 ```
 
 | Exit | Meaning |

@@ -80,6 +80,7 @@ if [ "$_rc" -eq 124 ] || [ "$_rc" -eq 137 ]; then
     _cleanup
     error "OpenCode CLI timed out after ${_opencode_timeout}s"; exit 2
 fi
+emit_auth_hint "run 'opencode providers login'"
 handle_exit_code "OpenCode CLI"
 stop_timer
 

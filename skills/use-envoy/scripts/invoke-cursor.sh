@@ -178,6 +178,7 @@ _cleanup
 if [ "$_rc" -eq 124 ] || [ "$_rc" -eq 137 ]; then
     error "cursor-agent CLI timed out after ${_cursor_timeout}s"; exit 2
 fi
+emit_auth_hint "run 'cursor-agent login' or set CURSOR_API_KEY"
 handle_exit_code "cursor-agent CLI"
 stop_timer
 

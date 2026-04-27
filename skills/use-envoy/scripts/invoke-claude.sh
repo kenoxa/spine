@@ -96,6 +96,7 @@ fi
 
 # --- Fallback to cursor-agent on fast-failure ---
 if [ "$_rc" -ne 0 ]; then
+    emit_auth_hint "run 'claude login'"
     # Try cursor-agent fallback (exits with fallback result or original error)
     sh "$_script_dir/fallback.sh" \
         --provider claude --tier "$tier" --exit-code "$_rc" \

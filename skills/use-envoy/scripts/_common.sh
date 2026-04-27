@@ -34,6 +34,16 @@ handle_exit_code() {
     fi
 }
 
+# emit_auth_hint <login_cmd>
+# When _rc != 0 and stderr log contains an auth-failure pattern, prints a re-auth
+# hint before the generic failure message so the user knows exactly what to fix.
+emit_auth_hint() {
+    [ "$_rc" -eq 0 ] && return 0
+    [ -f "$stderr_log" ] || return 0
+    grep -qiE 'not logged in|not authenticated|authentication required|authorization.*error|please.*sign in|please.*log in' "$stderr_log" 2>/dev/null || return 0
+    error "Hint: re-authenticate — $1"
+}
+
 validate_output() {
     # Codex internal timeout: exits 0 with partial/no stdout, only stderr signal.
     # Pattern is observed behavior (not contracted) — defense-in-depth, not primary gate.
