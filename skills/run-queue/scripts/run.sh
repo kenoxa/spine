@@ -120,7 +120,9 @@ _profile_rel=$(printf '%s' "$_qjson" | jq -r '.profile // empty')
 # Queue-level pipeline fields (Slice H). Per-task frontmatter wins; these are queue defaults.
 # review_check: true (default). Old queues without the field default to review_check=true.
 # Users who want the old behavior (no review) must set review_check: false in queue.yaml.
-_q_review_check=$(printf '%s' "$_qjson" | jq -r '.review_check // "true"')
+# Boolean guard: jq's // operator treats false/null/"" identically, so we use has()
+# to distinguish "field absent" from "field explicitly false".
+_q_review_check=$(printf '%s' "$_qjson" | jq -r 'if has("review_check") then (.review_check | tostring) else "true" end')
 _q_review_depth=$(printf '%s' "$_qjson" | jq -r '.review_depth // "standard"')
 _q_merge_policy=$(printf '%s' "$_qjson" | jq -r '.merge_policy // "auto"')
 # branch_cleanup is queue-level only (no per-task override).
@@ -922,7 +924,9 @@ _rot_run_pipeline() {
 _get_review_check() {
     # _get_review_check — prints "true" or "false".
     # Reads: _rot_fm_json, _q_review_check.
-    _grc=$(printf '%s' "$_rot_fm_json" | jq -r '.review_check // empty')
+    # Boolean guard: jq's // operator treats false as empty; use has() to
+    # distinguish "field absent" from "field explicitly false".
+    _grc=$(printf '%s' "$_rot_fm_json" | jq -r 'if has("review_check") then (.review_check | tostring) else empty end')
     printf '%s' "${_grc:-$_q_review_check}"
 }
 
