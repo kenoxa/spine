@@ -457,6 +457,31 @@ Supervisor attempts agentic merge conflict resolution via `/run-merge` child bef
 - **Octopus/squash topology** — subset predicate assumes standard merge parent topology. Deferred.
 - **Branch auto-cleanup** (Slice E + F backlog) — `queue/<run_id>/<task_id>-merge` scratch branch retained on successful resolution; cleanup candidate.
 
+## Slice J — AI-assisted queue prepare phase + P3 polish
+
+**Status: COMPLETE.** Commit `c506155`.
+
+`prepare.md` redesigned from scan-only Discovery into a 5-step AI-assisted intake: dual-mode Discovery (pre-authored handoffs + conversational descriptions), Gate 1 (per-task draft review loop), contract audit (covers both drafted and pre-authored, checks `terminal_artifact` consistency with entry skill), DAG proposal, Gate 2 (DAG + materialization confirm). Two confirmation gates throughout — draft review first, DAG/materialization second.
+
+`docs/run-queue-guide.md` rewritten: AI-assisted "describe → confirm → wake up to report" as the only primary flow; manual YAML steps removed; schema details demoted to Generated File Reference appendix.
+
+P3 polish: `commit_ceiling` lint validator added to `queue-lint.sh`; `queue-schema.md` three additions (`retry_once × max_iterations` cap reset, resumption header fields, `commit_ceiling` lint rule row).
+
+P0 scaffolding: `queues/queue-p0-conflict-test/` ready for user-triggered live run.
+
+### Key design decisions
+
+- **Two gates not one** — user indicated typical queue size may exceed 5 tasks; draft review and DAG/materialization are cognitively distinct and should not share a screen.
+- **terminal_artifact derivation** — only for `/do-build`; any other entry skill requires explicit ask (supervisor waits forever on a path the skill never writes).
+- **Hybrid mode** — drafted and pre-authored handoffs merge into one candidate list; drafted tasks visually tagged.
+
+### Open follow-ups deferred past Slice J
+
+- **P0 live run** — E3 evidence needed for the full `/run-merge` conflict path. Scaffolding at `queues/queue-p0-conflict-test/`.
+- **P1** — scratch branch cleanup contract for `-merge` branches (depends on P0 evidence).
+- **P2** — `files_resolved` under-reporting watch (depends on P0 evidence).
+- **S2** — `scope_files` validation gap: nowhere validated; pre-existing.
+
 ## Open items deferred to future slices
 
 From review/polish synthesis, iter-2/iter-3 findings deferred past Slice A:
@@ -467,7 +492,7 @@ From review/polish synthesis, iter-2/iter-3 findings deferred past Slice A:
 - **GNU tool detection 3rd-use extraction** — Slice C natural site.
 - **`_qlog` / `_qlog_line` naming split** — resolve at Slice C shared-helper extraction.
 - **`_rc` idiom rewrite** — low signal; polish when touched.
-- **`commit_ceiling` schema field enforcement** — Slice B+.
+- **`commit_ceiling` schema field enforcement** — DONE (Slice J: lint validator added).
 
 Learnings proposed for project knowledge:
 - L1 (layered trust boundaries) + L2 (subshell env-scoped git config) → candidate new doc `docs/layered-trust-boundary-hooks.md` (or addendum to `docs/skill-guardrail-patterns.md`). **User approval required.**
