@@ -14,8 +14,8 @@
 
 | Tier | Purpose | Claude | Codex | Cursor | OpenCode (Go) | OpenCode (Free) |
 |------|---------|--------|-------|--------|---------------|-----------------|
-| Frontier | Complex reasoning, gate authority | opus:high | gpt-5.4:high | composer-2 | opencode-go/deepseek-v4-pro | opencode/qwen3.6-plus-free |
-| Standard | Advisory, research, pattern matching | sonnet:medium | gpt-5.4:medium | composer-2 | opencode-go/kimi-k2.6 | opencode/minimax-m2.5-free |
+| Frontier | Complex reasoning, gate authority | opus:high | gpt-5.4:high | composer-2 | opencode-go/kimi-k2.6 | opencode/qwen3.6-plus-free |
+| Standard | Advisory, research, pattern matching | sonnet:medium | gpt-5.4:medium | composer-2 | opencode-go/minimax-m2.7 | opencode/minimax-m2.5-free |
 | Fast | Reconnaissance, extraction | haiku:medium | gpt-5.4-mini:medium | auto¹ | opencode-go/deepseek-v4-flash | opencode/mimo-v2-pro-free |
 
 Session quality/cost is chosen on the mainthread.
@@ -43,7 +43,7 @@ For day-to-day work, each provider has different strengths:
 | **Strength** | Code reasoning (SWE-Bench) | Agentic tool use (Terminal-Bench 75.1%) | IDE integration, cheapest agentic model | Multi-model gateway (MiMo, MiniMax, GLM); Go subscription + Free tier |
 | **Budget** | 5h / 7-day rolling (generous) | 5h / 7-day rolling (generous) | ~$20-30 / month (tight) | Go subscription (free at margin) or Free tier (zero cost) |
 | **Best for** | Planning, debugging, complex reasoning | Sandboxed execution, tool-heavy tasks | Focused implementation, inline edits | Analytical diversity, cost-sensitive workloads, chain terminus fallback |
-| **Default model** | sonnet | gpt-5.4 | auto | opencode-go/kimi-k2.6 (Go) / opencode/minimax-m2.5-free (Free) |
+| **Default model** | sonnet | gpt-5.4 | auto | opencode-go/minimax-m2.7 (Go) / opencode/minimax-m2.5-free (Free) |
 
 **Recommended primary**: Claude Code — highest code quality benchmarks, generous rolling budget, full Spine skill and subagent support. Use Standard (sonnet) as daily driver.
 
@@ -60,14 +60,14 @@ Heavy multi-agent sessions can exhaust Claude Code Max 5x Opus hours in 2-3 days
 | Claude Code | 5h / 7-day rolling | sonnet:medium | opus:high | Generous budget — upgrade to opus freely for complex phases |
 | Codex | 5h / 7-day rolling | gpt-5.4:medium | gpt-5.4:high | Generous budget — upgrade effort freely for complex phases |
 | Cursor | ~$20-30 / month | auto | composer-2 | Tight monthly cap — stay on auto, upgrade selectively to composer-2 |
-| OpenCode Go | $60/mo flat ($10 sub), $12/5h · $30/wk rolling caps | deepseek-v4-flash (Fast) | deepseek-v4-pro (Frontier) | Pick by quality per role — Fast for recon/extraction, Frontier for gate authority. Multi-model fanout within OpenCode via envoy (Frontier: deepseek-v4-pro + mimo-v2.5-pro + qwen3.6-plus; Standard: kimi-k2.6 + glm-5.1). Caps rarely bind in practice; fall back to free models if hit. |
+| OpenCode Go | $60/mo flat ($10 sub), $12/5h · $30/wk rolling caps | minimax-m2.7 (Standard) | kimi-k2.6 (Frontier) | Pick by effective context per role — Fast for recon/extraction, Standard for scoped implementation, Frontier for synthesis and gate authority. Multi-model fanout within OpenCode via envoy (Frontier: kimi-k2.6 + glm-5.1; Standard: minimax-m2.7 + deepseek-v4-pro + qwen3.6-plus; Fast: deepseek-v4-flash + qwen3.5-plus + minimax-m2.5). Caps rarely bind in practice; fall back to free models if hit. |
 
 ### Cost per million tokens
 
 | Tier | Claude | Codex | Cursor | OpenCode (Go) | OpenCode (Free) |
 |------|--------|-------|--------|---------------|-----------------|
-| Frontier | opus ($5/$25) | gpt-5.4 ($2.50/$15) | composer-2 ($0.50/$2.50) | deepseek-v4-pro ($0, sub) | qwen3.6-plus-free (**free**) |
-| Standard | sonnet ($3/$15) | gpt-5.4 ($2.50/$15) | auto ($1.25/$6.00) | kimi-k2.6 ($0, sub) | minimax-m2.5-free (**free**) |
+| Frontier | opus ($5/$25) | gpt-5.4 ($2.50/$15) | composer-2 ($0.50/$2.50) | kimi-k2.6 ($0, sub) | qwen3.6-plus-free (**free**) |
+| Standard | sonnet ($3/$15) | gpt-5.4 ($2.50/$15) | auto ($1.25/$6.00) | minimax-m2.7 ($0, sub) | minimax-m2.5-free (**free**) |
 | Fast | haiku ($1/$5) | gpt-5.4-mini¹ ($0.75/$4.50) | composer-2 ($0.50/$2.50) | deepseek-v4-flash ($0, sub) | mimo-v2-pro-free (**free**) |
 
 > Cursor models draw from the Auto+Composer pool with a monthly allowance. Per-token cost matters less than staying within your monthly budget. Composer 2 Fast ($1.50/$7.50) offers the same quality at higher speed but 3× the cost — use selectively when latency matters. For higher quality beyond the pool, override to API-pool models (e.g., gpt-5.4) at provider pricing.
@@ -206,18 +206,59 @@ Env var changes take effect immediately (runtime). Model mapping changes require
 
 ### OpenCode-Available Models
 
-| Model | Coding bench | Context | Pricing |
-|-------|--------------|---------|---------|
-| DeepSeek V4 Pro (Frontier) | SWE-V 80.6† (#1), LCB 93.5† (#1), Codeforces #1† | 1M | $0 (Go sub) |
-| Kimi K2.6 (Standard) | SWE-P 58.6†, SWE-V 80.2†, TB2 66.7† | 256K | $0 (Go sub) |
-| DeepSeek V4 Flash (Fast) | 13B active (284B MoE), latency-optimized V4 variant; ~7–10pp below V4-Pro on agentic† | 1M | $0 (Go sub) |
+| Model | Role | Effective Context | Coding Bench | Pricing |
+|-------|------|-------------------|--------------|---------|
+| Kimi K2.6 | Frontier | ~400k–700k | SWE-P 58.6†, SWE-V 80.2†, TB2 66.7† | $0 (Go sub) |
+| GLM-5.1 | Frontier | ~250k–400k | — | $0 (Go sub) |
+| MiniMax M2.7 | Standard | ~100k–250k | — | $0 (Go sub) |
+| DeepSeek V4 Pro | Standard | ~80k–150k | SWE-V 80.6† (#1), LCB 93.5† (#1), Codeforces #1† | $0 (Go sub) |
+| Qwen3.6 Plus | Standard | ~80k–150k | — | $0 (Go sub) |
+| DeepSeek V4 Flash | Fast | ~50k–90k | ~7–10pp below V4-Pro on agentic† | $0 (Go sub) |
+| Qwen3.5 Plus | Fast | ~60k–100k | — | $0 (Go sub) |
+| MiniMax M2.5 | Fast | ~60k–100k | — | $0 (Go sub) |
 
 † vendor-self-reported benchmark score
 
-Tier assignments maximize quality-per-role while preserving lab diversity:
-- **Frontier** (gate authority): DeepSeek V4 Pro — leads SWE-V, LCB, and Codeforces; best fit for code review, verification, and synthesis.
-- **Standard** (implementation, advisory): Kimi K2.6 — strongest all-round implementer (SWE-P 58.6, SWE-V 80.2, TB2 66.7); Moonshot lab distinct from DeepSeek (Frontier).
-- **Fast** (recon, extraction): DeepSeek V4 Flash — 13B active parameters, latency-optimized; single-model (extraction doesn't synthesize).
+> **Context window is misleading.** Advertised max (e.g., 1M for DeepSeek V4 Pro) ≠ effective context. Model choice depends on the range where reasoning stays stable, not API limits.
+
+Tier assignments are driven by **context behavior + role fit**, not benchmark ranking alone:
+
+- **Frontier** (coordination, synthesis, gate authority): **Kimi K2.6** — best long-context coherence; maintains stability across large, evolving contexts. **GLM-5.1** — solid fallback, cheaper frontier. DeepSeek V4 Pro is intentionally **not** Frontier: its effective context (~80k–150k) and degradation under accumulation make it a deep worker for scoped reasoning, not a system coordinator for long-horizon synthesis.
+- **Standard** (scoped implementation, debugging, advisory): **MiniMax M2.7** — best default balance. **DeepSeek V4 Pro** — excels at deep, focused reasoning within bounded scope (debugging, implementation); degrades under long context accumulation despite 1M advertised context. **Qwen3.6 Plus** — stable fallback.
+- **Fast** (recon, extraction, parallel exploration): **DeepSeek V4 Flash** — massive throughput, latency-optimized. **Qwen3.5 Plus** — safer cheap option. **MiniMax M2.5** — balanced cheap option.
+
+### OpenCode Context-Driven Routing
+
+Pick by effective context and role, not "smartness" alone:
+
+| Context | Tier | Models |
+|---------|------|--------|
+| >200k tokens | Frontier | Kimi K2.6, GLM-5.1 |
+| 100k–200k tokens | Standard | MiniMax M2.7, DeepSeek V4 Pro, Qwen3.6 Plus |
+| <100k tokens | Fast | DeepSeek V4 Flash, Qwen3.5 Plus, MiniMax M2.5 |
+
+Routing rules:
+- If task coordinates multiple sessions, merges reports, or resolves conflicts → **Frontier**
+- If task is scoped implementation or debugging → **Standard**
+- If task is small, parallel, or exploratory → **Fast**
+- If worker hits ambiguity or conflict → escalate to **Frontier**
+
+Mental model:
+- **Frontier** = decision authority
+- **Standard** = problem solver
+- **Fast** = search + exploration layer
+
+### OpenCode Session Model
+
+**Standard (`opencode-go/minimax-m2.7`) is the recommended default** for day-to-day work.
+
+Within Standard, route by task depth:
+- **MiniMax M2.7** — default for focused implementation, straightforward debugging, pattern matching
+- **DeepSeek V4 Pro** — scoped debugging or hard implementation where deep reasoning matters more than context size (effective ~80k–150k)
+
+When to upgrade tier:
+- **Frontier (`opencode-go/kimi-k2.6`)** — ambiguous requirements, multi-session coordination, merging reports, resolving conflicts, or accumulated context >200k tokens
+- **Fast (`opencode-go/deepseek-v4-flash`)** — quick lookups, simple file edits, parallel exploration
 
 ### OpenCode Multi-Model Dispatch
 
@@ -225,9 +266,9 @@ Envoy dispatch within OpenCode uses multi-model fanout per tier. Each model runs
 
 | Tier | Models | Fanout |
 |------|--------|--------|
-| Frontier | DeepSeek V4 Pro + MiMo V2.5 Pro + Qwen3.6 Plus | 3 models, 3 labs (DeepSeek / Xiaomi / Alibaba) |
-| Standard | Kimi K2.6 + GLM-5.1 | 2 models, 2 labs (Moonshot / Z.AI-Tsinghua) |
-| Fast | DeepSeek V4 Flash | 1 model (extraction) |
+| Frontier | Kimi K2.6 + GLM-5.1 | 2 models, 2 labs (Moonshot / Z.AI-Tsinghua) |
+| Standard | MiniMax M2.7 + DeepSeek V4 Pro + Qwen3.6 Plus | 3 models, 3 labs (MiniMax / DeepSeek / Alibaba) |
+| Fast | DeepSeek V4 Flash + Qwen3.5 Plus + MiniMax M2.5 | 3 models, 3 labs (DeepSeek / Alibaba / MiniMax) |
 
 **Success semantics**: ≥1 model succeeds → provider round = success. All fail → provider round = failure.
 

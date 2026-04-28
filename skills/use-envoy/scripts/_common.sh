@@ -88,16 +88,16 @@ resolve_tier() {
         fast:codex)      _tier_model=gpt-5.4-mini;  _tier_effort=medium ;;
         fast:cursor)     _tier_model=auto;           _tier_effort= ;;
         frontier:opencode)
-            _tier_model=opencode-go/deepseek-v4-pro
-            _tier_fanout="opencode-go/deepseek-v4-pro opencode-go/mimo-v2.5-pro opencode-go/qwen3.6-plus"
-            _tier_effort=high ;;
-        standard:opencode)
             _tier_model=opencode-go/kimi-k2.6
             _tier_fanout="opencode-go/kimi-k2.6 opencode-go/glm-5.1"
             _tier_effort=high ;;
+        standard:opencode)
+            _tier_model=opencode-go/minimax-m2.7
+            _tier_fanout="opencode-go/minimax-m2.7 opencode-go/deepseek-v4-pro opencode-go/qwen3.6-plus"
+            _tier_effort=high ;;
         fast:opencode)
             _tier_model=opencode-go/deepseek-v4-flash
-            _tier_fanout="opencode-go/deepseek-v4-flash"
+            _tier_fanout="opencode-go/deepseek-v4-flash opencode-go/qwen3.5-plus opencode-go/minimax-m2.5"
             _tier_effort=high ;;
         frontier:opencode-free) _tier_model=opencode/qwen3.6-plus-free;    _tier_effort=high ;;
         standard:opencode-free) _tier_model=opencode/minimax-m2.5-free;    _tier_effort=high ;;
