@@ -1,61 +1,93 @@
 # Prepare Phase
 
-**Invariants: never materialize `queue.yaml` or handoff frontmatter without explicit user confirmation. Audit every handoff for a well-formed resumption contract before Kick.**
+**Invariants: never materialize `queue.yaml` or handoff files without explicit user confirmation. Audit every handoff for a well-formed resumption contract before Kick.**
 
-Phase goal: help the user assemble a queue from existing project artifacts — scan for handoff candidates, audit their contracts, propose a DAG, and materialize only after confirmation.
+Phase goal: assemble a queue from any combination of conversational task descriptions and pre-authored handoff files. Draft well-formed handoffs for new tasks, audit all contracts, propose a DAG, and materialize only after two confirmation gates.
 
 ## Steps
 
-### 1. Discovery
+### 1. Intake and Discovery
 
-Scan for handoff candidates in two locations:
+Two input modes — handle both, then merge into one candidate list.
 
-- `.scratch/handoff-*.md` — handoffs already authored for a new session (most common source).
-- `docs/specs/*/` — spec directories that contain a handoff or can be packaged as one.
+**Pre-authored handoffs**: scan `.scratch/handoff-*.md` and `docs/specs/*/` for existing handoff candidates. List each with a one-line purpose from the handoff `Goal:` section or spec title.
 
-List each discovered file with a one-line purpose (derived from the handoff `Goal:` section or spec title). Present the list to the user before proceeding. Ask the user to confirm which candidates to include and exclude.
+**Conversational tasks**: if the user has described tasks in the current conversation, treat each as a candidate. Also check `TODO.md` and open items in `docs/specs/*/progress.md`.
 
-### 2. Handoff-contract audit
+For each conversationally described task, draft a handoff. Three fields are required — prompt the user if any are missing or ambiguous:
 
-For each candidate handoff the user wants to include, verify that its frontmatter meets the queue task-intrinsics contract. Flag any violation before reaching Kick — a missing contract is cheaper to fix here than after the supervisor spawns.
+| Field | What to draft |
+|-------|---------------|
+| Success criterion | One sentence with a concrete observable outcome (e.g., "auth tests pass and session TTL extends on each API call") |
+| File/symbol scope | Explicit files or directories; verify each against the repo and flag any that do not exist |
+| Not-in-scope boundary | One sentence bounding what the task does NOT do |
 
-Required fields (per [queue-schema.md](queue-schema.md)):
+Plus skill-derivable metadata (propose, do not assume):
+
+| Field | How to derive |
+|-------|--------------|
+| `task_id` | Slug from description — lowercase, alphanumeric + hyphens, no whitespace |
+| `entry_skill` | Default `/do-build`; ask explicitly if the task does not map to a build workflow |
+| `terminal_artifact` | **Only for `/do-build`**: derive as `.scratch/queue-<run_id>-<task_id>/build-status.json`. For any other entry skill, ask — the supervisor waits forever on a path the skill never writes. |
+
+Hybrid mode: if pre-authored handoffs and conversational tasks both exist, include both. Mark drafted tasks visually distinct (e.g., "drafted" tag) so the user knows which ones the agent authored.
+
+Present the full candidate list. Ask the user to confirm which to include before proceeding.
+
+### 2. Gate 1 — Draft review
+
+For each included task, show its full contract:
+
+```
+Task: <task_id>   [drafted | pre-authored]
+Entry skill:      <entry_skill>
+Success criterion: ...
+File scope:       ...
+Not in scope:     ...
+Terminal artifact: ...
+```
+
+User reviews each task. If a task needs revision, re-draft that task only and re-show it. Repeat per-task until accepted. Pre-authored handoffs are shown in the same format; propose edits but do not silently rewrite pre-authored content.
+
+Gate 1 closes when the user has accepted every task.
+
+### 3. Handoff-contract audit
+
+After Gate 1, verify all accepted handoffs — both drafted and pre-authored — against the required contract:
 
 | Field | Check |
 |-------|-------|
-| `task_id` | Present; contains no whitespace (lint rule F3) |
-| `entry_skill` | Present and the named skill file exists |
-| `terminal_artifact` OR `terminal_check` | Exactly one of the two is declared |
+| `task_id` | Present; no whitespace (lint rule F3) |
+| `entry_skill` | Present; the named skill file exists in the repo |
+| `terminal_artifact` OR `terminal_check` | Exactly one declared |
 
-Optional fields — validate only when present:
+For drafted handoffs: additionally verify the `terminal_artifact` path is consistent with the entry skill's documented write contract. Flag mismatches before proceeding.
 
-| Field | Check |
-|-------|-------|
-| `max_iterations` | Positive integer |
-| `on_failure` | One of `stop` (default), `skip`, `retry_once` |
-| `scope_files` | YAML list |
-| `commit_ceiling` | Positive integer |
+For each violation: report file path, field name, what was found (or "missing"), and the required value or format. Do not proceed to DAG proposal until all violations are resolved.
 
-For each violation, report: file path, field name, what was found (or "missing"), and the required value or format. Do not propose DAG ordering until all included handoffs pass the audit.
+### 4. Roadmap proposal
 
-### 3. Roadmap proposal
+After the audit passes, propose the DAG:
 
-After the audit passes for all included candidates, propose a DAG:
+- One task per handoff file.
+- `depends_on` edges — infer from handoff context and task semantics. Surface inferred edges explicitly and ask the user to confirm or adjust.
+- Topological order — present tasks in the order the supervisor will attempt them.
 
-- Which handoffs become tasks (one task per handoff file).
-- `depends_on` edges — infer from the handoffs' own context (e.g., a fix-auth task that depends on a refactor-auth task). Surface the inferred edges explicitly and ask the user to confirm or adjust.
-- Topological ordering — present tasks in the order the supervisor will attempt them (linear within topo order; independent tasks can run in any order at the supervisor's discretion).
+Show a summary table: `task_id`, `entry_skill`, `on_failure`, `depends_on`.
 
-Show a short summary table: `task_id`, `entry_skill`, `on_failure`, `depends_on`. Wait for explicit user confirmation before proceeding to materialization.
+### 5. Gate 2 — DAG + materialization confirm
 
-### 4. Materialization
+Show what will be written:
 
-After user confirms the DAG:
+- DAG shape (e.g., `A → B`, `C independent`)
+- Files: `<queue-dir>/queue.yaml` + each drafted handoff file path (pre-authored files are not rewritten)
+- Run ID and base branch
 
-1. Write `<queue-dir>/queue.yaml` with the confirmed `run_id`, `base_branch` (default: current HEAD branch), and task list.
-2. Ensure each handoff file has the required frontmatter fields. If a field is missing and the value is unambiguous from context, propose a specific value — do not silently fill it in.
-3. Generate `<queue-dir>/profile.json` only if the user requests queue-specific permission overrides. Most queues do not need one.
+Ask for explicit "yes" before writing any file. An unclear response → ask again. Never auto-proceed.
 
-Never write any file before reaching this step. Never write without an explicit "yes" from the user.
+On confirm:
+1. Write `<queue-dir>/queue.yaml` with the confirmed `run_id`, `base_branch`, and task list.
+2. Write each drafted handoff file to `<queue-dir>/`. Do not rewrite pre-authored files.
+3. Generate `<queue-dir>/profile.json` only if the user requested queue-specific permission overrides.
 
-Proceed to the [Kick phase](kick.md) once the queue directory is ready.
+Proceed to the [Kick phase](kick.md).

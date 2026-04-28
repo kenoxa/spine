@@ -1,17 +1,41 @@
 # Run Queue — User Guide
 
-Overnight batch runner for staged AI coding tasks. You define a set of tasks in a `queue.yaml` file, each backed by a handoff document. The supervisor runs them sequentially while you sleep: implement → auto-review → merge into an integration branch. You wake up to a `queue-report.md` showing what passed, what failed, and what needs morning attention.
+Overnight batch runner for staged AI coding tasks. Describe what you want done, confirm the queue, and wake up to a report.
 
-## Prerequisites
+## How It Works
 
-Install via `install.sh`. Required tools:
+Invoke `/run-queue` from Claude Code. The skill walks four phases:
 
-```sh
-brew install jq yq tmux coreutils   # macOS
-# Linux: apt/dnf equivalents; coreutils is GNU default
-```
+1. **Prepare** — describe your tasks; the agent drafts handoffs, audits contracts, and proposes the run order. You confirm twice: first the individual task drafts, then the overall DAG and what gets written.
+2. **Kick** — lint check, queue preview, one final confirmation, then the supervisor spawns under tmux.
+3. **Monitor** — stateless check-ins while the queue runs: `tail -f queue-log.md` or ask the agent.
+4. **Review** — the agent walks you through `queue-report.md` each morning, proposing merge, re-queue, or discard per task.
 
-`coreutils` is required for `grealpath` (path canonicalization in the guard hook).
+## Preparing a Queue
+
+Invoke `/run-queue` and describe what you want done tonight:
+
+> "Fix the session expiry bug, refactor the billing module, and update the integration tests."
+
+The agent will:
+- Draft a handoff for each task (success criterion, file scope, not-in-scope boundary)
+- Propose a run order (with dependency edges if tasks must be sequenced)
+- Show you each draft for review and revision before writing anything
+
+You'll see two confirmation screens:
+- **Gate 1**: review each task's drafted body — request edits per task, accept when satisfied
+- **Gate 2**: confirm the DAG shape and the files that will be written — one "yes" writes everything
+
+If you already have `.scratch/handoff-*.md` files from a prior session, the agent picks those up automatically and merges them with any new tasks you describe.
+
+## Kicking Off
+
+After Prepare, the agent runs the queue linter and shows a preview:
+- DAG shape and task table
+- Branches that will be created
+- Exact tmux command
+
+Confirm with "yes" or "go" and the supervisor spawns.
 
 ## Concepts
 
@@ -22,108 +46,6 @@ brew install jq yq tmux coreutils   # macOS
 **Integration branch**: `queue/<run_id>/result` — accumulates all tasks that passed review. At queue end, `base_branch` is fast-forwarded to this branch's HEAD.
 
 **Trip-wire**: if the guard hook fires (e.g., a task tries `git push`), `WOKE-ME-UP.md` is written to the queue directory and the queue halts. Check this file first every morning.
-
-## Quick Start
-
-### 1. Create a queue directory
-
-```sh
-mkdir queues/overnight-2026-04-27
-```
-
-### 2. Write `queue.yaml`
-
-```yaml
-run_id: overnight-2026-04-27
-base_branch: main
-review_check: true        # auto-review each task (default)
-merge_policy: auto        # merge accepted tasks into integration branch (default)
-branch_cleanup: after_success  # delete task branches after successful merge (default)
-
-tasks:
-  - id: fix-auth-session
-    handoff: queues/overnight-2026-04-27/fix-auth-session.md
-    depends_on: []
-
-  - id: refactor-billing
-    handoff: queues/overnight-2026-04-27/refactor-billing.md
-    depends_on: []
-    on_failure: skip       # if this task fails, skip dependents gracefully
-
-  - id: update-tests
-    handoff: queues/overnight-2026-04-27/update-tests.md
-    depends_on: [fix-auth-session]   # runs after fix-auth-session completes
-```
-
-**Key fields:**
-
-| Field | Default | Notes |
-|-------|---------|-------|
-| `run_id` | required | Alphanumeric + `._-` only; becomes branch prefix |
-| `base_branch` | `main` | Branch the supervisor launches from |
-| `review_check` | `true` | Auto-run `/run-review` after each task |
-| `merge_policy` | `auto` | `auto` merges accepted tasks; `manual` flags for morning merge |
-| `branch_cleanup` | `after_success` | Delete task branches after successful merge |
-| `depends_on` | `[]` | Task IDs this task must wait for |
-| `on_failure` | `stop` | `stop` halts dependents; `skip` marks them skipped; `retry_once` retries once |
-
-### 3. Write handoff files
-
-Each task needs a handoff — a Markdown file with YAML frontmatter:
-
-```markdown
----
-entry_skill: /do-build
-terminal_artifact: .scratch/queue-overnight-2026-04-27-fix-auth-session/build-status.json
-max_iterations: 5
-review_depth: standard
----
-
-Fix the session expiry bug reported in issue #482. The session token TTL
-is not being refreshed on activity — users are getting logged out after
-30 minutes even when active.
-
-Root cause is in `src/auth/session.ts:updateSession()` — the `expiresAt`
-field is computed once at creation and never updated. Fix it so every
-API call with a valid session extends the TTL by `SESSION_DURATION`.
-
-Acceptance: existing auth tests pass; add a test for TTL extension.
-```
-
-**Required frontmatter:**
-
-| Field | Notes |
-|-------|-------|
-| `entry_skill` | Slash-command to invoke: `/do-build`, `/run-implement`, etc. |
-| `terminal_artifact` | Path to the JSON artifact the skill writes on completion |
-
-**Common optional fields:**
-
-| Field | Default | Notes |
-|-------|---------|-------|
-| `max_iterations` | `10` | Intra-task loop cap per attempt |
-| `review_depth` | `standard` | `focused` / `standard` / `deep` |
-| `merge_policy` | queue default | Override queue-level `merge_policy` for this task |
-| `model` | session model | Pin a specific model for this task's child process |
-
-### 4. Validate the queue
-
-```sh
-sh skills/run-queue/scripts/queue-lint.sh queues/overnight-2026-04-27
-```
-
-Zero output = valid. Errors are printed to stderr with counts on stdout. Fix all errors before spawning.
-
-### 5. Kick off
-
-Use `/run-queue` from Claude Code, or kick directly:
-
-```sh
-tmux new-session -d -s overnight \
-  'SPINE_QUEUE=1 sh skills/run-queue/scripts/run.sh queues/overnight-2026-04-27 2>&1 | tee queues/overnight-2026-04-27/kick.log'
-```
-
-The supervisor prints a startup summary to the log, then begins processing tasks in topological order.
 
 ## What Happens Overnight
 
@@ -230,3 +152,29 @@ git branch --list 'queue/overnight-2026-04-27/*' | xargs git branch -D
 ```
 
 **`merge-verdict.json` missing after `/run-merge`**: the agent crashed or timed out before writing the verdict. The supervisor treats a missing verdict as `failed` (fail-secure) and retains the task branch for morning triage.
+
+## Generated File Reference
+
+The agent writes these files on your behalf. You don't need to author them manually, but they're plain text and can be hand-tuned for advanced use.
+
+### `queue.yaml`
+
+The queue descriptor. Fields: `run_id`, `base_branch`, `review_check`, `merge_policy`, `branch_cleanup`, `tasks[]`.
+
+Full schema: [`references/queue-schema.md`](../skills/run-queue/references/queue-schema.md).
+
+### Handoff files (`<task_id>.md`)
+
+One per task. YAML frontmatter (`task_id`, `entry_skill`, `terminal_artifact`) followed by the task description body.
+
+Required frontmatter:
+
+| Field | Notes |
+|-------|-------|
+| `task_id` | Must match the `id` in `queue.yaml` |
+| `entry_skill` | Slash-command to invoke: `/do-build`, `/run-implement`, etc. |
+| `terminal_artifact` | Path to the JSON artifact the skill writes on completion |
+
+Common optional fields: `max_iterations` (default 10), `review_depth` (focused/standard/deep), `model` (pin a specific model for this task).
+
+Full schema: [`references/queue-schema.md`](../skills/run-queue/references/queue-schema.md).

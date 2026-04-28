@@ -266,6 +266,15 @@ while [ "$_i" -lt "$_n_tasks" ]; do
         esac
     fi
 
+    # commit_ceiling positive integer
+    _cc=$(printf '%s' "$_fm_json" | jq -r '.commit_ceiling // empty')
+    if [ -n "$_cc" ]; then
+        case "$_cc" in
+            ''|*[!0-9]*) _record "$_id: commit_ceiling must be a positive integer, got '$_cc'" ;;
+            0)           _record "$_id: commit_ceiling must be > 0" ;;
+        esac
+    fi
+
     # model — optional; flat string; provider-scoped runtime selector for the spawned child
     _mo=$(printf '%s' "$_fm_json" | jq -r '.model // empty')
     if [ -n "$_mo" ]; then

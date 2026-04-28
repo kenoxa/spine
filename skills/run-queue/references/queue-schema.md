@@ -217,6 +217,7 @@ Enqueue-time static validation. Refuses invalid queues before spawning any proce
 | `profile` (when declared) file exists and is valid JSON | `profile not found \| profile invalid json` |
 | `on_failure` in {stop, skip, retry_once} | `<task>: invalid on_failure: <v>` |
 | `max_iterations` is a positive integer | `<task>: invalid max_iterations: <v>` |
+| `commit_ceiling` (when set) is a positive integer | `<task>: commit_ceiling must be a positive integer, got '<v>'` |
 | `task_id` (queue.yaml `id` + frontmatter) contains no whitespace | `<task>: task_id may not contain whitespace` |
 | `model` (when set) contains no whitespace, no shell metachars, ≤128 chars, charset `[A-Za-z0-9._:/[]_-]` | `<task>: model contains whitespace \| contains shell metachars \| exceeds 128 characters \| contains characters outside allowed set` |
 | `review_check` (queue or per-handoff, when set) is `true` or `false` | `queue.yaml: invalid review_check '<v>' \| <task>: invalid review_check '<v>'` |
@@ -249,6 +250,8 @@ If the retry attempt also blocks, the task becomes final `blocked` with exit_rea
 **dep-merge-conflict exception:** a task blocked with `dep-merge-conflict` is never retried, even when `retry_once` is set. The supervisor marks it final `blocked/dep-merge-conflict` immediately and propagates `transitive-block` to dependents.
 
 If the queue ends with `pending_retry` tasks that had no dependents, they are flushed (retried with the 30s backoff) before the report is written.
+
+**Interaction with `max_iterations`:** when `retry_once` fires, the second attempt starts a fresh intra-task loop with its own `max_iterations` cap. The cap resets — it is not shared across attempts. A task with `max_iterations: 3` and `retry_once` can consume up to 6 iterations total (3 per attempt) before the outer `retry-exhausted` verdict fires.
 
 **Attempt counter:** each spawn increments `attempts` in the task's state. Attempts are tracked in `queue-state.json`; report surfacing is deferred to a later slice. Note: `attempts` counts setup attempts including dep-merge-conflict aborts; it does NOT count intra-task loop iterations. Iterations are observable via the JSONL naming grid.
 
@@ -290,6 +293,8 @@ Files live at `.scratch/queue-<run_id>-<task_id>/iterations/<attempts>-<iter>.js
 The supervisor re-invokes `claude -p` per iteration until the task is terminal, `max_iterations` (default 10) is reached, or a trip-wire fires. Each iteration is a fresh `claude -p` process.
 
 **Iteration 1** uses the original handoff body unchanged. **Iterations ≥ 2** prepend a short resumption header referencing the prior iteration's JSONL path, the current branch state, and the session-log location; the rest of the handoff body follows unchanged.
+
+**Resumption header fields (iterations ≥ 2):** the supervisor prepends five fields before the original handoff body: task ID + current iteration/max-iterations, prior iteration end timestamp + status + exit_reason, session-log path, prior iteration JSONL path, and branch + current HEAD short-SHA. These are informational context for the child — they do not change the handoff body or entry skill.
 
 **Decision table** (terminal status → supervisor action):
 

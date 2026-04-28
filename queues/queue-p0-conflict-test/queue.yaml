@@ -1,0 +1,14 @@
+run_id: p0-conflict-test
+base_branch: main
+review_check: true
+merge_policy: auto
+branch_cleanup: after_success
+
+tasks:
+  - id: task-a
+    handoff: task-a.md
+    depends_on: []
+
+  - id: task-b
+    handoff: task-b.md
+    depends_on: []
