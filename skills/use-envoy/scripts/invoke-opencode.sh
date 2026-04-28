@@ -3,7 +3,6 @@
 # Multi-model orchestrator: resolves tier → fanout[] → parallel dispatch with XDG isolation.
 # Exit: 0=≥1 worker succeeded, 1=all workers failed, 2=interrupted (provider-specific), 3=output validation failed
 
-echo "DEBUG: script started argv=$0" >&2
 set -eu
 umask 077
 
@@ -47,7 +46,6 @@ _script_dir=$(cd "$(dirname "$0")" && pwd)
 . "$_script_dir/_common.sh"
 
 command -v jq >/dev/null 2>&1 || { error "jq required but not found"; exit 1; }
-echo "DEBUG: after jq check" >&2
 
 # --- Detect OpenCode tier (Go subscription vs Free) ---
 
@@ -55,12 +53,10 @@ _oc_tier="opencode-free"  # default to free
 if timeout 10 opencode models opencode-go 2>/dev/null | grep -q .; then
     _oc_tier="opencode"
 fi
-echo "DEBUG: after oc_tier=$_oc_tier" >&2
 
 # --- Tier-aware model selection ---
 
 resolve_tier "$tier" "$_oc_tier"
-echo "DEBUG: after resolve_tier fanout=$_tier_fanout" >&2
 
 # --- Check env overrides (format: model[:effort]) ---
 # When an override is set, it replaces the fanout with a single model.
@@ -75,7 +71,6 @@ _stderr_base="${output_file%.md}"
 
 # Pre-flight on shared state
 preflight_check
-echo "DEBUG: after preflight" >&2
 
 # --- Dispatch ---
 
@@ -127,7 +122,6 @@ if [ "$_worker_count" -eq 1 ]; then
 fi
 
 # N≥1: parallel dispatch with XDG isolation per worker
-echo "DEBUG: before fanout worker_count=$_worker_count" >&2
 
 _worker_pids=""
 _worker_files=""
@@ -154,7 +148,6 @@ for _model in $_tier_fanout; do
 done
 
 # Wait for all workers
-echo "DEBUG: before wait pids=$_worker_pids" >&2
 for _pid in $_worker_pids; do
     wait "$_pid" 2>/dev/null || true
 done

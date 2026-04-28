@@ -26,7 +26,7 @@ Source: `docs/model-selection.md` agent table + agent frontmatter.
 
 **Rationale**: OpenCode mappings based on best quality/volume balance for long-lived orchestration. Claude Code default is Standard (Sonnet) with Frontier (Opus) for heavy planning/critical review only.
 
-**Research source**: Detailed analysis in `.scratch/model-research.md`, `.scratch/model-research-opencode-recommendations.md`, `.scratch/model-research-claude-recommendations.md`.
+**Research source**: Detailed analysis in `docs/model-research.md`.
 
 **Synthesizer (Frontier) vs implementer (Standard).** Not a tier mismatch: the synthesizer merges multiple subagent outputs behind the thin-orchestrator firewall (merge authority, quality-sensitive consolidation). The implementer executes scoped partition edits from a plan — not a merge gate — and is pinned to Standard so a Fast mainthread cannot drag writes to Fast-tier quality. See `docs/architecture.md` (thin orchestrator + tier system).
 

@@ -76,7 +76,6 @@ finalize_output() {
 # Tier-to-model resolution for envoy dispatch.
 # Canonical mapping reference: docs/model-selection.md
 resolve_tier() {
-    echo "DEBUG: resolve_tier start args=$1:$2" >&2
     _tier_model=; _tier_effort=; _tier_primary=; _tier_fanout=
     case "$1:$2" in
         frontier:claude) _tier_model=opus;          _tier_effort=high ;;
@@ -107,7 +106,7 @@ resolve_tier() {
     esac
     [ -z "${_tier_primary:-}" ] && _tier_primary="$_tier_model"
     [ -z "${_tier_fanout:-}" ] && _tier_fanout="$_tier_primary"
-    echo "DEBUG: resolve_tier end model=$_tier_model primary=$_tier_primary fanout=$_tier_fanout effort=$_tier_effort" >&2
+    true
 }
 
 # Shell-level timing (POSIX date +%s, second precision).
