@@ -1,5 +1,6 @@
 # TODO
 
+- support opencode cli in run-queue
 - install/setup zed agent
 - svelte skill with autofixer script like we have in nestor
 - auto-loading per glob like min description?
