@@ -426,9 +426,40 @@ _spawn_child() {
     ) &
     _child_pid=$!
 
+    # Transcript-growth watchdog: if the transcript file stops growing for
+    # 2 minutes, the child is likely hung (e.g., review subagents completed
+    # but the main thread is waiting indefinitely). Send SIGTERM to unstick.
+    # The timeout wrapper above will send SIGKILL after 10s if SIGTERM fails.
+    (
+        _watch_stall_count=0
+        _watch_prev_size=0
+        while kill -0 "$_child_pid" 2>/dev/null; do
+            sleep 60
+            # Check if child is still alive after sleep.
+            kill -0 "$_child_pid" 2>/dev/null || break
+            _watch_cur_size=$(wc -c < "$_sc_jsonl" 2>/dev/null || printf '0')
+            if [ "$_watch_cur_size" -eq "$_watch_prev_size" ]; then
+                _watch_stall_count=$((_watch_stall_count + 1))
+                if [ "$_watch_stall_count" -ge 2 ]; then
+                    _qlog "task=$_rot_id watchdog: transcript stalled for 2m ($_watch_cur_size bytes); sending SIGTERM to child pid=$_child_pid"
+                    kill -TERM "$_child_pid" 2>/dev/null || true
+                    break
+                fi
+            else
+                _watch_stall_count=0
+                _watch_prev_size="$_watch_cur_size"
+            fi
+        done
+    ) &
+    _watchdog_pid=$!
+
     _child_rc=0
     wait "$_child_pid" || _child_rc=$?
     _child_pid=""
+
+    # Clean up the watchdog so it doesn't linger.
+    kill "$_watchdog_pid" 2>/dev/null || true
+    wait "$_watchdog_pid" 2>/dev/null || true
 }
 
 _classify_terminal_status() {
