@@ -467,7 +467,7 @@ Supervisor attempts agentic merge conflict resolution via `/run-merge` child bef
 
 P3 polish: `commit_ceiling` lint validator added to `queue-lint.sh`; `queue-schema.md` three additions (`retry_once × max_iterations` cap reset, resumption header fields, `commit_ceiling` lint rule row).
 
-P0 scaffolding: `queues/queue-p0-conflict-test/` ready for user-triggered live run.
+P0 scaffolding: `.scratch/queue-p0-conflict-test-YYYYMMDD-HHMMSS/` (dated copy of the run; original on `main` at commit `c6a4e18`) ready for user-triggered live run.
 
 ### Key design decisions
 
@@ -477,7 +477,7 @@ P0 scaffolding: `queues/queue-p0-conflict-test/` ready for user-triggered live r
 
 ### Open follow-ups deferred past Slice J
 
-- **P0 live run** — E3 evidence needed for the full `/run-merge` conflict path. Scaffolding at `queues/queue-p0-conflict-test/`.
+- **P0 live run** — E3 evidence needed for the full `/run-merge` conflict path. Scaffolding moved to `.scratch/queue-p0-conflict-test-YYYYMMDD-HHMMSS/`; `queues/` directory removed.
 - **P1** — scratch branch cleanup contract for `-merge` branches (depends on P0 evidence).
 - **P2** — `files_resolved` under-reporting watch (depends on P0 evidence).
 - **S2** — `scope_files` validation gap: nowhere validated; pre-existing.

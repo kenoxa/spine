@@ -67,13 +67,13 @@ For each task the supervisor:
 
 ```sh
 # Live log tail
-tail -f queues/overnight-2026-04-27/queue-log.md
+tail -f .scratch/overnight-2026-04-27/queue-log.md
 
 # Current task state
-cat queues/overnight-2026-04-27/queue-state.json | jq '.tasks[] | {id, status, exit_reason}'
+cat .scratch/overnight-2026-04-27/queue-state.json | jq '.tasks[] | {id, status, exit_reason}'
 
 # Check for trip-wire
-ls queues/overnight-2026-04-27/WOKE-ME-UP.md 2>/dev/null && echo "TRIP-WIRE FIRED"
+ls .scratch/overnight-2026-04-27/WOKE-ME-UP.md 2>/dev/null && echo "TRIP-WIRE FIRED"
 ```
 
 Rule of thumb: mid-task ~15–30 min between log lines; near queue end ~5 min; a trip-wire requires immediate attention.
@@ -81,7 +81,7 @@ Rule of thumb: mid-task ~15–30 min between log lines; near queue end ~5 min; a
 ## Morning Review
 
 ```sh
-cat queues/overnight-2026-04-27/queue-report.md
+cat .scratch/overnight-2026-04-27/queue-report.md
 ```
 
 **Common outcomes:**
