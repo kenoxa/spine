@@ -191,7 +191,7 @@ Bash)
         shift
         for _a in "$@"; do
             case "$_a" in
-                push|send-pack|bundle|format-patch|-C)
+                push|send-pack|bundle|format-patch)
                     printf '%s' "$_a"; return 0 ;;
                 --git-dir=*)  printf 'git-dir';   return 0 ;;
                 --work-tree=*) printf 'work-tree'; return 0 ;;
