@@ -448,8 +448,9 @@ _classify_terminal_status() {
 
         if [ -f "$_ta_path" ] && _bstatus=$(jq -er '.status' "$_ta_path" 2>/dev/null); then
             case "$_bstatus" in
-                complete|partial|blocked|in_progress)
+                complete|success|partial|blocked|in_progress)
                     _task_status=$_bstatus
+                    [ "$_bstatus" = "success" ] && _task_status="complete"
                     _task_exit_reason=$(jq -r '.exit_reason // empty' "$_ta_path" 2>/dev/null)
                     [ -z "$_task_exit_reason" ] && _task_exit_reason="artifact-status-only"
                     ;;
