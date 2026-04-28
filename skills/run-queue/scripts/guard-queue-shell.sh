@@ -156,7 +156,13 @@ Bash)
         *"git send-pack"*)    _deny "git-send-pack-blocked"    "$_cmd_norm" ;;
         *"git bundle"*)       _deny "git-bundle-blocked"       "$_cmd_norm" ;;
         *"git format-patch"*) _deny "git-format-patch-blocked" "$_cmd_norm" ;;
-        *"git -C "*)          _deny "git-C-sidestep-blocked"   "$_cmd_norm" ;;
+        *"git -C "*)
+            # Allow git -C to repo root (not a sidestep).
+            case "$_cmd_norm" in
+                *"git -C $_repo_root "*) : ;;
+                *) _deny "git-C-sidestep-blocked" "$_cmd_norm" ;;
+            esac
+            ;;
     esac
 
     # Merge-stage additional restrictions (SPINE_QUEUE_STAGE=merge).
