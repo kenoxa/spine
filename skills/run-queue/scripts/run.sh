@@ -876,6 +876,42 @@ _rot_run_pipeline() {
         if [ "$_rot_review_check" = "false" ]; then
             _update_task_state "$_rot_id" outcome '"complete"'
             _qlog "task=$_rot_id review_check=false; skipping review stage"
+            # When review is skipped, still merge per merge_policy (auto/manual).
+            case "$_rot_merge_policy" in
+                manual)
+                    _update_task_state "$_rot_id" outcome '"review-passed-pending-merge"'
+                    _update_task_state "$_rot_id" exit_reason '"review-passed-pending-merge"'
+                    _qlog "task=$_rot_id review_check=false; merge_policy=manual — skipping auto-merge"
+                    ;;
+                *)
+                    _mrg_into_integration
+                    if [ "$_mrg_ok" = "1" ]; then
+                        _update_task_state "$_rot_id" status  '"merged"'
+                        _update_task_state "$_rot_id" outcome '"merged"'
+                        _qlog "task=$_rot_id pipeline complete: merged into $_integration_branch"
+                    else
+                        _mrg_resolve_stage
+
+                        if [ -f "$_woke" ]; then
+                            git checkout -q "$_base_rev"
+                            _current_task_id=""
+                            return 3
+                        fi
+
+                        if [ "$_mrg_resolve_ok" = "1" ]; then
+                            _update_task_state "$_rot_id" status  '"merged"'
+                            _update_task_state "$_rot_id" outcome '"merged"'
+                            _update_task_state "$_rot_id" exit_reason '"merge-resolved-accepted"'
+                            _qlog "task=$_rot_id merge-stage: resolved and integrated"
+                        else
+                            _update_task_state "$_rot_id" outcome '"blocked-by-merge-conflict"'
+                            _update_task_state "$_rot_id" status  '"blocked"'
+                            _update_task_state "$_rot_id" exit_reason "\"$_mrg_resolve_exit_reason\""
+                            _qlog "task=$_rot_id merge-stage: escalating ($_mrg_resolve_exit_reason); branch retained for morning"
+                        fi
+                    fi
+                    ;;
+            esac
         else
             _rev_run_stage
 
