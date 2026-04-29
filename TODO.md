@@ -10,6 +10,28 @@
 - Codex hooks: enable `inject-types-on-read` and `check-on-edit` once Codex PostToolUse supports non-Bash tools (Read, Edit/Write); currently Bash-only ([codex#14754](https://github.com/openai/codex/issues/14754)); hooks are ready — just expand capability matrix in install.sh
 - doc co-evolution Phase 2: if lightweight guardrails (SPINE.md norm + Scope heuristic + finalize learnings) prove insufficient, add `docs_impact` to frame_artifact and `docs_plan` to design_artifact schema fields
 
+## Integrate Fallow (codebase intelligence for TS/JS) into Spine
+
+Explored but shelved. Session artifacts in `.scratch/fallow-integration/`.
+
+**What Fallow does**: Rust-based CLI that builds full TS/JS module graphs in ~200ms. Detects dead code, duplication, complexity hotspots, architecture boundary violations, and auto-fixes. 90 built-in framework plugins (Next.js, Vite, etc.). Free static layer; paid runtime layer.
+
+**Advisory consensus** (multi-model: rigorous, creative, 4 envoys):
+- **CLI only** — reject MCP (identical output + overhead).
+- **No new skill** — add `skills/use-shell/references/fallow.md` reference doc only.
+- **No hook integration** — Fallow lacks single-file mode; `audit --changed-since` needs git history.
+- **No `fallow-skills` package** — format mismatch with Spine's skill system.
+- **Review-time only** — wire into `run-review` verifier or `do-build` gate for JS/TS projects.
+
+**Open questions** (needs user decision before build):
+1. Install via `install.sh` binary (follow `install_probe()` pattern) or rely on `npx fallow` only?
+2. Pre-review deterministic gate in `do-build` vs inside `run-review` verifier only?
+3. Deterministic severity adapter (jq/shell) or let agents interpret raw Fallow JSON?
+
+**Key risk**: Envoy-Codex found `schema_version: 3` envelope with nested `schema_version: 4` payloads in live probe — schema stability weaker than assumed.
+
+**Next step**: Restart with fresh `/do-frame` + `/do-design` if/when priority shifts. All prior artifacts preserved in `.scratch/fallow-integration/` (frame-artifact, design-artifact, synthesis, 6 batch outputs).
+
 ## Provide Shared System Setup for MacOS dotfiles
 
 - zsh setup
