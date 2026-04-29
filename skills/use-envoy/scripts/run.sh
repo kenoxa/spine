@@ -169,6 +169,7 @@ if [ "$mode" = "multi" ]; then
 
     # --- Wait + progressive manifest (emit each path as its provider completes) ---
     _aggregate=0
+    _any_success=0
     _manifest_result=""
     set -- $_launched
     for _pid in $_child_pids; do
@@ -184,7 +185,7 @@ if [ "$mode" = "multi" ]; then
             done
             # success if at least one output file exists
             if [ -n "$_ofiles" ]; then
-                [ "$_aggregate" -ne 0 ] && _aggregate=0
+                _any_success=1
                 _manifest_result="${_manifest_result}opencode: OK${_ofiles}\n"
             else
                 _manifest_result="${_manifest_result}opencode: FAIL(${_rc})\n"
@@ -192,6 +193,7 @@ if [ "$mode" = "multi" ]; then
             set -f
         else
             if [ -s "${_base}.${1}.md" ]; then
+                _any_success=1
                 printf '%s\n' "${_base}.${1}.md"
                 _manifest_result="${_manifest_result}${1}: OK ${_base}.${1}.md\n"
             else
@@ -200,6 +202,9 @@ if [ "$mode" = "multi" ]; then
         fi
         shift
     done
+
+    # In multi-mode, partial success is still success — callers glob for output files.
+    [ "$_any_success" -eq 1 ] && _aggregate=0
 
     # --- Emit dispatch manifest so post-hoc triage can reconstruct what happened ---
     {

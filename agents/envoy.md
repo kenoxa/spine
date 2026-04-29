@@ -65,9 +65,14 @@ stdout: actual output paths, one per line (`<base>.<provider>.md`). These are a 
 
 ### 4. Report
 
+**Before deciding, always check the filesystem.** The glob `<base>.*.md` (where `<base>` is the output path without `.md`) is authoritative — stdout paths and exit codes are hints only.
+
 **Exit 0** → report created file paths. Done.
 
-**Non-zero** → write skip advisory to the `.md` output path:
+**Non-zero** → check for output files first:
+
+1. If `<base>.*.md` files exist and any file contains `# External Provider Output` → report those paths. Done.
+2. If no matching files or all are empty → write skip advisory to the `.md` output path:
 
 ```
 # Envoy: Skipped
@@ -81,6 +86,6 @@ stdout: actual output paths, one per line (`<base>.<provider>.md`). These are a 
 | 2 | interrupted (provider-specific) |
 | 3 | output validation failed |
 
-Non-zero + stdout paths = partial success → `[COVERAGE_GAP: envoy — no output]` or `— skipped` per missing provider (same family as `use-envoy` Synthesis).
+Non-zero with existing output files = partial success → report file paths; the synthesis step will apply `[COVERAGE_GAP: envoy — no output]` per missing provider (same family as `use-envoy` Synthesis).
 
 If Bash returns `Command running in background` → invocation escaped foreground. Write skip advisory: `interrupted (backgrounded before completion)`.
