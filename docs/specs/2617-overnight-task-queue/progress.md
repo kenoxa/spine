@@ -261,7 +261,7 @@ From review + polish synthesis:
 From design artifact §Follow-ups + review-iter-1 deferrals:
 
 - **Per-task main-thread model selection** — `model:` field in handoff frontmatter / queue.yaml → `--model` flag on spawn. Matches existing `project_main_thread_model_override.md` memory + empirical budget pattern. Separate slice.
-- **Delta-aware Monitor (O1 v2 candidate)** — `.monitor-last.json` cursor + diff rendering. Defer until first overnight-run signals prose rule-of-thumb inadequate.
+- **Delta-aware Monitor — IMPLEMENTED (this session).** `monitor.sh` in `skills/run-queue/scripts/`: delta-aware executable with `--watch` mode and per-terminal `/tmp/` snapshots. Supervisor write exclusivity preserved (snapshots outside queue dir). Old AI-driven prose approach preserved as fallback for manual check-ins. Trip-wire exits with code 2 prominently on every iteration.
 - **Monitor "stuck task" heuristic** — rate-limit backoff at 2h cap silently eats hours without trip-wire. Add `iter-unchanged-for-N-min` detector.
 - **F6** — `kick.md` >1000 tok advisory (1374 post re-reframe). Defensible (3 non-redundant spawn-variant command blocks + restructured queue-shape preview). Revisit if later polish finds prose to trim.
 - **F7** — `monitor.md:41` rule-of-thumb "of 10" framing awkward for small `max_iterations`. Pre-existing noise; address in separate prose pass.
@@ -340,7 +340,7 @@ All under `.scratch/slice-d-claude-skill-e254/`:
 - **F2 (polish)** — SKILL.md:68 bullet style (compound + slightly wordier than surrounding telegraphic style). E0 confidence; not promoted.
 - **Per-task main-thread `model:` selection** — heaviest backlog candidate; deferred to Slice F+.
 - **Demo promotion to versioned `skills/run-queue/examples/`** — separate structural decision; deferred to future slice if regression coverage demands it.
-- **Delta-aware Monitor (O1 v2)** / **Monitor stuck-task heuristic** — Slice D backlog; defer until first overnight-run signals inadequacy.
+- **Monitor stuck-task heuristic** — rate-limit backoff at 2h cap silently eats hours without trip-wire. Add `iter-unchanged-for-N-min` detector. Slice D backlog carried; implement separately.
 
 ### Session artifacts
 
