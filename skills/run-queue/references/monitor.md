@@ -15,6 +15,7 @@ Read these files from `<queue-dir>`:
 | `queue-state.json` | Machine view — current task, branch per task, `base_rev` | `jq '.' <queue-dir>/queue-state.json` |
 | `queue-log.md` | Append-only supervisor log — task transitions, rate-limit events | `tail -40 <queue-dir>/queue-log.md` |
 | `WOKE-ME-UP.md` | Trip-wire file — present only if a permission deny fired | Check existence, then read verbatim if present |
+| `health.json` | Task-scratch sidecar — present if watchdog detected a transcript stall | Check existence per task at `.scratch/queue-<run_id>-<task_id>/health.json` |
 
 Read `queue-state.json` via `jq`, not prose grep. The file is machine-written JSON; string-scanning for task names is fragile.
 
@@ -26,6 +27,8 @@ Report for each task in the queue (derived from `queue-state.json`):
 - Current iteration (read from `queue-log.md` — look for `task=<id> iter=N` lines, or count files in `.scratch/queue-<run_id>-<task_id>/iterations/`)
 - Branch name if created
 - Last relevant line from `queue-log.md` for running or recently-completed tasks
+
+**Stuck-task detection (stateless):** For each task, check whether `.scratch/queue-<run_id>-<task_id>/health.json` exists. If it does, the transcript watchdog detected a stall — prepend `⚠️ STUCK` to the task's status display. Sort tasks with `health.json` to the top of the table, before non-stuck tasks. The presence of `health.json` indicates the task was SIGTERM'd by the watchdog due to transcript silence; check the task transcript and `queue-log.md` for the stall timestamp.
 
 **If `WOKE-ME-UP.md` exists**, show it first, prominently, before the per-task table:
 

@@ -299,6 +299,26 @@ _write_report() {
             printf '\n> **Trip-wire fired.** See `WOKE-ME-UP.md`.\n'
         fi
 
+        # Health anomalies — tasks where the watchdog intervened.
+        _health_anomalies=$(find .scratch -maxdepth 2 -name 'health.json' -path "*/queue-$_run_id-*/health.json" 2>/dev/null)
+        if [ -n "$_health_anomalies" ]; then
+            printf '\n## Health Anomalies\n\n'
+            printf 'The following tasks triggered the transcript watchdog (stall detected):\n\n'
+            printf '| Task | Stalled At | Reason | Action |\n'
+            printf '|------|-----------|--------|--------|\n'
+            printf '%s\n' "$_health_anomalies" | while IFS= read -r _hf; do
+                [ -f "$_hf" ] || continue
+                _h_task=$(basename "$(dirname "$_hf")")
+                _h_task=${_h_task#queue-$_run_id-}
+                _h_json=$(cat "$_hf")
+                _h_at=$(printf '%s' "$_h_json" | jq -r '.stalled_at // "-"')
+                _h_reason=$(printf '%s' "$_h_json" | jq -r '.reason // "-"')
+                _h_action=$(printf '%s' "$_h_json" | jq -r '.action // "-"')
+                printf '| %s | %s | %s | %s |\n' "$_h_task" "$_h_at" "$_h_reason" "$_h_action"
+            done
+            printf '\n> Recommendation: Check the task transcript for hangs; consider manual abort and retry.\n'
+        fi
+
         printf '\n## Summary\n\n| Task | Status | Outcome | Branch | Head | Exit reason |\n|------|--------|---------|--------|------|-------------|\n'
         printf '%s' "$_state_json" | jq -r '.tasks[] | "| \(.id) | \(.status) | \(.outcome // "-") | `\(.branch // "-")` | `\((.head_rev // "-")[0:8])` | \(.exit_reason // "-") |"'
 
@@ -442,6 +462,8 @@ _spawn_child() {
                 _watch_stall_count=$((_watch_stall_count + 1))
                 if [ "$_watch_stall_count" -ge 2 ]; then
                     _qlog "task=$_rot_id watchdog: transcript stalled for 2m ($_watch_cur_size bytes); sending SIGTERM to child pid=$_child_pid"
+                    _health_sidecar="$_sc_jsonl/../health.json"
+                    printf '{"stalled_at":"%s","reason":"transcript_stall","action":"SIGTERM"}\n' "$(_stamp)" > "$_health_sidecar"
                     kill -TERM "$_child_pid" 2>/dev/null || true
                     # Give the child a few seconds to flush buffers and write
                     # the verdict file before the supervisor checks.
@@ -459,6 +481,10 @@ _spawn_child() {
     _child_rc=0
     wait "$_child_pid" || _child_rc=$?
     _child_pid=""
+
+    # Clean up health sidecar on clean exit.
+    _health_sidecar="$_sc_jsonl/../health.json"
+    rm -f "$_health_sidecar"
 
     # Clean up the watchdog so it doesn't linger.
     kill "$_watchdog_pid" 2>/dev/null || true
