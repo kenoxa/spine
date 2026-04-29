@@ -20,6 +20,7 @@ Dispatch provides:
 3. Rank candidates by priority: shallow + high fan-in first, deep + low fan-in last.
 4. Conflicting assessments at same evidence level: flag with `[CONFLICT]` label. Do not resolve.
 5. Preserve researcher provenance per finding.
+6. Normalize all candidate terminology to `deep-modules.md` vocabulary (Module, Interface, Seam, Adapter, Depth, Leverage, Locality) before output. Replace informal terms ("component", "service", "boundary") with the canonical vocabulary.
 
 ## Output
 

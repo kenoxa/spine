@@ -21,6 +21,9 @@ Dispatch provides:
 - Classify every dependency using the 4-category model:
   in-process, local-substitutable, remote-but-owned, true-external.
   Each dependency gets exactly one category.
+- Apply the adapter seam rule: identify whether a module is an adapter (translates between interfaces) versus an implementation module.
+  Flag as `seam_type: hypothetical` when one adapter exists (interface exists but is not yet committed); flag as `seam_type: real` when two or more adapters implement the same interface.
+  **Precondition**: Only apply when a layer model has been committed by `do-frame`. If no layer model exists, skip this finding.
 - Identify current test strategy. Distinguish boundary tests (exercise public interface)
   from internal-mocking tests (mock collaborators within the module). Note which dominates.
 - Map callers — every module or file that imports from this candidate's exports.
