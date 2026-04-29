@@ -443,6 +443,9 @@ _spawn_child() {
                 if [ "$_watch_stall_count" -ge 2 ]; then
                     _qlog "task=$_rot_id watchdog: transcript stalled for 2m ($_watch_cur_size bytes); sending SIGTERM to child pid=$_child_pid"
                     kill -TERM "$_child_pid" 2>/dev/null || true
+                    # Give the child a few seconds to flush buffers and write
+                    # the verdict file before the supervisor checks.
+                    sleep 5
                     break
                 fi
             else
@@ -1089,8 +1092,15 @@ _rev_run_stage() {
     fi
 
     # Parse verdict sidecar (fail-secure: missing/malformed → MALFORMED).
+    # Retry a few times: the child may have been killed by the watchdog and
+    # could still be flushing the verdict file to disk.
     _rev_verdict="MALFORMED"
     _rev_blocking=0
+    _rev_retry=0
+    while [ "$_rev_retry" -lt 5 ] && [ ! -f "$_rev_verdict_path" ]; do
+        sleep 1
+        _rev_retry=$((_rev_retry + 1))
+    done
     if [ -f "$_rev_verdict_path" ]; then
         # schema_version must be "1"; refuse unknown versions immediately.
         _rev_sv=$(jq -r '.schema_version // empty' "$_rev_verdict_path" 2>/dev/null) || _rev_sv=""
