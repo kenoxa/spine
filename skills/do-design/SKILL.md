@@ -9,14 +9,14 @@ description: >
 argument-hint: "[frame_artifact, problem statement, or area needing direction]"
 ---
 
-Compose run-discuss (design scope) + run-advise + optional run-explore. User feedback loop with re-dispatch cap.
+Compose run-discuss (design scope) + run-advise + run-council + optional run-explore. User feedback loop with re-dispatch cap.
 
 ## Phases
 
 | # | Phase | Type | Skills |
 |---|-------|------|--------|
 | 1 | Intake | R — mainthread + conditional `/run-discuss` | `/run-discuss` (scope=design) |
-| 2 | Advise | C — invoke `/run-advise` | `/run-advise` |
+| 2 | Advise | C — invoke `/run-advise` then `/run-council` | `/run-advise`, `/run-council` |
 | 3 | Validate | G — invoke on demand | `/run-explore` |
 | 4 | Decide | mainthread | — |
 
@@ -34,9 +34,17 @@ Accept: `frame_artifact` from `/do-frame`, freeform problem statement, or user p
 
 ### 2. Advise
 
-MANDATORY — always invoke `/run-advise`. No zero-dispatch exception; advisory is never self-contained at this phase.
+MANDATORY — always invoke `/run-advise` then `/run-council`, in that order. No zero-dispatch exception for either; advisory is never self-contained at this phase.
 
-Invoke `/run-advise` with problem context, constraints from `frame_artifact` or `discuss_artifact`, and `{source_artifact_path}` set to the persisted authoritative artifact for this phase (typically the `frame_artifact` or `discuss_artifact` file under `.scratch/<session>/`). Returns `advise_artifact`.
+**Step 1 — run-advise**: Invoke `/run-advise` with problem context, constraints from `frame_artifact` or `discuss_artifact`, and `{source_artifact_path}` set to the persisted authoritative artifact for this phase (typically the `frame_artifact` or `discuss_artifact` file under `.scratch/<session>/`). Returns `advise_artifact`.
+
+**Step 2 — run-council**: Immediately after run-advise returns, invoke `/run-council` with:
+- `{advise_synthesis_path}` = `.scratch/<session>/advise-synthesis.md`
+- `{source_artifact_path}` = same path used for run-advise dispatch
+
+Returns `council_artifact` (path to `.scratch/<session>/council-synthesis.md`).
+
+Both `advise_artifact` and `council_artifact` are available for Phase 4 (Decide).
 
 ### 3. Validate
 
@@ -46,7 +54,9 @@ Zero-dispatch when advisory is self-contained — log with justification. (Zero-
 
 ### 4. User Decision Gate
 
-Assemble `design_artifact` per [design-artifact.md](references/design-artifact.md) from `advise_artifact` + `frame_artifact`. Write to `.scratch/<session>/design-artifact.md`.
+Assemble `design_artifact` per [design-artifact.md](references/design-artifact.md) from `advise_artifact` + `council_artifact` + `frame_artifact`. Write to `.scratch/<session>/design-artifact.md`.
+
+When `council-synthesis.md` recommendation diverges from `advise-synthesis.md` recommendation: surface as a flagged divergence in the design_artifact Open Questions section for explicit user decision at this gate. No automatic precedence rule — do not auto-resolve.
 
 Before presenting: scan for `[DIVERGENCE]`, `[CONFLICT]`, `${LETTER}-${kebab}`, `V__`/`R__` labels — rewrite each as plain English. Self-test: user must not need advise-synthesis.md to understand any question.
 
@@ -72,6 +82,7 @@ STOP after presenting. Never auto-forward. **Cap**: 3 re-dispatch rounds; surfac
 - "I already know the right approach, skip advisory" — single-perspective answers miss tradeoffs; dispatch is mandatory
 - "The user approved the direction, go build" — approval must be explicit; silence is not consent
 - "Consultants agree, so skip validation" — convergence on wrong assumptions is still wrong; probe when evidence is thin
+- Proceeding to Phase 4 without invoking run-council after run-advise — both steps are mandatory in Phase 2; run-council handles its own skip internally
 
 ## Completion
 

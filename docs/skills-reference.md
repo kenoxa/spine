@@ -105,6 +105,12 @@ Multi-model perspective gathering with synthesis. Works standalone ("advise on t
 
 Canonical entry: [`skills/run-advise/SKILL.md`](../skills/run-advise/SKILL.md).
 
+### run-council
+
+Thinking-lens stress-test that sequences after `run-advise` at `do-design` Phase 2. Dispatches 5 committed-perspective advisors (Contrarian, First Principles, Expansionist, Outsider, Executor) each reading only their own lens definition — no cross-lens visibility. Advisor outputs are anonymized (A–E, randomized order) and re-dispatched to the same 5 advisors for peer critique under anonymity. Chairman (`@synthesizer` + `council-synthesis.md` ref) ingests both advisor batch and peer reviews, then resolves conflicts and emits a single directional recommendation with Convergence Zones, Genuine Disagreements, Collective Blind Spots, and Falsification risks. Skip condition at Intake: when advise-synthesis has no divergence tags and `blast_radius.transitive` is empty, emits a ratified result without dispatching advisors.
+
+Canonical entry: [`skills/run-council/SKILL.md`](../skills/run-council/SKILL.md).
+
 ### run-polish
 
 Advisory code polish with 2-3 conditional lenses: conventions + complexity default; performance-sensitive scopes swap conventions for efficiency (hot-path loops, async/concurrency, N+1, explicit perf requirements). All 3 lenses at deep depth.
