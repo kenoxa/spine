@@ -125,7 +125,7 @@ After the supervisor spawns, report:
 
 - Tmux session name (or PID/screen session for alternatives): `queue-<run_id>`
 - Queue log path: `<queue-dir>/queue-log.md` (append-only supervisor log)
-- Expected artifacts on completion: `<queue-dir>/queue-state.json`, `<queue-dir>/queue-report.md`
+- Expected artifacts on completion: `<queue-dir>/queue-state.json`, `<queue-dir>/queue-report.md` (and optionally `<queue-dir>/queue-report.html` when `generate_dashboard: true`)
 - Trip-wire signal: `<queue-dir>/WOKE-ME-UP.md` — created only if a permission deny fires; its presence means attention required now.
 
 For check-in guidance, proceed to the [Monitor phase](monitor.md) when the queue is running.

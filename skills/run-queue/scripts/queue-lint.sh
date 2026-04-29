@@ -155,6 +155,15 @@ if [ -n "$_q_bc" ]; then
     esac
 fi
 
+# generate_dashboard — optional bool; true|false
+_q_gd=$(printf '%s' "$_qjson" | jq -r '.generate_dashboard // empty')
+if [ -n "$_q_gd" ]; then
+    case "$_q_gd" in
+        true|false) : ;;
+        *) _record "queue.yaml: invalid generate_dashboard '$_q_gd' (expected: true|false)" ;;
+    esac
+fi
+
 # --- Tasks: unique ids, handoff files, frontmatter, dependency refs ---
 
 _n_tasks=$(printf '%s' "$_qjson" | jq -r '.tasks | length // 0')

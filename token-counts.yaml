@@ -80,13 +80,13 @@ skills/run-polish/references/advisory-efficiency.md: 397
 skills/run-polish/references/polish-apply.md: 372
 skills/run-polish/references/polish-synthesis.md: 381
 skills/run-polish/SKILL.md: 705
-skills/run-queue/references/kick.md: 1331
-skills/run-queue/references/monitor.md: 760
+skills/run-queue/references/kick.md: 1349
+skills/run-queue/references/monitor.md: 1200
 skills/run-queue/references/permission-profile.md: 1386
 skills/run-queue/references/prepare.md: 1058
-skills/run-queue/references/queue-schema.md: 6179
+skills/run-queue/references/queue-schema.md: 6455
 skills/run-queue/references/review.md: 1468
-skills/run-queue/SKILL.md: 1486
+skills/run-queue/SKILL.md: 1501
 skills/run-recap/references/dispatch-preamble.md: 1142
 skills/run-recap/references/present-visualizer.md: 181
 skills/run-recap/references/template-recap.md: 179

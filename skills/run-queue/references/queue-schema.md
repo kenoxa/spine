@@ -16,6 +16,7 @@ At runtime, `<queue-dir>` also accumulates:
 queue-state.json        # per-run mutable state (atomic writes)
 queue-log.md            # append-only supervisor log
 queue-report.md         # morning report (written on completion)
+queue-report.html       # optional self-contained HTML dashboard (when generate_dashboard: true)
 WOKE-ME-UP.md           # only if a trip-wire fired
 ```
 
@@ -38,6 +39,7 @@ review_check: true                           # OPTIONAL; default true — spawn 
 review_depth: standard                       # OPTIONAL; default standard — focused|standard|deep
 merge_policy: auto                           # OPTIONAL; default auto — auto|manual
 branch_cleanup: after_success                # OPTIONAL; default after_success — after_success|never
+generate_dashboard: false                    # OPTIONAL; default false — true|false; emits queue-report.html alongside queue-report.md
 
 # --- tasks ---
 tasks:
@@ -149,6 +151,20 @@ Required: `task_id`, `entry_skill`, and exactly one of `terminal_check` or `term
 
 The integration branch (`queue/<run_id>/result`) is NOT a task branch and is not subject to `branch_cleanup`. It is retained until the end-of-queue fast-forward into `base_branch`; on successful delivery it is then deleted. If the fast-forward fails, it is retained for inspection.
 
+### generate_dashboard
+
+`generate_dashboard:` controls whether the supervisor emits a self-contained HTML dashboard (`queue-report.html`) alongside the Markdown report (`queue-report.md`).
+
+- **Default**: `false`.
+- **Allowed values**: `true` | `false`.
+- **Placement**: queue.yaml top-level ONLY. No per-handoff override.
+
+`true`: after writing `queue-report.md`, the supervisor invokes `scripts/generate-dashboard.sh` to produce `queue-report.html` in the queue directory. The HTML file is fully self-contained (inline CSS/JS) with no external dependencies. It includes a task table with color-coded status chips, an overall progress bar, a horizontal task timeline, and collapsible sections for conflicts and action items.
+
+`false`: no HTML report is generated.
+
+If `generate_dashboard: true` but `generate-dashboard.sh` is missing or not executable, the supervisor logs a warning and continues — the queue does not fail.
+
 ### Terminal check
 
 The supervisor decides how to proceed after each child exits using two paths:
@@ -224,6 +240,7 @@ Enqueue-time static validation. Refuses invalid queues before spawning any proce
 | `review_depth` (queue or per-handoff, when set) in {focused, standard, deep}; no whitespace, no shell metachars, ≤64 chars, charset `[A-Za-z0-9_-]` | `queue.yaml: review_depth contains whitespace \| ... \| invalid review_depth '<v>' (expected: focused\|standard\|deep)` |
 | `merge_policy` (queue or per-handoff, when set) in {auto, manual}; no whitespace, no shell metachars, ≤64 chars, charset `[A-Za-z0-9_-]` | `queue.yaml: merge_policy contains whitespace \| ... \| invalid merge_policy '<v>' (expected: auto\|manual)` |
 | `branch_cleanup` (queue-level only, when set) in {after_success, never}; no whitespace, no shell metachars, ≤64 chars, charset `[A-Za-z0-9_-]` | `queue.yaml: branch_cleanup contains whitespace \| ... \| invalid branch_cleanup '<v>' (expected: after_success\|never)` |
+| `generate_dashboard` (queue-level only, when set) is `true` or `false` | `queue.yaml: invalid generate_dashboard '<v>' (expected: true\|false)` |
 
 ## Failure propagation (`on_failure`)
 

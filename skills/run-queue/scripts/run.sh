@@ -127,6 +127,7 @@ _q_review_depth=$(printf '%s' "$_qjson" | jq -r '.review_depth // "standard"')
 _q_merge_policy=$(printf '%s' "$_qjson" | jq -r '.merge_policy // "auto"')
 # branch_cleanup is queue-level only (no per-task override).
 _branch_cleanup=$(printf '%s' "$_qjson" | jq -r '.branch_cleanup // "after_success"')
+_q_generate_dashboard=$(printf '%s' "$_qjson" | jq -r 'if has("generate_dashboard") then (.generate_dashboard | tostring) else "false" end')
 
 # profile.json is optional — hook falls back to built-in defaults when absent.
 _profile_abs=""
@@ -345,7 +346,21 @@ _write_report() {
             printf '\n'
         done
     } | _atomic_write "$_report"
-    _qlog "wrote $(basename "$_report")"
+    _qlog "wrote $(basename \"$_report\")"
+}
+
+_write_html_dashboard() {
+    if [ "$_q_generate_dashboard" != "true" ]; then
+        return 0
+    fi
+    _dash_script="$_script_dir/generate-dashboard.sh"
+    if [ ! -x "$_dash_script" ]; then
+        _qlog "generate_dashboard=true but generate-dashboard.sh not found or not executable; skipping HTML report"
+        return 0
+    fi
+    "$_dash_script" "$_qdir" 2>/dev/null || {
+        _err "supervisor: generate-dashboard.sh failed (non-fatal); see $_qdir/queue-state.json"
+    }
 }
 
 # --- Cleanup trap (forward SIGINT/SIGTERM to child) ---
@@ -375,6 +390,7 @@ _cleanup_on_signal() {
     fi
     _finalize_stale_pending_retries 2>/dev/null || true
     _write_report 2>/dev/null || true
+    _write_html_dashboard 2>/dev/null || true
     case "$_prev_branch" in
         "$_base_rev"|"") : ;;
         *) git checkout -q "$_prev_branch" 2>/dev/null || true ;;
@@ -1849,6 +1865,7 @@ fi
 # --- Final report ---
 
 _write_report
+_write_html_dashboard
 
 if [ "$_overall_rc" -eq 3 ]; then
     _err "supervisor: queue halted by trip-wire — see $_woke and $_qdir/queue-report.md"

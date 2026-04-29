@@ -44,7 +44,7 @@ Requires GNU `coreutils` — provides `grealpath` / `gstdbuf` on macOS via Homeb
 SPINE_QUEUE=1 sh skills/run-queue/scripts/run.sh <queue-dir>
 ```
 
-Reads `<queue-dir>/queue.yaml`; validates via `queue-lint.sh`; resolves topological order via `tsort`; spawns one fresh `claude -p` per task on a dedicated `queue/<run_id>/<task_id>` local branch; merges parent branches for DAG-child tasks; writes `queue-report.md` at completion.
+Reads `<queue-dir>/queue.yaml`; validates via `queue-lint.sh`; resolves topological order via `tsort`; spawns one fresh `claude -p` per task on a dedicated `queue/<run_id>/<task_id>` local branch; merges parent branches for DAG-child tasks; writes `queue-report.md` at completion. Optionally emits `queue-report.html` when `generate_dashboard: true`.
 
 Daytime use goes through the Kick phase, which runs lint + preview + confirm before spawning — rather than invoking `run.sh` by hand.
 
