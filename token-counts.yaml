@@ -87,12 +87,12 @@ skills/run-queue/references/prepare.md: 1058
 skills/run-queue/references/queue-schema.md: 6455
 skills/run-queue/references/review.md: 1468
 skills/run-queue/SKILL.md: 1501
-skills/run-recap/references/dispatch-preamble.md: 1142
+skills/run-recap/references/dispatch-preamble.md: 1384
 skills/run-recap/references/present-visualizer.md: 181
 skills/run-recap/references/template-recap.md: 179
 skills/run-recap/references/template-standup.md: 192
-skills/run-recap/references/template-timesheet.md: 980
-skills/run-recap/SKILL.md: 773
+skills/run-recap/references/template-timesheet.md: 1112
+skills/run-recap/SKILL.md: 853
 skills/run-research/references/gather-researcher.md: 414
 skills/run-research/references/gather-scout.md: 325
 skills/run-research/references/template-prompt.md: 801

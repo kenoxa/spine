@@ -12,8 +12,10 @@ Produce a billable timesheet from AI-assisted work sessions.
 ## Duration & Time Rules
 - Time slots strictly within 09–17; never outside this window
 - Every working day in output must total exactly **8h** (Total: 8h)
+- **Grand total = number of working days in range × 8h** — never calendar days
 - If estimated session data for a day is < 8h, extend the primary customer project entry to fill to 8h
 - Consolidate sub-hour same-project sessions; round to whole hours (min 1h per entry)
+- **Hard-pinned entries** (from `--note` args): reproduce verbatim — date, time slot, description. These consume their stated hours within the 8h day. Never reposition for "fit".
 
 ## Non-Working Day Redistribution
 Non-working days: all Saturdays, Sundays, and Berlin public holidays.
@@ -32,6 +34,11 @@ When a day has both customer project and `spine` (internal R&D):
 - **Small** customer task (≤ 3h raw): customer 09–15, R&D 15–17 (max)
 - **Medium** (4–5h) / **Large** (6–7h) / **Huge** (8h): customer fills full 8h; no R&D entry
 - Never split a substantial task (refactor, security audit, performance investigation, release prep) across customer + R&D on the same day
+
+## Final Pass: R&D Exclusion
+After drafting the full timesheet, scan every day:
+- If combined **customer work ≥ 4h** on a day, remove all R&D entries for that day and extend customer to fill 8h
+- Apply this rule last — after redistribution, consolidation, and theme grouping
 
 ## Description Rules
 Entries are for billing. Never mention internal tooling: do not name `do-plan`, `run-advise`, `envoy`, `Exa`, `Context7`, `subagent`, `@miner`, `handoff`, `SKILL.md`, skill names, or internal file paths.

@@ -10,7 +10,7 @@ description: >
   or any query about work over a time period.
   Do NOT use for workflow/automation recommendations, session pattern analysis,
   cross-tool comparison (run-insights), single-session code review (run-review).
-argument-hint: "[--days N, default 7] [--format standup|timesheet|recap] [--project filter]"
+argument-hint: "[--days N, default 7] [--format standup|timesheet|recap] [--project filter] [--note 'DATE HH-HH: description [project]']"
 ---
 
 Cross-tool AI session history reporting. Reuses `run-insights/scripts/` for data; dispatches single `@miner` for format-specific report.
@@ -34,8 +34,13 @@ Every subagent prompt MUST be self-contained — include all prior-phase context
 
 Generate session ID. Single `@miner` subagent dispatch — collects data then formats report. Mode: `recap`.
 
+**Pre-compute before dispatch**:
+- Working days in range (exclude weekends + Berlin Feiertage); inject as `{working_days}`
+- `--project` values → `{known_projects}`
+- `--note` values → `{hard_pinned_notes}`
+
 Construct prompt by combining:
-1. [dispatch-preamble.md](references/dispatch-preamble.md) — substitute `{days}`, `{scratch_dir}`, and `{project_filter}`
+1. [dispatch-preamble.md](references/dispatch-preamble.md) — substitute `{days}`, `{scratch_dir}`, `{project_filter}`, `{working_days}`, `{known_projects}`, `{hard_pinned_notes}`
 2. Select template by `--format`:
    - `standup` → [template-standup.md](references/template-standup.md)
    - `timesheet` → [template-timesheet.md](references/template-timesheet.md)

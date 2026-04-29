@@ -6,11 +6,13 @@ Collect session data, then format per template.
 
 ## Input
 
-`{days}` (default 7), `{format}` (`standup|timesheet|recap`, default `standup`), `{project_filter}`, `{scratch_dir}`
+`{days}` (default 7), `{format}` (`standup|timesheet|recap`, default `standup`), `{project_filter}`, `{scratch_dir}`, `{working_days}` (pre-computed list), `{known_projects}` (explicit list from `--project`), `{hard_pinned_notes}` (from `--note` args)
 
 ## Collection
 
 Defaults: `days=7`, `format=standup`. Validate format.
+
+**Working days**: use `{working_days}` exactly — do not recalculate calendar. The orchestrator pre-computes working days (excluding weekends + holidays) and injects the list with redistribution annotations.
 
 **Scripts**: `$HOME/.agents/skills/run-insights/scripts/collect_sessions.sh --days "${DAYS:-7}" --session "<session>"`. Verify `analytics.json` exists. Zero sessions → report "No AI sessions found in the last N days. Try increasing --days." and stop.
 
@@ -33,8 +35,17 @@ Complete collection before formatting. Evidence from generated data, not guesses
 | files_touched | yes (up to 20) | yes (up to 20) | yes |
 | tokens | yes (input/output) | no | no |
 
+### Cursor Noise Filtering
+Skip Cursor sessions whose sole `user_prompts` entry matches envoy dispatch patterns:
+- `^You are `
+- `^Read (these|the) files`
+- `^Simple test`
+- `^Test prompt`
+- `^Explain what`
+These are automated subagent dispatches, not user work sessions. Do not count toward session totals or billing.
+
 ### Duration Estimation Priority
-1. `duration_minutes` if > 0 (0 = unknown, treat as missing)
+1. `duration_minutes` if > 0 (**Claude: 0 is the norm, not an edge case — token-based estimation is primary**)
 2. Token-based: `(tokens.input + tokens.output) / 3000` min — Claude only
 3. `len(user_prompts) * 5` min
 4. Default: 15 min
@@ -74,6 +85,10 @@ If the path cannot be resolved to a filesystem location (stale/missing repo), us
 - No description → follow full derivation chain above; last resort is session ID placeholder
 - No prompts/summary → `files_touched` → git commit same day → session ID placeholder
 
+### Project Zero-Session Warning
+After collection, compare `{known_projects}` against projects found in session data. If any named project has **zero sessions**, emit a warning line at the top of output before the report body:
+`⚠️ No sessions found for project: {project_name}`
+
 ### Session Data
 `{scratch_dir}/{claude,codex,cursor}_sessions.json` + `git_log.json`. Skip missing. Structure: `{"provider": "name", "sessions": [...]}`.
 
@@ -82,4 +97,4 @@ If the path cannot be resolved to a filesystem location (stale/missing repo), us
 
 ## Constraints
 
-Substitute `{scratch_dir}` and `{project_filter}` before combining with format template.
+Substitute `{scratch_dir}`, `{project_filter}`, `{working_days}`, `{known_projects}`, and `{hard_pinned_notes}` before combining with format template.
