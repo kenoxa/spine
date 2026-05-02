@@ -89,7 +89,7 @@ resolve_tier() {
         fast:cursor)     _tier_model=auto;           _tier_effort= ;;
         frontier:opencode)
             _tier_model=opencode-go/kimi-k2.6
-            _tier_fanout="opencode-go/kimi-k2.6 opencode-go/glm-5.1"
+            _tier_fanout="opencode-go/kimi-k2.6 opencode-go/deepseek-v4-pro opencode-go/glm-5.1"
             _tier_effort=high ;;
         standard:opencode)
             _tier_model=opencode-go/minimax-m2.7
