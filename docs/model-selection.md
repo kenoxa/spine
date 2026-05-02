@@ -167,57 +167,65 @@ Env var changes take effect immediately (runtime). Model mapping changes require
 ## Benchmarks
 
 > SWE-Bench Verified (Anthropic) and SWE-Bench Pro (OpenAI) are **different benchmarks** — not directly comparable. Verified uses a curated subset; Pro uses harder, contamination-resistant tasks.
+>
+> **Terminal-Bench 2.0** is the most directly comparable benchmark across all providers — it measures agentic terminal tool use.
 
-### Claude (SWE-Bench Verified)
+### Cross-Provider Benchmark Leaderboard
 
-| Model | SWE-Bench Verified | Terminal-Bench | Pricing (in/out per M) |
-|-------|-------------------|----------------|----------------------|
-| Opus 4.7 | 87.6% | 69.4% | $5 / $25 |
-| Sonnet 4.6 | 79.6% | ~59% | $3 / $15 |
-| Haiku 4.5 | >73% | — | $1 / $5 |
+Sorted by Terminal-Bench 2.0. Bold = best in column.
 
-### Claude — Superseded
-
-| Model | SWE-Bench Verified | Pricing (in/out per M) | Superseded |
-|-------|-------------------|----------------------|------------|
-| Opus 4.6 | 80.8% | $5 / $25 | 2026-04-16 |
-
-### GPT (SWE-Bench Pro)
-
-| Model | SWE-Bench Pro | Terminal-Bench | Toolathlon | Pricing (in/out per M) |
-|-------|--------------|----------------|------------|----------------------|
-| GPT-5.4 | 57.7% | 75.1% | 54.6% | $2.50 / $15 |
-| GPT-5.4 mini | 54.4% | 60.0% | 42.9% | $0.75 / $4.50 |
-| GPT-5.4 nano | 52.4% | 46.3%† | 35.5% | $0.20 / $1.25 |
-| GPT-5.3 Codex | ~80%‡ | 77.3% | — | $1.75 / $14 |
+| Model | Provider | Terminal-Bench 2.0 | SWE-Bench Verified | SWE-Bench Pro | LiveCodeBench | Price (in/out per M) |
+|-------|----------|-------------------|-------------------|--------------|---------------|----------------------|
+| GPT-5.3 Codex | Codex | **77.3%** | ~80%‡ | — | — | $1.75 / $14 |
+| Gemini 3.1 Pro | Google | **75.5%** | — | — | — | — |
+| GPT-5.4 | Codex | 75.1% | — | **57.7%** | — | $2.50 / $15 |
+| Claude Opus 4.7 | Claude | 69.4% | **87.6%** | — | — | $5 / $25 |
+| DeepSeek V4 Pro | OpenCode | 67.9% | **80.6%** | 55.4% | **93.5%** | $0 (Go sub) |
+| Kimi K2.6 | OpenCode | 66.7% | 80.2% | 58.6% | 89.6% | $0 (Go sub) |
+| GLM-5.1 | OpenCode | 63.5% | — | 58.4% | — | $0 (Go sub) |
+| Cursor Composer 2 | Cursor | 61.7% | — | — | — | $0.50 / $2.50 |
+| GPT-5.4 mini | Codex | 60.0% | — | 54.4% | — | $0.75 / $4.50 |
+| Claude Sonnet 4.6 | Claude | ~59% | 79.6% | — | — | $3 / $15 |
+| DeepSeek V4 Flash | OpenCode | 56.9% | — | 52.6% | 91.6% | $0 (Go sub) |
+| GPT-5.4 nano | Codex | 46.3%† | — | 52.4% | — | $0.20 / $1.25 |
+| Claude Haiku 4.5 | Claude | — | >73% | — | — | $1 / $5 |
 
 † not independently verified · ‡ SWE-Bench Verified (not Pro)
 
-### Cursor
+### Quick Picks: Which Model for Which Goal?
 
-> Two usage pools: **Auto+Composer** (more included, covers Auto and Composer models) and **API** (provider-priced, covers GPT-5.4, Claude, etc.). Both reset monthly.
+| Goal | Best Choice | Runner-up | Why |
+|------|-------------|-----------|-----|
+| Maximum code quality (unlimited budget) | Claude Opus 4.7 | GPT-5.3 Codex | Highest SWE-V (87.6%), strong TB2 |
+| Best agentic tool use | GPT-5.4 / Gemini 3.1 Pro | Claude Opus 4.7 | Top TB2 (75.1% / 75.5%) |
+| Best free option | DeepSeek V4 Pro (OpenCode Go) | Kimi K2.6 | SWE-V #1, LCB #1, zero cost |
+| Daily driver (quality / price) | Claude Sonnet 4.6 | GPT-5.4 | Strong at mid-tier price |
+| Fast recon / extraction | DeepSeek V4 Flash | Claude Haiku 4.5 | Free, 91.6% LCB, high throughput |
+| IDE-integrated editing | Cursor Composer 2 | — | Cheapest pool, decent TB2 |
+| Long-context orchestration | Kimi K2.6 | GLM-5.1 | 400k–700k effective context |
 
-| Model | Terminal-Bench | Pricing (in/out per M) | Pool |
-|-------|----------------|----------------------|------|
-| Composer 2 | 61.7% | $0.50 / $2.50 | Composer |
-| Composer 2 Fast | 61.7% | $1.50 / $7.50 | Composer |
-| Composer 1.5 | 47.9% | $3.50 / $17.50 | API |
-| Auto | — | $1.25 / $6.00 | Auto+Composer |
+### Per-Provider Notes
 
-### OpenCode-Available Models
+**Claude**: Opus 4.6 (SWE-V 80.8%) was superseded by Opus 4.7 on 2026-04-16.
 
-| Model | Role | Effective Context | Coding Bench | Pricing |
-|-------|------|-------------------|--------------|---------|
-| Kimi K2.6 | Frontier | ~400k–700k | SWE-P 58.6†, SWE-V 80.2†, TB2 66.7† | $0 (Go sub) |
-| GLM-5.1 | Frontier | ~250k–400k | — | $0 (Go sub) |
-| MiniMax M2.7 | Standard | ~100k–250k | — | $0 (Go sub) |
-| DeepSeek V4 Pro | Standard | ~80k–150k | SWE-V 80.6† (#1), LCB 93.5† (#1), Codeforces #1† | $0 (Go sub) |
-| Qwen3.6 Plus | Standard | ~80k–150k | — | $0 (Go sub) |
-| DeepSeek V4 Flash | Fast | ~50k–90k | ~7–10pp below V4-Pro on agentic† | $0 (Go sub) |
-| Qwen3.5 Plus | Fast | ~60k–100k | — | $0 (Go sub) |
-| MiniMax M2.5 | Fast | ~60k–100k | — | $0 (Go sub) |
+**GPT**: GPT-5.3 Codex reports ~80% on SWE-Bench **Verified** (not Pro), making it comparable to Claude Opus tier rather than GPT-5.4's Pro score. GPT-5.4 leads Toolathlon at 54.6%.
 
-† vendor-self-reported benchmark score
+**Cursor**: Two usage pools — **Auto+Composer** (Composer 2, Auto) and **API** (Composer 1.5, GPT-5.4, Claude). Both reset monthly. Composer 2 Fast offers identical quality at 3× the per-token cost — use only when latency matters.
+
+### OpenCode Model Reference
+
+| Model | Tier | Effective Context | Pricing |
+|-------|------|-------------------|---------|
+| Kimi K2.6 | Frontier | ~400k–700k | $0 (Go sub) |
+| GLM-5.1 | Frontier | ~250k–400k | $0 (Go sub) |
+| MiniMax M2.7 | Standard | ~100k–250k | $0 (Go sub) |
+| DeepSeek V4 Pro | Standard | ~80k–150k | $0 (Go sub) |
+| Qwen3.6 Plus | Standard | ~80k–150k | $0 (Go sub) |
+| DeepSeek V4 Flash | Fast | ~50k–90k | $0 (Go sub) |
+| Qwen3.5 Plus | Fast | ~60k–100k | $0 (Go sub) |
+| MiniMax M2.5 | Fast | ~60k–100k | $0 (Go sub) |
+
+See the [leaderboard above](#cross-provider-benchmark-leaderboard) for benchmarks. All OpenCode Go models are zero marginal cost within the subscription allowance.
 
 > **Context window is misleading.** Advertised max (e.g., 1M for DeepSeek V4 Pro) ≠ effective context. Model choice depends on the range where reasoning stays stable, not API limits.
 
