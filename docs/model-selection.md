@@ -257,7 +257,7 @@ Pick by effective context and role, not "smartness" alone. These thresholds are 
 | Context | Session Model | Envoy Tier |
 |---------|--------------|------------|
 | >200K tokens | Kimi K2.6 (sub-agent only; or compact context and step down) | Frontier (Kimi K2.6, DeepSeek V4 Pro, GLM-5.1) |
-| 100K–200K tokens | DeepSeek V4 Pro, MiniMax M2.7, Qwen3.6 Plus, MiMo-V2.5-Pro | Standard fanout |
+| 100K–200K tokens | DeepSeek V4 Pro, MiniMax M2.7, Qwen3.6 Plus, MiMo-V2.5-Pro | Standard fanout (primary: DeepSeek V4 Pro) |
 | <100K tokens | DeepSeek V4 Flash, MiniMax M2.5 | Fast fanout |
 
 Routing rules:
@@ -334,8 +334,10 @@ Envoy dispatch within OpenCode uses multi-model fanout per tier. Each model runs
 | Tier | Models | Fanout |
 |------|--------|--------|
 | Frontier | Kimi K2.6 + DeepSeek V4 Pro + GLM-5.1 | 3 models, 3 labs (Moonshot / DeepSeek / Z.AI-Tsinghua) |
-| Standard | MiniMax M2.7 + DeepSeek V4 Pro + Qwen3.6 Plus + MiMo-V2.5-Pro | 4 models, 4 labs (MiniMax / DeepSeek / Alibaba / Xiaomi) |
-| Fast | DeepSeek V4 Flash + Qwen3.5 Plus + MiniMax M2.5 | 3 models, 3 labs (DeepSeek / Alibaba / MiniMax) |
+| Standard | DeepSeek V4 Pro† + MiniMax M2.7 + Qwen3.6 Plus + MiMo-V2.5-Pro | 4 models, 4 labs (DeepSeek / MiniMax / Alibaba / Xiaomi) |
+| Fast | DeepSeek V4 Flash† + MiniMax M2.5 + Qwen3.5 Plus | 3 models, 3 labs (DeepSeek / MiniMax / Alibaba) |
+
+† Primary model — used for sub-agent pinning. Fanout includes all listed models for envoy diversity.
 
 **Success semantics**: ≥1 model succeeds → provider round = success. All fail → provider round = failure.
 
