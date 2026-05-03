@@ -1133,7 +1133,7 @@ map_model_for_provider() {
     haiku:codex)   _mapped_model="gpt-5.4-mini" ;;
     haiku:cursor)  _mapped_model="fast" ;;
     opus:opencode-go)     _mapped_model="opencode-go/kimi-k2.6" ;;
-    sonnet:opencode-go)   _mapped_model="opencode-go/minimax-m2.7" ;;
+    sonnet:opencode-go)   _mapped_model="opencode-go/deepseek-v4-pro" ;;
     haiku:opencode-go)    _mapped_model="opencode-go/deepseek-v4-flash" ;;
     opus:opencode-free)   _mapped_model="opencode/qwen3.6-plus-free" ;;
     sonnet:opencode-free) _mapped_model="opencode/minimax-m2.5-free" ;;

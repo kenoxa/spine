@@ -15,7 +15,7 @@
 | Tier | Purpose | Claude | Codex | Cursor | OpenCode (Go) | OpenCode (Free) |
 |------|---------|--------|-------|--------|---------------|-----------------|
 | Frontier | Complex reasoning, gate authority | opus:high | gpt-5.4:high | composer-2 | opencode-go/kimi-k2.6 | opencode/qwen3.6-plus-free |
-| Standard | Advisory, research, pattern matching | sonnet:medium | gpt-5.4:medium | composer-2 | opencode-go/minimax-m2.7 | opencode/minimax-m2.5-free |
+| Standard | Advisory, research, pattern matching | sonnet:medium | gpt-5.4:medium | composer-2 | opencode-go/deepseek-v4-pro | opencode/minimax-m2.5-free |
 | Fast | Reconnaissance, extraction | haiku:medium | gpt-5.4-mini:medium | auto¹ | opencode-go/deepseek-v4-flash | opencode/mimo-v2-pro-free |
 
 Session quality/cost is chosen on the mainthread.
@@ -24,15 +24,29 @@ Session quality/cost is chosen on the mainthread.
 
 ## Session Model
 
-**Standard is the recommended default.** It provides a good balance of quality, cost, and speed. Subagents still use specialized models (frontier for gate authority, fast for recon) regardless of your session choice — you get the quality where it matters most without paying frontier prices on the mainthread.
+Pick your session model by task depth and expected context size, not a fixed tier label. Sub-agents use their own fixed tiers regardless of session choice — Frontier handles gate authority, Fast handles recon — so you get quality where it matters without paying frontier prices on the mainthread.
 
-When to switch tiers:
+The table below covers the viable main-thread options for **OpenCode Go**. Non-OpenCode providers have simpler stacks (Claude: sonnet/opus, Codex: gpt-5.4).
 
-- **Upgrade to Frontier** — ambiguous requirements, cascading architectural decisions, elusive root causes, multi-file changes with cross-cutting concerns
-- **Standard handles** — focused implementation, code review, straightforward debugging, pattern matching, most day-to-day work
-- **Downgrade to Fast** — quick lookups, simple file edits, boilerplate generation
+### OpenCode Go Session Model
 
-Standard is safe because the gate stack holds: Frontier subagents (consultant, inspector, verifier, synthesizer) handle gate decisions regardless of your session model — strong gates, efficient workers. Opus drains the rolling window ~1.67× faster than Sonnet; keeping the mainthread at Standard preserves budget for the subagent calls that matter. GPT-5.4 and Sonnet 4.6 have identical output pricing ($15/M), making model selection between providers a pure quality decision.
+| Session Type | Model | req/5h | Effective Context | Why |
+|---|---|---|---|---|
+| **Daily driver** — quick lookups, simple edits, boilerplate, test gen, most routine coding | **DeepSeek V4 Flash** | 31,650 | ~150K | Unlimited headroom, 2.3× faster than Pro, 1.6pp gap to Pro is invisible at IDE-task scale. Default to this for 70–80% of sessions. |
+| **Agentic tool-calling** — autonomous agent with heavy tool use, codebase fits <200K | **MiniMax M2.5** | 6,300 | ~197K | 80.2% SWE-bench (matches Opus 4.6), #1 BFCL multi-turn (76.8%, beats Opus by 13.5pt). Best agentic workhorse when context allows. |
+| **Standard day-to-day** — feature implementation, debugging, code review, moderate refactoring | **DeepSeek V4 Pro** | 3,450 | ~200K | Highest coding benchmarks in Standard tier (80.6% SWE-V, 93.5% LCB, 67.9% TB2). Reach for this when Flash isn't enough. **Compact context every ~200K tokens** — 8-needle retrieval drops from 82% at 256K to 41% at 1M. |
+| **Standard alternative** — if you prefer stability/balance | **MiniMax M2.7** | 3,400 | ~150K | Comparable volume, retrieval holds across full 200K window. Less benchmark depth than V4 Pro but solid daily alternative. |
+| **Frontend/visual-heavy** — UI work, 3D scenes, game dev | **Qwen3.6 Plus** | 3,300 | ~200K | Niche leader: 91% 3D ELO, 88% Game Dev in Design Arena. Fixes Qwen3.5's agentic bugs. Fastest output (158 tok/s). |
+| **Long agentic session** — 200+ turns, long context, focused session | **MiMo-V2.5-Pro** | 1,290 | ~256K | 40–60% fewer tokens per trajectory vs frontier rivals. Harness awareness for self-managed context. Tight volume — use for focused sessions, not daily driving. |
+| **Complex orchestration** — multi-session, >200K context, conflict resolution | **Kimi K2.6** | 1,150 | ~200K | Best long-context coherence among OC Go models. Tight volume — **sub-agent only**, not a daily session model. |
+| **Rare planning escalation** — architecture, novel problems | **GLM-5.1** | 880 | ~150K | Highest code cleanliness scores. Tightest volume — **sub-agent only**. |
+
+**Key caveats:**
+
+- **DeepSeek V4 Pro claims 1M context** but effective multi-needle reasoning drops sharply past ~200K (82% at 256K → 59% at 1M on MRCR, 41% at 1M on NIAH-8). Compact your conversation context around every 200K tokens for reliable multi-fact reasoning.
+- **Qwen3.5 Plus (10,200 req/5h) is not recommended** for agentic sessions. Has critical bugs: tool-calling breaks after 1–2 calls (reverts to raw text), reasoning tokens suppressed when tools present. Qwen3.6 Plus fixes these.
+- **Effective context** measures where multi-needle reasoning quality holds, not advertised max. Single-fact retrieval tolerates larger windows, but agentic coding is multi-needle by nature.
+- All volumes are per 5-hour rolling window on OpenCode Go subscription. See [OpenCode Request Volume Reference](#opencode-request-volume-reference) for the full table.
 
 ## Provider Selection
 
@@ -43,7 +57,7 @@ For day-to-day work, each provider has different strengths:
 | **Strength** | Code reasoning (SWE-Bench) | Agentic tool use (Terminal-Bench 75.1%) | IDE integration, cheapest agentic model | Multi-model gateway (MiMo, MiniMax, GLM); Go subscription + Free tier |
 | **Budget** | 5h / 7-day rolling (generous) | 5h / 7-day rolling (generous) | ~$20-30 / month (tight) | Go subscription (free at margin) or Free tier (zero cost) |
 | **Best for** | Planning, debugging, complex reasoning | Sandboxed execution, tool-heavy tasks | Focused implementation, inline edits | Analytical diversity, cost-sensitive workloads, chain terminus fallback |
-| **Default model** | sonnet | gpt-5.4 | auto | opencode-go/minimax-m2.7 (Go) / opencode/minimax-m2.5-free (Free) |
+| **Default model** | sonnet | gpt-5.4 | auto | opencode-go/deepseek-v4-flash (Go daily driver) / opencode/minimax-m2.5-free (Free) |
 
 **Recommended primary**: Claude Code — highest code quality benchmarks, generous rolling budget, full Spine skill and subagent support. Use Standard (sonnet) as daily driver.
 
@@ -60,14 +74,14 @@ Heavy multi-agent sessions can exhaust Claude Code Max 5x Opus hours in 2-3 days
 | Claude Code | 5h / 7-day rolling | sonnet:medium | opus:high | Generous budget — upgrade to opus freely for complex phases |
 | Codex | 5h / 7-day rolling | gpt-5.4:medium | gpt-5.4:high | Generous budget — upgrade effort freely for complex phases |
 | Cursor | ~$20-30 / month | auto | composer-2 | Tight monthly cap — stay on auto, upgrade selectively to composer-2 |
-| OpenCode Go | $60/mo flat ($10 sub), $12/5h · $30/wk rolling caps | minimax-m2.7 (Standard) | kimi-k2.6 (Frontier) | Pick by effective context per role — Fast for recon/extraction, Standard for scoped implementation, Frontier for synthesis and gate authority. Multi-model fanout within OpenCode via envoy (Frontier: kimi-k2.6 + glm-5.1; Standard: minimax-m2.7 + deepseek-v4-pro + qwen3.6-plus; Fast: deepseek-v4-flash + qwen3.5-plus + minimax-m2.5). Caps rarely bind in practice; fall back to free models if hit. |
+| OpenCode Go | $60/mo flat ($10 sub), $12/5h · $30/wk rolling caps | deepseek-v4-flash (Daily driver) | deepseek-v4-pro (Depth) | See [OpenCode Go Session Model](#opencode-go-session-model) for full decision table. Multi-model fanout within OpenCode via envoy (Frontier: kimi-k2.6 + deepseek-v4-pro + glm-5.1; Standard: minimax-m2.7 + deepseek-v4-pro + qwen3.6-plus + mimo-v2.5-pro; Fast: deepseek-v4-flash + qwen3.5-plus + minimax-m2.5). Kimi K2.6 (1,150 req/5h) is Frontier sub-agents only — Flash (31,650 req/5h) for daily driving, V4 Pro (3,450 req/5h) for depth. |
 
 ### Cost per million tokens
 
 | Tier | Claude | Codex | Cursor | OpenCode (Go) | OpenCode (Free) |
 |------|--------|-------|--------|---------------|-----------------|
 | Frontier | opus ($5/$25) | gpt-5.4 ($2.50/$15) | composer-2 ($0.50/$2.50) | kimi-k2.6 ($0, sub) | qwen3.6-plus-free (**free**) |
-| Standard | sonnet ($3/$15) | gpt-5.4 ($2.50/$15) | auto ($1.25/$6.00) | minimax-m2.7 ($0, sub) | minimax-m2.5-free (**free**) |
+| Standard | sonnet ($3/$15) | gpt-5.4 ($2.50/$15) | auto ($1.25/$6.00) | deepseek-v4-pro ($0, sub) | minimax-m2.5-free (**free**) |
 | Fast | haiku ($1/$5) | gpt-5.4-mini¹ ($0.75/$4.50) | composer-2 ($0.50/$2.50) | deepseek-v4-flash ($0, sub) | mimo-v2-pro-free (**free**) |
 
 > Cursor models draw from the Auto+Composer pool with a monthly allowance. Per-token cost matters less than staying within your monthly budget. Composer 2 Fast ($1.50/$7.50) offers the same quality at higher speed but 3× the cost — use selectively when latency matters. For higher quality beyond the pool, override to API-pool models (e.g., gpt-5.4) at provider pricing.
@@ -214,59 +228,104 @@ Sorted by Terminal-Bench 2.0. Bold = best in column.
 
 ### OpenCode Model Reference
 
-| Model | Tier | Effective Context | Pricing |
-|-------|------|-------------------|---------|
-| Kimi K2.6 | Frontier | ~400k–700k | $0 (Go sub) |
-| GLM-5.1 | Frontier | ~250k–400k | $0 (Go sub) |
-| MiniMax M2.7 | Standard | ~100k–250k | $0 (Go sub) |
-| DeepSeek V4 Pro | Standard | ~80k–150k | $0 (Go sub) |
-| Qwen3.6 Plus | Standard | ~80k–150k | $0 (Go sub) |
-| DeepSeek V4 Flash | Fast | ~50k–90k | $0 (Go sub) |
-| Qwen3.5 Plus | Fast | ~60k–100k | $0 (Go sub) |
-| MiniMax M2.5 | Fast | ~60k–100k | $0 (Go sub) |
+| Model | Tier | Effective Context | req/5h | Notes |
+|-------|------|-------------------|--------|-------|
+| Kimi K2.6 | Frontier | ~200K | 1,150 | Best long-context coherence among OC Go. Full window 256K — modest enough to hold well. Auto-compression extends beyond window. |
+| GLM-5.1 | Frontier | ~150K | 880 | Highest code cleanliness. DSA compressed attention. 200K full window — limited degradation risk. |
+| DeepSeek V4 Pro | Standard | ~200K | 3,450 | Advertised 1M, but 8-needle retrieval drops: 82% at 256K → 59% at 1M. Compact every ~200K. |
+| MiniMax M2.7 | Standard | ~150K | 3,400 | Retrieval holds across full 200K window. "I haven't hit the severe NIH degradation that plagues cheaper models" — independent review. |
+| Qwen3.6 Plus | Standard | ~200K | 3,300 | 1M advertised, Alibaba docs warn "lost in the middle." Always-on CoT eats into usable budget. Fastest output (158 tok/s). No independent long-context evals. |
+| MiMo-V2.5-Pro | Standard | ~256K | 1,290 | SWA+GA hybrid attention. GraphWalks scores meaningful at 1M (BFS 0.37, Parents 0.62). Third-party evals pending (Apr 22 release). |
+| DeepSeek V4 Flash | Fast | ~150K | 31,650 | Weaker retrieval than Pro at all lengths (58% at 1M vs Pro's 66%). Stay under 150K. |
+| MiniMax M2.5 | Fast | ~197K | 6,300 | Full window 200K. 80.2% SWE-bench (matches Opus 4.6). Best agentic workhorse for fitting codebases. |
+| Qwen3.5 Plus | Fast | ~150K | 10,200 | **Not recommended for agentic use** — tool-calling breaks after 1–2 calls, reasoning suppressed when tools present. Single-turn structured tasks only. |
 
 See the [leaderboard above](#cross-provider-benchmark-leaderboard) for benchmarks. All OpenCode Go models are zero marginal cost within the subscription allowance.
 
-> **Context window is misleading.** Advertised max (e.g., 1M for DeepSeek V4 Pro) ≠ effective context. Model choice depends on the range where reasoning stays stable, not API limits.
+> **Context window is misleading.** Advertised max (e.g., 1M for DeepSeek V4 Pro) ≠ effective context. For every OpenCode Go model the gap between advertised and effective context is 30–60 points on multi-needle benchmarks. Choose by where reasoning quality holds, not API limits.
 
-Tier assignments are driven by **context behavior + role fit**, not benchmark ranking alone:
+Tier assignments are driven by **context behavior + role fit + request volume**, not benchmark ranking alone:
 
-- **Frontier** (coordination, synthesis, gate authority): **Kimi K2.6** — best long-context coherence; maintains stability across large, evolving contexts. **GLM-5.1** — solid fallback, cheaper frontier. DeepSeek V4 Pro is intentionally **not** Frontier: its effective context (~80k–150k) and degradation under accumulation make it a deep worker for scoped reasoning, not a system coordinator for long-horizon synthesis.
-- **Standard** (scoped implementation, debugging, advisory): **MiniMax M2.7** — best default balance. **DeepSeek V4 Pro** — excels at deep, focused reasoning within bounded scope (debugging, implementation); degrades under long context accumulation despite 1M advertised context. **Qwen3.6 Plus** — stable fallback.
-- **Fast** (recon, extraction, parallel exploration): **DeepSeek V4 Flash** — massive throughput, latency-optimized. **Qwen3.5 Plus** — safer cheap option. **MiniMax M2.5** — balanced cheap option.
+- **Frontier** (coordination, synthesis, gate authority, sub-agent only): **Kimi K2.6** — best long-context coherence across OC Go models, holds well within its 256K window. **GLM-5.1** — solid fallback with highest code cleanliness. Both are tight on volume (880–1,150 req/5h) — reserved for gate authority, not session use.
+- **Standard** (scoped implementation, debugging, advisory): **DeepSeek V4 Pro** — best coding benchmarks in tier (80.6% SWE-V, 93.5% LCB), comfortable 3,450 req/5h. Effective context ~200K — compact around this. **MiniMax M2.7** — comparable volume (3,400 req/5h), stable retrieval. **Qwen3.6 Plus** — niche leader for frontend/visual work. **MiMo-V2.5-Pro** — token-efficient for long agentic sessions but tight volume (1,290 req/5h).
+- **Fast** (recon, extraction, daily driving): **DeepSeek V4 Flash** — unlimited headroom (31,650 req/5h), 2.3× faster than Pro. **MiniMax M2.5** — dark horse: 80.2% SWE-bench, #1 BFCL multi-turn tool calling. **Qwen3.5 Plus** — not recommended for agentic use (critical tool-calling bugs).
 
 ### OpenCode Context-Driven Routing
 
-Pick by effective context and role, not "smartness" alone:
+Pick by effective context and role, not "smartness" alone. These thresholds are tied to the actual effective context where each model holds multi-needle reasoning quality:
 
-| Context | Tier | Models |
-|---------|------|--------|
-| >200k tokens | Frontier | Kimi K2.6, GLM-5.1 |
-| 100k–200k tokens | Standard | MiniMax M2.7, DeepSeek V4 Pro, Qwen3.6 Plus |
-| <100k tokens | Fast | DeepSeek V4 Flash, Qwen3.5 Plus, MiniMax M2.5 |
+| Context | Session Model | Envoy Tier |
+|---------|--------------|------------|
+| >200K tokens | Kimi K2.6 (sub-agent only; or compact context and step down) | Frontier (Kimi K2.6, DeepSeek V4 Pro, GLM-5.1) |
+| 100K–200K tokens | DeepSeek V4 Pro, MiniMax M2.7, Qwen3.6 Plus, MiMo-V2.5-Pro | Standard fanout |
+| <100K tokens | DeepSeek V4 Flash, MiniMax M2.5 | Fast fanout |
 
 Routing rules:
-- If task coordinates multiple sessions, merges reports, or resolves conflicts → **Frontier**
-- If task is scoped implementation or debugging → **Standard**
-- If task is small, parallel, or exploratory → **Fast**
-- If worker hits ambiguity or conflict → escalate to **Frontier**
+- If task coordinates multiple sessions, merges reports, or resolves conflicts → **Frontier** envoy
+- If task is scoped implementation or debugging → **Standard** session model
+- If task is small, parallel, or exploratory → **Fast** session model
+- If accumulated context exceeds ~200K on a Standard session → **compact your context** or escalate to Frontier
 
 Mental model:
-- **Frontier** = decision authority
+- **Frontier** = decision authority (sub-agent only)
 - **Standard** = problem solver
-- **Fast** = search + exploration layer
+- **Fast** = daily driver + exploration layer
 
 ### OpenCode Session Model
 
-**Standard (`opencode-go/minimax-m2.7`) is the recommended default** for day-to-day work.
+Pick your session model from the [OpenCode Go Session Model](#opencode-go-session-model) table above. The short version:
 
-Within Standard, route by task depth:
-- **MiniMax M2.7** — default for focused implementation, straightforward debugging, pattern matching
-- **DeepSeek V4 Pro** — scoped debugging or hard implementation where deep reasoning matters more than context size (effective ~80k–150k)
+**DeepSeek V4 Flash is the recommended daily driver.** 31,650 req/5h (effectively unlimited), 2.3× faster than Pro, and the 1.6pp SWE-bench gap to Pro is functionally invisible at IDE-task scale. Use it for 70–80% of your sessions.
 
-When to upgrade tier:
-- **Frontier (`opencode-go/kimi-k2.6`)** — ambiguous requirements, multi-session coordination, merging reports, resolving conflicts, or accumulated context >200k tokens
-- **Fast (`opencode-go/deepseek-v4-flash`)** — quick lookups, simple file edits, parallel exploration
+**DeepSeek V4 Pro is your depth option.** When Flash isn't enough (complex debugging, architectural decisions, multi-file changes), switch to V4 Pro. 3,450 req/5h is comfortable. Compact context every ~200K tokens.
+
+**MiniMax M2.5 is the agentic dark horse.** If you're running an autonomous agent with heavy tool-calling and your codebase fits under 200K, M2.5 matches Opus 4.6 on SWE-bench (80.2%) and dominates multi-turn tool calling (76.8% BFCL).
+
+**MiMo-V2.5-Pro for long agentic sessions.** 40–60% fewer tokens per trajectory. Tight volume (1,290 req/5h) — use for focused long sessions, not daily driving.
+
+**Qwen3.6 Plus for frontend-heavy work.** Niche leader at 91% 3D ELO. Fixes Qwen3.5's agentic bugs. Fastest output at 158 tok/s.
+
+**Kimi K2.6 and GLM-5.1 are sub-agent only.** Their tight volumes (880–1,150 req/5h) make them unsuitable as session models. Reserved for Frontier gate authority roles (consultant, inspector, verifier, synthesizer).
+
+### OpenCode Request Volume Reference
+
+Estimated request counts based on typical Go subscription usage patterns:
+
+| Model | req/5h | req/week | req/month |
+|---|---|---|---|
+| DeepSeek V4 Flash | 31,650 | 79,050 | 158,150 |
+| Qwen3.5 Plus | 10,200 | 25,200 | 50,500 |
+| MiniMax M2.5 | 6,300 | 15,900 | 31,800 |
+| DeepSeek V4 Pro | 3,450 | 8,550 | 17,150 |
+| MiniMax M2.7 | 3,400 | 8,500 | 17,000 |
+| Qwen3.6 Plus | 3,300 | 8,200 | 16,300 |
+| MiMo-V2-Omni | 2,150 | 5,450 | 10,900 |
+| MiMo-V2.5 (≤256K) | 2,150 | 5,450 | 10,900 |
+| MiMo-V2-Pro | 1,290 | 3,225 | 6,450 |
+| MiMo-V2.5-Pro | 1,290 | 3,225 | 6,450 |
+| Kimi K2.5 | 1,850 | 4,630 | 9,250 |
+| Kimi K2.6 | 1,150 | 2,880 | 5,750 |
+| GLM-5 | 1,150 | 2,880 | 5,750 |
+| GLM-5.1 | 880 | 2,150 | 4,300 |
+
+Estimates based on observed average request patterns:
+- DeepSeek V4 Flash — 790 input, 68,000 cached, 280 output tokens/req
+- DeepSeek V4 Pro — 750 input, 82,000 cached, 290 output tokens/req
+- Qwen3.5 Plus — 410 input, 47,000 cached, 140 output tokens/req
+- Qwen3.6 Plus — 500 input, 57,000 cached, 190 output tokens/req
+- MiniMax M2.7/M2.5 — 300 input, 55,000 cached, 125 output tokens/req
+- Kimi K2.5/K2.6 — 870 input, 55,000 cached, 200 output tokens/req
+- MiMo-V2-Pro — 350 input, 41,000 cached, 250 output tokens/req
+- MiMo-V2-Omni — 1,000 input, 60,000 cached, 140 output tokens/req
+- MiMo-V2.5-Pro — 350 input, 41,000 cached, 250 output tokens/req
+- MiMo-V2.5 — 1,000 input, 60,000 cached, 140 output tokens/req
+- GLM-5/5.1 — 700 input, 52,000 cached, 150 output tokens/req
+
+Volume determines session model viability:
+- **>10,000 req/5h**: Effectively unlimited — Flash, Qwen3.5 Plus (but buggy)
+- **3,000–10,000 req/5h**: Comfortable for daily driving — V4 Pro, MiniMax M2.5/M2.7, Qwen3.6 Plus
+- **1,000–3,000 req/5h**: Tight — works for focused sessions, not all-day use — MiMo variants
+- **<1,000 req/5h**: Sub-agent only — Kimi K2.6, GLM-5.1
 
 ### OpenCode Multi-Model Dispatch
 
@@ -274,13 +333,17 @@ Envoy dispatch within OpenCode uses multi-model fanout per tier. Each model runs
 
 | Tier | Models | Fanout |
 |------|--------|--------|
-| Frontier | Kimi K2.6 + GLM-5.1 | 2 models, 2 labs (Moonshot / Z.AI-Tsinghua) |
-| Standard | MiniMax M2.7 + DeepSeek V4 Pro + Qwen3.6 Plus | 3 models, 3 labs (MiniMax / DeepSeek / Alibaba) |
+| Frontier | Kimi K2.6 + DeepSeek V4 Pro + GLM-5.1 | 3 models, 3 labs (Moonshot / DeepSeek / Z.AI-Tsinghua) |
+| Standard | MiniMax M2.7 + DeepSeek V4 Pro + Qwen3.6 Plus + MiMo-V2.5-Pro | 4 models, 4 labs (MiniMax / DeepSeek / Alibaba / Xiaomi) |
 | Fast | DeepSeek V4 Flash + Qwen3.5 Plus + MiniMax M2.5 | 3 models, 3 labs (DeepSeek / Alibaba / MiniMax) |
 
 **Success semantics**: ≥1 model succeeds → provider round = success. All fail → provider round = failure.
 
 **Override**: `SPINE_ENVOY_{TIER}_OPENCODE` env vars disable fanout. When set, the tier runs single-model (same as other providers).
+
+**Note on MiMo-V2.5-Pro**: Included in Standard fanout for its token efficiency in agentic tasks (40–60% fewer tokens per trajectory). Not promoted to Frontier despite competitive SWE-bench Pro scores — its reasoning depth limitation (commit-to-first-chain) makes it unreliable for gate authority roles. Use `SPINE_ENVOY_STANDARD_OPENCODE` to override.
+
+**Note on Qwen3.5 Plus**: In Fast fanout for volume (10,200 req/5h) but not recommended for agentic envoy dispatch due to critical tool-calling bugs. Remove or replace via `SPINE_ENVOY_FAST_OPENCODE` if you encounter failures.
 
 Additional models available on the Go subscription — MiMo-V2/Omni, Kimi K2.5, MiniMax M2.5/M2.7, Qwen3.5 Plus, GLM-5 — remain accessible via env override.
 

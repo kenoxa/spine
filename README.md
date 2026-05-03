@@ -158,7 +158,7 @@ For Claude Code, the installer also attempts to install the [Spine plugin](claud
 | Claude Code | sonnet:medium | opus:high |
 | Codex | gpt-5.4:medium | gpt-5.4:high |
 | Cursor | auto | composer-2 |
-| OpenCode | minimax-m2.7 (Go) / minimax-m2.5-free (Free) | mimo-v2-pro |
+| OpenCode | deepseek-v4-pro (Go) / minimax-m2.5-free (Free) | kimi-k2.6 |
 
 See [docs/model-selection.md](docs/model-selection.md) for full tier guidance and escalation triggers.
 
