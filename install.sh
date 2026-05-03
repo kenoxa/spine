@@ -1084,6 +1084,44 @@ install_opencode_plugin() {
   cp "$plugin_src" "$plugin_dir/spine-hooks.ts"
 }
 
+# Patch ~/.config/opencode/opencode.json with spine instruction references.
+# OpenCode resolves the instructions array and injects file content into the
+# system prompt — this is the native equivalent of Claude Code's @ references.
+# Uses strip-and-append: strips existing spine entries, prepends fresh ones.
+# Usage: patch_opencode_instructions <spine-dir>
+patch_opencode_instructions() {
+  local spine_dir="$1"
+  local config_file="$HOME/.config/opencode/opencode.json"
+  local spine_ref="$spine_dir/SPINE.md"
+  local custom_ref="$spine_dir/AGENTS.md"
+
+  [ -f "$config_file" ] || return 0
+  command -v jq &>/dev/null || { warn "jq not found — cannot patch OpenCode instructions"; return 0; }
+
+  backup_if_exists "$config_file"
+
+  local tmp
+  tmp=$(mktemp)
+
+  # Prepend spine paths, deduplicate existing ones
+  jq \
+    --arg spine "$spine_ref" \
+    --arg custom "$custom_ref" \
+    '
+    .instructions //= [] |
+    .instructions |= (
+      [$spine, $custom] + [.[] | select(. != $spine and . != $custom)]
+    )
+    ' "$config_file" > "$tmp" 2>/dev/null
+
+  if jq empty "$tmp" 2>/dev/null; then
+    mv "$tmp" "$config_file"
+  else
+    warn "Generated invalid OpenCode config JSON — opencode.json left unchanged"
+    rm -f "$tmp"
+  fi
+}
+
 # --- Agent generation ---
 
 # Parse YAML frontmatter from an agent markdown file.
@@ -1375,11 +1413,11 @@ install_tool() {
   mkdir -p "$target"
 
   # Guardrails: write @reference to provider root file
-  # OpenCode: no root file needed
+  # OpenCode: no root file — uses opencode.json instructions field instead
   local root_file=""
   case "$tool" in
     claude)   root_file="$target/CLAUDE.md" ;;
-    opencode) ;;  # skip — OpenCode uses agent frontmatter only
+    opencode) ;;  # skip — uses opencode.json instructions field
     *)        root_file="$target/AGENTS.md" ;;
   esac
 
@@ -1472,7 +1510,10 @@ install_tool() {
   case "$tool" in
     codex)    generate_codex_hooks "$spine_dir" ;;
     cursor)   generate_cursor_hooks "$spine_dir" ;;
-    opencode) install_opencode_plugin "$src" ;;
+    opencode)
+      install_opencode_plugin "$src"
+      patch_opencode_instructions "$spine_dir"
+      ;;
   esac
 
   # Count and report hooks enabled for this provider
