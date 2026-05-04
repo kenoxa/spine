@@ -15,10 +15,14 @@ Reconstruct working state from persisted session artifacts. Never guess state fr
 
 ### 1. Locate
 
+If the explicit argument contains a `/` treat it as a direct path and use Read on it. Stop.
+
+Otherwise, use `fd` (preferred) or `ls -t` (fallback) to search within `.scratch/` — the Glob tool ignores gitignored paths.
+
 Priority order (stop when found):
-1. Explicit argument: `<session-id>` → look for `.scratch/<session-id>/session-log.md`
-2. Most recent `session-log.md` by mtime: scan `.scratch/*/session-log.md`
-3. Most recent `handoff-*.md` by mtime: scan `.scratch/handoff-*.md`
+1. Explicit argument: `<session-id>` → `fd 'session-log\.md$' .scratch/<session-id>/` then Read
+2. Most recent `session-log.md` by mtime: `fd 'session-log\.md$' .scratch/ --max-depth 2 -t f -0 | xargs -0 ls -lt`
+3. Most recent `handoff-*.md` by mtime: `fd 'handoff-.*\.md$' .scratch/ --max-depth 2 -t f -0 | xargs -0 ls -lt`
 
 Report what was found and its path. If nothing found: stop with "No session state found. Pass a session ID or run handoff before /clear."
 
