@@ -42,6 +42,22 @@ Always quote glob and regex arguments to prevent shell expansion:
 - `fd '*.ts'`, not `fd *.ts`
 - `sg -p '$EXPR'`, not `sg -p "$EXPR"` (metavar `$` expansion)
 
+## Output Persistence
+
+When running expensive commands (test suites, benchmarks, coverage, builds, lints, migrations) whose output is piped through a display filter (head, tail, grep, rg, etc.), save full output before filtering:
+
+```bash
+set -o pipefail
+cmd 2>&1 | tee .scratch/<session>/<slug>.log | <filter>
+```
+
+- `set -o pipefail` prevents exit-code masking — tee returns 0 even when the command fails (E3)
+- Capture stderr with `2>&1` — diagnostics and failures live on stderr
+- Use a descriptive filename slug (e.g., `bench-auth.log`, `test-unit.log`)
+- Place in `.scratch/<session>/` for session-scoped lifecycle (SPINE.md §Sessions)
+
+When filtered or truncated display lacks needed context, Read the saved file — do not re-run the command.
+
 ## Anti-Patterns
 
 - Using `rm` or `rm -rf` instead of `trash`
@@ -52,3 +68,4 @@ Always quote glob and regex arguments to prevent shell expansion:
 - Using `sg` for text/config files — `sd` is simpler and correct
 - Double-quoting `sg` patterns containing `$` metavars
 - Running `sg -r ... -U` without a search-only dry run first
+- Piping expensive command output through filters (head/grep/tail) without saving to a file (re-run waste)

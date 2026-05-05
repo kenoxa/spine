@@ -64,7 +64,7 @@ Show the exact command that will run, verbatim, for the user to inspect or copy:
 
 ```sh
 tmux new-session -d -s queue-<run_id> \
-  'SPINE_QUEUE=1 sh skills/run-queue/scripts/run.sh <queue-dir> 2>&1 | tee <queue-dir>/kick.log'
+  'set -o pipefail; SPINE_QUEUE=1 sh skills/run-queue/scripts/run.sh <queue-dir> 2>&1 | tee <queue-dir>/kick.log'
 ```
 
 **Rate-limit handling.** Supervisor sleeps through any 5h rolling or weekly request-window exhaustion (`_rot_rate_limit_retry`, 120 s → 2 h cap) and resumes the same iteration on reset. Long sleeps in `queue-log.md` are intentional, not stuckness.
@@ -97,7 +97,7 @@ Default: tmux. Ask the user if they prefer nohup or screen — use tmux unless t
 
 ```sh
 tmux new-session -d -s queue-<run_id> \
-  'SPINE_QUEUE=1 sh skills/run-queue/scripts/run.sh <queue-dir> 2>&1 | tee <queue-dir>/kick.log'
+  'set -o pipefail; SPINE_QUEUE=1 sh skills/run-queue/scripts/run.sh <queue-dir> 2>&1 | tee <queue-dir>/kick.log'
 ```
 
 **nohup:**
@@ -112,7 +112,7 @@ echo "PID: $!"
 
 ```sh
 screen -dmS queue-<run_id> \
-  sh -c 'SPINE_QUEUE=1 sh skills/run-queue/scripts/run.sh <queue-dir> 2>&1 | tee <queue-dir>/kick.log'
+  sh -c 'set -o pipefail; SPINE_QUEUE=1 sh skills/run-queue/scripts/run.sh <queue-dir> 2>&1 | tee <queue-dir>/kick.log'
 ```
 
 Assemble the exact command for the chosen mechanism and run it after the user confirms.

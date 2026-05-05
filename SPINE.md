@@ -42,7 +42,7 @@ ni        →  JS/Node tooling — install, run, execute (see use-js)
 
 **Search routing**: Context7 for library/framework docs (resolve ID first). Exa for code patterns + general research (dispatch to subagent — results are verbose). Fallback: Context7 → Exa → built-in. No-results = silent fallback.
 
-Shell fallback: prefer `rg`/`fd`/`jq`/`yq`/`sd`/`sg` over system defaults; `trash` not `rm`; `ni` for JS packages. Quote all glob/regex args. Details in use-shell/use-js.
+Shell fallback: prefer `rg`/`fd`/`jq`/`yq`/`sd`/`sg` over system defaults; `trash` not `rm`; `ni` for JS packages. Quote all glob/regex args. Details in use-shell/use-js. Output persistence for expensive commands → `use-shell` §Output Persistence.
 
 **GitHub file URLs** — rewrite `github.com/.../blob/...` to `raw.githubusercontent.com`.
 
