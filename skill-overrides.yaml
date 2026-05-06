@@ -1,0 +1,64 @@
+# Compact descriptions for global skills installed by install.sh.
+# Applied post-install to ~/.agents/skills/<name>/SKILL.md via patch_global_skill_descriptions().
+# Budget constraint: Σ(desc_len + 109) across all 43 active skills must stay under 7500 chars.
+# Run scripts/check-skill-budget.sh to verify after changes.
+#
+# Tiers (invocation surface):
+#   global-fp   ≤95c  — user-invokable, with trigger cluster
+#   sub-skill   ≤50c  — dispatched by workflow skills only, purpose-only
+
+skills:
+  brainstorming:
+    tier: global-fp
+    description: >-
+      Creative ideation. Use when: 'brainstorm', 'explore ideas'.
+
+  typescript-magician:
+    tier: global-fp
+    description: >-
+      TypeScript type mastery. Use when: 'type errors', 'generics', 'TS types'.
+
+  visual-explainer:
+    tier: sub-skill
+    description: >-
+      Visual diagrams for @visualizer.
+
+  security-reviewer:
+    tier: sub-skill
+    description: >-
+      Security audit heuristics for run-review.
+
+  frontend-design:
+    tier: sub-skill
+    description: >-
+      Visual design craft for with-frontend.
+
+  wcag-audit-patterns:
+    tier: sub-skill
+    description: >-
+      WCAG 2.2 audit for with-frontend.
+
+  reducing-entropy:
+    tier: sub-skill
+    description: >-
+      Net-complexity measurement for run-review.
+
+  differential-review:
+    tier: sub-skill
+    description: >-
+      Security-focused PR review for run-review.
+
+  fp-check:
+    tier: sub-skill
+    description: >-
+      False-positive checker for run-review.
+
+  ubiquitous-language:
+    tier: sub-skill
+    description: >-
+      DDD glossary extraction for with-terminology.
+
+  tdd:
+    tier: sub-skill
+    description: >-
+      TDD cycle enforcement for with-testing.

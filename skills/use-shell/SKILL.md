@@ -1,13 +1,7 @@
 ---
 name: use-shell
-description: >
-  Shell and CLI conventions for safe, consistent terminal usage.
-  Use when writing shell scripts, running terminal commands, using bash/zsh,
-  CLI tools, code pattern matching, renaming symbols across files,
-  replacing function calls with ast-grep/sg, structural code search,
-  semantic code search, ranked code search, probe CLI,
-  or any task involving shell execution.
-  Do NOT use for JavaScript/TypeScript package management — see use-js.
+description: >-
+  Shell and CLI conventions. Use when: 'writing scripts', 'structural search', 'semantic search'.
 argument-hint: "[shell task or command]"
 ---
 

@@ -1,15 +1,7 @@
 ---
 name: run-recap
-description: >
-  Work reports from AI session history — standup bullets, billable timesheets, narrative recaps.
-  Parses Claude Code, Codex, Cursor into project-grouped summaries with estimated hours.
-  Use when: "what did I do", "standup update", "weekly recap", "timesheet",
-  "activity report", "summarize my work", "what was done", "session recap",
-  "daily summary", "weekly summary", "billing hours", "what I accomplished",
-  "work report", "invoice my time", "quarterly review", "client report",
-  or any query about work over a time period.
-  Do NOT use for workflow/automation recommendations, session pattern analysis,
-  cross-tool comparison (run-insights), single-session code review (run-review).
+description: >-
+  Session history work reports. Use when: 'what did I do', 'standup', 'timesheet', 'billing'.
 argument-hint: "[--days N, default 7] [--format standup|timesheet|recap] [--project filter] [--note 'DATE HH-HH: description [project]']"
 ---
 

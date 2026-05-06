@@ -1,10 +1,7 @@
 ---
 name: with-terminology
-description: >
-  Domain terminology consistency from a project glossary.
-  Use when project has a domain glossary, or when a task involves
-  terminology, glossary updates, ubiquitous language, or domain model naming.
-  Do NOT use for general code style or purely technical naming — see run-polish.
+description: >-
+  Terminology from glossary. Use when: 'glossary', 'terminology', 'domain naming'.
 argument-hint: "[domain concept or naming question]"
 ---
 

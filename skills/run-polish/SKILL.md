@@ -1,9 +1,7 @@
 ---
 name: run-polish
-description: >
-  Advisory code polish with parallel lenses: conventions + complexity (default),
-  efficiency (performance-sensitive scope). Use after implementation or for
-  standalone cleanup on recently modified code.
+description: >-
+  Code polish for conventions and complexity.
 argument-hint: "[files or scope]"
 ---
 

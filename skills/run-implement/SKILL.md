@@ -1,10 +1,7 @@
 ---
 name: run-implement
-description: >
-  Scoped code implementation with partition-parallel dispatch.
-  Use when: "implement this", "make these changes", "code this up",
-  "run-implement", standalone implementation tasks.
-  Do NOT use when: full build-review loop needed (do-build).
+description: >-
+  Partition-parallel scoped implementation.
 argument-hint: "[task, direction, or scope to implement]"
 ---
 

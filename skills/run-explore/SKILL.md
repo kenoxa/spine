@@ -1,10 +1,7 @@
 ---
 name: run-explore
-description: >
-  Bounded codebase exploration and architecture mapping.
-  Use when: "explore", "how does X work", "map the flow", "survey",
-  "architecture of", "what does X look like", "show me the lay of the land".
-  Do NOT use for broad refactoring (do-design) or deliberation (do-frame).
+description: >-
+  Codebase exploration. Use when: 'explore', 'how does X work', 'map the flow'.
 argument-hint: "[area or question to explore]"
 ---
 

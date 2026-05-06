@@ -1,12 +1,7 @@
 ---
 name: run-queue
-description: >
-  Overnight autonomous task queue. Run a pre-staged DAG of handoff tasks in
-  fresh `claude -p` processes, one task per branch, with restricted permissions
-  and a morning report. Use when: "queue", "overnight run", "batch this", "run
-  these handoffs", "autonomous execution", "afk build". Do NOT use for single
-  in-session tasks — use do-build instead; and do NOT use for exploration —
-  use do-frame or do-design.
+description: >-
+  Overnight autonomous task queue.
 argument-hint: "[queue-dir | queue.yaml path]"
 ---
 

@@ -1,9 +1,7 @@
 ---
 name: with-frontend
-description: >
-  Frontend development standards for UI implementation.
-  Use when editing components, pages, or UI code.
-  Do NOT use for API-only changes — see the with-backend skill.
+description: >-
+  Frontend standards. Use when: 'components', 'pages', 'styles', 'UI code'.
 argument-hint: "[component or UI task]"
 ---
 

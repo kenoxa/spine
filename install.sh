@@ -1969,6 +1969,32 @@ print_skills_commands() {
   done
 }
 
+patch_global_skill_descriptions() {
+  local skills_src="$1"
+  local overrides="$skills_src/skill-overrides.yaml"
+
+  [ -f "$overrides" ] || return 0
+  command -v yq >/dev/null 2>&1 || return 0
+
+  local skill_names
+  skill_names=$(yq e '.skills | keys | .[]' "$overrides" 2>/dev/null) || return 0
+
+  while IFS= read -r name; do
+    [ -z "$name" ] && continue
+    local target="$HOME/.agents/skills/$name/SKILL.md"
+    [ -f "$target" ] || continue
+
+    local new_desc cur_desc
+    new_desc=$(yq e ".skills.${name}.description" "$overrides" 2>/dev/null) || continue
+    [ -z "$new_desc" ] || [ "$new_desc" = "null" ] && continue
+
+    cur_desc=$(yq --front-matter=extract e '.description' "$target" 2>/dev/null) || continue
+    [ "$cur_desc" = "$new_desc" ] && continue
+
+    NEW_DESC="$new_desc" yq --front-matter=process e '.description = strenv(NEW_DESC)' -i "$target" 2>/dev/null || true
+  done <<< "$skill_names"
+}
+
 install_skills() {
   local skills_src="$1"; shift
   local detected_tools=("$@")
@@ -2111,6 +2137,8 @@ install_skills() {
       run_skills_command remove "${global_orphans[@]}" "${agent_flags[@]}" -g -y || true
     fi
   fi
+
+  patch_global_skill_descriptions "$skills_src"
 }
 
 # --- Cleanup ---

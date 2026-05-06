@@ -1,10 +1,7 @@
 ---
 name: run-debug
-description: >
-  Diagnose and fix bugs through structured 4-phase debugging.
-  Use when facing failing tests, crashes, regressions, unexpected behavior,
-  or non-deterministic / flaky failures.
-  Do NOT use when the problem is unclear scope or missing requirements — use /do-frame instead.
+description: >-
+  Structured debugging. Use when: 'failing tests', 'crashes', 'regressions', 'flaky failures'.
 argument-hint: "[error, failing test, or symptom]"
 ---
 

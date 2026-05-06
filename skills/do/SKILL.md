@@ -1,11 +1,7 @@
 ---
 name: do
-description: >
-  Catch-all entry point for features, bugs, issues, ideas, questions.
-  Use when: "do", "fix", "add", "change", "build this", "implement this",
-  "solve this", "help me with this", or any actionable request that doesn't
-  match a specific skill.
-  Do NOT use when: already inside a phase skill (do-frame, do-design, do-build).
+description: >-
+  Catch-all entry point. Use when: 'fix this', 'add this', 'help me with this'.
 argument-hint: "[task, problem, feature, bug, question, or idea]"
 ---
 

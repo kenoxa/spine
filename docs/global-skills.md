@@ -44,3 +44,38 @@ Useful across all coding tasks without needing a local skill reference.
 | `typescript-magician` | `mcollina/skills` | Advanced type-system mastery: 14 modular rule files covering generics, conditional types, branded types, inference patterns, error diagnosis |
 
 > **Note:** Browser automation is now handled by the local `use-browser` skill (backed by [dev-browser](https://github.com/SawyerHood/dev-browser)), replacing the retired `agent-browser` global skill.
+
+## Description Budget
+
+Claude Code loads all skill descriptions at session start into a fixed character budget (default: 8,000 chars). Spine's 43 active skills (32 local + 11 global) must fit within 7,500 chars to leave headroom across context sizes.
+
+Each skill occupies `desc_len + 109` chars of budget. Run the checker after any description change:
+
+```sh
+scripts/check-skill-budget.sh
+```
+
+### Tier classification (invocation surface)
+
+| Tier | Who fires it | Budget | Triggers? |
+|------|-------------|--------|-----------|
+| `global-fp` | User directly | ≤95c | Yes, quoted cluster |
+| `sub-skill` | Workflow skill only | ≤50c | No — purpose only |
+
+### Compact descriptions via `skill-overrides.yaml`
+
+Global skill upstream descriptions are often verbose (200–500 chars). `skill-overrides.yaml` at the repo root declares compact replacements:
+
+```yaml
+skills:
+  typescript-magician:
+    tier: global-fp
+    description: >-
+      Advanced TypeScript type mastery. Use when: 'type error', 'generics', 'TS types'.
+  security-reviewer:
+    tier: sub-skill
+    description: >-
+      Security audit heuristics for run-review.
+```
+
+`install.sh` applies these automatically after each `skills add` via `patch_global_skill_descriptions()`, using `yq --front-matter=process` to rewrite only the `description` field in `~/.agents/skills/<name>/SKILL.md`. The patch is idempotent — a second install run writes nothing if the description already matches.

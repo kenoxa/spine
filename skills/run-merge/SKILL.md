@@ -1,12 +1,7 @@
 ---
 name: run-merge
-description: >
-  Agentic git conflict resolver. Reads a merge brief (markdown + YAML frontmatter),
-  resolves all conflicts on the current working branch, completes the merge, and
-  writes a machine-readable verdict sidecar. Invoked by the run-queue supervisor
-  when `git merge --no-ff` conflicts and `merge_policy != manual`. Standalone CLI
-  use is deferred. TRIGGER: invoked via `_spawn_child` with a brief path argument;
-  never activated interactively.
+description: >-
+  Git conflict resolver for run-queue.
 argument-hint: "<brief-path>"
 ---
 

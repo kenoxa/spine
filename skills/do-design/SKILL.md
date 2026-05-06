@@ -1,11 +1,7 @@
 ---
 name: do-design
-description: >
-  HOW-focused solution design via multi-skill composition.
-  Use when: "design", "plan the approach", "advise", "what approach",
-  "how should we", "do-design", "second opinion", "consult".
-  Do NOT use when: problem unclear (do-frame), build-ready (do-build),
-  reproducible defect (run-debug).
+description: >-
+  HOW-focused solution design. Use when: 'design', 'plan the approach', 'second opinion'.
 argument-hint: "[frame_artifact, problem statement, or area needing direction]"
 ---
 

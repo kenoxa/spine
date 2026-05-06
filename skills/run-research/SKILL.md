@@ -1,12 +1,7 @@
 ---
 name: run-research
-description: >
-  Compile structured research prompts for external deep research UIs
-  (ChatGPT Deep Research, Claude).
-  Use when: "research prompt", "deep research", "external research", "compile research",
-  "research question", "outsource research", "research for ChatGPT", "research for Claude".
-  Do NOT use for in-session or codebase exploration (use run-explore),
-  or problem framing (use do-frame).
+description: >-
+  External research prompt compiler. Use when: 'deep research', 'outsource research', 'ChatGPT'.
 argument-hint: "[research goal] [--target chatgpt|claude] [--depth deep]"
 ---
 

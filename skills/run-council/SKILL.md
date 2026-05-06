@@ -1,10 +1,7 @@
 ---
 name: run-council
-description: >
-  Thinking-lens stress-test on an advise-synthesis recommendation, resolved by a Chairman into a single directional recommendation.
-  Use when: "run-council", "stress-test the recommendation", "council review", "get a council perspective",
-  or invoked as phase by do-design after run-advise completes.
-  Do NOT use when: run-advise has not yet run, problem unclear (do-frame), implementation ready (run-implement).
+description: >-
+  Thinking-lens stress-test on a recommendation.
 argument-hint: "[advise_synthesis_path, source_artifact_path]"
 ---
 

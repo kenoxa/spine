@@ -1,11 +1,7 @@
 ---
 name: catchup
-description: >
-  Reconstruct session state after /clear or compaction. Use when resuming a
-  session, recovering from context loss, or verifying state before continuing.
-  Also trigger on "catch up", "what's the session state", "resume session",
-  "pick up where we left off", or after any /clear or auto-compaction.
-  Do NOT use for creating new sessions — start with do-frame or do-design.
+description: >-
+  Resume session after /clear or compaction. Use when: 'catch up', 'session state'.
 argument-hint: "[session-id or path to session artifacts]"
 ---
 

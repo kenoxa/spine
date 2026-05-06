@@ -1,9 +1,7 @@
 ---
 name: do-build
-description: >
-  Use when: "build", "implement", "build and review", "just build it", "do-build",
-  rapid prototyping from a consult recommendation or approved plan.
-  Do NOT use when problem unclear (do-frame), exploration incomplete (do-design).
+description: >-
+  Implement, review, and ship. Use when: 'implement and review', 'just ship it'.
 argument-hint: "[plan reference, consult recommendation, or task]"
 ---
 

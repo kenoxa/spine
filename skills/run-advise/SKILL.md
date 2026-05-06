@@ -1,11 +1,7 @@
 ---
 name: run-advise
-description: >
-  Multi-model perspective gathering with synthesis.
-  Use when: "run-advise", "get perspectives", "gather opinions",
-  standalone advisory on approach decisions, or invoked as phase by do-design.
-  Do NOT use when: problem unclear (do-frame), full consultation workflow
-  with feedback loop needed (do-design), implementation ready (run-implement).
+description: >-
+  Multi-model advisory with synthesis. Use when: 'get perspectives', 'gather opinions'.
 argument-hint: "[problem, approach question, or frame_artifact]"
 ---
 

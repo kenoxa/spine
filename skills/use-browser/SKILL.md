@@ -1,14 +1,7 @@
 ---
 name: use-browser
-description: >
-  Browser automation for testing, verifying, and interacting with web applications.
-  Use when you need to test a site, verify a deployment, check UI behavior, fill and
-  submit forms, click elements, capture screenshots, log into a site, scrape page
-  content, or debug browser-side issues.
-  Triggers: "test this page", "check the site", "verify the deploy", "go to [url]",
-  "fill the form", "click on", "take a screenshot", "log into", "scrape", "debug the UI",
-  "automate the browser", "login flow", "check this URL".
-  Do NOT use as a replacement for WebFetch or web search.
+description: >-
+  Browser automation. Use when: 'test this page', 'go to URL', 'fill the form', 'screenshot'.
 argument-hint: "[URL or browser task description]"
 ---
 

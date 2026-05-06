@@ -1,10 +1,7 @@
 ---
 name: with-testing
-description: >
-  Test boundary decisions and risk-based testing strategy.
-  Use when deciding what to mock, planning test strategy, evaluating coverage,
-  or before writing tests for a new feature.
-  Do NOT use for test execution during do-build — that skill has its own review gates.
+description: >-
+  Test strategy decisions. Use when: 'what to mock', 'test strategy', 'test coverage'.
 argument-hint: "[feature, module, or function under test]"
 ---
 

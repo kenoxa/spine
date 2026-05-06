@@ -1,12 +1,7 @@
 ---
 name: run-curate
-description: >
-  Curate persistent project knowledge files in docs/.
-  Use when: "curate", "curate knowledge", "promote learning", "review knowledge",
-  "prune knowledge", "knowledge maintenance", "update knowledge", "knowledge hygiene",
-  "manage docs knowledge", or auto-triggered from build-finalize
-  when knowledge_candidate items exist.
-  Do NOT use for: ephemeral session notes, code comments, commit messages.
+description: >-
+  Curate project knowledge files.
 argument-hint: "[candidates from build-finalize or standalone review scope]"
 ---
 

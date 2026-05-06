@@ -1,13 +1,7 @@
 ---
 name: do-frame
-description: >
-  WHAT-focused problem framing.
-  Use when: "frame", "frame this", "what's the problem",
-  "scope this", "understand this", "what are we solving",
-  "investigate this", "what's happening", "what's going on",
-  "analyze", "analyze this".
-  Do NOT use when: solution design needed (do-design), build-ready (do-build),
-  reproducible defect (run-debug).
+description: >-
+  WHAT-focused problem framing. Use when: 'frame', 'what's the problem', 'scope this', 'analyze'.
 argument-hint: "[problem, symptom, or area to frame]"
 ---
 

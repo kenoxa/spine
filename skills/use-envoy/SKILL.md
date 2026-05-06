@@ -1,11 +1,7 @@
 ---
 name: use-envoy
-description: >
-  Cross-provider envoy via headless CLI invocation.
-  Use when a skill needs an independent perspective from a different AI provider,
-  or multi-provider parallel dispatch for broader coverage.
-  Composable — load alongside do-design, run-review, or any skill that benefits
-  from cross-model diversity. Do NOT use standalone.
+description: >-
+  Cross-provider dispatch for external perspectives. Do NOT use standalone.
 ---
 
 Dispatch `@envoy` concurrently with base subagents; await all before synthesis. Sequential when no base agents in batch.

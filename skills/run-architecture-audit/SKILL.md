@@ -1,13 +1,7 @@
 ---
 name: run-architecture-audit
-description: >
-  Architecture audit: explore codebase friction, identify shallow modules and coupling,
-  classify dependencies, and propose deepening candidates.
-  Use when: "architecture audit", "find shallow modules", "module depth", "reduce coupling",
-  "tighten interfaces", "dependency analysis", "deep modules", "architecture review",
-  "refactoring candidates", "what should I deepen".
-  Do NOT use during active implementation (use do-build), for code review (use run-review),
-  or for planning (use do-design with architecture-depth lens).
+description: >-
+  Architecture audit. Use when: 'architecture audit', 'coupling', 'module depth'.
 argument-hint: "[scope: directory, module, or 'full codebase']"
 ---
 

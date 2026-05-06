@@ -1,17 +1,7 @@
 ---
 name: run-insights
-description: >
-  Mine AI agent session history across Claude Code, Codex, and Cursor for
-  workflow/setup improvement recommendations.
-  Use when: "what should I automate", "what patterns keep repeating",
-  "analyze my sessions", "what should become a skill", "compare my tools",
-  "where am I inefficient", "history insights", "what anti-patterns do you see",
-  "mine my session data", "cross-tool comparison", "audit my AI usage",
-  "improve my workflow", "improve my setup", "extract skills from history",
-  mine/audit/retrospect requests on AI assistant history. Only skill that
-  parses session history files.
-  Do NOT use for single-session review (run-review), work reporting
-  (run-recap), Claude Code setup (claude-automation-recommender).
+description: >-
+  Mine session history. Use when: 'analyze my sessions', 'improve my workflow', 'automate tasks'.
 argument-hint: "[--days N, default 14] [--project filter]"
 ---
 

@@ -1,14 +1,7 @@
 ---
 name: handoff
-description: >
-  Distill current session context into a structured prompt for a fresh session.
-  Use when handing off work mid-session — discovered bugs, emerging features,
-  follow-up tasks, or continuation after hitting context limits. Also trigger
-  when the user says "hand this off", "create a handoff", "package this for
-  a new session", or "continue in a new chat".
-  Do NOT use for session summaries without a continuation goal (use
-  run-recap) or for cross-skill phase transitions (built into
-  do-frame and do-build).
+description: >-
+  Package session for continuation.
 argument-hint: "[direction or goal for the next session]"
 ---
 

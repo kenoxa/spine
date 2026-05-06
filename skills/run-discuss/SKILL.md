@@ -1,11 +1,7 @@
 ---
 name: run-discuss
-description: >
-  Clarify ambiguous problems and decisions through targeted questioning.
-  Use when: "discuss", "clarify", "help me frame", "what exactly",
-  "narrow this down", "let's talk through", "what are we solving".
-  Do NOT use when: codebase exploration needed (run-explore),
-  multi-model advisory needed (run-advise), build-ready (do-build).
+description: >-
+  Targeted questioning to clarify scope. Use when: 'clarify', 'what exactly', 'narrow this down'.
 argument-hint: "[topic, problem, or decision to clarify]"
 ---
 

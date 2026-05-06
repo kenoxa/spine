@@ -32,11 +32,22 @@ Use `/use-skill-craft` — it covers the full authoring workflow. Key points:
 ```yaml
 ---
 name: skill-name
-description: >
-  What it does. Use when [triggers]. Do NOT use when [exclusions].
+description: >-
+  What it does. Use when: 'trigger phrase', 'another phrase'.
 argument-hint: "[what the user passes after /skill-name]"
 ---
 ```
+
+**Description budget**: All 43 skill descriptions share an 8,000-char session budget. Use `>-` (not `>`), which strips the trailing newline and avoids inflating character counts. Keep within tier limits:
+
+| Tier | Who invokes it | Char limit | Trigger phrases? |
+|------|---------------|-----------|-----------------|
+| Named / catch-all | User by exact name | ≤35c | No — purpose only |
+| Fuzzy | User by intent phrase | ≤95c | Yes: `Use when: 'X', 'Y'.` |
+| Dual-use | User or workflow skill | ≤55c | No — purpose only |
+| Sub-skill | Workflow skill only | ≤50c | No — purpose only |
+
+Verify after changes: `scripts/check-skill-budget.sh`
 
 Optional fields:
 - `disable-model-invocation: true` — only loaded via slash command, never auto-applied

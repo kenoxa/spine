@@ -1,11 +1,7 @@
 ---
 name: use-js
-description: >
-  JavaScript/TypeScript tooling conventions using ni (universal package manager wrapper).
-  Use when managing JS/TS dependencies, installing packages, adding dev dependencies,
-  running npm scripts, executing build or test commands, upgrading or removing packages,
-  working with package.json, or using npm/pnpm/yarn/bun/Node.js/Deno tooling.
-  Do NOT use for non-JavaScript languages.
+description: >-
+  JS/TS tooling with ni. Use when: 'install packages', 'run scripts', 'npm tasks'.
 argument-hint: "[package operation or JS/TS task]"
 ---
 
