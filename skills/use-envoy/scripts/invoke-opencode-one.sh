@@ -54,8 +54,19 @@ command -v jq >/dev/null 2>&1 || { error "jq required but not found"; exit 1; }
 # Each worker gets its own XDG_DATA_HOME so opencode.db is per-process.
 # This prevents SQLITE_BUSY and file-watcher cross-contamination (issue #4251).
 #
+_host_xdg_data_home="${XDG_DATA_HOME:-$HOME/.local/share}"
+_host_auth_file="$_host_xdg_data_home/opencode/auth.json"
 _worker_xdg="$(mktemp -d)"
 export XDG_DATA_HOME="$_worker_xdg"
+
+# Preserve the user's OpenCode login while isolating mutable runtime state. If
+# omitted, opencode falls back to OPENCODE_API_KEY/OPENROUTER_API_KEY, which can
+# point at a stale or different workspace than the logged-in TUI.
+if [ -f "$_host_auth_file" ]; then
+    mkdir -p "$_worker_xdg/opencode"
+    cp "$_host_auth_file" "$_worker_xdg/opencode/auth.json"
+    chmod 600 "$_worker_xdg/opencode/auth.json"
+fi
 
 # Combine _cleanup (from _common.sh) with XDG dir removal.
 _cleanup_all() { _cleanup; rm -rf "$_worker_xdg"; }

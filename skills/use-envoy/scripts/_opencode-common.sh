@@ -46,6 +46,21 @@ opencode_extract() {
         exit 3
     fi
 
+    # OpenCode may return exit 0 while emitting a JSON error event, for example
+    # billing/auth failures. Surface that provider message before the generic
+    # completeness gate so dispatch failures remain actionable.
+    _oc_error_msg=$(jq -r '
+        select(.type == "error")
+        | (.error.data.message // .error.message // .error.data.error.message // empty)
+        | strings
+    ' "$_json_tmp" 2>/dev/null | head -1) || true
+    if [ -n "$_oc_error_msg" ]; then
+        printf 'OpenCode provider error: %s\n' "$_oc_error_msg" >> "$stderr_log"
+        _cleanup
+        error "OpenCode provider error: $_oc_error_msg"
+        exit 3
+    fi
+
     # Completeness gate: require at least one step_finish with reason:"stop"
     # Uses jq -s (slurp) + any() for robustness against multi-step sessions
     if ! jq -s 'any(.[]; .type == "step_finish" and .part.reason == "stop")' "$_json_tmp" 2>/dev/null | grep -q true; then

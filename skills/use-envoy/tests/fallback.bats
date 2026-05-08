@@ -167,6 +167,12 @@ _load_cursor_model_fn() {
     is_fast_failure "$BATS_TMPDIR/stderr.log"
 }
 
+@test "is_fast_failure: insufficient balance detected" {
+    echo "Insufficient balance. Manage your billing here." > "$BATS_TMPDIR/stderr.log"
+    . "$SCRIPTS_DIR/_common.sh"
+    is_fast_failure "$BATS_TMPDIR/stderr.log"
+}
+
 @test "is_fast_failure: payment past due detected" {
     echo "Error: payment is past due" > "$BATS_TMPDIR/stderr.log"
     . "$SCRIPTS_DIR/_common.sh"
@@ -229,7 +235,29 @@ _load_cursor_model_fn() {
 }
 
 # =============================================================================
-# 3. Integration tests: fallback.sh flow
+# 3. Unit tests: OpenCode JSONL extraction
+# =============================================================================
+
+@test "opencode_extract: provider error JSON surfaces message" {
+    output_file="$BATS_TMPDIR/opencode.md"
+    stderr_log="$BATS_TMPDIR/opencode.log"
+    _json_tmp="$BATS_TMPDIR/opencode.json"
+    printf '%s\n' '{"type":"error","error":{"data":{"message":"Insufficient balance"}}}' > "$_json_tmp"
+
+    error() { printf 'Error: %s\n' "$*" >&2; }
+    . "$SCRIPTS_DIR/_common.sh"
+    . "$SCRIPTS_DIR/_opencode-common.sh"
+
+    run opencode_extract
+    assert_failure 3
+    assert_output --partial "OpenCode provider error: Insufficient balance"
+    assert [ -f "$stderr_log" ]
+    run cat "$stderr_log"
+    assert_output --partial "OpenCode provider error: Insufficient balance"
+}
+
+# =============================================================================
+# 4. Integration tests: fallback.sh flow
 # =============================================================================
 # Uses a temp scripts directory with real _common.sh + fallback.sh, and stubs
 # for check-cursor.sh and invoke-cursor.sh. This isolates the fallback logic
