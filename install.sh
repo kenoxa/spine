@@ -964,22 +964,27 @@ generate_codex_hooks() {
     return 0
   fi
 
-  # Enable codex_hooks feature flag in config.toml
+  # Enable hooks feature flag in config.toml (codex_hooks was renamed to hooks)
   if [ -f "$config_file" ]; then
-    if ! grep -q 'codex_hooks' "$config_file" 2>/dev/null; then
+    # Migrate deprecated codex_hooks key to hooks
+    if grep -q 'codex_hooks' "$config_file" 2>/dev/null; then
+      sed -i.bak 's/codex_hooks/hooks/g' "$config_file"
+      rm -f "${config_file}.bak"
+    fi
+    if ! grep -q 'hooks = true' "$config_file" 2>/dev/null; then
       if grep -q '^\[features\]' "$config_file" 2>/dev/null; then
         # Append key under existing [features] section
         sed -i.bak '/^\[features\]/a\
-codex_hooks = true' "$config_file"
+hooks = true' "$config_file"
         rm -f "${config_file}.bak"
       else
-        printf '\n[features]\ncodex_hooks = true\n' >> "$config_file"
+        printf '\n[features]\nhooks = true\n' >> "$config_file"
       fi
     fi
   else
     cat > "$config_file" << 'TOML'
 [features]
-codex_hooks = true
+hooks = true
 TOML
   fi
 }
@@ -1164,7 +1169,7 @@ parse_agent_frontmatter() {
 map_model_for_provider() {
   local model="$1" provider="$2"
   case "$model:$provider" in
-    opus:codex)    _mapped_model="gpt-5.4" ;;
+    opus:codex)    _mapped_model="gpt-5.5" ;;
     opus:cursor)   _mapped_model="composer-2" ;;
     sonnet:codex)  _mapped_model="gpt-5.4" ;;
     sonnet:cursor) _mapped_model="composer-2" ;;

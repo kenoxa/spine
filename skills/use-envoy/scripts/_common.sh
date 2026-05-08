@@ -79,7 +79,7 @@ resolve_tier() {
     _tier_model=; _tier_effort=; _tier_primary=; _tier_fanout=
     case "$1:$2" in
         frontier:claude) _tier_model=opus;          _tier_effort=high ;;
-        frontier:codex)  _tier_model=gpt-5.4;       _tier_effort=high ;;
+        frontier:codex)  _tier_model=gpt-5.5;       _tier_effort=high ;;
         frontier:cursor) _tier_model=composer-2;     _tier_effort= ;;
         standard:claude) _tier_model=sonnet;         _tier_effort=medium ;;
         standard:codex)  _tier_model=gpt-5.4;       _tier_effort=medium ;;

@@ -14,7 +14,7 @@
 
 | Tier | Purpose | Claude | Codex | Cursor | OpenCode (Go) | OpenCode (Free) |
 |------|---------|--------|-------|--------|---------------|-----------------|
-| Frontier | Complex reasoning, gate authority | opus:high | gpt-5.4:high | composer-2 | opencode-go/kimi-k2.6 | opencode/qwen3.6-plus-free |
+| Frontier | Complex reasoning, gate authority | opus:high | gpt-5.5:high | composer-2 | opencode-go/kimi-k2.6 | opencode/qwen3.6-plus-free |
 | Standard | Advisory, research, pattern matching | sonnet:medium | gpt-5.4:medium | composer-2 | opencode-go/deepseek-v4-pro | opencode/minimax-m2.5-free |
 | Fast | Reconnaissance, extraction | haiku:medium | gpt-5.4-mini:medium | auto¹ | opencode-go/deepseek-v4-flash | opencode/mimo-v2-pro-free |
 
@@ -63,7 +63,7 @@ For day-to-day work, each provider has different strengths:
 
 **Recommended secondary**: Cursor — best for IDE-integrated editing and visual multi-file changes. Composer pool is generous for daily work but watch the monthly cap. Use for focused implementation sessions.
 
-**Envoy / cross-provider value**: Codex — GPT's Terminal-Bench strength (75.1% vs Sonnet's ~59%) catches agentic blind spots that Claude misses. Different training produces genuinely different failure modes, making cross-provider envoy dispatch more valuable than same-family second opinions.
+**Envoy / cross-provider value**: Codex — GPT-5.5's Terminal-Bench 2.0 lead (82.7% vs Sonnet's ~59%) catches agentic blind spots that Claude misses. Different training produces genuinely different failure modes, making cross-provider envoy dispatch more valuable than same-family second opinions.
 
 Heavy multi-agent sessions can exhaust Claude Code Max 5x Opus hours in 2-3 days and Cursor Pro credits in a single day. Standard-tier defaults mitigate this.
 
@@ -72,7 +72,7 @@ Heavy multi-agent sessions can exhaust Claude Code Max 5x Opus hours in 2-3 days
 | Provider | Budget model | Default | Upgrade | Recommendation |
 |----------|-------------|---------|---------|----------------|
 | Claude Code | 5h / 7-day rolling | sonnet:medium | opus:high | Generous budget — upgrade to opus freely for complex phases |
-| Codex | 5h / 7-day rolling | gpt-5.4:medium | gpt-5.4:high | Generous budget — upgrade effort freely for complex phases |
+| Codex | 5h / 7-day rolling | gpt-5.4:medium | gpt-5.5:high | Generous budget — upgrade effort freely for complex phases |
 | Cursor | ~$20-30 / month | auto | composer-2 | Tight monthly cap — stay on auto, upgrade selectively to composer-2 |
 | OpenCode Go | $60/mo flat ($10 sub), $12/5h · $30/wk rolling caps | deepseek-v4-flash (Daily driver) | deepseek-v4-pro (Depth) | See [OpenCode Go Session Model](#opencode-go-session-model) for full decision table. Multi-model fanout within OpenCode via envoy (Frontier: kimi-k2.6 + deepseek-v4-pro + glm-5.1; Standard: minimax-m2.7 + deepseek-v4-pro + qwen3.6-plus + mimo-v2.5-pro; Fast: deepseek-v4-flash + qwen3.5-plus + minimax-m2.5). Kimi K2.6 (1,150 req/5h) is Frontier sub-agents only — Flash (31,650 req/5h) for daily driving, V4 Pro (3,450 req/5h) for depth. |
 
@@ -80,7 +80,7 @@ Heavy multi-agent sessions can exhaust Claude Code Max 5x Opus hours in 2-3 days
 
 | Tier | Claude | Codex | Cursor | OpenCode (Go) | OpenCode (Free) |
 |------|--------|-------|--------|---------------|-----------------|
-| Frontier | opus ($5/$25) | gpt-5.4 ($2.50/$15) | composer-2 ($0.50/$2.50) | kimi-k2.6 ($0, sub) | qwen3.6-plus-free (**free**) |
+| Frontier | opus ($5/$25) | gpt-5.5 ($5/$30) | composer-2 ($0.50/$2.50) | kimi-k2.6 ($0, sub) | qwen3.6-plus-free (**free**) |
 | Standard | sonnet ($3/$15) | gpt-5.4 ($2.50/$15) | auto ($1.25/$6.00) | deepseek-v4-pro ($0, sub) | minimax-m2.5-free (**free**) |
 | Fast | haiku ($1/$5) | gpt-5.4-mini¹ ($0.75/$4.50) | composer-2 ($0.50/$2.50) | deepseek-v4-flash ($0, sub) | mimo-v2-pro-free (**free**) |
 
@@ -128,6 +128,7 @@ When Claude or Codex hits a rate limit, runs out of credits, or has an auth erro
 | `opus` | `claude-opus-4-7-high-thinking` |
 | `sonnet` | `claude-4.6-sonnet-medium-thinking` |
 | `haiku` | `auto` (Cursor's cheapest routing) |
+| `gpt-5.5` | `gpt-5.5-{effort}` |
 | `gpt-5.4` | `gpt-5.4-{effort}` |
 | `gpt-5.4-mini` | `gpt-5.4-mini-{effort}` |
 | Other `gpt-*` | passed through as `{model}-{effort}` |
@@ -190,6 +191,7 @@ Sorted by Terminal-Bench 2.0. Bold = best in column.
 
 | Model | Provider | Terminal-Bench 2.0 | SWE-Bench Verified | SWE-Bench Pro | LiveCodeBench | Price (in/out per M) |
 |-------|----------|-------------------|-------------------|--------------|---------------|----------------------|
+| GPT-5.5 | Codex | **82.7%** | — | 58.6% | — | $5 / $30 |
 | GPT-5.3 Codex | Codex | **77.3%** | ~80%‡ | — | — | $1.75 / $14 |
 | Gemini 3.1 Pro | Google | **75.5%** | — | — | — | — |
 | GPT-5.4 | Codex | 75.1% | — | **57.7%** | — | $2.50 / $15 |
@@ -211,7 +213,7 @@ Sorted by Terminal-Bench 2.0. Bold = best in column.
 | Goal | Best Choice | Runner-up | Why |
 |------|-------------|-----------|-----|
 | Maximum code quality (unlimited budget) | Claude Opus 4.7 | GPT-5.3 Codex | Highest SWE-V (87.6%), strong TB2 |
-| Best agentic tool use | GPT-5.4 / Gemini 3.1 Pro | Claude Opus 4.7 | Top TB2 (75.1% / 75.5%) |
+| Best agentic tool use | GPT-5.5 | GPT-5.3 Codex / Gemini 3.1 Pro | Top TB2 (82.7%) |
 | Best free option | DeepSeek V4 Pro (OpenCode Go) | Kimi K2.6 | SWE-V #1, LCB #1, zero cost |
 | Daily driver (quality / price) | Claude Sonnet 4.6 | GPT-5.4 | Strong at mid-tier price |
 | Fast recon / extraction | DeepSeek V4 Flash | Claude Haiku 4.5 | Free, 91.6% LCB, high throughput |
@@ -222,7 +224,7 @@ Sorted by Terminal-Bench 2.0. Bold = best in column.
 
 **Claude**: Opus 4.6 (SWE-V 80.8%) was superseded by Opus 4.7 on 2026-04-16.
 
-**GPT**: GPT-5.3 Codex reports ~80% on SWE-Bench **Verified** (not Pro), making it comparable to Claude Opus tier rather than GPT-5.4's Pro score. GPT-5.4 leads Toolathlon at 54.6%.
+**GPT**: GPT-5.5 (released 2026-04-23) leads Terminal-Bench 2.0 at 82.7% and is now the Spine Frontier model for Codex. GPT-5.3 Codex reports ~80% on SWE-Bench **Verified** (not Pro), making it comparable to Claude Opus tier rather than GPT-5.4's Pro score. GPT-5.4 leads Toolathlon at 54.6%.
 
 **Cursor**: Two usage pools — **Auto+Composer** (Composer 2, Auto) and **API** (Composer 1.5, GPT-5.4, Claude). Both reset monthly. Composer 2 Fast offers identical quality at 3× the per-token cost — use only when latency matters.
 

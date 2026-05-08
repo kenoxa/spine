@@ -156,7 +156,7 @@ For Claude Code, the installer also attempts to install the [Spine plugin](claud
 | Provider | Default | Upgrade |
 |----------|---------|---------|
 | Claude Code | sonnet:medium | opus:high |
-| Codex | gpt-5.4:medium | gpt-5.4:high |
+| Codex | gpt-5.4:medium | gpt-5.5:high |
 | Cursor | auto | composer-2 |
 | OpenCode | deepseek-v4-pro (Go) / minimax-m2.5-free (Free) | kimi-k2.6 |
 
@@ -390,7 +390,7 @@ The envoy skill defaults to high-capability models per provider. Override via `~
 ```sh
 # Format: model[:effort]  (effort defaults to "high" if omitted)
 export SPINE_ENVOY_CLAUDE=opus:high
-export SPINE_ENVOY_CODEX=gpt-5.4:high
+export SPINE_ENVOY_CODEX=gpt-5.5:high
 export SPINE_ENVOY_OPENCODE=opencode-go/kimi-k2.6:high
 
 # Per-tier overrides: SPINE_ENVOY_{TIER}_{PROVIDER}=model:effort
