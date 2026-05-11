@@ -285,6 +285,17 @@ python39_plus() {
   [ "$major" -gt 3 ] || { [ "$major" -eq 3 ] && [ "$minor" -ge 9 ]; }
 }
 
+has_brew() { command -v brew >/dev/null 2>&1; }
+
+node_present() {
+  command -v node >/dev/null 2>&1 && return 0
+  command -v nodejs >/dev/null 2>&1 && return 0
+  [ -x /opt/homebrew/opt/node/bin/node ] && return 0
+  [ -x /usr/local/opt/node/bin/node ] && return 0
+  [ -x /home/linuxbrew/.linuxbrew/opt/node/bin/node ] && return 0
+  return 1
+}
+
 # Check if a tool binary is on PATH.
 # Handles formula-to-binary name differences (e.g., ripgrep → rg).
 dep_present() {
@@ -292,13 +303,11 @@ dep_present() {
     python3)   python39_plus python3 || python39_plus python ;;
     ripgrep)   command -v rg        >/dev/null 2>&1 ;;
     ast-grep)  command -v ast-grep  >/dev/null 2>&1 || command -v sg >/dev/null 2>&1 ;;
-    node)      command -v node      >/dev/null 2>&1 || command -v nodejs >/dev/null 2>&1 ;;
+    node)      node_present ;;
     coreutils) command -v gtimeout  >/dev/null 2>&1 || command -v timeout >/dev/null 2>&1 ;;
     *)         command -v "$1"      >/dev/null 2>&1 ;;
   esac
 }
-
-has_brew() { command -v brew >/dev/null 2>&1; }
 
 brew_formula_name() {
   case "$1" in
@@ -595,10 +604,6 @@ ensure_system_deps() {
       fi
     done
     ui_live_collapse "Packages installed" "$installed_names"
-    # Advisory: agent-browser is retired — suggest manual cleanup
-    if command -v agent-browser &>/dev/null; then
-      warn "agent-browser is retired (replaced by dev-browser). Remove with: brew uninstall agent-browser"
-    fi
   else
     warn "Missing tools: ${missing[*]}"
     if [ "$os" = "Darwin" ]; then
@@ -2290,13 +2295,13 @@ main() {
   fi
   setup_central_dir "$src"
 
-  # Step 2: Hooks
-  ui_step "Hooks"
-  setup_hooks "$src"
-
-  # Step 3: Dependencies
+  # Step 2: Dependencies
   ui_step "Dependencies"
   ensure_system_deps
+
+  # Step 3: Hooks
+  ui_step "Hooks"
+  setup_hooks "$src"
 
   # Step 4: Detect tools
   ui_step "Detecting tools"

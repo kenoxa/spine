@@ -31,8 +31,11 @@ export SPINE_ENV_LOADED=1
 for _spine_p in \
   "$HOME/.cargo/bin" \
   "/home/linuxbrew/.linuxbrew/bin" \
+  "/home/linuxbrew/.linuxbrew/opt/node/bin" \
   "/usr/local/bin" \
+  "/usr/local/opt/node/bin" \
   "/opt/homebrew/bin" \
+  "/opt/homebrew/opt/node/bin" \
   "$HOME/.local/bin" \
   "$HOME/.bun/bin"; do
   case ":$PATH:" in
