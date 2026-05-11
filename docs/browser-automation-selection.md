@@ -37,7 +37,7 @@ Source: SawyerHood/dev-browser-eval (Do Browser / dobrowser.io). Not independent
 
 ## Installation
 
-Binary from GitHub releases → `~/.local/bin/dev-browser`. Version in `~/.config/spine/tool-versions`. Same pattern as probe CLI. npm/bun global install broken (bun skips postinstall, npm is nvm-dependent).
+Binary from GitHub releases → `~/.local/bin/dev-browser`. Version in `~/.config/spine/tool-versions`. Same pattern as probe CLI. `install.sh` also runs `dev-browser install` idempotently so Playwright browsers and runtime assets are repaired even when the binary tag is already current.
 
 ## Known Limitations
 

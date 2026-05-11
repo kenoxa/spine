@@ -272,6 +272,27 @@ download_source() {
 
 # --- Dependency detection + install ---
 
+prepend_path_if_dir() {
+  [ -d "$1" ] || return 0
+  case ":$PATH:" in
+    *":$1:"*) ;;
+    *) PATH="$1:$PATH" ;;
+  esac
+}
+
+ensure_installer_tool_paths() {
+  prepend_path_if_dir "$HOME/.cargo/bin"
+  prepend_path_if_dir "/home/linuxbrew/.linuxbrew/bin"
+  prepend_path_if_dir "/home/linuxbrew/.linuxbrew/opt/node/bin"
+  prepend_path_if_dir "/usr/local/bin"
+  prepend_path_if_dir "/usr/local/opt/node/bin"
+  prepend_path_if_dir "/opt/homebrew/bin"
+  prepend_path_if_dir "/opt/homebrew/opt/node/bin"
+  prepend_path_if_dir "$HOME/.local/bin"
+  prepend_path_if_dir "$HOME/.bun/bin"
+  export PATH
+}
+
 # Check whether a python command reports Python >= 3.9.
 python39_plus() {
   local python_cmd="$1"
@@ -484,56 +505,59 @@ install_dev_browser() {
     return 0
   fi
 
-  # Version skip — check manifest + binary existence
+  # Version skip — check manifest + binary existence. Runtime install still runs
+  # below because it repairs missing Playwright browsers and runtime files.
   local installed_tag
   installed_tag=$(grep "^dev-browser=" "$MANIFEST" 2>/dev/null | cut -d= -f2 | head -1) || true
-  if [ "${installed_tag:-}" = "$latest_tag" ] && [ -x "$INSTALL_DIR/dev-browser" ]; then
-    return 0
-  fi
+  local binary_changed=false
+  if ! { [ "${installed_tag:-}" = "$latest_tag" ] && [ -x "$INSTALL_DIR/dev-browser" ]; }; then
+    # Download binary directly (no archive — single binary asset)
+    local tmpfile
+    tmpfile=$(mktemp)
 
-  # Download binary directly (no archive — single binary asset)
-  local tmpfile
-  tmpfile=$(mktemp)
-
-  local download_ok=false
-  if command -v gh &>/dev/null && gh auth status &>/dev/null; then
-    if quiet gh release download "$latest_tag" --repo "$DEV_BROWSER_REPO" \
-        --pattern "$ASSET_NAME" \
-        --output "$tmpfile" --clobber; then
-      download_ok=true
+    local download_ok=false
+    if command -v gh &>/dev/null && gh auth status &>/dev/null; then
+      if quiet gh release download "$latest_tag" --repo "$DEV_BROWSER_REPO" \
+          --pattern "$ASSET_NAME" \
+          --output "$tmpfile" --clobber; then
+        download_ok=true
+      fi
     fi
-  fi
-  if ! $download_ok; then
-    local download_url="https://github.com/$DEV_BROWSER_REPO/releases/download/$latest_tag/$ASSET_NAME"
-    if curl -fsSL -o "$tmpfile" "$download_url"; then
-      download_ok=true
+    if ! $download_ok; then
+      local download_url="https://github.com/$DEV_BROWSER_REPO/releases/download/$latest_tag/$ASSET_NAME"
+      if curl -fsSL -o "$tmpfile" "$download_url"; then
+        download_ok=true
+      fi
     fi
-  fi
-  if ! $download_ok; then
-    warn "dev-browser: download failed — skipping"
-    rm -f "$tmpfile"
-    return 0
+    if ! $download_ok; then
+      warn "dev-browser: download failed — skipping"
+      rm -f "$tmpfile"
+      return 0
+    fi
+
+    mv "$tmpfile" "$INSTALL_DIR/dev-browser"
+    chmod +x "$INSTALL_DIR/dev-browser"
+    binary_changed=true
   fi
 
-  mv "$tmpfile" "$INSTALL_DIR/dev-browser"
-  chmod +x "$INSTALL_DIR/dev-browser"
-
-  # Install Playwright Chromium (only on version change). Keep success quiet, but preserve failure output.
+  # Install/repair Playwright Chromium and dev-browser runtime assets. Keep success
+  # quiet, but preserve failure output.
   local chromium_output=""
   if ! chromium_output=$("$INSTALL_DIR/dev-browser" install 2>&1); then
     warn "dev-browser: Chromium install failed — run 'dev-browser install' manually"
     [ -n "$chromium_output" ] && printf '%s\n' "$chromium_output" >&2
   fi
 
-  # Write manifest — atomic tmpfile+mv
-  local manifest_tmp
-  manifest_tmp=$(mktemp)
-  [ -f "$MANIFEST" ] && grep -v "^dev-browser=" "$MANIFEST" > "$manifest_tmp" || true
-  echo "dev-browser=$latest_tag" >> "$manifest_tmp"
-  mv "$manifest_tmp" "$MANIFEST"
+  if $binary_changed; then
+    # Write manifest — atomic tmpfile+mv
+    local manifest_tmp
+    manifest_tmp=$(mktemp)
+    [ -f "$MANIFEST" ] && grep -v "^dev-browser=" "$MANIFEST" > "$manifest_tmp" || true
+    echo "dev-browser=$latest_tag" >> "$manifest_tmp"
+    mv "$manifest_tmp" "$MANIFEST"
 
-  rm -f "$tmpfile" 2>/dev/null
-  ui_ok "dev-browser" "$latest_tag"
+    ui_ok "dev-browser" "$latest_tag"
+  fi
 }
 
 # Ensure system deps are available. Attempts brew install on macOS; prints hints otherwise.
@@ -2276,6 +2300,7 @@ cleanup_stale_files() {
 
 main() {
   ui_init 7
+  ensure_installer_tool_paths
   printf '\n%bSpine%b %b— AI coding setup%b\n' "${_C_BOLD}" "${_C_RESET}" "${_C_DIM}" "${_C_RESET}" >&2
 
   # Step 1: Setup (source + central dir)

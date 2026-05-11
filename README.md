@@ -420,9 +420,9 @@ See [claude/README.md](claude/README.md) for plugin details and fallback install
 <details>
 <summary>Browser access (dev-browser)</summary>
 
-Spine installs [dev-browser](https://github.com/SawyerHood/dev-browser) as a standalone binary to `~/.local/bin/` and provides the local `use-browser` skill. Scripts are passed as Playwright JavaScript via stdin heredoc and run in a QuickJS WASM sandbox.
+Spine installs [dev-browser](https://github.com/SawyerHood/dev-browser) as a standalone binary to `~/.local/bin/` and provides the local `use-browser` skill. Scripts are passed as Playwright JavaScript via stdin heredoc and run in a QuickJS WASM sandbox. Run `dev-browser --help` for the current CLI guide.
 
-First-time setup downloads Playwright Chromium (~500MB, one-time):
+The installer runs the runtime setup automatically. If browser assets drift or are deleted, repair them with:
 
 ```sh
 dev-browser install
