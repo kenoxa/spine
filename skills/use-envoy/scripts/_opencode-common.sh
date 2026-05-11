@@ -4,7 +4,11 @@
 # Caller must source _common.sh first and set: $prompt_file, $output_file, $stderr_log, $_script_dir.
 # shellcheck disable=SC2154  # all vars are caller-provided (sourced file pattern)
 
-_opencode_timeout=3600  # liveness safety net (matches other providers)
+_opencode_timeout="${SPINE_OPENCODE_TIMEOUT_SECONDS:-300}"
+_opencode_first_byte_timeout="${SPINE_OPENCODE_FIRST_BYTE_TIMEOUT_SECONDS:-45}"
+case "$_opencode_timeout" in ''|*[!0-9]*) _opencode_timeout=300 ;; esac
+case "$_opencode_first_byte_timeout" in ''|*[!0-9]*) _opencode_first_byte_timeout=45 ;; esac
+_opencode_no_output_msg="opencode produced no output — likely auth/billing"
 
 # Invoke opencode CLI with sanitized environment.
 # Args: $1=model, $2=effort (variant)
@@ -14,6 +18,10 @@ opencode_invoke() {
     _oc_effort="$2"
 
     _json_tmp="${output_file}.json"
+    _opencode_no_output_marker="${output_file}.no-output"
+    _opencode_no_output=0
+    rm -f "$_opencode_no_output_marker"
+    : > "$_json_tmp"
     start_timer
 
     printf 'envoy: invoking opencode (model=%s, effort=%s)...\n' "$_oc_model" "$_oc_effort" >&2
@@ -30,8 +38,35 @@ opencode_invoke() {
             --model "$_oc_model" \
             --variant "$_oc_effort" \
             < "$prompt_file" \
-            > "$_json_tmp" 2>"$stderr_log" \
-        || _rc=$?
+            > "$_json_tmp" 2>"$stderr_log" &
+    _opencode_pid=$!
+
+    (
+        _remaining="$_opencode_first_byte_timeout"
+        while [ "$_remaining" -gt 0 ]; do
+            [ -s "$_json_tmp" ] && exit 0
+            kill -0 "$_opencode_pid" 2>/dev/null || exit 0
+            sleep 1
+            _remaining=$((_remaining - 1))
+        done
+
+        [ -s "$_json_tmp" ] && exit 0
+        if kill -0 "$_opencode_pid" 2>/dev/null; then
+            printf '%s\n' "$_opencode_no_output_msg" > "$_opencode_no_output_marker"
+            printf '%s\n' "$_opencode_no_output_msg" >> "$stderr_log"
+            kill "$_opencode_pid" 2>/dev/null || true
+        fi
+    ) &
+    _opencode_watchdog_pid=$!
+
+    wait "$_opencode_pid" || _rc=$?
+    kill "$_opencode_watchdog_pid" 2>/dev/null || true
+    wait "$_opencode_watchdog_pid" 2>/dev/null || true
+
+    if [ -f "$_opencode_no_output_marker" ]; then
+        _opencode_no_output=1
+        rm -f "$_opencode_no_output_marker"
+    fi
 
     printf 'envoy: opencode completed (exit=%s), validating...\n' "$_rc" >&2
 }
@@ -42,7 +77,7 @@ opencode_invoke() {
 opencode_extract() {
     if [ ! -f "$_json_tmp" ] || [ ! -s "$_json_tmp" ]; then
         _cleanup
-        error "No output from OpenCode CLI"
+        error "$_opencode_no_output_msg"
         exit 3
     fi
 

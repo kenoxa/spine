@@ -238,6 +238,14 @@ _load_cursor_model_fn() {
 # 3. Unit tests: OpenCode JSONL extraction
 # =============================================================================
 
+@test "_opencode-common: default liveness net is 300s with 45s first-byte watchdog" {
+    . "$SCRIPTS_DIR/_common.sh"
+    . "$SCRIPTS_DIR/_opencode-common.sh"
+
+    assert_equal "$_opencode_timeout" "300"
+    assert_equal "$_opencode_first_byte_timeout" "45"
+}
+
 @test "opencode_extract: provider error JSON surfaces message" {
     output_file="$BATS_TMPDIR/opencode.md"
     stderr_log="$BATS_TMPDIR/opencode.log"
@@ -254,6 +262,38 @@ _load_cursor_model_fn() {
     assert [ -f "$stderr_log" ]
     run cat "$stderr_log"
     assert_output --partial "OpenCode provider error: Insufficient balance"
+}
+
+@test "invoke-opencode-one.sh: first-byte watchdog aborts silent opencode" {
+    setup_stubs
+    cat > "$STUBS_DIR/opencode" <<'STUBEOF'
+#!/bin/sh
+sleep 5
+exit 0
+STUBEOF
+    chmod +x "$STUBS_DIR/opencode"
+
+    prompt_file="$BATS_TMPDIR/prompt.txt"
+    output_file="$BATS_TMPDIR/opencode.md"
+    stderr_log="$BATS_TMPDIR/opencode.log"
+    printf 'test prompt\n' > "$prompt_file"
+
+    run env \
+        SPINE_OPENCODE_TIMEOUT_SECONDS=5 \
+        SPINE_OPENCODE_FIRST_BYTE_TIMEOUT_SECONDS=1 \
+        sh "$SCRIPTS_DIR/invoke-opencode-one.sh" \
+            --prompt-file "$prompt_file" \
+            --output-file "$output_file" \
+            --stderr-log "$stderr_log" \
+            --model opencode/test \
+            --effort high
+
+    assert_failure 3
+    assert_output --partial "opencode produced no output — likely auth/billing"
+    run cat "$stderr_log"
+    assert_output --partial "opencode produced no output — likely auth/billing"
+
+    teardown_stubs
 }
 
 # =============================================================================

@@ -80,6 +80,9 @@ preflight_check
 
 opencode_invoke "$model" "$effort"
 
+if [ "${_opencode_no_output:-0}" -eq 1 ]; then
+    error "$_opencode_no_output_msg"; exit 3
+fi
 if [ "$_rc" -eq 124 ] || [ "$_rc" -eq 137 ]; then
     error "OpenCode CLI timed out after ${_opencode_timeout}s (model=$model)"; exit 2
 fi
