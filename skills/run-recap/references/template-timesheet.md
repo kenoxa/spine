@@ -17,6 +17,15 @@ Produce a billable timesheet from AI-assisted work sessions.
 - Consolidate sub-hour same-project sessions; round to whole hours (min 1h per entry)
 - **Hard-pinned entries** (from `--note` args): reproduce verbatim — date, time slot, description. These consume their stated hours within the 8h day. Never reposition for "fit".
 
+## Project Attribution & Allocation
+Do not collapse smaller customer project work into the dominant repo just because one repo has more sessions.
+
+For every working day, preserve a meaningful block for each customer project that has explicit evidence from sessions, prompts, files, or same/adjacent-day commits. If a day contains a large customer project plus a smaller release/support project with explicit evidence, keep both and allocate realistic blocks (often 1-3h for the smaller project) instead of rounding it away.
+
+If a project has both explicit sessions and git commits on a day, it must remain visible unless a hard-pinned note consumes the day. Release/backport days should look release/backport-heavy when commits or prompts show release preparation, compatibility backports, packaging, startup, licensing, or supported-platform work.
+
+Treat release distribution repos/domains (`dl.identity-hub.io`, package registries, download-site repos) as release work for the product being published, not as separate internal work.
+
 ## Non-Working Day Redistribution
 Non-working days: all Saturdays, Sundays, and Berlin public holidays.
 
@@ -43,16 +52,75 @@ After drafting the full timesheet, scan every day:
 ## Description Rules
 Entries are for billing. Never mention internal tooling: do not name `do-plan`, `run-advise`, `envoy`, `Exa`, `Context7`, `subagent`, `@miner`, `handoff`, `SKILL.md`, skill names, or internal file paths.
 
+Describe what the customer gets, not the internal process. Every line should answer: "What customer-visible problem did this work improve, validate, or unblock?"
+
+Forbidden generic/internal labels unless translated into customer value:
+- `benchmark review`
+- `release-baseline follow-up`
+- `phase planning`
+- `blocker review`
+- `alias allocation review`
+- `handoff`
+- skill, subagent, or tool names
+
+Translate internal work into customer-facing outcomes:
+- `benchmark review` → `validated performance for high-cost customer search patterns`
+- `alias allocation review` → `refined SQL generation for complex search shapes`
+- `release-baseline follow-up` → `checked release behavior against customer-like workloads`
+- `planner refactor` → `prepared search planner refactor to keep complex queries maintainable and reliable`
+
 Describe the **outcome and nature of work**:
 - ✓ `Security audit: authentication module review across 24 files`
 - ✗ `run-review with 5 envoy advisors on auth-hardening diff`
 
 `spine` sessions → label as: `Internal R&D: AI development platform — [brief topic]`
 
+### Scenario-First Product Wording
+For product engineering work, prefer the customer scenario over the internal component. For Identity-Scribe/search-planner work, name the query behavior:
+- compound prefix searches with ordering
+- multi-attribute directory searches
+- cursor continuation and first-page behavior
+- substring or starts-with searches on indexed attributes
+- release comparison under customer-like data volumes
+- regression checks for slow query shapes
+
+Good:
+- `identity-scribe: validated fast first-page behavior for compound prefix searches with ordering`
+- `identity-scribe: refined routing for multi-attribute directory searches to avoid slow customer-facing queries`
+
+Bad:
+- `identity-scribe: benchmark review and release-baseline follow-up`
+
+### Release & Backport Wording
+For release-heavy products such as Karma, describe release value directly:
+- release preparation and validation
+- compatibility backports
+- supported platform updates
+- customer environment fixes
+- packaging/download validation
+- license or startup failure investigation
+
+Good:
+- `karma/karma: Karma v2.43.1 / v2.43.2-rc.0 release work: RHEL 8.10 compatibility, LDAP TLS startup fixes, and packaging validation`
+- `karma/karma: backported platform compatibility fixes and updated customer-facing supported OS guidance`
+
+Bad:
+- `karma/karma: customer response and compatibility notes`
+
 ## Multi-Day Themes
 When multiple days show the same project with related work, use a consistent theme prefix:
 - Identify the overarching customer-initiated initiative
 - Apply the same prefix across those days (e.g. all days in a release week: `Release 3.0.0-rc.1: …`)
+
+Avoid repeating the same generic phrase across multiple days. Reuse a theme prefix only when each day still names the specific customer-visible scenario, release, compatibility target, regression risk, or validation outcome.
+
+## Final Description Lint
+Before writing the final output, run this private lint pass and rewrite failures:
+- No repeated generic phrases across multiple days
+- No forbidden/internal labels from Description Rules
+- Every line names the actual product scenario, release value, customer environment, or customer-visible risk
+- Internal implementation details are allowed only after translation into customer value
+- If a line could apply to any software project, rewrite it with the project-specific scenario or release/backport detail
 
 ## Output Format
 Group by date (most recent first):

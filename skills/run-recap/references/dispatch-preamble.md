@@ -16,7 +16,7 @@ Defaults: `days=7`, `format=standup`. Validate format.
 
 **Scripts**: `$HOME/.agents/skills/run-insights/scripts/collect_sessions.sh --days "${DAYS:-7}" --session "<session>"`. Verify `analytics.json` exists. Zero sessions → report "No AI sessions found in the last N days. Try increasing --days." and stop.
 
-**Git log**: extract unique `project` from `*_sessions.json`. Per project: resolve path (`~/Projects/{project}` or cwd), read `SINCE` from `collect.env`, `git log --oneline --since="$SINCE"`, write `git_log.json` as `{project: [commit_lines]}`. Skip unresolvable/empty. Best-effort.
+**Git log**: build a project candidate set before formatting, then collect commits for every candidate. Candidates come from explicit `project` fields, session `cwd`, `files_touched` path prefixes, user prompts that mention project/release names, `{known_projects}`, and release distribution repos/domains such as `dl.identity-hub.io`. Per candidate: resolve path (`~/Projects/{project}` or cwd), read `SINCE` from `collect.env`, run `git log --oneline --since="$SINCE"` for the date range, and write `git_log.json` as `{project: [commit_lines]}`. Skip only when the repo path cannot be resolved or has no commits. Best-effort, but do not stop after the dominant project.
 
 Complete collection before formatting. Evidence from generated data, not guesses.
 
@@ -53,9 +53,18 @@ These are automated subagent dispatches, not user work sessions. Do not count to
 Post-process: round to whole hours (min 1h), cap individual session at 60 min, prefix `~`. Do NOT cap daily totals — multi-subagent days represent full billable work (each subagent is work the user would have done manually).
 
 ### Task Description Derivation Priority
-`brief_summary` > `underlying_goal` > `title` > `thread_name` > `summary` > ALL `user_prompts` (scan several; skip slash-commands and single-word responses; clean raw voice transcripts — German or English, typos, filler words — into professional billing labels) > `files_touched` paths > git commit message on same day > `"(no transcript data — <session_id>)"`
+Build descriptions per project/day, not per dominant repo. Use this fallback chain:
+1. Explicit session summary (`brief_summary`, `underlying_goal`, `title`, `thread_name`, `summary`)
+2. ALL `user_prompts` (scan several; skip slash-commands and single-word responses; clean raw voice transcripts — German or English, typos, filler words — into professional billing labels)
+3. `files_touched` paths
+4. Git commits on the same day or adjacent day from `git_log.json`
+5. Release notes, changelog, package/registry updates, or distribution repo commits
+6. Generic session title only as last resort
+7. `"(no transcript data — <session_id>)"` when no meaningful evidence exists
 
 Never use "unspecified task". If no meaningful content exists anywhere, use the session ID placeholder above.
+
+Commit messages are often the most specific customer-facing evidence. For each detected project/day, consult the commits before settling on a generic phrase.
 
 ### Project Canonicalisation
 
@@ -78,7 +87,17 @@ Special path patterns resolved the same way:
 **Pass 3 — last-segment fallback:**
 If the path cannot be resolved to a filesystem location (stale/missing repo), use the last non-generic path segment as the canonical name. Generic segments that must not be used bare: `src`, `app`, `lib`, `site`, `client`, `server`, `flow`, `scribe`.
 
-**dl.identity-hub.io re-attribution:** This repo publishes releases of other projects. Always inspect `git_log.json` for `dl.identity-hub.io` sessions and re-attribute hours to the released project (e.g. commit `chore(registry): bump identity-scribe to 3.0.0-rc.1` → attribute to `identity-scribe`).
+**Release distribution re-attribution:** Repos/domains such as `dl.identity-hub.io` publish releases of other products. Always inspect sessions, prompts, files, and `git_log.json` for the product being published and re-attribute hours to that product (e.g. commit `chore(registry): bump identity-scribe to 3.0.0-rc.1` → attribute to `identity-scribe`). Do not create a separate internal `dl.identity-hub.io` billing line unless the customer-visible work is the distribution platform itself.
+
+### Project Evidence Matrix
+Before allocation, create a private matrix by date and canonical project:
+- explicit session count and duration estimate
+- prompt/release-name evidence
+- file/path evidence
+- same-day or adjacent-day commit subjects
+- release/changelog/package evidence
+
+Use this matrix to prevent session-count dominance. A project with fewer sessions but clear commits or release evidence stays visible in the timesheet.
 
 ### Edge Cases
 - `duration_minutes: 0` → unknown, use estimation chain

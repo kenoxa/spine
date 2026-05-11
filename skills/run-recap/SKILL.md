@@ -30,6 +30,7 @@ Generate session ID. Single `@miner` subagent dispatch — collects data then fo
 - Working days in range (exclude weekends + Berlin Feiertage); inject as `{working_days}`
 - `--project` values → `{known_projects}`
 - `--note` values → `{hard_pinned_notes}`
+- Preserve every detected customer project as candidate billable work; the miner decides allocation from evidence, not session-count dominance.
 
 Construct prompt by combining:
 1. [dispatch-preamble.md](references/dispatch-preamble.md) — substitute `{days}`, `{scratch_dir}`, `{project_filter}`, `{working_days}`, `{known_projects}`, `{hard_pinned_notes}`
@@ -54,5 +55,7 @@ Dispatch `@visualizer` → `references/present-visualizer.md` if complexity warr
 - Reading only `analytics.json` for detail — miner must read raw `*_sessions.json`
 - Processing/formatting in main thread — dispatch to `@miner`
 - Inventing task descriptions — follow full fallback chain (brief_summary → underlying_goal → title → thread_name → summary → all user_prompts → files_touched → git commit → session ID placeholder); never use "unspecified task"
+- Collapsing smaller customer projects into the dominant repo when they have explicit session, prompt, file, or commit evidence
+- Customer-facing timesheet lines that name internal process labels instead of the product scenario or release value
 - Multiple subagent dispatches — single `@miner` per invocation
 - Modifying scripts in `run-insights/scripts/`
