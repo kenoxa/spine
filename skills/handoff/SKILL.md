@@ -20,7 +20,7 @@ Actionable without session history — no "what we discussed", no conversation-t
 | Section | Required | Content |
 |---------|----------|---------|
 | Goal | Always | One sentence: next session's objective, from user's direction. |
-| Context | Always | Key decisions, approaches tried, discoveries. Tag material claims with E-levels. |
+| Context | Always | Key decisions, approaches tried, discoveries. Reference specs/commits/session-log by path; do not restate them. Tag material claims with E-levels. |
 | Files | When relevant | Repo-relative paths annotated: `modified`, `read`, `created`, `planned`. |
 | Current State | Always | Done, in progress, blocked. Note uncommitted changes and branch. |
 | Open Questions | When unresolved | Blocking or advisory unknowns. Omit if none. |
@@ -32,4 +32,5 @@ Actionable without session history — no "what we discussed", no conversation-t
 - Files not relevant to handoff goal
 - Omitting uncommitted changes affecting next session's starting state
 - Conversation-turn references ("as we discussed") instead of direct facts
+- Restating content from spec.md, session-log, commits, or TODO.md instead of linking by path
 - Secrets, tokens, or credentials in the artifact
