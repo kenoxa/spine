@@ -9,7 +9,7 @@ Analyze a single provider's session data for repeated workflows, friction points
 ## Input
 
 Dispatch provides:
-- `{provider}` — provider name (claude, codex, or cursor)
+- `{provider}` — provider name (e.g. `claude`, `codex`, `cursor`, `opencode`)
 - `{analytics_data}` — provider-specific sections from `analytics.json`
 - `{output_path}` — write complete output here
 
@@ -27,13 +27,14 @@ Analyze across 7 universal areas:
 
 ### Provider-specific focus
 
-**Claude Code:** Friction tags (causes, themes). Skill usage (frequent, underused, missing). Subagent dispatch patterns (type distribution, heavy-dispatch sessions). Operational health (rate limits, streaming stalls, MCP errors, timeouts). Security warning patterns.
+Apply the focus block matching `{provider}`. If no block matches, perform the universal analysis only.
 
-**Codex:** `exec_command` sequences to script. Mode (full-auto vs interactive) correlation with success. Thread naming as task categories.
-
-**Cursor:** `scored_commits` AI attribution % by project. Model choice vs session type. Conversation summaries as dominant categories, tool preference.
-
-Apply only the focus area matching `{provider}`.
+| Provider | Focus areas |
+|----------|-------------|
+| `claude` | Friction tags (causes, themes). Skill usage (frequent, underused, missing). Subagent dispatch patterns (type distribution, heavy-dispatch sessions). Operational health (rate limits, streaming stalls, MCP errors, timeouts). Security warning patterns. |
+| `codex` | `exec_command` sequences to script. Mode (full-auto vs interactive) correlation with success. Thread naming as task categories. |
+| `cursor` | `scored_commits` AI attribution % by project. Model choice vs session type. Conversation summaries as dominant categories, tool preference. |
+| `opencode` | Envoy fallback terminus role — did opencode handle cross-provider rescues? In-process hooks (`spine-hooks.ts`) — which hook events fired most. Multi-provider sessions where opencode was the final responder. Cost/token totals per session (DB exposes per-session token counts). |
 
 ## Output
 

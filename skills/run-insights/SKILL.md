@@ -32,13 +32,13 @@ Output: `.scratch/<session>/insights-collect-collector.md`
 
 ### 2. Analyze
 
-Dispatch 3 `@miner` in parallel → `references/analyze-source-expert.md`. Skip providers with 0 sessions.
+For each provider in `summary.provider_breakdown` with `sessions >= 1`, dispatch one `@miner` (source-expert) in parallel → `references/analyze-source-expert.md`. Cap: 6 per batch (per SPINE.md).
+
+**Null-telemetry short-circuit:** if all of a provider's sessions have empty `tool_calls` AND empty `skills_used`, do not dispatch. Write a 1-paragraph "no usable telemetry — N sessions detected, no per-call attribution available" note to `.scratch/<session>/insights-analyze-{provider}-expert.md` and proceed.
 
 | Role | Input | Output |
 |------|-------|--------|
-| `claude-expert` | Claude sections + per_project Claude data + friction_patterns + subagent_patterns + operational_health | `.scratch/<session>/insights-analyze-claude-expert.md` |
-| `codex-expert` | Codex sections + per_project Codex data | `.scratch/<session>/insights-analyze-codex-expert.md` |
-| `cursor-expert` | Cursor sections + per_project Cursor data + cross_tool | `.scratch/<session>/insights-analyze-cursor-expert.md` |
+| `{provider}-expert` | provider-specific sections + per_project entries where `providers` includes `{provider}` + cross-cutting sections relevant to that provider (friction, subagent, operational_health, cross_tool — apply per focus block in ref) | `.scratch/<session>/insights-analyze-{provider}-expert.md` |
 
 Include relevant analytics data inline in each dispatch prompt.
 

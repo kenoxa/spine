@@ -146,22 +146,23 @@ def _build_per_project(sessions: list[dict]) -> list[dict]:
     result: list[dict] = []
 
     for name, proj_sessions in sorted_projects:
-        tool_counter: Counter[str] = Counter()
+        tool_counter_by_provider: dict[str, Counter[str]] = defaultdict(Counter)
+        skills_by_provider: dict[str, Counter[str]] = defaultdict(Counter)
         error_count = 0
-        skills: Counter[str] = Counter()
         durations: list[float] = []
         all_prompts: list[str] = []
         providers_used: set[str] = set()
 
         for s in proj_sessions:
-            providers_used.add(s.get("provider", "unknown"))
+            provider = s.get("provider", "unknown")
+            providers_used.add(provider)
             if isinstance(s.get("tool_calls"), dict):
                 for t, c in s["tool_calls"].items():
-                    tool_counter[t] += c
+                    tool_counter_by_provider[provider][t] += c
             error_count += len(s.get("errors", []))
             if isinstance(s.get("skills_used"), list):
                 for sk in s["skills_used"]:
-                    skills[sk] += 1
+                    skills_by_provider[provider][sk] += 1
             dur = s.get("duration_minutes")
             if dur is not None:
                 durations.append(float(dur))
@@ -174,9 +175,11 @@ def _build_per_project(sessions: list[dict]) -> list[dict]:
             "project": name,
             "session_count": len(proj_sessions),
             "providers": sorted(providers_used),
-            "tool_calls": dict(tool_counter.most_common(10)),
+            "tool_calls": {
+                p: dict(c.most_common(10)) for p, c in sorted(tool_counter_by_provider.items())
+            },
             "error_count": error_count,
-            "skills_used": dict(skills),
+            "skills_used": {p: dict(c) for p, c in sorted(skills_by_provider.items())},
             "avg_duration_minutes": round(sum(durations) / len(durations), 1) if durations else None,
             "sample_prompts": _pick_diverse_prompts(all_prompts, 5),
         })
