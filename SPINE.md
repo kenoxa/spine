@@ -72,6 +72,8 @@ After `do-design` emits a recommendation, STOP and await explicit user approval 
 
 **Spec IDs:** `{YY}{WW}` = 2-digit year + ISO week. Multiple specs per week share the same prefix with different slugs (e.g., `2614-implementer-standard-tier`).
 
+**Provider mode:** Codex sessions are batch-executor by design (single-turn, full-auto). Do not push interactive skills (`/do-frame`, `/do-design`) into Codex flows — bake intent into the initial prompt instead.
+
 ## Evidence Levels
 
 All claims in plans, reviews, and execution phases must be tagged:
