@@ -346,7 +346,7 @@ def _write_empty(output_dir: Path) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     output_path = output_dir / "opencode_sessions.json"
     data: dict[str, Any] = {"provider": "opencode", "sessions": []}
-    write_output(data, output_path)
+    write_output(data, output_path, max_bytes=10_000_000)
 
 
 def main() -> None:
@@ -438,7 +438,7 @@ def main() -> None:
         output_dir.mkdir(parents=True, exist_ok=True)
         output_path = output_dir / "opencode_sessions.json"
         data: dict[str, Any] = {"provider": "opencode", "sessions": results}
-        write_output(data, output_path)
+        write_output(data, output_path, max_bytes=10_000_000)
 
         if args.verbose:
             total_tools = sum(sum(s.get("tool_calls", {}).values()) for s in results)
