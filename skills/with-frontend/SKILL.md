@@ -32,6 +32,10 @@ Accessibility gates completion — never defer to follow-up pass.
 
 For comprehensive audits, use `wcag-audit-patterns` skill.
 
+## Framework-Specific
+
+For Svelte (`.svelte`, `.svelte.ts`, SvelteKit) work, see [references/svelte.md](references/svelte.md) — MCP workflow, delegation to `@svelte-file-editor`, runes-only, autofixer-before-commit, form actions preferred.
+
 ## Anti-Patterns
 
 - Implementing without proposing layout when scope ambiguous

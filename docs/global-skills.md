@@ -45,6 +45,14 @@ Useful across all coding tasks without needing a local skill reference.
 
 > **Note:** Browser automation is now handled by the local `use-browser` skill (backed by [dev-browser](https://github.com/SawyerHood/dev-browser)), replacing the retired `agent-browser` global skill.
 
+## Upstream Plugins
+
+Bundled by upstream maintainers — distributed via each provider's plugin system rather than `skills add`. `install.sh` wires them up per provider.
+
+| Plugin | Upstream | Bundles | Provider mechanism |
+|--------|----------|---------|--------------------|
+| `svelte` | `sveltejs/ai-tools` | Svelte MCP server (`https://mcp.svelte.dev/mcp`), `svelte-code-writer` + `svelte-core-bestpractices` skills, `svelte-file-editor` subagent | Claude Code: `claude plugin install svelte` (auto). OpenCode: `@sveltejs/opencode` merged into `opencode.json` plugin array (auto). Cursor: manual — `/add-plugin svelte` (notice emitted by installer). Codex: no plugin upstream; installer runs `codex mcp add svelte -- npx -y @sveltejs/mcp` for MCP-level access. Team conventions and MCP workflow live in `skills/with-frontend/references/svelte.md`. |
+
 ## Description Budget
 
 Claude Code loads all skill descriptions at session start into a fixed character budget (default: 8,000 chars). Spine's 43 active skills (32 local + 11 global) must fit within 7,500 chars to leave headroom across context sizes.

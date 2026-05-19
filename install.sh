@@ -1538,15 +1538,23 @@ install_tool() {
   # Claude Code extras: plugin (hooks + skills)
   if [ "$tool" = "claude" ]; then
     install_claude_plugin "$src" "$target"
+    install_svelte_claude_plugin
   fi
 
   # Per-provider hook generation (all providers except Claude which uses plugin or fallback above)
   case "$tool" in
-    codex)    generate_codex_hooks "$spine_dir" ;;
-    cursor)   generate_cursor_hooks "$spine_dir" ;;
+    codex)
+      generate_codex_hooks "$spine_dir"
+      install_svelte_codex_mcp
+      ;;
+    cursor)
+      generate_cursor_hooks "$spine_dir"
+      notify_svelte_cursor_manual
+      ;;
     opencode)
       install_opencode_plugin "$src"
       patch_opencode_instructions "$spine_dir"
+      patch_opencode_svelte_plugin
       ;;
   esac
 
@@ -1579,6 +1587,61 @@ install_claude_plugin() {
 
   local spine_dir="$HOME/.config/spine"
   generate_claude_hooks "$spine_dir"
+}
+
+# --- Svelte plugin (upstream sveltejs/ai-tools) ---
+
+# Claude Code: add sveltejs/ai-tools marketplace and install the `svelte` plugin.
+# Idempotent — Claude CLI no-ops both marketplace add and plugin install when present.
+install_svelte_claude_plugin() {
+  if quiet claude plugin marketplace add sveltejs/ai-tools && \
+     quiet claude plugin install svelte; then
+    _feature "svelte"
+  fi
+}
+
+# OpenCode: merge `@sveltejs/opencode` into the `plugin` array of opencode.json.
+# Skips silently if the config file or jq is missing — same shape as patch_opencode_instructions.
+patch_opencode_svelte_plugin() {
+  local config_file="$HOME/.config/opencode/opencode.json"
+  local plugin_pkg="@sveltejs/opencode"
+
+  [ -f "$config_file" ] || return 0
+  command -v jq &>/dev/null || { warn "jq not found — cannot patch OpenCode plugins"; return 0; }
+
+  backup_if_exists "$config_file"
+
+  local tmp
+  tmp=$(mktemp)
+
+  jq --arg p "$plugin_pkg" '
+    .plugin //= [] |
+    .plugin |= ([$p] + [.[] | select(. != $p)])
+    ' "$config_file" > "$tmp" 2>/dev/null
+
+  if jq empty "$tmp" 2>/dev/null; then
+    mv "$tmp" "$config_file"
+    _feature "svelte"
+  else
+    warn "Generated invalid OpenCode config JSON — opencode.json left unchanged"
+    rm -f "$tmp"
+  fi
+}
+
+# Cursor: no plugin CLI exists — surface a one-line manual-install hint.
+# Cursor stores plugins per-user but offers no idempotent detection from shell.
+notify_svelte_cursor_manual() {
+  warn "Svelte plugin for Cursor requires manual install — open Cursor and run: /add-plugin svelte"
+}
+
+# Codex: no plugin distribution exists — register the Svelte MCP server directly via stdio.
+# Local recipe (npx) avoids the `experimental_use_rmcp_client` global flag required for the remote URL.
+install_svelte_codex_mcp() {
+  if quiet codex mcp add svelte -- npx -y @sveltejs/mcp; then
+    _feature "MCP:svelte"
+  else
+    warn "Failed to add Svelte MCP server to codex. Run manually: codex mcp add svelte -- npx -y @sveltejs/mcp"
+  fi
 }
 
 # --- RTK (token optimization proxy) ---
