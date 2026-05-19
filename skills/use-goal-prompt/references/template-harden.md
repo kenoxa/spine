@@ -2,6 +2,8 @@
 
 **When**: existing codebase has gaps in test coverage, CI hygiene, security posture, or supply chain integrity — every fix needs a regression guardrail in the same change.
 
+**Not for**: watching external events (CI pipelines, deploys, long-running jobs) — `/goal` Stop hooks re-fire on polling with no productive work between fires. Use `/loop` or `gh run watch` instead.
+
 **User-specific slots**: `[scope]`, `[risk_threshold]`.
 
 ```

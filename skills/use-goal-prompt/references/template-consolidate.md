@@ -2,6 +2,8 @@
 
 **When**: a subsystem contains multiple parallel implementations of overlapping logic (auth, state, SDK wrapper, component library) and the user wants one canonical version with all callers migrated.
 
+**Not for**: watching external events (CI pipelines, deploys, long-running jobs) — `/goal` Stop hooks re-fire on polling with no productive work between fires. Use `/loop` or `gh run watch` instead.
+
 **User-specific slots**: `[subsystem]`, `[canonical_choice]` (specified or sentinel `"recommend after inventory"`).
 
 ```

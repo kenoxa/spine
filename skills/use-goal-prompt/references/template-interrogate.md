@@ -2,6 +2,8 @@
 
 **When**: user has a vague or semi-formed idea and needs a structured intake interview that translates fuzzy language into concrete artifacts before any docs, plans, or code are written.
 
+**Not for**: watching external events (CI pipelines, deploys, long-running jobs) — `/goal` Stop hooks re-fire on polling with no productive work between fires. Use `/loop` or `gh run watch` instead.
+
 **User-specific slots**: `[topic]` only — the rest is the proven scaffold.
 
 ```

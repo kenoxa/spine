@@ -2,6 +2,8 @@
 
 **When**: the planning doc set exists (roadmap + decisions + risks) and the next step is end-to-end implementation of every milestone in order — not a slice or prototype.
 
+**Not for**: watching external events (CI pipelines, deploys, long-running jobs) — `/goal` Stop hooks re-fire on polling with no productive work between fires. Use `/loop` or `gh run watch` instead.
+
 **User-specific slots**: `[planning_docs_location]`, `[codebase_state]`, `[scope_label]`.
 
 ```

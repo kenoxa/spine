@@ -2,6 +2,8 @@
 
 **When**: a brief is confirmed and the next step is producing the doc set (roadmap + decisions + risks, plus backward docs if extending) that the build phase will execute against.
 
+**Not for**: watching external events (CI pipelines, deploys, long-running jobs) — `/goal` Stop hooks re-fire on polling with no productive work between fires. Use `/loop` or `gh run watch` instead.
+
 **User-specific slots**: `[brief_reference]`, `[codebase_state]`, `[doc_convention]`.
 
 ```

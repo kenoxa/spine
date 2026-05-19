@@ -2,6 +2,8 @@
 
 **When**: existing codebase has structural debt and the user wants a surgical refactor — smallest possible diff, zero behavior change.
 
+**Not for**: watching external events (CI pipelines, deploys, long-running jobs) — `/goal` Stop hooks re-fire on polling with no productive work between fires. Use `/loop` or `gh run watch` instead.
+
 **User-specific slots**: `[structural_goal]`, `[target_scope]`, `[test_suite_status]`.
 
 ```
