@@ -51,7 +51,7 @@ Bundled by upstream maintainers — distributed via each provider's plugin syste
 
 | Plugin | Upstream | Bundles | Provider mechanism |
 |--------|----------|---------|--------------------|
-| `svelte` | `sveltejs/ai-tools` | Svelte MCP server (`https://mcp.svelte.dev/mcp`), `svelte-code-writer` + `svelte-core-bestpractices` skills, `svelte-file-editor` subagent | Claude Code: `claude plugin install svelte` (auto). OpenCode: `@sveltejs/opencode` merged into `opencode.json` plugin array (auto). Cursor: manual — `/add-plugin svelte` (notice emitted by installer). Codex: no plugin upstream; installer runs `codex mcp add svelte -- npx -y @sveltejs/mcp` for MCP-level access. Team conventions and MCP workflow live in `skills/with-frontend/references/svelte.md`. |
+| `svelte` | `sveltejs/ai-tools` | Svelte MCP server (`https://mcp.svelte.dev/mcp`), `svelte-code-writer` + `svelte-core-bestpractices` skills, `svelte-file-editor` subagent | Claude Code: `claude plugin install svelte` (auto). OpenCode: `@sveltejs/opencode` merged into `opencode.json` plugin array (auto). Cursor: manual — `/add-plugin svelte` (notice emitted by installer). Codex: no plugin upstream; installer runs `codex mcp add svelte --url https://mcp.svelte.dev/mcp` for MCP-level access. Team conventions and MCP workflow live in `skills/with-frontend/references/svelte.md`. |
 
 ## Description Budget
 

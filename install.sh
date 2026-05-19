@@ -1634,13 +1634,13 @@ notify_svelte_cursor_manual() {
   warn "Svelte plugin for Cursor requires manual install — open Cursor and run: /add-plugin svelte"
 }
 
-# Codex: no plugin distribution exists — register the Svelte MCP server directly via stdio.
-# Local recipe (npx) avoids the `experimental_use_rmcp_client` global flag required for the remote URL.
+# Codex: no plugin distribution exists — register the Svelte MCP server via hosted HTTP transport.
+# Matches the Claude Code / OpenCode plugin manifests and avoids requiring a local node toolchain.
 install_svelte_codex_mcp() {
-  if quiet codex mcp add svelte -- npx -y @sveltejs/mcp; then
+  if quiet codex mcp add svelte --url https://mcp.svelte.dev/mcp; then
     _feature "MCP:svelte"
   else
-    warn "Failed to add Svelte MCP server to codex. Run manually: codex mcp add svelte -- npx -y @sveltejs/mcp"
+    warn "Failed to add Svelte MCP server to codex. Run manually: codex mcp add svelte --url https://mcp.svelte.dev/mcp"
   fi
 }
 
