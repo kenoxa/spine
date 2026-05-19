@@ -223,7 +223,21 @@ def _parse_jsonl_transcript(path: Path) -> dict[str, Any]:
         for block in content_list:
             if not isinstance(block, dict):
                 continue
-            if block.get("type") != "text":
+            btype = block.get("type")
+
+            if btype == "tool_use":
+                name = block.get("name")
+                if name:
+                    tool_counts[name] += 1
+                tool_input = block.get("input", {})
+                if isinstance(tool_input, dict):
+                    for path_key in ("path", "file_path", "filePath", "absolute_path"):
+                        fp = tool_input.get(path_key)
+                        if isinstance(fp, str) and fp and fp not in files:
+                            files.append(fp)
+                continue
+
+            if btype != "text":
                 continue
             text = block.get("text", "")
             if not text:
