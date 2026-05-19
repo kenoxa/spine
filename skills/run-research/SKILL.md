@@ -1,7 +1,7 @@
 ---
 name: run-research
 description: >-
-  External research prompt compiler. Use when: 'deep research', 'outsource research', 'ChatGPT'.
+  External research prompt compiler. Use when: 'deep research', 'outsource research', 'outsource to ChatGPT', 'draft a research prompt', 'research handoff', 'compile research prompt'.
 argument-hint: "[research goal] [--target chatgpt|claude] [--depth deep]"
 ---
 

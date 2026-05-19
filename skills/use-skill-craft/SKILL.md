@@ -1,7 +1,7 @@
 ---
 name: use-skill-craft
 description: >-
-  Skill and agent authoring. Use when: 'create skill', 'review agent', 'fix skill'.
+  Skill and agent authoring. Use when: 'create skill', 'review agent', 'fix skill', 'improve this skill', 'audit skill', 'rewrite agent description', 'skill triggers', 'is this skill well-formed'.
 argument-hint: "[skill name, agent/reference file, or AGENTS.md path]"
 ---
 

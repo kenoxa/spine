@@ -1,7 +1,7 @@
 ---
 name: run-advise
 description: >-
-  Multi-model advisory with synthesis. Use when: 'get perspectives', 'gather opinions'.
+  Multi-model advisory with synthesis. Use when: 'get perspectives', 'gather opinions', 'second opinion', 'sanity check this approach', 'what am I missing', 'is this a sound approach'.
 argument-hint: "[problem, approach question, or frame_artifact]"
 ---
 
