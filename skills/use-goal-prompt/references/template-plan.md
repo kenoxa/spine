@@ -4,7 +4,7 @@
 
 **Not for**: watching external events (CI pipelines, deploys, long-running jobs) — `/goal` Stop hooks re-fire on polling with no productive work between fires. Use `/loop` or `gh run watch` instead.
 
-**User-specific slots**: `[brief_reference]`, `[codebase_state]`, `[doc_convention]`.
+**Must-ask inputs**: `[brief_reference]`, `[codebase_state]`, `[doc_convention]`. Everything else below is a scaffold — adapt it to the task.
 
 ```
 GOAL:
@@ -22,7 +22,7 @@ CONSTRAINTS:
 - Every implementation step references its governing decision(s).
 - Every decision the build phase needs exists before build starts.
 - Diagrams generated from the actual dependency graph, not from memory.
-- Every doc carries owner, last-updated, stale-by date.
+- Every doc carries last-updated and stale-by date.
 - Size depth to scale; flag drift between intent and behavior.
 
 PRIORITY:
@@ -36,15 +36,14 @@ Confirm doc convention. If none, recommend one sized to scale and domain.
 Forward docs (always):
 - Roadmap: milestones in order with exit criteria. Each milestone decomposed into ordered implementation steps with their own exit criteria, decision references, and required tests.
 - Decisions: every architectural choice with alternatives, reasoning, revisit trigger.
-- Risks: failure modes with blast radius, mitigation, owner, monitoring signal.
+- Risks: failure modes with blast radius, mitigation, monitoring signal.
 
 Backward docs (if extending):
 - Architecture: entry-point map, module responsibilities, dependency-graph diagram.
 - Tribal knowledge: undocumented assumptions, historical context, debt, change-impact matrix.
 - APIs: version history, deprecation, SLA where applicable.
-- Production-critical: on-call ownership per component.
 
-Domain extensions (if applicable): security/compliance for regulated industries, runbook for ops-heavy, glossary for cross-team, model/dataset cards for ML.
+Domain extensions (if applicable): security/compliance for regulated industries, runbook for ops-heavy, glossary for term-heavy domains, model/dataset cards for ML.
 
 Cross-link: each step → its decisions; each milestone with risk → risks; each module with drift → tribal.
 
@@ -53,7 +52,7 @@ Before declaring complete: walk every roadmap step, list its decisions, flag mis
 DONE WHEN:
 - Every milestone has exit criteria and ordered implementation steps with decision references.
 - Every decision the roadmap references exists with a revisit trigger.
-- Every risk has owner and monitoring signal.
+- Every risk has a monitoring signal.
 - If extending: entry points mapped, modules documented, drift flagged.
 - Every seam cross-linked.
 - Gaps surfaced explicitly.

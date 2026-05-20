@@ -4,7 +4,7 @@
 
 **Not for**: watching external events (CI pipelines, deploys, long-running jobs) — `/goal` Stop hooks re-fire on polling with no productive work between fires. Use `/loop` or `gh run watch` instead.
 
-**User-specific slots**: `[structural_goal]`, `[target_scope]`, `[test_suite_status]`.
+**Must-ask inputs**: `[structural_goal]`, `[target_scope]`, `[test_suite_status]`. Everything else below is a scaffold — adapt it to the task.
 
 ```
 GOAL:

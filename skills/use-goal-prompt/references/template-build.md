@@ -4,7 +4,7 @@
 
 **Not for**: watching external events (CI pipelines, deploys, long-running jobs) — `/goal` Stop hooks re-fire on polling with no productive work between fires. Use `/loop` or `gh run watch` instead.
 
-**User-specific slots**: `[planning_docs_location]`, `[codebase_state]`, `[scope_label]`.
+**Must-ask inputs**: `[planning_docs_location]`, `[codebase_state]`, `[scope_label]`. Everything else below is a scaffold — adapt it to the task.
 
 ```
 GOAL:
@@ -30,7 +30,6 @@ PRIORITY:
 PLAN:
 Read roadmap, decisions, risks before writing code.
 Restate every milestone and its exit criteria.
-Identify each milestone's ownership boundary. Cross-team milestones require sign-off from affected owners before starting.
 For each milestone:
 - Restate its exit criteria and dependent decisions.
 - Build components + cover with tests for the exit criteria.
@@ -40,7 +39,6 @@ Update decisions/risks docs when reality forces deviation. Never silently deviat
 
 DONE WHEN:
 - Every milestone complete with exit criteria met.
-- Cross-team milestones have recorded owner sign-off.
 - Tests cover every milestone's exit criteria.
 - Full system runs end-to-end; no mocks block core paths.
 - Every deviation captured in decisions or risks doc.
@@ -50,19 +48,16 @@ VERIFY:
 - Run the test suite; confirm coverage spans all milestones.
 - Trace every architectural choice in code to the decisions doc.
 - Walk risks doc; each mitigation implemented or accepted.
-- Confirm cross-team sign-offs are documented.
 - State anything unverifiable and why.
 
 OUTPUT:
 - Per-milestone delivery: exit criteria, components built, tests written, exit confirmed.
-- Cross-team ownership map (where applicable).
 - Full diff and test suite for the system.
 - Updated decisions/risks docs reflecting deviations.
 
 STOP RULES:
 Halt when the planning doc set is absent or incomplete. Surface what's missing and recommend running the planning prompt first, OR surface ranked proposals for the missing decisions and proceed only with explicit user approval.
 Halt when reality contradicts a decision and the user must adjudicate. Surface the contradiction.
-Halt when a milestone crosses a team boundary and owner sign-off has not been obtained.
 Halt on scope expansion beyond the roadmap.
 Halt when a milestone's exit criteria cannot be met without violating a decision or a constraint.
 Do not invent architecture. Do not skip milestones. Do not defer test coverage to the end.
