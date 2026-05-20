@@ -1,5 +1,5 @@
 ---
-updated: 2026-05-03
+updated: 2026-05-20
 ---
 
 # Agent Tier Assignments
@@ -20,8 +20,8 @@ Source: `docs/model-selection.md` agent table + agent frontmatter.
 
 | Tier | Claude Code | OpenCode Go | OpenCode Free | Codex | Cursor |
 |------|-------------|-------------|---------------|-------|--------|
-| Frontier | opus | kimi-k2.6 | qwen3.6-plus-free | gpt-5.5 | composer-2 |
-| Standard | sonnet | deepseek-v4-pro | minimax-m2.5-free | gpt-5.4 | composer-2 |
+| Frontier | opus | kimi-k2.6 | qwen3.6-plus-free | gpt-5.5 | composer-2.5 |
+| Standard | sonnet | deepseek-v4-pro | minimax-m2.5-free | gpt-5.4 | composer-2.5 |
 | Fast | haiku | deepseek-v4-flash | mimo-v2-pro-free | gpt-5.4-mini | auto |
 
 **Rationale**: OpenCode mappings based on quality, effective context, and request volume. See model-selection.md for the full OpenCode Go session model table with per-model reasoning.
@@ -67,5 +67,5 @@ If the mainthread cannot hold the task state or routing breaks down, upgrade the
 - **OpenCode Go**: See [model-selection.md#opencode-go-session-model](model-selection.md#opencode-go-session-model) for the full session model decision table. Daily driver: DeepSeek V4 Flash (31,650 req/5h). Depth: DeepSeek V4 Pro (3,450 req/5h). Frontier models (Kimi K2.6, GLM-5.1) are sub-agent only — 880–1,150 req/5h too tight for session use. Standard fanout includes MiMo-V2.5-Pro for token-efficient agentic dispatch.
 - **OpenCode Free**: Lower quota, recommended for lighter orchestrators. See mapping table above.
 - **Claude Code**: Standard (Sonnet) for most sessions. Frontier (Opus) for heavy planning/architecture checkpoints and final critical review. Fast (Haiku) for cheap explore/summarization.
-- **Cursor**: `auto` and `composer-2` draw from the same included pool — no cost advantage between them. Both are cheaper than API-pool models (Claude/GPT selections).
-- **Codex**: Frontier uses `gpt-5.5` (high effort); Standard uses `gpt-5.4` (medium effort). GPT-5.4-mini (Fast) rejected for main-thread — 33.6% MRCR v2 long-context score is unacceptable for orchestrators accumulating multi-phase output.
+- **Cursor**: `auto` and `composer-2.5` draw from the same included pool — no cost advantage between them. Both are cheaper than API-pool models (Claude/GPT selections).
+- **Codex**: Frontier uses `gpt-5.5` (envoy effort `high`; Frontier subagent TOML uses `xhigh`); Standard uses `gpt-5.4` (`medium` effort). GPT-5.4-mini (Fast) rejected for main-thread — 33.6% MRCR v2 long-context score is unacceptable for orchestrators accumulating multi-phase output.

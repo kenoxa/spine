@@ -162,17 +162,17 @@ Canonical entry: [`skills/run-recap/SKILL.md`](../skills/run-recap/SKILL.md).
 | `scout` | Fast | haiku | medium | Fast codebase reconnaissance |
 | `researcher` | Standard | sonnet | high | Deep discovery and evidence gathering; local-depth first, may do bounded plan-specific upstream lookup |
 | `navigator` | Standard | sonnet | high | External-first research specialist for broad, ambiguous, comparative, or current external work |
-| `consultant` | Frontier | opus | high | Perspective-committed recommendation for `do-design` |
+| `consultant` | Frontier | opus | xhigh | Perspective-committed recommendation for `do-design` |
 | `curator` | Standard | sonnet | high | Knowledge curation — promote, review, prune knowledge files |
-| `debater` | Frontier | opus | high | Multi-perspective Socratic dialogue |
-| `inspector` | Frontier | opus | high | Verdict-focused code review, preloads `run-review` |
+| `debater` | Frontier | opus | xhigh | Multi-perspective Socratic dialogue |
+| `inspector` | Frontier | opus | xhigh | Verdict-focused code review, preloads `run-review` |
 | `analyst` | Standard | sonnet | high | Advisory pattern analysis, preloads `run-review` and `run-polish` |
-| `verifier` | Frontier | opus | high | Correctness, spec compliance, and E3 verification probes in quality phase and standalone run-review; preloads `with-testing` (test boundary decisions + mock strategy) |
+| `verifier` | Frontier | opus | xhigh | Correctness, spec compliance, and E3 verification probes in quality phase and standalone run-review; preloads `with-testing` (test boundary decisions + mock strategy) |
 | `miner` | Fast | haiku | medium | Session data analysis and cross-session pattern extraction |
 | `visualizer` | Standard | sonnet | high | HTML visualization via visual-explainer commands, preloads `visual-explainer` |
 | `implementer` | Standard | sonnet | high | Read-write implementation for plan-driven code changes |
 | `envoy` | Standard | sonnet | high | Cross-provider CLI invocation for independent perspectives |
-| `synthesizer` | Frontier | opus | high | Merge subagent outputs — thin-orchestrator firewall step |
+| `synthesizer` | Frontier | opus | xhigh | Merge subagent outputs — thin-orchestrator firewall step |
 
 See [model-selection.md](model-selection.md) for provider mappings and tier details.
 

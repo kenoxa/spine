@@ -94,7 +94,7 @@ name: agent-name
 description: >
   When to use. What it does.
 model: haiku          # opus | sonnet | haiku | inherit (default)
-effort: medium        # high (default) | medium — Codex only; Claude/Cursor ignore
+effort: medium        # xhigh | high | medium — Codex only; Claude/Cursor/OpenCode ignore
 readonly: true        # Cursor only; omit for agents that write to .scratch/
 skills:
   - skill-to-preload  # Claude Code only; Cursor ignores

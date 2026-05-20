@@ -5,7 +5,7 @@ description: >
   holes in this". Probes implementations for failures the implementer did not
   test. All claims require E3 evidence.
 model: opus
-effort: high
+effort: xhigh
 skills:
   - with-testing
   - use-shell

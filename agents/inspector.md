@@ -5,7 +5,7 @@ description: >
   these changes". Spec compliance, severity-bucketed findings, gate decisions
   (pass/block) for execution review gates or standalone review requests.
 model: opus
-effort: high
+effort: xhigh
 skills:
   - run-review
 ---

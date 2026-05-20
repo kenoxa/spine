@@ -5,7 +5,7 @@ description: >
   advocate", "stress test this plan", "poke holes". Defends, attacks, or weighs
   tradeoffs against a canonical plan.
 model: opus
-effort: high
+effort: xhigh
 skills:
   - run-review
 ---

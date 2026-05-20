@@ -2,6 +2,16 @@
 
 All notable changes are documented here, focused on user impact.
 
+## 2026-05-20
+
+### Changed
+
+- **Cursor model: Composer 2 → Composer 2.5** — all envoy tiers (Frontier, Standard, Fast) and generated provider subagent files now use `composer-2.5`. Composer 2.5 (released 2026-05-18) raises Terminal-Bench 2.0 to 69.3% (from 61.7%) and draws from the shared "Auto + Composer" capacity pool. Spine dispatches the standard `composer-2.5` variant, so pricing is unchanged at $0.50 / $2.50 per M tokens — the faster `composer-2.5-fast` variant doubled to $3.00 / $15.00, but Spine does not use it.
+
+- **Frontier subagent reasoning effort raised to `xhigh`** — the 5 Frontier-tier subagents (`consultant`, `debater`, `inspector`, `synthesizer`, `verifier`) now run at `xhigh` instead of `high`, restoring tier separation (Frontier `xhigh` > Standard `high` > Fast `medium`). Generated Codex agent TOML now sets `model_reasoning_effort = xhigh`; Claude Opus 4.7 already defaults to `xhigh`. Envoy dispatch effort stays `high` to respect the 600s parallel-dispatch timeout.
+
+  **Migration:** re-run `install.sh` to regenerate provider agent and config files.
+
 ## 2026-04-07
 
 ### Changed

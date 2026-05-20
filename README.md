@@ -157,7 +157,7 @@ For Claude Code, the installer also attempts to install the [Spine plugin](claud
 |----------|---------|---------|
 | Claude Code | sonnet:medium | opus:high |
 | Codex | gpt-5.4:medium | gpt-5.5:high |
-| Cursor | auto | composer-2 |
+| Cursor | auto | composer-2.5 |
 | OpenCode | deepseek-v4-pro (Go) / minimax-m2.5-free (Free) | kimi-k2.6 |
 
 See [docs/model-selection.md](docs/model-selection.md) for full tier guidance and escalation triggers.
@@ -439,7 +439,7 @@ dev-browser install
 
 **When to upgrade the session (mainthread) to Frontier:** ambiguous requirements, cascading architectural decisions, elusive root causes, very large accumulated context (~50K+ tokens across subagent work), or tangled phase gates. **When implementation alone needs more:** cross-cutting multi-file refactors that outrun the design artifact — escalate `@implementer` workload or partition scope (see [docs/model-tier-assignments.md](docs/model-tier-assignments.md)); that is not always the same as upgrading the orchestrator.
 
-Claude Code and Codex have generous rolling budgets (5h/7d); Cursor has a tighter monthly cap — stay on auto, upgrade selectively to composer-2.
+Claude Code and Codex have generous rolling budgets (5h/7d); Cursor has a tighter monthly cap — stay on auto, upgrade selectively to composer-2.5.
 
 For the full guide — tier mapping, provider pricing, env overrides, and benchmarks — see [docs/model-selection.md](docs/model-selection.md).
 

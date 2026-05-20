@@ -14,13 +14,15 @@
 
 | Tier | Purpose | Claude | Codex | Cursor | OpenCode (Go) | OpenCode (Free) |
 |------|---------|--------|-------|--------|---------------|-----------------|
-| Frontier | Complex reasoning, gate authority | opus:high | gpt-5.5:high | composer-2 | opencode-go/kimi-k2.6 | opencode/qwen3.6-plus-free |
-| Standard | Advisory, research, pattern matching | sonnet:medium | gpt-5.4:medium | composer-2 | opencode-go/deepseek-v4-pro | opencode/minimax-m2.5-free |
+| Frontier | Complex reasoning, gate authority | opus:high² | gpt-5.5:high² | composer-2.5 | opencode-go/kimi-k2.6 | opencode/qwen3.6-plus-free |
+| Standard | Advisory, research, pattern matching | sonnet:medium | gpt-5.4:medium | composer-2.5 | opencode-go/deepseek-v4-pro | opencode/minimax-m2.5-free |
 | Fast | Reconnaissance, extraction | haiku:medium | gpt-5.4-mini:medium | auto¹ | opencode-go/deepseek-v4-flash | opencode/mimo-v2-pro-free |
 
 Session quality/cost is chosen on the mainthread.
 
 ¹ Envoy/tier dispatch only. Fast subagents use `fast` in install-time frontmatter (Cursor's own fast routing).
+
+² Envoy dispatch effort. Frontier *subagents* run `xhigh` (Codex via TOML; Claude via Opus 4.7's default) — see [Effort Levels](#effort-levels).
 
 ## Session Model
 
@@ -73,18 +75,18 @@ Heavy multi-agent sessions can exhaust Claude Code Max 5x Opus hours in 2-3 days
 |----------|-------------|---------|---------|----------------|
 | Claude Code | 5h / 7-day rolling | sonnet:medium | opus:high | Generous budget — upgrade to opus freely for complex phases |
 | Codex | 5h / 7-day rolling | gpt-5.4:medium | gpt-5.5:high | Generous budget — upgrade effort freely for complex phases |
-| Cursor | ~$20-30 / month | auto | composer-2 | Tight monthly cap — stay on auto, upgrade selectively to composer-2 |
+| Cursor | ~$20-30 / month | auto | composer-2.5 | Tight monthly cap — stay on auto, upgrade selectively to composer-2.5 |
 | OpenCode Go | $60/mo flat ($10 sub), $12/5h · $30/wk rolling caps | deepseek-v4-flash (Daily driver) | deepseek-v4-pro (Depth) | See [OpenCode Go Session Model](#opencode-go-session-model) for full decision table. Multi-model fanout within OpenCode via envoy (Frontier: kimi-k2.6 + deepseek-v4-pro + glm-5.1; Standard: minimax-m2.7 + deepseek-v4-pro + qwen3.6-plus + mimo-v2.5-pro; Fast: deepseek-v4-flash + qwen3.5-plus + minimax-m2.5). Kimi K2.6 (1,150 req/5h) is Frontier sub-agents only — Flash (31,650 req/5h) for daily driving, V4 Pro (3,450 req/5h) for depth. |
 
 ### Cost per million tokens
 
 | Tier | Claude | Codex | Cursor | OpenCode (Go) | OpenCode (Free) |
 |------|--------|-------|--------|---------------|-----------------|
-| Frontier | opus ($5/$25) | gpt-5.5 ($5/$30) | composer-2 ($0.50/$2.50) | kimi-k2.6 ($0, sub) | qwen3.6-plus-free (**free**) |
-| Standard | sonnet ($3/$15) | gpt-5.4 ($2.50/$15) | auto ($1.25/$6.00) | deepseek-v4-pro ($0, sub) | minimax-m2.5-free (**free**) |
-| Fast | haiku ($1/$5) | gpt-5.4-mini¹ ($0.75/$4.50) | composer-2 ($0.50/$2.50) | deepseek-v4-flash ($0, sub) | mimo-v2-pro-free (**free**) |
+| Frontier | opus ($5/$25) | gpt-5.5 ($5/$30) | composer-2.5 ($0.50/$2.50) | kimi-k2.6 ($0, sub) | qwen3.6-plus-free (**free**) |
+| Standard | sonnet ($3/$15) | gpt-5.4 ($2.50/$15) | composer-2.5 ($0.50/$2.50) | deepseek-v4-pro ($0, sub) | minimax-m2.5-free (**free**) |
+| Fast | haiku ($1/$5) | gpt-5.4-mini¹ ($0.75/$4.50) | auto ($1.25/$6.00) | deepseek-v4-flash ($0, sub) | mimo-v2-pro-free (**free**) |
 
-> Cursor models draw from the Auto+Composer pool with a monthly allowance. Per-token cost matters less than staying within your monthly budget. Composer 2 Fast ($1.50/$7.50) offers the same quality at higher speed but 3× the cost — use selectively when latency matters. For higher quality beyond the pool, override to API-pool models (e.g., gpt-5.4) at provider pricing.
+> Cursor models draw from the Auto+Composer pool with a monthly allowance. Per-token cost matters less than staying within your monthly budget. Composer 2.5 Fast ($3.00/$15.00) offers the same quality at higher speed but 6× the cost — use selectively when latency matters. For higher quality beyond the pool, override to API-pool models (e.g., gpt-5.4) at provider pricing.
 
 > OpenCode Go models are billed against a $60/month usage allowance included in the $10/month subscription. Per-token rates apply only on the Zen (pay-as-you-go) tier. Request counts are estimates based on observed average token patterns (last verified: April 2026).
 
@@ -156,12 +158,14 @@ The default envoy provider ordering is **privacy-first**: providers with stronge
 
 | Provider | Support | Levels |
 |----------|---------|--------|
-| Claude Code | Session-level only (ignored per-agent) | — |
-| Codex | Per-role in TOML | minimal, low, medium, high |
+| Claude Code | Session-level only (ignored per-agent) | low, medium, high, xhigh, max |
+| Codex | Per-role in TOML | minimal, low, medium, high, xhigh |
 | Cursor | None | — |
 | OpenCode | Yes, via `--variant` | high, minimal, max |
 
-Agent frontmatter `effort:` is not consumed by Claude Code directly. However, `invoke-claude.sh` reads the tier's effort value from `resolve_tier()` and sets `CLAUDE_CODE_EFFORT_LEVEL` at runtime for envoy dispatch. This means effort values in agent files ARE effective for Claude envoy calls — the runtime script bridges the gap.
+Agent frontmatter `effort:` is consumed only by Codex (TOML `model_reasoning_effort`). Cursor and OpenCode ignore it; Claude Code does not read it per-agent either. For Claude envoy calls, `invoke-claude.sh` reads the tier effort from `resolve_tier()` and sets `CLAUDE_CODE_EFFORT_LEVEL` at runtime — so tier effort reaches Claude envoy dispatch even though per-agent frontmatter does not.
+
+**Frontier effort split.** Frontier *subagents* run `xhigh`: Codex via TOML `model_reasoning_effort = "xhigh"`, Claude via Opus 4.7's shipped default (`xhigh` since Claude Code v2.1.117). Frontier *envoy* dispatch stays `high` — `run.sh` runs under the 600 s Bash-tool cap (`agents/envoy.md` step 3), and `xhigh` roughly doubles reasoning wall-clock, risking a timeout the trap escalates to the whole parallel batch.
 
 See [`env.example`](../env.example) for the full override template.
 
@@ -196,10 +200,10 @@ Sorted by Terminal-Bench 2.0. Bold = best in column.
 | Gemini 3.1 Pro | Google | **75.5%** | — | — | — | — |
 | GPT-5.4 | Codex | 75.1% | — | **57.7%** | — | $2.50 / $15 |
 | Claude Opus 4.7 | Claude | 69.4% | **87.6%** | — | — | $5 / $25 |
+| Cursor Composer 2.5 | Cursor | 69.3% | — | — | — | $0.50 / $2.50 |
 | DeepSeek V4 Pro | OpenCode | 67.9% | **80.6%** | 55.4% | **93.5%** | $0 (Go sub) |
 | Kimi K2.6 | OpenCode | 66.7% | 80.2% | 58.6% | 89.6% | $0 (Go sub) |
 | GLM-5.1 | OpenCode | 63.5% | — | 58.4% | — | $0 (Go sub) |
-| Cursor Composer 2 | Cursor | 61.7% | — | — | — | $0.50 / $2.50 |
 | GPT-5.4 mini | Codex | 60.0% | — | 54.4% | — | $0.75 / $4.50 |
 | Claude Sonnet 4.6 | Claude | ~59% | 79.6% | — | — | $3 / $15 |
 | DeepSeek V4 Flash | OpenCode | 56.9% | — | 52.6% | 91.6% | $0 (Go sub) |
@@ -217,7 +221,7 @@ Sorted by Terminal-Bench 2.0. Bold = best in column.
 | Best free option | DeepSeek V4 Pro (OpenCode Go) | Kimi K2.6 | SWE-V #1, LCB #1, zero cost |
 | Daily driver (quality / price) | Claude Sonnet 4.6 | GPT-5.4 | Strong at mid-tier price |
 | Fast recon / extraction | DeepSeek V4 Flash | Claude Haiku 4.5 | Free, 91.6% LCB, high throughput |
-| IDE-integrated editing | Cursor Composer 2 | — | Cheapest pool, decent TB2 |
+| IDE-integrated editing | Cursor Composer 2.5 | — | Cheapest pool, solid TB2 (69.3%) |
 | Long-context orchestration | Kimi K2.6 | GLM-5.1 | 400k–700k effective context |
 
 ### Per-Provider Notes
@@ -226,7 +230,7 @@ Sorted by Terminal-Bench 2.0. Bold = best in column.
 
 **GPT**: GPT-5.5 (released 2026-04-23) leads Terminal-Bench 2.0 at 82.7% and is now the Spine Frontier model for Codex. GPT-5.3 Codex reports ~80% on SWE-Bench **Verified** (not Pro), making it comparable to Claude Opus tier rather than GPT-5.4's Pro score. GPT-5.4 leads Toolathlon at 54.6%.
 
-**Cursor**: Two usage pools — **Auto+Composer** (Composer 2, Auto) and **API** (Composer 1.5, GPT-5.4, Claude). Both reset monthly. Composer 2 Fast offers identical quality at 3× the per-token cost — use only when latency matters.
+**Cursor**: Composer 2.5 (released 2026-05-18) raised Terminal-Bench 2.0 to 69.3% (from Composer 2's 61.7%). Two usage pools — **Auto+Composer** (Composer 2.5, Auto) and **API** (Composer 1.5, GPT-5.4, Claude). Both reset monthly. Composer 2.5 Fast offers identical quality at 6× the per-token cost — use only when latency matters.
 
 ### OpenCode Model Reference
 

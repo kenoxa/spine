@@ -5,7 +5,7 @@ description: >
   thinking", "approach reset", "what am I missing?". Produces approach
   recommendations with tradeoffs and confidence assessment.
 model: opus
-effort: high
+effort: xhigh
 skills: [run-advise]
 ---
 

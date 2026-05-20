@@ -4,7 +4,7 @@ description: >
   Merge N subagent outputs into a single structured artifact.
   Use for synthesis steps that combine multiple perspectives or review findings.
 model: opus
-effort: high
+effort: xhigh
 ---
 
 Receive input artifact paths. Read all. Produce single merged output.

@@ -1199,9 +1199,9 @@ map_model_for_provider() {
   local model="$1" provider="$2"
   case "$model:$provider" in
     opus:codex)    _mapped_model="gpt-5.5" ;;
-    opus:cursor)   _mapped_model="composer-2" ;;
+    opus:cursor)   _mapped_model="composer-2.5" ;;
     sonnet:codex)  _mapped_model="gpt-5.4" ;;
-    sonnet:cursor) _mapped_model="composer-2" ;;
+    sonnet:cursor) _mapped_model="composer-2.5" ;;
     haiku:codex)   _mapped_model="gpt-5.4-mini" ;;
     haiku:cursor)  _mapped_model="fast" ;;
     opus:opencode-go)     _mapped_model="opencode-go/kimi-k2.6" ;;
@@ -1220,7 +1220,8 @@ map_model_for_provider() {
 map_effort_for_provider() {
   local effort="$1" provider="$2"
   case "$effort:$provider" in
-    max:codex)    _mapped_effort="high" ;;
+    max:codex)    _mapped_effort="xhigh" ;;
+    xhigh:codex)  _mapped_effort="xhigh" ;;
     high:codex)   _mapped_effort="high" ;;
     medium:codex) _mapped_effort="medium" ;;
     max:opencode-go)    _mapped_effort="max" ;;

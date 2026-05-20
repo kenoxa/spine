@@ -80,10 +80,10 @@ resolve_tier() {
     case "$1:$2" in
         frontier:claude) _tier_model=opus;          _tier_effort=high ;;
         frontier:codex)  _tier_model=gpt-5.5;       _tier_effort=high ;;
-        frontier:cursor) _tier_model=composer-2;     _tier_effort= ;;
+        frontier:cursor) _tier_model=composer-2.5;   _tier_effort= ;;
         standard:claude) _tier_model=sonnet;         _tier_effort=medium ;;
         standard:codex)  _tier_model=gpt-5.4;       _tier_effort=medium ;;
-        standard:cursor) _tier_model=composer-2;     _tier_effort= ;;
+        standard:cursor) _tier_model=composer-2.5;   _tier_effort= ;;
         fast:claude)     _tier_model=haiku;          _tier_effort=medium ;;
         fast:codex)      _tier_model=gpt-5.4-mini;  _tier_effort=medium ;;
         fast:cursor)     _tier_model=auto;           _tier_effort= ;;
