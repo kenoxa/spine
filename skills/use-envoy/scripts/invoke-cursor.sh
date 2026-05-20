@@ -65,8 +65,16 @@ to_cursor_model() {
         haiku)
             # Haiku: routes to Cursor's cheapest pool — no named model to compose
             _cursor_model="auto"; return 0 ;;
+        gpt-5.5)
+            # GPT-5.5: cursor-agent names its top reasoning tier "extra-high"
+            # (gpt-5.4 and its mini/nano variants use "xhigh" directly).
+            if [ "$2" = xhigh ]; then
+                _cursor_model="gpt-5.5-extra-high"
+            else
+                _cursor_model="gpt-5.5-${2}"
+            fi ;;
         gpt-*)
-            # GPT models: pass through with effort suffix; no thinking variant
+            # Other GPT models: pass through with effort suffix; no thinking variant
             _cursor_model="${1}-${2}" ;;
         *)
             return 1 ;;

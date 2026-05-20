@@ -130,7 +130,7 @@ When Claude or Codex hits a rate limit, runs out of credits, or has an auth erro
 | `opus` | `claude-opus-4-7-thinking-high` |
 | `sonnet` | `claude-4.6-sonnet-medium-thinking` |
 | `haiku` | `auto` (Cursor's cheapest routing) |
-| `gpt-5.5` | `gpt-5.5-{effort}` |
+| `gpt-5.5` | `gpt-5.5-{effort}` (`xhigh` → `gpt-5.5-extra-high`) |
 | `gpt-5.4` | `gpt-5.4-{effort}` |
 | `gpt-5.4-mini` | `gpt-5.4-mini-{effort}` |
 | Other `gpt-*` | passed through as `{model}-{effort}` |

@@ -88,7 +88,7 @@ Each subagent role has an assigned model tier. The tier determines the model aut
 | **Fast** | scout, miner | Reconnaissance and extraction. Speed over depth. |
 | **Adaptive** | — | No subagent uses `model: inherit`. Session model choice applies to the mainthread only; see [model-selection.md](model-selection.md). |
 
-**Gate authority requires frontier reasoning.** The consultant, debaters, inspector, synthesizer, and verifier make decisions that constrain or merge downstream work. A plan or synthesis approved by a weaker model than the roles it aggregates inverts the quality hierarchy --- the gate becomes less rigorous than the work it gates. Frontier models (Opus, GPT-5.4) at these roles ensure that the hardest reasoning happens at decision points and at merge points, not at routine extraction.
+**Gate authority requires frontier reasoning.** The consultant, debaters, inspector, synthesizer, and verifier make decisions that constrain or merge downstream work. A plan or synthesis approved by a weaker model than the roles it aggregates inverts the quality hierarchy --- the gate becomes less rigorous than the work it gates. Frontier models (Opus, GPT-5.5) at these roles ensure that the hardest reasoning happens at decision points and at merge points, not at routine extraction.
 
 **Standard floor for implementation.** The implementer is pinned to Standard (Sonnet-class) so a Fast session model cannot degrade write quality. Frontier design artifacts and Frontier reviewers absorb the small Sonnet/Opus coding benchmark gap in practice; numeric context lives in [model-selection.md](model-selection.md) and the quick reference in [model-tier-assignments.md](model-tier-assignments.md).
 

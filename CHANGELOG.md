@@ -18,6 +18,8 @@ All notable changes are documented here, focused on user impact.
 
 - **Opus → Cursor fallback model ID** — `to_cursor_model()` built `claude-opus-4-7-<effort>-thinking`, but cursor-agent's thinking variants are named `claude-opus-4-7-thinking-<effort>`. Every Claude-Opus → Cursor fallback (after a rate-limit or auth failure) errored with an unknown model; the segment order is now correct.
 
+- **GPT-5.5 → Cursor fallback model ID** — `to_cursor_model()` built `gpt-5.5-xhigh`, but cursor-agent names GPT-5.5's top reasoning tier `extra-high` (`gpt-5.5-extra-high`) — only GPT-5.5 differs; `gpt-5.4` and its mini/nano variants use `xhigh`. A Codex → Cursor fallback at `xhigh` effort (e.g. with `SPINE_ENVOY_FRONTIER_CODEX=gpt-5.5:xhigh`) errored with an unknown model; GPT-5.5 now maps `xhigh` correctly.
+
 ## 2026-04-07
 
 ### Changed
