@@ -58,7 +58,7 @@ to_cursor_model() {
     case "$1" in
         opus)
             # Opus 4.7: effort-aware thinking variants
-            _cursor_model="claude-opus-4-7-${2}-thinking" ;;
+            _cursor_model="claude-opus-4-7-thinking-${2}" ;;
         sonnet)
             # Sonnet 4.6: cursor-agent offers only medium-thinking; effort parameter ignored
             _cursor_model="claude-4.6-sonnet-medium-thinking" ;;

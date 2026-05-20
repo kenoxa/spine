@@ -107,7 +107,7 @@ Example: `SPINE_ENVOY_FRONTIER_CLAUDE=opus:high` overrides the frontier tier for
 When Claude or Codex hits a rate limit, runs out of credits, or has an auth error, Spine automatically retries the same request through **cursor-agent** using the **same model**. If cursor-agent is also unavailable, the request fails — there are no further retry hops.
 
 **How it works:**
-- Claude fails → cursor-agent runs the same Claude model (e.g., `opus` → `claude-opus-4-7-high-thinking`)
+- Claude fails → cursor-agent runs the same Claude model (e.g., `opus` → `claude-opus-4-7-thinking-high`)
 - Codex fails → cursor-agent runs the same GPT model (e.g., `gpt-5.4` → `gpt-5.4-high`)
 - Cursor fails → no fallback (cursor-agent models aren't available elsewhere)
 - OpenCode fails → no fallback (OpenCode Go/Free models aren't available on cursor-agent)
@@ -127,7 +127,7 @@ When Claude or Codex hits a rate limit, runs out of credits, or has an auth erro
 
 | Your model | cursor-agent runs |
 |---|---|
-| `opus` | `claude-opus-4-7-high-thinking` |
+| `opus` | `claude-opus-4-7-thinking-high` |
 | `sonnet` | `claude-4.6-sonnet-medium-thinking` |
 | `haiku` | `auto` (Cursor's cheapest routing) |
 | `gpt-5.5` | `gpt-5.5-{effort}` |

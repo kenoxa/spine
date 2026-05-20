@@ -12,6 +12,10 @@ All notable changes are documented here, focused on user impact.
 
   **Migration:** re-run `install.sh` to regenerate provider agent and config files.
 
+### Fixed
+
+- **Opus → Cursor fallback model ID** — `to_cursor_model()` built `claude-opus-4-7-<effort>-thinking`, but cursor-agent's thinking variants are named `claude-opus-4-7-thinking-<effort>`. Every Claude-Opus → Cursor fallback (after a rate-limit or auth failure) errored with an unknown model; the segment order is now correct.
+
 ## 2026-04-07
 
 ### Changed
