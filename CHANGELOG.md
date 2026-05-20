@@ -10,6 +10,8 @@ All notable changes are documented here, focused on user impact.
 
 - **Frontier subagent reasoning effort raised to `xhigh`** — the 5 Frontier-tier subagents (`consultant`, `debater`, `inspector`, `synthesizer`, `verifier`) now run at `xhigh` instead of `high`, restoring tier separation (Frontier `xhigh` > Standard `high` > Fast `medium`). Generated Codex agent TOML now sets `model_reasoning_effort = xhigh`; Claude Opus 4.7 already defaults to `xhigh`. Envoy dispatch effort stays `high` to respect the 600s parallel-dispatch timeout.
 
+- **Standard Codex model: GPT-5.4 → GPT-5.5** — the Codex Standard tier now maps to `gpt-5.5` (was `gpt-5.4`). Frontier and Standard now share `gpt-5.5`, differentiated by reasoning effort (Standard `medium`, Frontier `high`/`xhigh`) — the same shape as Cursor's tiers. GPT-5.5 leads Terminal-Bench 2.0 at 82.7% (vs GPT-5.4's 75.1%), lifting the workhorse tier: implementer, researcher, navigator, and advisory agents. Trade-off: GPT-5.5 costs 2× per token ($5/$30 vs $2.50/$15) — set `SPINE_ENVOY_STANDARD_CODEX=gpt-5.4:medium` to revert if Codex limits get tight.
+
   **Migration:** re-run `install.sh` to regenerate provider agent and config files.
 
 ### Fixed

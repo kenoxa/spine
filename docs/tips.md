@@ -48,6 +48,6 @@ Skills technically work in other modes, but the experience degrades to manual ap
 Spine assigns subagents to three tiers (Frontier/Standard/Fast) with provider-mapped models. The mainthread model is your session choice.
 
 - **Subagent tiers are automatic:** agent frontmatter pins each subagent to a tier. The installer and runtime map tiers to provider-specific models. See [docs/model-selection.md](model-selection.md) for the full mapping.
-- **Mainthread guidance:** Standard (sonnet:medium / gpt-5.4:medium / auto) for all phases. Upgrade to Frontier when requirements are ambiguous, architectural decisions are cascading, or context exceeds ~50K tokens. See [docs/model-selection.md](model-selection.md) for escalation triggers.
+- **Mainthread guidance:** Standard (sonnet:medium / gpt-5.5:medium / auto) for all phases. Upgrade to Frontier when requirements are ambiguous, architectural decisions are cascading, or context exceeds ~50K tokens. See [docs/model-selection.md](model-selection.md) for escalation triggers.
 - **Consultation is the lever:** structured advisory (`/do-design`) improves output quality more than model choice alone. Strong model + consultation > strong model without consultation > weak model + consultation.
 - **Override envoy models:** set `SPINE_ENVOY_{TIER}_{PROVIDER}` in `~/.config/spine/.env` for per-tier envoy overrides.

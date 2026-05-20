@@ -15,7 +15,7 @@
 | Tier | Purpose | Claude | Codex | Cursor | OpenCode (Go) | OpenCode (Free) |
 |------|---------|--------|-------|--------|---------------|-----------------|
 | Frontier | Complex reasoning, gate authority | opus:high² | gpt-5.5:high² | composer-2.5 | opencode-go/kimi-k2.6 | opencode/qwen3.6-plus-free |
-| Standard | Advisory, research, pattern matching | sonnet:medium | gpt-5.4:medium | composer-2.5 | opencode-go/deepseek-v4-pro | opencode/minimax-m2.5-free |
+| Standard | Advisory, research, pattern matching | sonnet:medium | gpt-5.5:medium | composer-2.5 | opencode-go/deepseek-v4-pro | opencode/minimax-m2.5-free |
 | Fast | Reconnaissance, extraction | haiku:medium | gpt-5.4-mini:medium | auto¹ | opencode-go/deepseek-v4-flash | opencode/mimo-v2-pro-free |
 
 Session quality/cost is chosen on the mainthread.
@@ -28,7 +28,7 @@ Session quality/cost is chosen on the mainthread.
 
 Pick your session model by task depth and expected context size, not a fixed tier label. Sub-agents use their own fixed tiers regardless of session choice — Frontier handles gate authority, Fast handles recon — so you get quality where it matters without paying frontier prices on the mainthread.
 
-The table below covers the viable main-thread options for **OpenCode Go**. Non-OpenCode providers have simpler stacks (Claude: sonnet/opus, Codex: gpt-5.4).
+The table below covers the viable main-thread options for **OpenCode Go**. Non-OpenCode providers have simpler stacks (Claude: sonnet/opus, Codex: gpt-5.5).
 
 ### OpenCode Go Session Model
 
@@ -59,7 +59,7 @@ For day-to-day work, each provider has different strengths:
 | **Strength** | Code reasoning (SWE-Bench) | Agentic tool use (Terminal-Bench 75.1%) | IDE integration, cheapest agentic model | Multi-model gateway (MiMo, MiniMax, GLM); Go subscription + Free tier |
 | **Budget** | 5h / 7-day rolling (generous) | 5h / 7-day rolling (generous) | ~$20-30 / month (tight) | Go subscription (free at margin) or Free tier (zero cost) |
 | **Best for** | Planning, debugging, complex reasoning | Sandboxed execution, tool-heavy tasks | Focused implementation, inline edits | Analytical diversity, cost-sensitive workloads, chain terminus fallback |
-| **Default model** | sonnet | gpt-5.4 | auto | opencode-go/deepseek-v4-flash (Go daily driver) / opencode/minimax-m2.5-free (Free) |
+| **Default model** | sonnet | gpt-5.5 | auto | opencode-go/deepseek-v4-flash (Go daily driver) / opencode/minimax-m2.5-free (Free) |
 
 **Recommended primary**: Claude Code — highest code quality benchmarks, generous rolling budget, full Spine skill and subagent support. Use Standard (sonnet) as daily driver.
 
@@ -74,7 +74,7 @@ Heavy multi-agent sessions can exhaust Claude Code Max 5x Opus hours in 2-3 days
 | Provider | Budget model | Default | Upgrade | Recommendation |
 |----------|-------------|---------|---------|----------------|
 | Claude Code | 5h / 7-day rolling | sonnet:medium | opus:high | Generous budget — upgrade to opus freely for complex phases |
-| Codex | 5h / 7-day rolling | gpt-5.4:medium | gpt-5.5:high | Generous budget — upgrade effort freely for complex phases |
+| Codex | 5h / 7-day rolling | gpt-5.5:medium | gpt-5.5:high | Generous budget — upgrade effort freely for complex phases |
 | Cursor | ~$20-30 / month | auto | composer-2.5 | Tight monthly cap — stay on auto, upgrade selectively to composer-2.5 |
 | OpenCode Go | $60/mo flat ($10 sub), $12/5h · $30/wk rolling caps | deepseek-v4-flash (Daily driver) | deepseek-v4-pro (Depth) | See [OpenCode Go Session Model](#opencode-go-session-model) for full decision table. Multi-model fanout within OpenCode via envoy (Frontier: kimi-k2.6 + deepseek-v4-pro + glm-5.1; Standard: minimax-m2.7 + deepseek-v4-pro + qwen3.6-plus + mimo-v2.5-pro; Fast: deepseek-v4-flash + qwen3.5-plus + minimax-m2.5). Kimi K2.6 (1,150 req/5h) is Frontier sub-agents only — Flash (31,650 req/5h) for daily driving, V4 Pro (3,450 req/5h) for depth. |
 
@@ -83,7 +83,7 @@ Heavy multi-agent sessions can exhaust Claude Code Max 5x Opus hours in 2-3 days
 | Tier | Claude | Codex | Cursor | OpenCode (Go) | OpenCode (Free) |
 |------|--------|-------|--------|---------------|-----------------|
 | Frontier | opus ($5/$25) | gpt-5.5 ($5/$30) | composer-2.5 ($0.50/$2.50) | kimi-k2.6 ($0, sub) | qwen3.6-plus-free (**free**) |
-| Standard | sonnet ($3/$15) | gpt-5.4 ($2.50/$15) | composer-2.5 ($0.50/$2.50) | deepseek-v4-pro ($0, sub) | minimax-m2.5-free (**free**) |
+| Standard | sonnet ($3/$15) | gpt-5.5 ($5/$30) | composer-2.5 ($0.50/$2.50) | deepseek-v4-pro ($0, sub) | minimax-m2.5-free (**free**) |
 | Fast | haiku ($1/$5) | gpt-5.4-mini¹ ($0.75/$4.50) | auto ($1.25/$6.00) | deepseek-v4-flash ($0, sub) | mimo-v2-pro-free (**free**) |
 
 > Cursor models draw from the Auto+Composer pool with a monthly allowance. Per-token cost matters less than staying within your monthly budget. Composer 2.5 Fast ($3.00/$15.00) offers the same quality at higher speed but 6× the cost — use selectively when latency matters. For higher quality beyond the pool, override to API-pool models (e.g., gpt-5.4) at provider pricing.
@@ -228,7 +228,7 @@ Sorted by Terminal-Bench 2.0. Bold = best in column.
 
 **Claude**: Opus 4.6 (SWE-V 80.8%) was superseded by Opus 4.7 on 2026-04-16.
 
-**GPT**: GPT-5.5 (released 2026-04-23) leads Terminal-Bench 2.0 at 82.7% and is now the Spine Frontier model for Codex. GPT-5.3 Codex reports ~80% on SWE-Bench **Verified** (not Pro), making it comparable to Claude Opus tier rather than GPT-5.4's Pro score. GPT-5.4 leads Toolathlon at 54.6%.
+**GPT**: GPT-5.5 (released 2026-04-23) leads Terminal-Bench 2.0 at 82.7% and is the Spine Frontier and Standard model for Codex. GPT-5.3 Codex reports ~80% on SWE-Bench **Verified** (not Pro), making it comparable to Claude Opus tier rather than GPT-5.4's Pro score. GPT-5.4 leads Toolathlon at 54.6%.
 
 **Cursor**: Composer 2.5 (released 2026-05-18) raised Terminal-Bench 2.0 to 69.3% (from Composer 2's 61.7%). Two usage pools — **Auto+Composer** (Composer 2.5, Auto) and **API** (Composer 1.5, GPT-5.4, Claude). Both reset monthly. Composer 2.5 Fast offers identical quality at 6× the per-token cost — use only when latency matters.
 

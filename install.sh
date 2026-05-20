@@ -1200,7 +1200,7 @@ map_model_for_provider() {
   case "$model:$provider" in
     opus:codex)    _mapped_model="gpt-5.5" ;;
     opus:cursor)   _mapped_model="composer-2.5" ;;
-    sonnet:codex)  _mapped_model="gpt-5.4" ;;
+    sonnet:codex)  _mapped_model="gpt-5.5" ;;
     sonnet:cursor) _mapped_model="composer-2.5" ;;
     haiku:codex)   _mapped_model="gpt-5.4-mini" ;;
     haiku:cursor)  _mapped_model="fast" ;;

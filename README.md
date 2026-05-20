@@ -156,7 +156,7 @@ For Claude Code, the installer also attempts to install the [Spine plugin](claud
 | Provider | Default | Upgrade |
 |----------|---------|---------|
 | Claude Code | sonnet:medium | opus:high |
-| Codex | gpt-5.4:medium | gpt-5.5:high |
+| Codex | gpt-5.5:medium | gpt-5.5:high |
 | Cursor | auto | composer-2.5 |
 | OpenCode | deepseek-v4-pro (Go) / minimax-m2.5-free (Free) | kimi-k2.6 |
 
@@ -216,7 +216,7 @@ If `~/.config/spine/.env` exists, the installer reads it for MCP authentication.
 
 Or use `/do` as a single entry point that routes through all three phases.
 
-**Session model:** Standard is the default (sonnet:medium / gpt-5.4:medium / auto). Switch via your provider's model selector or `--model` flag when launching. See [docs/model-selection.md](docs/model-selection.md) for when to upgrade to Frontier and when to step down to Fast.
+**Session model:** Standard is the default (sonnet:medium / gpt-5.5:medium / auto). Switch via your provider's model selector or `--model` flag when launching. See [docs/model-selection.md](docs/model-selection.md) for when to upgrade to Frontier and when to step down to Fast.
 
 Skills write session artifacts to `.scratch/` during planning and execution. Keep `.scratch/` in your project `.gitignore`.
 
@@ -435,7 +435,7 @@ dev-browser install
 <details>
 <summary>Model selection</summary>
 
-**Standard tier is the recommended default** (sonnet:medium / gpt-5.4:medium / auto). Subagents use specialized models by tier automatically — frontier for gate authority and synthesis, standard for `@implementer`, fast for recon — regardless of your session choice.
+**Standard tier is the recommended default** (sonnet:medium / gpt-5.5:medium / auto). Subagents use specialized models by tier automatically — frontier for gate authority and synthesis, standard for `@implementer`, fast for recon — regardless of your session choice.
 
 **When to upgrade the session (mainthread) to Frontier:** ambiguous requirements, cascading architectural decisions, elusive root causes, very large accumulated context (~50K+ tokens across subagent work), or tangled phase gates. **When implementation alone needs more:** cross-cutting multi-file refactors that outrun the design artifact — escalate `@implementer` workload or partition scope (see [docs/model-tier-assignments.md](docs/model-tier-assignments.md)); that is not always the same as upgrading the orchestrator.
 
