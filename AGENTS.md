@@ -44,6 +44,7 @@ Managed by `/run-curate`; style: telegraphic, 250-800 tokens, `updated:` frontma
 - `docs/machine-verifiable-terminal-contracts.md` — JSON terminal artifact pattern (build-status.json), status→consumer action table, atomicity contract
 - `docs/shell-validator-locale-guard.md` — LC_ALL=C guard for POSIX case character-class validators; layered allowlist pattern
 - `docs/shell-trap-return-scope.md` — `trap … RETURN` is global state, not function-scoped; explicit `rm -f` idiom
+- `docs/shell-git-config-test-isolation.md` — global `~/.gitconfig`/system config leaks into bats test repos; repo-local pin idiom + `GIT_CONFIG_GLOBAL`/`GIT_CONFIG_SYSTEM=/dev/null` full-isolation (Git 2.32+)
 - `docs/worktree-guide.md` — end-user how-to: create/list/remove/prune worktrees, carry-over + session-bridge, Zed editor setup
 
 ## Deep Dives
