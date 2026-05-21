@@ -35,19 +35,24 @@ Session: `unified-git-worktree-approach-spine-c565`
 - **Review:** 3 do-build review iterations to ACCEPT (cap 5). Iteration 1 — findings resolved. Iteration 2 — verdict FAIL: B1 (bats suite inherited the user's global `rebase.autostash=true`, making test 14b non-deterministic — autostash let a rebase that should refuse instead complete), B2 (`/run-merge` rebase stage labels inverted — `:2`/`:3` swapped the wrong way), S1 (`worktree.sh` step-3 clean-check `die` message weaker than its sibling guards). Iteration 3 — ACCEPT; all 4 iteration-2 findings closed; verifier bats 20/20 under the user's real global config and under a forced-hostile `GIT_CONFIG_GLOBAL`.
 - **Polish:** 1 iteration (cap 3). 2 actions applied — rename `conflict_exit` → `_conflict_exit` (private-helper prefix consistency with `_rebase_in_progress`); reword two test comments that leaked the run-review `S1` severity-bucket label. 4 complexity/duplication findings rejected → follow-up debt (below the third-use extraction bar / refactor-vs-feature separation).
 
-### Slice 3 follow-up debt (tracked — does not block)
+### Slice 3 follow-up debt (2026-05-21 follow-up)
 
-- **F1** — run-merge's `merge-brief` `operation` field is newly required by the general-resolver generalization; no migration note for pre-existing brief callers.
-- **F2** — run-merge merge-verification wording ("byte-identical") stricter than intended.
-- **F3** — run-merge rebase-loop empty-commit detection under-specified.
-- **F4** — no bats probe for the path-form argument (`land .` / `land "$repo/"`).
-- **F6** — `merge-brief` `repo_path` default documented in prose only.
-- **F-r3-1** — `make_repo` pins only `rebase.autostash`; other rebase/merge-affecting global git config (`rebase.backend`, `merge.conflictStyle`) is still inherited. Latent — no current test asserts on conflict-marker content or rebase backend.
-- **R1** — `cmd_land` cyclomatic complexity ~13 vs the ≤8 bar; pre-flight extraction warranted only when a third subcommand is added (third-use rule).
-- **R2** — `cmd_sync`/`cmd_land` share a 12-line name-resolution + branch-detection block (2 uses); extract on the next subcommand addition.
-- **R3 / R4** — `worktree.bats` `wt_dir` extraction pipeline and guard block now at 12 uses each (escalation of Slice 2 [F2]/[F3]); a 12-test refactor, out of polish scope.
-- **N1** — `worktree.bats` SF6 section uses alphabetic sub-labels (`SF6a/b/c`) instead of sequential numbering; cosmetic.
-- **`merge-brief-schema.md` token budget** — at 1448 tokens it exceeds the 250–800 reference-file target and the >1000 flag; growth is predominantly from the upstream run-merge general-resolver generalization. Candidate: trim or split the schema reference.
+Resolved:
+
+- **F1** — `/run-merge` now states that old merge-only briefs must add `operation: merge`; the skill must not infer a missing operation silently.
+- **F2** — merge verification is now documented as semantic/set-based, not byte-identical; resolved files must have no conflict markers, completed git state, and valid `files_resolved` membership.
+- **F3** — the rebase loop now specifies empty-commit handling: after a non-zero `rebase --continue`, skip only when a rebase dir still exists, no unmerged paths remain, and both cached and working-tree diffs are empty.
+- **F4** — `worktree.bats` now probes `land "$repo"`, `land "$repo/"`, and `land .` for the main-worktree guard.
+- **F6** — `repo_path` default is explicit in both `/run-merge` Phase 1 (`repo_path="${repo_path:-.}"`) and the schema's merge example/table.
+- **F-r3-1** — `make_repo` now pins `rebase.backend=merge`, `merge.conflictStyle=merge`, and `rerere.enabled=false`; a hostile-global-config Bats case proves global `rebase.backend=apply` and `merge.conflictStyle=diff3` do not change the expected conflict shape.
+- **R3 / R4** — repeated Bats `created:` parsing and `.worktrees/<slug>-*` non-empty guards are centralized in `created_worktree_dir` and `spine_worktree_dir`.
+- **N1** — land guard/failure-path comments now use sequential test labels instead of `SF6a/b/c`.
+- **`merge-brief-schema.md` token budget** — reference trimmed from 1448 tokens to 781 tokens via `scripts/token-counts.sh --update`, under the 250–800 target without splitting the run-merge loading path.
+
+Still deferred:
+
+- **R1** — `cmd_land` remains above the nominal complexity bar, but extraction is still deferred until a third production use appears; only `sync` and `land` share this flow today, and changing production command structure would exceed debt-cleanup scope.
+- **R2** — `cmd_sync`/`cmd_land` name-resolution + branch-detection extraction remains deferred for the same third-use reason; no third production subcommand exists.
 
 ## Notes
 

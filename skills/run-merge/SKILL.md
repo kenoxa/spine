@@ -25,6 +25,13 @@ Required frontmatter fields:
 
 If the brief is missing or unreadable, write `verdict: aborted` immediately and stop.
 
+Normalize optional fields before any git command:
+```sh
+repo_path="${repo_path:-.}"
+```
+
+Migration note: older merge-only briefs without `operation` must be treated as invalid. Callers using the old format must add `operation: merge`; do not infer it silently.
+
 ## Phase 2 — Assess Conflicts
 
 Verify the working tree is in a conflict state:
@@ -74,7 +81,7 @@ git -C "$repo_path" commit --no-edit
 
 **If `rebase-merge` or `rebase-apply` directory exists** (`operation: rebase`): loop —
 1. `GIT_EDITOR=true git -C "$repo_path" rebase --continue` — reuses commit messages non-interactively.
-2. If `--continue` reports the commit became empty (all changes already upstream): `git -C "$repo_path" rebase --skip` instead.
+2. If `--continue` exits non-zero, treat it as an empty replayed commit only when all of these are true: a rebase dir still exists, `git -C "$repo_path" diff --name-only --diff-filter=U` is empty, `git -C "$repo_path" diff --cached --quiet` exits 0, and `git -C "$repo_path" diff --quiet` exits 0. Then run `git -C "$repo_path" rebase --skip`. If any condition is false, write `verdict: failed`.
 3. Re-check `git -C "$repo_path" diff --name-only --diff-filter=U`. Non-empty → the next replayed commit conflicted → return to Phase 2/3 for that new conflict set.
 4. Repeat until neither `rebase-merge` nor `rebase-apply` directory remains. Cap at 20 rounds; if exceeded write `verdict: failed` — fail-safe against a non-terminating loop.
 
@@ -86,7 +93,7 @@ git -C "$repo_path" diff --name-only --diff-filter=U
 ```
 This must return empty. If not, write `verdict: failed`.
 
-Scan for residual conflict markers in resolved working-tree files — `grep -nE '^(<<<<<<< |>>>>>>> )'` against each `$repo_path/<file>`. Any match → write `verdict: failed`.
+Scan for residual conflict markers in resolved working-tree files — `grep -nE '^(<<<<<<< |>>>>>>> )'` against each `$repo_path/<file>`. Any match → write `verdict: failed`. Verification is semantic and set-based: do not require byte-identical output to either side; require no markers, a completed operation, and `files_resolved` membership rules from the schema.
 
 Note: do **not** use `git diff HEAD^ HEAD` for rebase verification — a rebase rewrites multiple commits and `HEAD^..HEAD` covers only the last one.
 

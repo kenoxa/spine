@@ -23,6 +23,9 @@ make_repo() {
     # that should refuse instead complete — making dirty-tree negative tests
     # non-deterministic. Pin it false repo-locally; all worktrees share this.
     git -C "$dir" config rebase.autostash false
+    git -C "$dir" config rebase.backend merge
+    git -C "$dir" config merge.conflictStyle merge
+    git -C "$dir" config rerere.enabled false
     # Tracked file
     touch "$dir/.keep"
     git -C "$dir" add .keep
@@ -35,6 +38,44 @@ make_repo() {
     printf 'SECRET=test\n' > "$dir/.env.local"
     mkdir -p "$dir/node_modules/fake-pkg"
     touch "$dir/node_modules/fake-pkg/index.js"
+}
+
+created_worktree_dir() {
+    local output="$1"
+    local slug="$2"
+    local wt_dir
+    wt_dir=$(printf '%s\n' "$output" | sed -n 's/^created: //p' | head -1)
+    if [ -z "$wt_dir" ]; then
+        printf '%s worktree not found — create failed\n' "$slug" >&2
+        return 1
+    fi
+    printf '%s\n' "$wt_dir"
+}
+
+spine_worktree_dir() {
+    local repo="$1"
+    local slug="$2"
+    local wt_dir
+    wt_dir=$(ls -d "$repo/.worktrees/$slug-"*/ 2>/dev/null | head -1)
+    wt_dir="${wt_dir%/}"
+    if [ -z "$wt_dir" ]; then
+        printf '%s worktree not found — create failed\n' "$slug" >&2
+        return 1
+    fi
+    printf '%s\n' "$wt_dir"
+}
+
+write_hostile_git_config() {
+    local path="$1"
+    {
+        printf '[rebase]\n'
+        printf '\tautostash = true\n'
+        printf '\tbackend = apply\n'
+        printf '[merge]\n'
+        printf '\tconflictStyle = diff3\n'
+        printf '[rerere]\n'
+        printf '\tenabled = true\n'
+    } > "$path"
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -50,9 +91,8 @@ make_repo() {
     run sh "$WT" create myfeat
     [ "$status" -eq 0 ]
 
-    # Extract path from the 'created: <path>' line (SF4)
     local wt_dir
-    wt_dir=$(printf '%s\n' "$output" | grep '^created: ' | sed 's/^created: //')
+    wt_dir=$(created_worktree_dir "$output" "myfeat")
     [ -d "$wt_dir" ]
 
     # Name matches pattern .worktrees/myfeat-<4hex>
@@ -102,9 +142,8 @@ make_repo() {
     run sh "$WT" create bridge
     [ "$status" -eq 0 ]
 
-    # Extract path from the 'created: <path>' line (SF4)
     local wt_dir
-    wt_dir=$(printf '%s\n' "$output" | grep '^created: ' | sed 's/^created: //')
+    wt_dir=$(created_worktree_dir "$output" "bridge")
 
     # Must be a symlink
     [ -L "$wt_dir/.scratch" ]
@@ -137,7 +176,7 @@ make_repo() {
     run sh "$WT" create carryover
     [ "$status" -eq 0 ]
     local wt1_dir
-    wt1_dir=$(printf '%s\n' "$output" | grep '^created: ' | sed 's/^created: //')
+    wt1_dir=$(created_worktree_dir "$output" "carryover")
     [ -f "$wt1_dir/.env.local" ]
     [ ! -d "$wt1_dir/.worktrees" ]
 
@@ -145,7 +184,7 @@ make_repo() {
     run sh "$WT" create carryover2
     [ "$status" -eq 0 ]
     local wt2_dir
-    wt2_dir=$(printf '%s\n' "$output" | grep '^created: ' | sed 's/^created: //')
+    wt2_dir=$(created_worktree_dir "$output" "carryover2")
 
     # .env.local must be present in second worktree
     [ -f "$wt2_dir/.env.local" ]
@@ -190,7 +229,7 @@ make_repo() {
     run sh "$WT" list
     [ "$status" -eq 0 ]
 
-    # Output must contain the worktree path under .worktrees/ with [spine] label (SF6: drop | true)
+    # Output must contain the worktree path under .worktrees/ with [spine] label
     printf '%s\n' "$output" | grep -q "$repo/.worktrees/listme-"
     printf '%s\n' "$output" | grep -q '\[spine\]'
 
@@ -208,10 +247,7 @@ make_repo() {
     cd "$repo"
     sh "$WT" create torm >/dev/null 2>&1
     local wt_dir
-    wt_dir=$(ls -d "$repo/.worktrees/torm-"*/ 2>/dev/null | head -1)
-    wt_dir="${wt_dir%/}"
-    # Guard: fail loudly if worktree was not created (B5 pattern)
-    [ -n "$wt_dir" ] || { echo "torm worktree not found — create failed"; false; }
+    wt_dir=$(spine_worktree_dir "$repo" "torm")
 
     # A fresh worktree must be clean per `git status --porcelain`: the .scratch
     # bridge symlink and every carried gitignored artifact must be ignored, or
@@ -244,10 +280,7 @@ make_repo() {
     cd "$repo"
     sh "$WT" create dirty >/dev/null 2>&1
     local wt_dir
-    wt_dir=$(ls -d "$repo/.worktrees/dirty-"*/ 2>/dev/null | head -1)
-    wt_dir="${wt_dir%/}"
-    # Guard: fail loudly if worktree was not created (B5)
-    [ -n "$wt_dir" ] || { echo "dirty worktree not found — create failed"; false; }
+    wt_dir=$(spine_worktree_dir "$repo" "dirty")
 
     # Make a real tracked edit inside the worktree
     printf 'change\n' >> "$wt_dir/.keep"
@@ -290,10 +323,7 @@ make_repo() {
     cd "$repo"
     sh "$WT" create hooktest >/dev/null 2>&1
     local wt_dir
-    wt_dir=$(ls -d "$repo/.worktrees/hooktest-"*/ 2>/dev/null | head -1)
-    wt_dir="${wt_dir%/}"
-    # Guard: fail loudly if worktree was not created (B5 pattern)
-    [ -n "$wt_dir" ] || { echo "hooktest worktree not found — create failed"; false; }
+    wt_dir=$(spine_worktree_dir "$repo" "hooktest")
 
     # .git inside the worktree must be a file for the fix to apply
     [ -f "$wt_dir/.git" ] || skip "worktree .git is not a file — unexpected environment"
@@ -331,8 +361,7 @@ make_repo() {
     [ "$status" -eq 0 ]
 
     local wt_dir
-    wt_dir=$(printf '%s\n' "$output" | grep '^created: ' | sed 's/^created: //')
-    [ -n "$wt_dir" ] || { echo "spacetest worktree not found — create failed"; false; }
+    wt_dir=$(created_worktree_dir "$output" "spacetest")
 
     # The space-named dir and its contents must be present in the worktree
     [ -f "$wt_dir/build output/artifact.bin" ]
@@ -365,8 +394,7 @@ make_repo() {
     [ "$status" -eq 0 ]
 
     local wt_dir
-    wt_dir=$(printf '%s\n' "$output" | grep '^created: ' | sed 's/^created: //')
-    [ -n "$wt_dir" ] || { echo "scratchtest worktree not found — create failed"; false; }
+    wt_dir=$(created_worktree_dir "$output" "scratchtest")
 
     # The worktree must be clean: the .scratch symlink must be ignored (not ??)
     run git -C "$wt_dir" status --porcelain
@@ -393,8 +421,7 @@ make_repo() {
     run sh "$WT" create syncfeat
     [ "$status" -eq 0 ]
     local wt_dir
-    wt_dir=$(printf '%s\n' "$output" | grep '^created: ' | sed 's/^created: //')
-    [ -n "$wt_dir" ] || { echo "syncfeat worktree not found — create failed"; false; }
+    wt_dir=$(created_worktree_dir "$output" "syncfeat")
 
     # Commit a change on the worktree branch (edit a unique file)
     printf 'wt-change\n' > "$wt_dir/wt-file.txt"
@@ -429,8 +456,7 @@ make_repo() {
     run sh "$WT" create syncconflict
     [ "$status" -eq 0 ]
     local wt_dir
-    wt_dir=$(printf '%s\n' "$output" | grep '^created: ' | sed 's/^created: //')
-    [ -n "$wt_dir" ] || { echo "syncconflict worktree not found — create failed"; false; }
+    wt_dir=$(created_worktree_dir "$output" "syncconflict")
 
     # Edit the same line in the same file on the worktree branch
     printf 'version-wt\n' > "$wt_dir/.keep"
@@ -475,8 +501,7 @@ make_repo() {
     run sh "$WT" create syncnonfail
     [ "$status" -eq 0 ]
     local wt_dir
-    wt_dir=$(printf '%s\n' "$output" | grep '^created: ' | sed 's/^created: //')
-    [ -n "$wt_dir" ] || { echo "syncnonfail worktree not found — create failed"; false; }
+    wt_dir=$(created_worktree_dir "$output" "syncnonfail")
 
     # Commit a change on the worktree branch
     printf 'wt-change\n' > "$wt_dir/wt-file.txt"
@@ -513,8 +538,7 @@ make_repo() {
     run sh "$WT" create landfeat
     [ "$status" -eq 0 ]
     local wt_dir
-    wt_dir=$(printf '%s\n' "$output" | grep '^created: ' | sed 's/^created: //')
-    [ -n "$wt_dir" ] || { echo "landfeat worktree not found — create failed"; false; }
+    wt_dir=$(created_worktree_dir "$output" "landfeat")
 
     # Commit a change on the worktree branch
     printf 'land-change\n' > "$wt_dir/land-file.txt"
@@ -549,8 +573,7 @@ make_repo() {
     run sh "$WT" create landhalt
     [ "$status" -eq 0 ]
     local wt_dir
-    wt_dir=$(printf '%s\n' "$output" | grep '^created: ' | sed 's/^created: //')
-    [ -n "$wt_dir" ] || { echo "landhalt worktree not found — create failed"; false; }
+    wt_dir=$(created_worktree_dir "$output" "landhalt")
 
     # Edit the same line in the same file on the worktree branch
     printf 'version-wt\n' > "$wt_dir/.keep"
@@ -589,10 +612,10 @@ make_repo() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# SF6 tests — land guard and failure-path coverage
+# Land guard and failure-path coverage
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Test SF6a: land step-3 clean-check failure
+# Test 17: land step-3 clean-check failure
 # An untracked file added to the worktree after a successful rebase+merge causes
 # step 3 to fail. Assert that: exit is 1, message mentions uncommitted changes,
 # AND the feature commit was already merged into main (partial-land state).
@@ -607,8 +630,7 @@ make_repo() {
     run sh "$WT" create landcleanfail
     [ "$status" -eq 0 ]
     local wt_dir
-    wt_dir=$(printf '%s\n' "$output" | grep '^created: ' | sed 's/^created: //')
-    [ -n "$wt_dir" ] || { echo "landcleanfail worktree not found — create failed"; false; }
+    wt_dir=$(created_worktree_dir "$output" "landcleanfail")
 
     # Commit a change on the worktree branch
     printf 'clean-check-test\n' > "$wt_dir/feat-file.txt"
@@ -638,7 +660,7 @@ make_repo() {
     rm -rf "$repo"
 }
 
-# Test SF6b: land main-worktree guard — exit 1, message mentions main worktree
+# Test 18: land main-worktree guard — exit 1, message mentions main worktree
 @test "land: cannot land the main worktree — exit 1" {
     local repo
     repo=$(cd "$(mktemp -d /tmp/spine-test-wt-XXXXXX)" && pwd -P)
@@ -650,10 +672,20 @@ make_repo() {
 
     printf '%s\n' "$output" | grep -qi 'cannot land the main worktree'
 
+    run sh "$WT" land "$repo/"
+    [ "$status" -eq 1 ]
+
+    printf '%s\n' "$output" | grep -qi 'cannot land the main worktree'
+
+    run sh "$WT" land .
+    [ "$status" -eq 1 ]
+
+    printf '%s\n' "$output" | grep -qi 'cannot land the main worktree'
+
     rm -rf "$repo"
 }
 
-# Test SF6c: land detached-HEAD guard — exit 1, message mentions detached HEAD
+# Test 19: land detached-HEAD guard — exit 1, message mentions detached HEAD
 @test "land: worktree in detached HEAD — exit 1" {
     local repo
     repo=$(cd "$(mktemp -d /tmp/spine-test-wt-XXXXXX)" && pwd -P)
@@ -663,8 +695,7 @@ make_repo() {
     run sh "$WT" create landdetach
     [ "$status" -eq 0 ]
     local wt_dir
-    wt_dir=$(printf '%s\n' "$output" | grep '^created: ' | sed 's/^created: //')
-    [ -n "$wt_dir" ] || { echo "landdetach worktree not found — create failed"; false; }
+    wt_dir=$(created_worktree_dir "$output" "landdetach")
 
     # Detach the worktree HEAD
     git -C "$wt_dir" checkout --detach 2>/dev/null
@@ -674,5 +705,40 @@ make_repo() {
 
     printf '%s\n' "$output" | grep -qi 'detached'
 
+    rm -rf "$repo"
+}
+
+# Test 20: hostile global rebase/merge config cannot change conflict shape
+@test "sync: hostile global rebase and merge config isolated by repo config" {
+    local repo
+    repo=$(cd "$(mktemp -d /tmp/spine-test-wt-XXXXXX)" && pwd -P)
+    local hostile_config="$repo/hostile.gitconfig"
+    write_hostile_git_config "$hostile_config"
+    GIT_CONFIG_GLOBAL="$hostile_config" make_repo "$repo"
+
+    cd "$repo"
+    run env GIT_CONFIG_GLOBAL="$hostile_config" sh "$WT" create hostileconflict
+    [ "$status" -eq 0 ]
+    local wt_dir
+    wt_dir=$(created_worktree_dir "$output" "hostileconflict")
+
+    printf 'version-wt\n' > "$wt_dir/.keep"
+    git -C "$wt_dir" add .keep
+    git -C "$wt_dir" commit -q -m "wt edit under hostile config"
+
+    printf 'version-main\n' > "$repo/.keep"
+    git -C "$repo" add .keep
+    git -C "$repo" commit -q -m "main edit under hostile config"
+
+    run env GIT_CONFIG_GLOBAL="$hostile_config" sh "$WT" sync "$wt_dir"
+    [ "$status" -eq 3 ]
+
+    # Repo-local rebase.backend=merge must beat global rebase.backend=apply.
+    [ -d "$(git -C "$wt_dir" rev-parse --path-format=absolute --git-path rebase-merge)" ]
+
+    # Repo-local merge.conflictStyle=merge must beat global diff3 markers.
+    ! grep -q '^|||||||' "$wt_dir/.keep"
+
+    git -C "$wt_dir" rebase --abort 2>/dev/null || true
     rm -rf "$repo"
 }
