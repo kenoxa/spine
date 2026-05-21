@@ -10,5 +10,6 @@ Numbered folders match tracking IDs (issue/ADR-style). One `spec.md` (+ optional
 | **2613** | [prototype-first-workflow/spec.md](2613-prototype-first-workflow/spec.md) | **Archived** — discuss/plan/execute removed; historical rationale only |
 | **2614** | [evidence-fidelity/spec.md](2614-evidence-fidelity/spec.md) | Advisory + review paths (`{source_artifact_path}`, `{change_evidence_path}` / `review-change-evidence.md`, `use-envoy` plane) |
 | **2614** | [implementer-standard-tier/spec.md](2614-implementer-standard-tier/spec.md) | Done — implementer Standard (`sonnet`); session vs implementer escalation docs |
+| **2621** | [unified-git-worktrees/spec.md](2621-unified-git-worktrees/spec.md) | In-progress — manual `use-worktree` skill; hook `.git`-file fix; `.scratch` symlink bridge; CoW carry-over; Zed guide |
 
 **Related:** [skills-reference.md](../skills-reference.md), [architecture.md](../architecture.md).
