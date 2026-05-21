@@ -15,6 +15,8 @@ critical UX intent unclear.
 
 For visual craft (typography, color, motion, composition), use `frontend-design` skill.
 
+For modern web-platform best-practice patterns and Baseline browser-support guidance, use `modern-web-guidance` skill before implementing.
+
 ## State Coverage
 
 Every UI component MUST account for these states where applicable:

@@ -1,7 +1,7 @@
 ---
 name: do
 description: >-
-  Catch-all entry point. Use when: 'fix this', 'add this', 'help me with this'.
+  Use when: 'fix this', 'add this', 'help me with this'.
 argument-hint: "[task, problem, feature, bug, question, or idea]"
 ---
 

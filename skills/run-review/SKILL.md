@@ -1,7 +1,7 @@
 ---
 name: run-review
 description: >-
-  Structured code review with severity-bucketed findings. Use when: 'review', 'code review', 'review the changes', 'audit this', 'review/audit/adjust', 'is this safe to merge'.
+  Use when: 'review', 'code review', 'audit this', 'is this safe to merge'.
 argument-hint: "[file, PR, or scope]"
 ---
 

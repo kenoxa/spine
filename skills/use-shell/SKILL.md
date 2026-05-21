@@ -1,7 +1,7 @@
 ---
 name: use-shell
 description: >-
-  Shell and CLI conventions. Use when: 'writing scripts', 'structural search', 'semantic search'.
+  Use when: 'writing scripts', 'structural search', 'semantic search'.
 argument-hint: "[shell task or command]"
 ---
 

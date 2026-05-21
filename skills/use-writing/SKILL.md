@@ -1,7 +1,7 @@
 ---
 name: use-writing
 description: >-
-  Documentation quality. Use when: 'write docs', 'update changelog', 'draft release notes'.
+  Use when: 'write docs', 'update changelog', 'draft release notes'.
 argument-hint: "[artifact type or document to write/edit]"
 ---
 

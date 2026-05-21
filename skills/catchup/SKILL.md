@@ -1,7 +1,7 @@
 ---
 name: catchup
 description: >-
-  Resume session after /clear or compaction. Use when: 'catch up', 'session state'.
+  Use when: 'catch up', 'session state'.
 argument-hint: "[session-id or path to session artifacts]"
 ---
 

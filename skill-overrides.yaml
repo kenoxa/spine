@@ -1,6 +1,6 @@
 # Compact descriptions for global skills installed by install.sh.
 # Applied post-install to ~/.agents/skills/<name>/SKILL.md via patch_global_skill_descriptions().
-# Budget constraint: Σ(desc_len + 109) across all 43 active skills must stay under 7500 chars.
+# Budget constraint: Σ(desc_len + 109) across all 45 active skills must stay under 7700 chars.
 # Run scripts/check-skill-budget.sh to verify after changes.
 #
 # Tiers (invocation surface):
@@ -62,3 +62,8 @@ skills:
     tier: sub-skill
     description: >-
       TDD cycle enforcement for with-testing.
+
+  modern-web-guidance:
+    tier: sub-skill
+    description: >-
+      Modern web-platform guidance for with-frontend.

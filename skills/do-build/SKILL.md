@@ -1,7 +1,7 @@
 ---
 name: do-build
 description: >-
-  Implement, review, and ship. Use when: 'implement and review', 'just ship it'.
+  Use when: 'implement and review', 'just ship it'.
 argument-hint: "[plan reference, consult recommendation, or task]"
 ---
 

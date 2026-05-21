@@ -1,7 +1,7 @@
 ---
 name: run-architecture-audit
 description: >-
-  Architecture audit. Use when: 'architecture audit', 'coupling', 'module depth'.
+  Use when: 'architecture audit', 'coupling', 'module depth'.
 argument-hint: "[scope: directory, module, or 'full codebase']"
 ---
 

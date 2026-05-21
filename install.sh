@@ -26,7 +26,12 @@ GLOBAL_SKILLS=(
   "mcollina/skills -s typescript-magician"
   "trailofbits/skills -s differential-review -s fp-check"
   "mattpocock/skills -s ubiquitous-language -s tdd"
+  "GoogleChrome/modern-web-guidance -s modern-web-guidance"
 )
+
+# Pins the npx CLI version invoked inside modern-web-guidance's SKILL.md body.
+# Upstream is early-preview and churns daily — pin to a known-good version.
+MODERN_WEB_GUIDANCE_VERSION="0.0.169"
 
 # MCP servers previously installed by Spine — removed on next run.
 # Add server names here when replacing or dropping an MCP server.
@@ -2093,6 +2098,34 @@ patch_global_skill_descriptions() {
   done <<< "$skill_names"
 }
 
+# Pin modern-web-guidance CLI version: rewrite every @latest reference → pinned version.
+# Upstream body ships `npx -y modern-web-guidance@latest` (3 occurrences); daily churn makes @latest unsafe.
+# Uses mktemp → sed → cat > to rewrite the file while preserving its inode, mode, and ownership.
+# Idempotent: when already pinned, grep -q finds no @latest match and the function returns early
+# without creating a temp file or touching the file's mtime.
+# Input contract: version must be non-empty and contain only digits and dots; an empty or
+# non-numeric/dotted version causes an immediate return 1 without writing. A failed sed or
+# cat rewrite also returns 1 — the function never returns 0 after a failed write.
+pin_modern_web_guidance() {
+  local skill_file=$1
+  local version=$2
+  [ -f "$skill_file" ] || return 0
+  grep -q 'modern-web-guidance@latest' "$skill_file" || return 0
+  case "$version" in
+    "" | *[!0-9.]*) return 1 ;;
+  esac
+  local tmp rc
+  tmp=$(mktemp)
+  if sed "s/modern-web-guidance@latest/modern-web-guidance@${version}/g" \
+       "$skill_file" > "$tmp" && cat "$tmp" > "$skill_file"; then
+    rc=0
+  else
+    rc=1
+  fi
+  rm -f "$tmp"
+  return "$rc"
+}
+
 install_skills() {
   local skills_src="$1"; shift
   local detected_tools=("$@")
@@ -2237,6 +2270,8 @@ install_skills() {
   fi
 
   patch_global_skill_descriptions "$skills_src"
+
+  pin_modern_web_guidance "$HOME/.agents/skills/modern-web-guidance/SKILL.md" "$MODERN_WEB_GUIDANCE_VERSION"
 }
 
 # --- Cleanup ---
@@ -2476,4 +2511,4 @@ main() {
   ui_done "Spine ready  ${summary}"
 }
 
-main "$@"
+if [ "${BASH_SOURCE[0]:-$0}" = "$0" ]; then main "$@"; fi

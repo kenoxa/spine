@@ -1,7 +1,7 @@
 ---
 name: use-goal-prompt
 description: >-
-  /goal compiler. Use when: 'goal prompt', 'plan', 'build', 'refactor', 'harden', 'migrate'.
+  Use when: 'goal prompt'.
 argument-hint: "[intent: interrogate|plan|build|refactor|consolidate|harden|migrate] [topic]"
 ---
 

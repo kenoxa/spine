@@ -1,7 +1,7 @@
 ---
 name: run-recap
 description: >-
-  Session history work reports. Use when: 'what did I do', 'standup', 'timesheet', 'billing'.
+  Use when: 'what did I do', 'standup', 'timesheet', 'billing'.
 argument-hint: "[--days N, default 7] [--format standup|timesheet|recap] [--project filter] [--note 'DATE HH-HH: description [project]']"
 ---
 

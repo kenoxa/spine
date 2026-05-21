@@ -1,7 +1,7 @@
 ---
 name: run-explore
 description: >-
-  Codebase exploration. Use when: 'explore', 'how does X work', 'map the flow'.
+  Use when: 'explore', 'how does X work', 'map the flow'.
 argument-hint: "[area or question to explore]"
 ---
 

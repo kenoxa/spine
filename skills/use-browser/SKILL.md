@@ -1,7 +1,7 @@
 ---
 name: use-browser
 description: >-
-  Browser automation. Use when: 'test this page', 'go to URL', 'fill the form', 'screenshot'.
+  Use when: 'test this page', 'go to URL', 'fill the form', 'screenshot'.
 argument-hint: "[URL or browser task description]"
 ---
 

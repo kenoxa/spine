@@ -18,7 +18,10 @@ npx skills add trailofbits/skills -s differential-review -a '*' -g -y
 npx skills add trailofbits/skills -s fp-check -a '*' -g -y
 npx skills add mattpocock/skills -s ubiquitous-language -a '*' -g -y
 npx skills add mattpocock/skills -s tdd -a '*' -g -y
+npx skills add GoogleChrome/modern-web-guidance -s modern-web-guidance -a '*' -g -y
 ```
+
+> **Note:** `modern-web-guidance` is version-pinned. `install.sh` rewrites the installed `SKILL.md` from `@latest` to a known-good version (upstream is early-preview and churns daily); a manual `npx skills add` tracks upstream `@latest` until you re-run `install.sh`.
 
 ## Referenced by local skills
 
@@ -34,6 +37,7 @@ npx skills add mattpocock/skills -s tdd -a '*' -g -y
 | `fp-check` | `trailofbits/skills` | run-review — systematic true/false positive verification for security findings |
 | `ubiquitous-language` | `mattpocock/skills` | with-terminology — DDD-style glossary extraction and canonical term formalization (expects sections: Relationships, Example dialogue, Flagged ambiguities) |
 | `tdd` | `mattpocock/skills` | with-testing — TDD cycle enforcement and mock implementation rules once test boundaries are mapped |
+| `modern-web-guidance` | `GoogleChrome/modern-web-guidance` | with-frontend — modern web-platform best-practice guides |
 
 ## Standalone
 
@@ -55,7 +59,7 @@ Bundled by upstream maintainers — distributed via each provider's plugin syste
 
 ## Description Budget
 
-Claude Code loads all skill descriptions at session start into a fixed character budget (default: 8,000 chars). Spine's 43 active skills (32 local + 11 global) must fit within 7,500 chars to leave headroom across context sizes.
+Claude Code loads all skill descriptions at session start into a fixed character budget (default: 8,000 chars). Spine's 45 active skills (33 local + 12 global) must fit within 7,700 chars to leave headroom across context sizes.
 
 Each skill occupies `desc_len + 109` chars of budget. Run the checker after any description change:
 

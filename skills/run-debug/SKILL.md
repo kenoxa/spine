@@ -1,7 +1,7 @@
 ---
 name: run-debug
 description: >-
-  Structured debugging. Use when: 'failing tests', 'crashes', 'regressions', 'flaky failures'.
+  Use when: 'failing tests', 'crashes', 'regressions', 'flaky failures'.
 argument-hint: "[error, failing test, or symptom]"
 ---
 

@@ -33,17 +33,23 @@ Use `/use-skill-craft` — it covers the full authoring workflow. Key points:
 ---
 name: skill-name
 description: >-
-  What it does. Use when: 'trigger phrase', 'another phrase'.
+  Use when: 'trigger phrase', 'another phrase'.
 argument-hint: "[what the user passes after /skill-name]"
 ---
 ```
 
-**Description budget**: All 43 skill descriptions share an 8,000-char session budget. Use `>-` (not `>`), which strips the trailing newline and avoids inflating character counts. Keep within tier limits:
+**Triggers-first description format** — two forms:
+- `do-/run-/use-` skills → bare trigger cluster, **no prose purpose**: `Use when: 'X', 'Y'.`
+- `with-*` skills → purpose clause + triggers: `<purpose>. Use when: '<domain task>'.`
+- Sub-skill tier (workflow-invoked only) → purpose only, no triggers.
+
+**Description budget**: All 45 skill descriptions share an 8,000-char session budget and must fit within a 7,700-char policy threshold (see `scripts/check-skill-budget.sh`). Use `>-` (not `>`), which strips the trailing newline and avoids inflating character counts. Keep within tier limits:
 
 | Tier | Who invokes it | Char limit | Trigger phrases? |
 |------|---------------|-----------|-----------------|
 | Named / catch-all | User by exact name | ≤35c | No — purpose only |
-| Fuzzy | User by intent phrase | ≤95c | Yes: `Use when: 'X', 'Y'.` |
+| Fuzzy (`do-/run-/use-`) | User by intent phrase | ≤95c | Yes: `Use when: 'X', 'Y'.` — no prose purpose |
+| Fuzzy (`with-*`) | User by domain task | ≤95c | Yes: `<purpose>. Use when: '<domain task>'.` |
 | Dual-use | User or workflow skill | ≤55c | No — purpose only |
 | Sub-skill | Workflow skill only | ≤50c | No — purpose only |
 
@@ -70,9 +76,12 @@ npx skills add trailofbits/skills -s differential-review -a '*' -g -y
 npx skills add trailofbits/skills -s fp-check -a '*' -g -y
 npx skills add mattpocock/skills -s ubiquitous-language -a '*' -g -y
 npx skills add mattpocock/skills -s tdd -a '*' -g -y
+npx skills add GoogleChrome/modern-web-guidance -s modern-web-guidance -a '*' -g -y
 ```
 
 Public manual examples intentionally use `npx skills add` to match [`skills.sh`](https://skills.sh/). The installer may bootstrap the same CLI through another launcher.
+
+> **Note:** `modern-web-guidance` is version-pinned. `install.sh` rewrites the installed `SKILL.md` from `@latest` to a known-good version (upstream is early-preview and churns daily); a manual `npx skills add` tracks upstream `@latest` until you re-run `install.sh`.
 
 See [docs/global-skills.md](docs/global-skills.md) for which local skills reference each external skill.
 

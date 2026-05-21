@@ -1,11 +1,24 @@
 #!/usr/bin/env bash
-# Verify Σ(desc_len + 109) across all active skills stays under threshold.
+# Verify Σ(desc_len + OVERHEAD) across all active skills stays under the threshold.
+# Models Claude Code's skill-listing budget: controlled by the `skillListingBudgetFraction`
+# setting (default 0.01 = 1% of context window; requires v2.1.105+) or the
+# `SLASH_COMMAND_TOOL_CHAR_BUDGET` env var (fixed char count). Each skill's combined
+# description + when_to_use is capped at `maxSkillDescriptionChars` (default 1536 chars).
+# On overflow, least-used skill descriptions collapse to bare names; `/doctor` reports
+# the truncation count. Skill names are always included; OVERHEAD approximates the
+# per-skill name + structural framing consumed beyond the description text.
 # Usage: scripts/check-skill-budget.sh [repo-root]
 # Exit 0 = within budget. Exit 1 = exceeded. Exit 2 = missing dependency.
 set -euo pipefail
 
+# Undocumented empirical estimate of per-skill name + structural framing overhead
+# (chars consumed beyond the description text itself); 109 is not derivable from
+# any official Claude Code doc — treat as an approximation, not a verified constant.
 OVERHEAD=109
-THRESHOLD=7700  # actual Claude Code budget is 8000c; threshold gives ~200c headroom for new skills
+# Models a SLASH_COMMAND_TOOL_CHAR_BUDGET-style fixed budget of 8000c (≈ 1% of a
+# ~200K-token context; 2000 tokens ≈ 8000 chars); smaller-context models get a
+# proportionally smaller budget. 300c headroom reserved for new skills.
+THRESHOLD=7700
 ROOT="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
 
 if ! command -v yq &>/dev/null; then

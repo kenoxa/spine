@@ -1,7 +1,7 @@
 ---
 name: run-discuss
 description: >-
-  Targeted questioning to clarify scope. Use when: 'clarify', 'what exactly', 'narrow this down'.
+  Use when: 'clarify', 'what exactly', 'narrow this down'.
 argument-hint: "[topic, problem, or decision to clarify]"
 ---
 

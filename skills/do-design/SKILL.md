@@ -1,7 +1,7 @@
 ---
 name: do-design
 description: >-
-  HOW-focused solution design. Use when: 'design', 'plan the approach', 'second opinion'.
+  Use when: 'design', 'plan the approach'.
 argument-hint: "[frame_artifact, problem statement, or area needing direction]"
 ---
 

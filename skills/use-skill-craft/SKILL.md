@@ -1,7 +1,7 @@
 ---
 name: use-skill-craft
 description: >-
-  Skill and agent authoring. Use when: 'create skill', 'review agent', 'fix skill', 'improve this skill', 'audit skill', 'rewrite agent description', 'skill triggers', 'is this skill well-formed'.
+  Use when: 'create skill', 'review agent', 'fix skill', 'audit skill', 'skill triggers'.
 argument-hint: "[skill name, agent/reference file, or AGENTS.md path]"
 ---
 
@@ -24,10 +24,15 @@ do not create the skill.
 
 ```yaml
 ---
-description: >
-  What it does. Use when [triggers]. Do NOT use when [exclusions].
+description: >-
+  Use when: 'X', 'Y'.
 ---
 ```
+
+**Triggers-first format** — two forms:
+- `do-/run-/use-` skills → bare trigger cluster, no prose purpose: `Use when: 'X', 'Y'.`
+- `with-*` skills → purpose clause + triggers: `<purpose>. Use when: '<domain task>'.`
+- Sub-skill tier (workflow-invoked only) → purpose only, no triggers.
 
 Include a `name` field matching the directory name (with prefix).
 `description` is the sole trigger surface — the body loads only after activation. Every behavior mode and trigger phrase must appear in the description or the skill won't auto-invoke.

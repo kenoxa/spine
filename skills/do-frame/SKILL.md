@@ -1,7 +1,7 @@
 ---
 name: do-frame
 description: >-
-  WHAT-focused problem framing. Use when: 'frame', 'what's the problem', 'scope this', 'analyze'.
+  Use when: 'frame', 'what's the problem', 'scope this'.
 argument-hint: "[problem, symptom, or area to frame]"
 ---
 

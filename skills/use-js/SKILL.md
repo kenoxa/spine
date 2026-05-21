@@ -1,7 +1,7 @@
 ---
 name: use-js
 description: >-
-  JS/TS tooling with ni. Use when: 'install packages', 'run scripts', 'npm tasks'.
+  Use when: 'install packages', 'run scripts', 'npm tasks'.
 argument-hint: "[package operation or JS/TS task]"
 ---
 

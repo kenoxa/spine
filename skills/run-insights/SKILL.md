@@ -1,7 +1,7 @@
 ---
 name: run-insights
 description: >-
-  Mine session history. Use when: 'analyze my sessions', 'improve my workflow', 'automate tasks'.
+  Use when: 'analyze my sessions', 'improve my workflow', 'automate tasks'.
 argument-hint: "[--days N, default 14] [--project filter]"
 ---
 
