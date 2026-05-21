@@ -38,7 +38,7 @@ while [ "$dir" != "/" ] && [ "$dir" != "$HOME" ]; do
     files="$dir/AGENTS.md
 $files"
   fi
-  if [ -d "$dir/.git" ]; then
+  if [ -d "$dir/.git" ] || [ -f "$dir/.git" ]; then
     break
   fi
   dir=$(dirname "$dir")

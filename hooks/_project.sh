@@ -14,7 +14,7 @@ fi
 
 dir=$(dirname "$1")
 while [ "$dir" != "/" ]; do
-  if [ -f "$dir/package.json" ] || [ -d "$dir/.git" ]; then
+  if [ -f "$dir/package.json" ] || [ -d "$dir/.git" ] || [ -f "$dir/.git" ]; then
     echo "$dir"
     exit 0
   fi
