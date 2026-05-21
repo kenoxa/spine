@@ -2,6 +2,36 @@
 
 All notable changes are documented here, focused on user impact.
 
+## 2026-05-21
+
+### Added
+
+- **Manual Git worktree workflow** — new `use-worktree` skill creates, lists, removes, prunes, syncs, and lands project worktrees under `.worktrees/`. Worktrees carry over ignored local state, keep `.scratch/` connected to the originating session, and include a user guide for common workflows and Zed setup.
+
+- **Session continuity contract** — new `use-session` skill defines `session.json`, `events.jsonl`, and `session-log.md` as the durable session shape for long-running workflow, goal, and worktree sessions. `catchup` can now read machine session state when present, while still falling back to `session-log.md` for older sessions.
+
+- **Generic rebase conflict handoff** — `run-merge` now supports rebase conflict briefs as well as merge briefs. `use-worktree sync` and `use-worktree land` can stop with a resolvable conflict state and hand off to `run-merge` without reviving queue automation.
+
+- **Git config test-isolation guidance** — added a knowledge note for Bats suites that must ignore global Git config, covering repo-local pins plus full `GIT_CONFIG_GLOBAL` / `GIT_CONFIG_SYSTEM` isolation when needed.
+
+### Changed
+
+- **Goal prompts now name continuity tools explicitly** — generated `/goal` prompts include compact `/use-session` instructions and name `/use-worktree` when branch/worktree isolation is part of the task, instead of relying on automatic skill triggering.
+
+- **Worktree sessions attach instead of forking** — bridged `.scratch` sessions are now documented as an attach path. Writer conflicts, stale state, contradictions, and missing terminal state are attention-required stop conditions rather than states the agent should silently resolve.
+
+- **`run-merge` stayed generic after queue retirement** — merge/rebase resolution is now a standalone conflict-resolution primitive, not a queue-specific helper.
+
+### Fixed
+
+- **Hooks now resolve linked worktree roots** — project-root detection handles worktrees where `.git` is a file instead of a directory, so hook behavior continues to work inside Git-linked worktrees.
+
+- **Worktree sync/land edge cases hardened** — follow-up fixes covered hostile global Git config, rebase empty-commit handling, main-worktree guards, and cleaner merge-verdict semantics.
+
+### Removed
+
+- **`run-queue` retired** — removed the autonomous queue skill, queue scripts, queue docs, queue spec, and active catalog references. The installer cleans up the retired skill name on the next run.
+
 ## 2026-05-20
 
 ### Changed
