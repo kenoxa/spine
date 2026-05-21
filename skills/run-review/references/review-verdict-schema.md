@@ -1,6 +1,6 @@
 # review-verdict.json — Schema
 
-Machine-readable verdict emitted by `/run-review` Phase 4; consumed by `skills/run-queue/` supervisor. `review-findings.md` is authoritative for humans; this sidecar is authoritative for machines.
+Machine-readable verdict emitted by `/run-review` Phase 4. `review-findings.md` is authoritative for humans; this sidecar is authoritative for machines.
 
 > **Note**: `review-findings.md` frontmatter field names are inconsistent across files. Machine consumers MUST NOT parse frontmatter for the verdict — use this sidecar.
 
@@ -44,11 +44,11 @@ Write to `.scratch/<session>/review-verdict.json.tmp`, then `mv` to final path (
 
 ## Verdict Values
 
-| Value | Criterion | Supervisor action |
+| Value | Criterion | Consumer action |
 |-------|-----------|-------------------|
-| `"ACCEPT"` | Zero `blocking` findings | Proceed to merge stage. |
-| `"ITERATE"` | ≥1 `blocking` finding, considered fixable | Block merge; retain branch; mark task `blocked-by-review`. |
-| `"REJECT"` | Irrecoverable or scope mismatch (e.g., wrong target branch, wrong artifact entirely) | Block merge; retain branch; mark task `blocked-by-review`. Do not retry. |
+| `"ACCEPT"` | Zero `blocking` findings | Treat review gate as passed. |
+| `"ITERATE"` | ≥1 `blocking` finding, considered fixable | Treat review gate as failed but fixable. |
+| `"REJECT"` | Irrecoverable or scope mismatch (e.g., wrong target branch, wrong artifact entirely) | Treat review gate as failed and do not retry automatically. |
 
 Gate: any `blocking` finding stops merge. `should_fix`/`follow_up` do not block (morning triage).
 
@@ -60,10 +60,10 @@ Gate: any `blocking` finding stops merge. `should_fix`/`follow_up` do not block 
 
 | Condition | Consumer action |
 |-----------|----------------|
-| Missing artifact | ITERATE-equivalent fail-secure; flag for morning triage. |
+| Missing artifact | ITERATE-equivalent fail-secure; flag for human triage. |
 | Malformed JSON | ITERATE-equivalent fail-secure; log parse error. |
 | `schema_version` > `"1"` | MUST refuse; treat as ITERATE-equivalent fail-secure. |
-| `findings_path` unresolvable | Proceed with `verdict` field; note failure in queue-report. |
+| `findings_path` unresolvable | Proceed with `verdict` field; note the missing findings artifact. |
 
 ## Compatibility
 
@@ -76,4 +76,3 @@ Gate: any `blocking` finding stops merge. `should_fix`/`follow_up` do not block 
 - **Emission**: [`review-output.md`](review-output.md) — Phase 4 Output Assembly section.
 - **Sibling pattern**: [`skills/do-build/references/build-status-schema.md`](../../do-build/references/build-status-schema.md) — `build-status.json` follows the same atomicity and version contract.
 - **Atomicity pattern**: [`docs/machine-verifiable-terminal-contracts.md`](../../../docs/machine-verifiable-terminal-contracts.md).
-- **Verdict gate**: `skills/run-queue/scripts/run.sh` — supervisor reads `verdict` field; any `blocking` > 0 triggers `blocked-by-review`.

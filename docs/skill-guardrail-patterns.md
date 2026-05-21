@@ -1,5 +1,5 @@
 ---
-updated: 2026-04-27
+updated: 2026-05-21
 paths:
   - skills/use-skill-craft/SKILL.md
   - CONTRIBUTING.md
@@ -62,70 +62,6 @@ Condition 1 (prior verifier was PASS) are the most common failure points.
 
 [E2: `skills/do-build/references/build-review-gate.md` §Budget-aware
 inline ACCEPT (conditional); commit `fc79e12`]
-
-## Layered Defense for Autonomous Runs
-
-Static hook inspection of shell source text has an inherent ceiling: shell
-quote-stripping, command-substitution, and path-resolution happen AFTER the hook
-sees the string. Three bypass classes survive even a dual-layer hook (substring
-pre-check + POSIX tokenizer):
-
-- **Shell-grouping / delegation** — `(git push)`, `bash -c "git push"` —
-  substring present but opener token shifts past `git`.
-- **Program-token obfuscation** — `"git" push`, `$(which git) push`,
-  `/usr/bin/git push` — literal `git` absent or quoted; tokenizer first-word
-  check fails.
-- **Option-bearing** — `git --git-dir=X push` — `git` and blocked subcommand
-  non-adjacent in token stream; substring pre-check misses chains.
-
-[E2: `skills/run-queue/scripts/guard-queue-shell.sh:127-141`; E3: `.scratch/autonomous-overnight-task-queue-1034/review-verifier.md` iter-1 FAIL + `review-verifier-iter2.md` regression probes; commits `30aab27`, `dfe6c70`]
-
-**Resolution: env-scoped git-config belt.** Defense-in-depth layer below the
-hook. Inside the child-spawn subshell, before exec:
-
-```sh
-export GIT_CONFIG_COUNT=2
-export GIT_CONFIG_KEY_0="url.disabled:///.pushInsteadOf"
-export GIT_CONFIG_VALUE_0="https://"
-export GIT_CONFIG_KEY_1="url.disabled:///.pushInsteadOf"
-export GIT_CONFIG_VALUE_1="git@"
-export GIT_TERMINAL_PROMPT=0
-export GIT_ASKPASS=/bin/false
-```
-
-Git rewrites any push URL to an unresolvable `disabled:///` scheme, aborting at
-the git-protocol layer regardless of command shape. `GIT_TERMINAL_PROMPT=0` +
-`GIT_ASKPASS=/bin/false` prevent credential prompts on a headless stdin.
-Env-scoped to the subshell — no `.git/config` mutation, auto-cleans on exit, no
-supervisor cleanup contract needed.
-
-E3 verified: HTTPS origin, SSH upstream, and residual obfuscation forms
-(`"git" push`, `$(which git) push`) all terminated with `remote helper
-'disabled' aborted session`. Local ops (`git bundle create`) are unaffected —
-expected; bundle does not use push URLs, and the hook still denies it via
-substring.
-
-[E2: `skills/run-queue/scripts/run.sh:327-341`; E3: `review-verifier-iter3.md` Probe suite 5; commit `274f51b`]
-
-**Pattern:** hook layer + git-config belt = two independent failure surfaces.
-Any LLM-wrapping context that needs to neutralize git push operations can reuse
-the env-var set verbatim — no repo state required, no cleanup contract.
-
-**Post-spawn scope verification: set membership, not diff scope.** When a
-supervisor spawns an agent over a bounded file set, verify the agent's claimed
-`files_resolved` against the pre-spawn conflict set — not against `git diff
-HEAD^..HEAD --name-only`. Merge commits include all auto-merged files,
-producing false positives for any file the agent touched incidentally. Capture
-the constrained set before spawn (`git diff --name-only --diff-filter=U`),
-then check `files_resolved ⊆ conflict_set` after. Pair with: residual
-unmerged-index check (`--diff-filter=U` empty), HEAD-advance check after
-re-checkout of scratch branch, and marker scan over claimed paths only.
-Fail-secure: any claimed file outside the pre-spawn set is a post-verify FAIL.
-
-[E2: `skills/run-queue/scripts/run.sh:1100` (pre-spawn capture),
-`run.sh:1226–1239` `_mrg_resolve_stage` set-membership loop;
-`run.sh:1197,1205` (re-checkout, unmerged re-check); B1 blocking
-finding, review iter 1]
 
 ## Ecosystem Context
 

@@ -1,6 +1,6 @@
 # build-status.json — Schema
 
-Machine-readable terminal signal emitted by do-build finalize. Consumed by `skills/run-queue/` supervisor (terminal check + per-task promotion) and future HTML visualizer. The natural-language completion declaration remains authoritative for humans.
+Machine-readable terminal signal emitted by do-build finalize. Consumed by future wrappers, session resumers, and optional HTML visualizers. The natural-language completion declaration remains authoritative for humans.
 
 ## Path
 
@@ -25,9 +25,9 @@ Atomic: write `.tmp`, then `mv` to final path. Mid-build readers must never obse
   "dirty_end": false,
   "iteration": 1,
   "commits": [
-    { "sha": "9abcdef0", "subject": "feat(run-queue): supervisor core" }
+    { "sha": "9abcdef0", "subject": "feat(session): persist build state" }
   ],
-  "files_modified": ["skills/run-queue/SKILL.md"],
+  "files_modified": ["skills/use-session/SKILL.md"],
   "iteration_cost_usd": null
 }
 ```
@@ -44,18 +44,18 @@ Atomic: write `.tmp`, then `mv` to final path. Mid-build readers must never obse
 | `base_rev` | full SHA | `git rev-parse HEAD` at do-build entry. |
 | `head_rev` | full SHA | `git rev-parse HEAD` at finalize. Equals `base_rev` if no commits. |
 | `dirty_start` | bool | `git status --porcelain` non-empty at entry. |
-| `dirty_end` | bool | `git status --porcelain` non-empty at finalize. A `true` on a supervised queue task is a trip-wire. |
+| `dirty_end` | bool | `git status --porcelain` non-empty at finalize. A `true` in an autonomous wrapper is a trip-wire. |
 | `iteration` | int | 1-indexed iteration in the intra-task loop. `1` for single-shot. |
 | `commits` | `[{sha,subject}]` | Commits created in this iteration. `[]` if none. |
 | `files_modified` | `[string]` | Repo-relative paths touched this iteration. Sorted, deduplicated. |
 | `iteration_cost_usd` | number \| null | API cost, when `--max-budget-usd` was set and cost is observable. |
 
-## Status → supervisor action
+## Status → consumer action
 
-| Value | Meaning | Supervisor action |
+| Value | Meaning | Consumer action |
 |-------|---------|-------------------|
 | `complete` | Review ACCEPT, gates met, question-answered `yes` | Mark task done; proceed to dependents. |
-| `partial` | ACCEPT, question-answered `partially` or `no` | Done, flagged for morning review. |
+| `partial` | ACCEPT, question-answered `partially` or `no` | Done, flagged for human review. |
 | `blocked` | Iterate cap, gate fail, interrupt, or budget exceeded | Failed; transitive dependents → `blocked`. |
 | `in_progress` | Transient sentinel inside a running iteration | Never terminal. Observing it at per-task check = premature read or bug. |
 
@@ -71,7 +71,7 @@ Short codes. Match on prefix; consumers fallback to `status` on unknown values.
 | `question-answered-no` | Intent not met | `partial` |
 | `gate-failed-builds` | `Builds/parses` gate failed | `blocked` |
 | `polish-iterate-cap` | Polish loop hit 3-iteration cap | `partial` |
-| `supervisor-interrupt` | SIGTERM/SIGINT from queue supervisor | `blocked` |
+| `supervisor-interrupt` | SIGTERM/SIGINT from an external wrapper | `blocked` |
 | `budget-exceeded` | `--max-budget-usd` tripped | `blocked` |
 
 ## Compatibility

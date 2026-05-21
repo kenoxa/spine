@@ -1,14 +1,14 @@
 ---
-updated: 2026-04-26
+updated: 2026-05-21
 paths:
   - skills/do-build/references/build-status-schema.md
   - skills/do-build/references/build-finalize.md
-  - skills/run-queue/scripts/run.sh
 ---
 
 # Machine-Verifiable Terminal Contracts
 
-Skills that complete autonomously (overnight queue, long-running builds) need
+Skills that complete autonomously (long-running builds, wrappers, or session
+resumers) need
 machine-readable terminal signals. Natural-language "Build complete." is
 insufficient when the consumer is another process, not a human.
 
@@ -53,7 +53,7 @@ New optional fields are additive; consumers MUST ignore unknown fields.
 ## When to use
 
 - Skill completes autonomously (no human watching final output).
-- A downstream process (queue supervisor, CI runner, wrapper) needs to poll
+- A downstream process (CI runner, wrapper, session resumer) needs to poll
   completion state.
 - Iteration state matters (intra-task loop, per-iteration snapshots).
 
@@ -70,13 +70,6 @@ New optional fields are additive; consumers MUST ignore unknown fields.
   outcome (ACCEPT, cap-reached, partial, question-answered=no).
   [E2: finalize ref; E3: first real-world emission at
   `.scratch/autonomous-overnight-task-queue-1034/build-status.json`, 2026-04-24]
-
-- **`run-queue` supervisor** (`skills/run-queue/scripts/run.sh:362-396`,
-  `_classify_terminal_status`) treats `terminal_artifact: build-status.json` as
-  the default task completion signal; reads `.status`, propagates per the
-  action table above. Integration-test verified with 3-task linear queue
-  (`.scratch/queue-demo-legit/queue-report.md`).
-  [E2: run.sh:362-396; E3: queue-demo-legit/queue-report.md]
 
 ## Anti-patterns
 

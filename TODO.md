@@ -1,11 +1,5 @@
 # TODO
 
-- support opencode cli in run-queue
-  - design done. tier-first abstraction: `provider` + `tier` in queue.yaml/handoff frontmatter.
-  - reuse envoy `resolve_tier()` for model resolution. `model:` stays verbatim override.
-  - phase 1: claude + opencode (jsonl transcript, existing pipeline works).
-  - phase 2: codex + cursor (plain text, needs provider-specific transcript + hooks).
-  - slices: schema/validation → resolution logic → claude refactor → opencode spawn → docs/test.
 - install/setup zed agent
 - svelte skill with autofixer script like we have in nestor
 - auto-loading per glob like min description?

@@ -43,7 +43,7 @@ RETIRED_AGENT_NAMES=("worker" "second-opinion" "qwen-code" "github-copilot")
 
 # Skill names previously used by Spine — cleaned up on next run.
 # Add names here when renaming a skill to ensure cross-provider cleanup.
-RETIRED_SKILL_NAMES=("do-analyze" "do-consult")
+RETIRED_SKILL_NAMES=("do-analyze" "do-consult" "run-queue")
 
 # --- Terminal UI ---
 

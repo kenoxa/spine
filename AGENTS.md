@@ -40,11 +40,10 @@ Managed by `/run-curate`; style: telegraphic, 250-800 tokens, `updated:` frontma
 - `docs/browser-automation-selection.md` — dev-browser chosen over 5 alternatives, benchmarks, install model, limitations
 - `docs/model-tier-assignments.md` — agent tier table, session model guidance, session vs implementer escalation triggers
 - `docs/cross-provider-hooks.md` — per-provider hook formats, Cursor camelCase schema, capability matrix, cross-provider gotchas
-- `docs/skill-guardrail-patterns.md` — anti-rationalization format, invariant-first review briefs, inline vs hook enforcement, budget-aware inline ACCEPT, layered defense for autonomous runs, post-spawn scope verification (set membership not diff scope), ecosystem context
+- `docs/skill-guardrail-patterns.md` — anti-rationalization format, invariant-first review briefs, inline vs hook enforcement, budget-aware inline ACCEPT, ecosystem context
 - `docs/machine-verifiable-terminal-contracts.md` — JSON terminal artifact pattern (build-status.json), status→consumer action table, atomicity contract
-- `docs/shell-validator-locale-guard.md` — LC_ALL=C guard for POSIX case character-class validators; fix pattern, follow-up sites in queue-lint.sh
+- `docs/shell-validator-locale-guard.md` — LC_ALL=C guard for POSIX case character-class validators; layered allowlist pattern
 - `docs/shell-trap-return-scope.md` — `trap … RETURN` is global state, not function-scoped; explicit `rm -f` idiom
-- `docs/run-queue-guide.md` — end-user how-to: queue.yaml setup, kick, monitor, morning review, conflict resolution, troubleshooting
 
 ## Deep Dives
 

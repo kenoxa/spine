@@ -1,21 +1,23 @@
 ---
 name: run-merge
 description: >-
-  Git conflict resolver for run-queue.
+  Git conflict resolver for prepared merge briefs. Use when a merge, sync, or
+  land operation has conflicts and the caller provides a self-contained brief.
 argument-hint: "<brief-path>"
 ---
 
-**Empirical constraint**: agentic conflict resolution success rate is below 60% even for frontier models (Merge-Bench). Every resolution is provisional — the queue supervisor always re-runs `/run-review` at `depth=focused` after a successful resolution. Do not treat a clean merge as correct; the re-review is the empirical gate.
+**Empirical constraint**: agentic conflict resolution success rate is below 60% even for frontier models (Merge-Bench). Every resolution is provisional — the caller must run its own focused review or verification after a successful resolution. Do not treat a clean merge as correct.
 
-**Execution context**: running inside `claude -p` as a queue child. `SPINE_QUEUE=1`, `SPINE_QUEUE_STAGE=merge`. Guard hook denies `git push`, `git reset --hard`, `git commit --amend`, and out-of-repo writes. Do not attempt those operations.
+**Execution context**: running in the conflicted repo or worktree. Do not call `git push`, `git reset --hard`, `git commit --amend`, or write outside the repo.
 
 ## Phase 1 — Load Brief
 
 Read the brief file at the path given in the argument. The brief is a markdown file with YAML frontmatter. Load [merge-brief-schema.md](references/merge-brief-schema.md) for the full schema.
 
 Required frontmatter fields:
-- `task_id` — the queue task being resolved
-- `integration_branch` — the branch this task was being merged into
+- `merge_id` — caller-scoped identifier for this merge attempt
+- `source_branch` — branch being merged
+- `target_branch` — branch being merged into
 - `base_ref` — common ancestor SHA
 - `verdict_path` — absolute path where `merge-verdict.json` must be written
 
@@ -80,4 +82,4 @@ mv "$tmp" "$verdict_path"
 
 Schema: see [merge-brief-schema.md](references/merge-brief-schema.md) § Verdict Sidecar.
 
-**On any unrecoverable error**: write `verdict: aborted` to `verdict_path` and exit cleanly. Never exit without writing the verdict — a missing verdict is a harder failure for the supervisor than an explicit `failed`.
+**On any unrecoverable error**: write `verdict: aborted` to `verdict_path` and exit cleanly. Never exit without writing the verdict — a missing verdict is a harder failure for the caller than an explicit `failed`.

@@ -2,38 +2,38 @@
 
 ## Merge Brief (`merge-brief.md`)
 
-Written by the queue supervisor at `.scratch/<task-session>/merge-brief.md` before spawning `/run-merge`. Self-contained — supervisor context is embedded; `/run-merge` must not need to query git beyond what the brief provides.
+Written by the caller at `.scratch/<session>/merge-brief.md` before invoking `/run-merge`. Self-contained — caller context is embedded; `/run-merge` must not need to query git beyond what the brief provides.
 
 ### YAML Frontmatter
 
 ```yaml
 ---
-task_id: fix-login-bug
-branch: queue/overnight-2026-04-25-a1b2/fix-login-bug
-integration_branch: queue/overnight-2026-04-25-a1b2/result
+merge_id: fix-login-bug
+source_branch: feature/fix-login-bug
+target_branch: main
 base_ref: abc1234
-verdict_path: /abs/path/.scratch/queue-run-fix-login-bug/merge-verdict.json
+verdict_path: /abs/path/.scratch/fix-login-bug/merge-verdict.json
 ---
 ```
 
 | Field | Required | Semantics |
 |---|---|---|
-| `task_id` | yes | Queue task identifier |
-| `branch` | yes | Task branch being merged |
-| `integration_branch` | yes | Merge target (`queue/<run_id>/result`) |
+| `merge_id` | yes | Caller-scoped merge identifier |
+| `source_branch` | yes | Branch being merged |
+| `target_branch` | yes | Merge target branch |
 | `base_ref` | yes | Common ancestor SHA |
 | `verdict_path` | yes | Absolute path for `merge-verdict.json`; `/run-merge` must write here |
 
 ### Body Format
 
-One section per conflicted file with (A, B, O) triple and commit messages. Supervisor builds each section from:
+One section per conflicted file with (A, B, O) triple and commit messages. Caller builds each section from:
 
 ```sh
-git show "${base_ref}:${file}"            # O — common ancestor
-git show "${integration_branch}:${file}"  # A — ours
-git show "${branch}:${file}"              # B — theirs
-git log --oneline "${base_ref}..${integration_branch}" -- "${file}" | head -5
-git log --oneline "${base_ref}..${branch}" -- "${file}" | head -5
+git show "${base_ref}:${file}"       # O — common ancestor
+git show "${target_branch}:${file}"  # A — ours
+git show "${source_branch}:${file}"  # B — theirs
+git log --oneline "${base_ref}..${target_branch}" -- "${file}" | head -5
+git log --oneline "${base_ref}..${source_branch}" -- "${file}" | head -5
 ```
 
 Section template:
@@ -70,18 +70,17 @@ Written atomically (`.tmp` → `mv`) by `/run-merge` to `verdict_path` from the 
 | `verdict` | `"resolved"` \| `"failed"` \| `"aborted"` |
 | `files_resolved` | Paths staged as part of resolution. Non-empty on `resolved`; empty on `failed`/`aborted`. |
 
-| Verdict | Supervisor action |
+| Verdict | Caller action |
 |---|---|
-| `resolved` | Post-verify → re-review at `depth=focused` → fast-forward integration or escalate |
-| `resolved` + empty `files_resolved` | `merge-resolve-failed` fail-secure (vacuous claim) |
-| `failed` | `status=blocked`, `exit_reason=merge-resolve-failed`; branch retained |
+| `resolved` | Post-verify → focused review or domain checks → land or escalate |
+| `resolved` + empty `files_resolved` | Treat as failed fail-secure (vacuous claim) |
+| `failed` | Mark merge attempt blocked; retain branch/worktree |
 | `aborted` | Same as `failed`; indicates unrecoverable error before resolution attempt |
-| missing/malformed/wrong schema | `merge-resolve-failed` fail-secure |
+| missing/malformed/wrong schema | Treat as failed fail-secure |
 
 ## Invariants
 
-- `/run-merge` must NOT call `git push`, `git reset --hard`, or `git commit --amend`. Guard hook (`SPINE_QUEUE_STAGE=merge`) denies these.
-- Supervisor enforces a 1-attempt cap — `/run-merge` spawned at most once per task.
-- Timeout: `SPINE_QUEUE_MERGE_TIMEOUT` (default 1800s).
+- `/run-merge` must NOT call `git push`, `git reset --hard`, or `git commit --amend`.
+- Caller enforces retry and timeout policy.
 - `files_resolved` must be non-empty when `verdict=resolved` — an empty list is treated as a vacuous claim and escalates fail-secure.
-- `files_resolved` must be a subset of the pre-spawn conflict set — supervisor verifies via set membership (`files_resolved ⊆ conflict_set`), not diff scope (merge commits include auto-merged files).
+- `files_resolved` must be a subset of the pre-invocation conflict set — callers verify via set membership (`files_resolved ⊆ conflict_set`), not diff scope (merge commits include auto-merged files).

@@ -117,11 +117,11 @@ Advisory code polish with 2-3 conditional lenses: conventions + complexity defau
 
 Canonical entry: [`skills/run-polish/SKILL.md`](../skills/run-polish/SKILL.md).
 
-### run-queue
+### run-merge
 
-Overnight autonomous task queue. Run a pre-staged DAG of handoff tasks in fresh `claude -p` processes, one task per branch, with restricted permissions and a morning report. Two surfaces: the skill drives the human-facing workflow (Prepare → Kick → Monitor → Review); `scripts/run.sh` is the POSIX sh supervisor spawned under `tmux`/`nohup`. Trust boundary is the bundled PreToolUse hook `skills/run-queue/scripts/guard-queue-shell.sh` (env-gated on `SPINE_QUEUE=1`); it canonicalizes Edit/Write paths to keep writes inside the repo and tokenizes Bash commands to deny `git push`, `send-pack`, `bundle`, `format-patch`, and `-C` sidesteps. Rejects stop-hook-driven intra-session looping (Ralph plugin OOM failure mode).
+Brief-driven Git conflict resolver for merge, sync, or land operations. Consumes a self-contained merge brief, resolves only conflicts with clear semantic intent, writes an atomic `merge-verdict.json`, and requires caller-owned focused verification before landing.
 
-Canonical entry: [`skills/run-queue/SKILL.md`](../skills/run-queue/SKILL.md).
+Canonical entry: [`skills/run-merge/SKILL.md`](../skills/run-merge/SKILL.md).
 
 ### commit
 

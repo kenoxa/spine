@@ -1,7 +1,6 @@
 ---
-updated: 2026-04-27
-paths:
-  - skills/run-queue/scripts/queue-lint.sh
+updated: 2026-05-21
+paths: []
 ---
 
 # Shell Validator Locale Guard
@@ -98,19 +97,6 @@ inputs fall through to the broader "chars outside" message.
   `LC_ALL=C` to make ranges deterministic.
 - Assuming `set -e` catches the bypass — it doesn't; the `case` arm
   simply takes the wrong branch.
-
-## Resolved Sites — `queue-lint.sh`
-
-Script-wide `LC_ALL=C` at `:9` makes negated-charset checks
-locale-deterministic. Each validator pairs with an explicit allowlist.
-
-| Validator | Location | Defense |
-|-----------|----------|---------|
-| `_run_id` | `:51-59` | Allowlist `[A-Za-z0-9._-]` (Slice G) + `[[:space:]]` for ASCII whitespace diagnostic + git-refname structural rules |
-| `_tc` shell-metachars | `:152-155` | Literal-ASCII metachar set; locale-independent by construction (positive-pattern match on literal bytes) |
-| `_mo` | `:181-198` | Allowlist `[A-Za-z0-9._:/\[\]_-]` (Slice F) + `[[:space:]]` for ASCII whitespace diagnostic + length cap |
-
-[E2: `queue-lint.sh:9, :51-59, :152-155, :181-198` — Slice G, 2026-04-27]
 
 ## Scope
 
