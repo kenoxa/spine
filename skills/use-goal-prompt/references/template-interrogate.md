@@ -14,6 +14,7 @@ CONTEXT:
 User has a vague or semi-formed idea about [topic] and needs a structured intake interview that translates fuzzy language into concrete artifacts before any docs, plans, or code are written.
 User is assumed non-technical unless they signal otherwise.
 Use the `/do-frame` skill to conduct the interview.
+SESSION: Use `/use-session`; maintain session.json + events.jsonl + session-log.md. If worktree needed, use `/use-worktree` attach, not fork.
 
 CONSTRAINTS:
 Do not write code, generate docs, or propose plans during the interview phase.

@@ -16,6 +16,7 @@ Migration type: [migration_type] — dependency upgrade / schema / data / routin
 Cutover strategy: [cutover_strategy] — dual-write / dual-read / blue-green / canary / feature flag.
 Observation window: [observation_window].
 Rollback SLA: [rollback_sla].
+SESSION: Use `/use-session`; maintain session.json + events.jsonl + session-log.md. If worktree needed, use `/use-worktree` attach, not fork.
 
 CONSTRAINTS:
 No big-bang cutovers. Dual-write, dual-read, blue-green, canary, or feature flag only.

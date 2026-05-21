@@ -14,6 +14,7 @@ CONTEXT:
 Existing codebase with structural debt.
 Target scope: [target_scope].
 Test suite: [test_suite_status] — present / absent / insufficient. If absent or insufficient, surface this before proceeding.
+SESSION: Use `/use-session`; maintain session.json + events.jsonl + session-log.md. If worktree needed, use `/use-worktree` attach, not fork.
 
 CONSTRAINTS:
 Preserve behavior. Do not introduce features.

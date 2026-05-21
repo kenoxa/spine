@@ -43,7 +43,7 @@ Spine has zero worktree orchestration today. Claude Code creates native worktree
 | Placement | In-project `.worktrees/<slug>-<hash>/`, ignored via `.git/info/exclude`. |
 | Naming | `<slug>-<hash>`, `openssl rand -hex 2` — matches the `.scratch/` session-folder convention. |
 | Hook `.git` detection | Marker fix `[ -d .git ] \|\| [ -f .git ]` in `_project.sh` + `inject-agents-md.sh`. Not a refactor. |
-| Session bridge | Symlink the whole `.scratch/` directory into the worktree (one absolute symlink). Every `.scratch/<session>/` path resolves unchanged — zero skill/SPINE.md edits. Gitignored, so never committed; `git worktree remove` drops it. |
+| Session bridge | Symlink the whole `.scratch/` directory into the worktree (one absolute symlink). Every `.scratch/<session>/` path resolves unchanged; `use-session attach` reuses the existing machine/log state instead of forking a new session. Gitignored, so never committed; `git worktree remove` drops it. |
 | Carry-over | CoW-copy (`cp -cR`) every gitignored file into the worktree. Built-in skip set: `.worktrees/` (mandatory — prevents recursive nesting) and `.scratch/` (symlinked instead). Project-extendable skip-list. `--refresh` re-copies. |
 | Ignore guard | `create` runs `git check-ignore` on `.worktrees/` and `.scratch/`, appends an anchored entry to `.git/info/exclude` (common git dir, no commit, covers every linked worktree) for any not already ignored. |
 | Parity mechanism | One shared POSIX script all CLIs invoke — a runnable contract, not LLM-interpreted prose. |
@@ -73,7 +73,7 @@ Spine has zero worktree orchestration today. Claude Code creates native worktree
 - **Editing committed `.gitignore`** for the ignore guard — it would need a commit and would not reach a worktree (which checks out `.gitignore` from HEAD). `.git/info/exclude` covers all worktrees live.
 - **Symlinking secrets or `node_modules`** — a shared mutable file across branches; breaks pnpm/peer-dep/native-addon resolution. Carry-over CoW-copies them instead.
 - **Leaning on `git worktree remove`'s bare refuse-on-dirty** as the safety net — `create` deliberately plants ignored artifacts, so plain `remove` always refuses; `remove` runs its own clean-check then `--force`.
-- **`run-merge` delegation** for `sync`/`land` — `run-merge` is queue-scoped; worktree sync/land are plain git.
+- **Queue-style orchestration** for `sync`/`land` — worktree operations remain manual. Rebase conflicts may delegate to the now-generic `run-merge` brief flow, but no queue runner or supervisor is recreated.
 
 ## Delivery slices
 

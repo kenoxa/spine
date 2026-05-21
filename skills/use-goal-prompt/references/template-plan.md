@@ -15,6 +15,7 @@ Brief confirmed: [brief_reference].
 Codebase: [codebase_state] — empty (greenfield) or present (extending).
 Doc convention: [doc_convention] — user-specified, or ask for a recommendation sized to scale and domain.
 Use the `/do-design` skill to produce the doc set.
+SESSION: Use `/use-session`; maintain session.json + events.jsonl + session-log.md. If worktree needed, use `/use-worktree` attach, not fork.
 
 CONSTRAINTS:
 - Use the user's doc convention; no invented filenames.

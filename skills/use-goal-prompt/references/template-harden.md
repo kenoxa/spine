@@ -14,6 +14,7 @@ CONTEXT:
 Existing codebase with gaps in test coverage, CI hygiene, security posture, or dependency hygiene.
 Scope: [scope].
 Risk threshold: [risk_threshold] — gaps above this trigger action; below are accepted or deferred.
+SESSION: Use `/use-session`; maintain session.json + events.jsonl + session-log.md. If worktree needed, use `/use-worktree` attach, not fork.
 
 CONSTRAINTS:
 Every change includes the regression-preventing guardrail, not just the fix.

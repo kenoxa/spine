@@ -218,13 +218,13 @@ Or use `/do` as a single entry point that routes through all three phases.
 
 **Session model:** Standard is the default (sonnet:medium / gpt-5.5:medium / auto). Switch via your provider's model selector or `--model` flag when launching. See [docs/model-selection.md](docs/model-selection.md) for when to upgrade to Frontier and when to step down to Fast.
 
-Skills write session artifacts to `.scratch/` during planning and execution. Keep `.scratch/` in your project `.gitignore`.
+Skills write session artifacts to `.scratch/` during planning and execution. Long-running work can use `use-session` to keep `session.json`, `events.jsonl`, and `session-log.md` aligned. Keep `.scratch/` in your project `.gitignore`.
 
 Useful categories:
 
 - `run-*`: standalone utilities like explore, review, debug, polish, insights, and recap
 - `with-*`: automatic domain standards such as frontend, backend, terminology, and testing
-- `use-*`: active tools such as `use-writing`, `use-skill-craft`, and `use-envoy`
+- `use-*`: active tools such as `use-session`, `use-worktree`, `use-writing`, `use-skill-craft`, and `use-envoy`
 
 ## Advanced Setup
 

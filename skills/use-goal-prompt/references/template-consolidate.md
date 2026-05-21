@@ -13,6 +13,7 @@ Collapse parallel implementations of [subsystem] into a single canonical impleme
 CONTEXT:
 Subsystem contains multiple implementations of overlapping logic in [subsystem].
 Canonical choice: [canonical_choice] — user-specified or recommend after inventory.
+SESSION: Use `/use-session`; maintain session.json + events.jsonl + session-log.md. If worktree needed, use `/use-worktree` attach, not fork.
 
 CONSTRAINTS:
 Preserve every behavior the legacy implementations had, including bugs callers depend on. Flag these explicitly.

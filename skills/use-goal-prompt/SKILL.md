@@ -15,6 +15,9 @@ Pick the closest template, adapt it to the user's actual task, emit a `/goal` pr
 Templates are starting points, not fill-in-the-blank forms. Reformulate, rephrase, drop
 irrelevant lines, add task-specific ones so the prompt fits the job. Keep all 9 section
 headers — they are the `/goal` output-format contract; compose the content within freely.
+Rendered prompts must explicitly name `/use-session` for continuity. When the
+task mentions a branch, worktree, or isolated implementation, also name
+`/use-worktree`. Do not rely on automatic skill triggering.
 
 ## Phases
 
@@ -55,7 +58,9 @@ Boundary: multiple parallel implementations → consolidate. One implementation 
 3. Ask ≤3 questions for missing must-ask inputs. Group related ones per question. Require short references — paths, ticket IDs, one-line summaries — never pasted content.
 4. Stop asking once a non-trivial render is possible; remaining gaps become `<NEEDS: short description>` markers.
 5. Compose each section to fit the task: keep template lines that apply, rephrase ones that nearly apply, drop ones that don't, add lines the task needs. Keep all 9 section headers.
-6. Keep the rendered prompt under 4000 chars (the `/goal` cap). Size depth to the task.
+6. Add a compact `SESSION:` line under `CONTEXT` for any multi-turn goal:
+   `Use /use-session; maintain session.json + events.jsonl + session-log.md. If worktree needed, use /use-worktree attach, not fork.`
+7. Keep the rendered prompt under 4000 chars (the `/goal` cap). Size depth to the task.
 
 ### Output
 
@@ -70,6 +75,7 @@ Boundary: multiple parallel implementations → consolidate. One implementation 
 E3 evidence before exit:
 - `.scratch/<session>/goal-prompt.md` exists, char count ≤ 4000 (E3: `wc -c < goal-prompt.md` ≤ 4000).
 - All 9 section headers present (E3: `grep -cE '^(GOAL|CONTEXT|CONSTRAINTS|PRIORITY|PLAN|DONE WHEN|VERIFY|OUTPUT|STOP RULES):$' goal-prompt.md` == 9).
+- Multi-turn prompts include an explicit `/use-session` line and any worktree prompt explicitly names `/use-worktree`. [E2/E3]
 - Phase Trace logged with template choice + ask-count.
 
 ## Anti-Patterns

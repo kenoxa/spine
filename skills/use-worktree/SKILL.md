@@ -29,7 +29,8 @@ Run from within the target project directory. `<skill-base-dir>` is the director
 ## Key Behaviors
 
 - **Ignore guard** — writes anchored entries (`/.worktrees/`, `/.scratch`) to the common git dir's `info/exclude` before planting; idempotent; never touches committed `.gitignore`. The `.scratch` anchor omits the trailing slash so it also matches the bridge symlink inside a worktree.
-- **Session bridge** — `.scratch/` is symlinked into the worktree so agents share one coherent Spine session (same `session-log.md`, frame/design/build artifacts).
+- **Session bridge** — `.scratch/` is symlinked into the worktree so agents share one coherent Spine session (same `session.json`, `events.jsonl`, `session-log.md`, frame/design/build artifacts).
+- **Session attach** — when a bridged session exists, run `/use-session attach` and continue that session. Do not silently create a second `.scratch/<session>/`; writer conflicts or contradictory branch/worktree state mark `attention_required` and stop.
 - **Carry-over** — gitignored working state (`.env.local`, `node_modules`, build output) is copy-on-write cloned (`cp -cR`, APFS `clonefile`); `--refresh` re-copies after main state changes. Skip-list: built-in `.worktrees` + `.scratch`, plus project-specific entries in `.worktree-skip` (one path per line, `#` comments).
 - **Clean-check on remove** — `git status --porcelain` (no `--ignored`) so carried artifacts + `.scratch` symlink are invisible; real tracked edits or genuine untracked files → refuse with detail.
 - **sync / land** — `sync` rebases the worktree branch onto the current main branch (no `git fetch` — branches are local-only, shared object store). `land` runs rebase → `--ff-only` merge into main → worktree remove → branch delete, in fixed order; halts before any destructive step (exit code 3) if the rebase produces a conflict, leaving main, the worktree, and the branch all untouched.
@@ -43,6 +44,7 @@ Run from within the target project directory. `<skill-base-dir>` is the director
 ## Anti-Patterns
 
 - Hand-maintaining a worktree manifest instead of `git worktree list`.
+- Forking a new session inside a worktree when `.scratch` is already bridged.
 - Symlinking secrets or `node_modules` (carry-over copies them — independent, not shared).
 - Using `rm -rf` on a worktree dir instead of `remove` (orphans git admin files).
 - Committing `.worktrees/` (it must stay gitignored; the ignore guard enforces this).

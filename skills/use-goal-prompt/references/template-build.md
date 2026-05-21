@@ -15,6 +15,7 @@ Planning doc set (roadmap, decisions, risks) at [planning_docs_location] in the 
 Codebase: [codebase_state] — empty (greenfield) or present (extending).
 Scope: [scope_label] — full-system / subsystem / module. Not a slice or prototype.
 Use the `/do-build` skill to orchestrate this plan.
+SESSION: Use `/use-session`; maintain session.json + events.jsonl + session-log.md. If worktree needed, use `/use-worktree` attach, not fork.
 
 CONSTRAINTS:
 - No architecture or decisions outside the decisions doc.

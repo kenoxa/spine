@@ -137,7 +137,7 @@ Canonical entry: [`skills/handoff/SKILL.md`](../skills/handoff/SKILL.md).
 
 ### catchup
 
-Reconstruct working state from persisted session artifacts after `/clear` or auto-compaction. Reads `.scratch/<session>/session-log.md`, `handoff-*.md`, and `plan.md` to rebuild the state inventory.
+Reconstruct working state from persisted session artifacts after `/clear` or auto-compaction. Reads `session.json` and recent `events.jsonl` when present, falls back to `.scratch/<session>/session-log.md`, and reports contradictions without choosing a winner.
 
 Canonical entry: [`skills/catchup/SKILL.md`](../skills/catchup/SKILL.md).
 
@@ -154,6 +154,26 @@ Reuses `run-insights/scripts/` for session collection. Two phases: a single `@mi
 Requires Python 3.9+ on `PATH`. On supported Homebrew setups, Spine can install Python 3 as part of its installer-managed host CLI tools. Otherwise, provide a compatible interpreter yourself.
 
 Canonical entry: [`skills/run-recap/SKILL.md`](../skills/run-recap/SKILL.md).
+
+## Operational Skills
+
+### use-session
+
+Workflow continuity contract for `.scratch/<session>/`. Maintains `session.json`, `events.jsonl`, and `session-log.md`; enforces one active writer; marks stale, contradictory, writer-conflicted, or missing-terminal state as attention-required instead of silently resolving it.
+
+Canonical entry: [`skills/use-session/SKILL.md`](../skills/use-session/SKILL.md).
+
+### use-worktree
+
+Manual git-worktree lifecycle: create/list/remove/prune/sync/land. Worktrees live under `.worktrees/`, carry over gitignored local state, and attach to the existing bridged `.scratch` session rather than forking it.
+
+Canonical entry: [`skills/use-worktree/SKILL.md`](../skills/use-worktree/SKILL.md).
+
+### use-goal-prompt
+
+Read-only `/goal` prompt compiler. Emits the 9-section prompt contract, keeps prompts under 4000 chars, and explicitly names `/use-session` plus `/use-worktree` when branch/worktree isolation is part of the task.
+
+Canonical entry: [`skills/use-goal-prompt/SKILL.md`](../skills/use-goal-prompt/SKILL.md).
 
 ## Subagents
 

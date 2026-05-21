@@ -6,7 +6,7 @@ AI contributors: see `AGENTS.md` for per-invocation constraints and token budget
 
 ```
 SPINE.md                Global guardrails (installed to ~/.config/spine/SPINE.md)
-skills/                 28 skills (19 workflow + 4 domain + 5 tools)
+skills/                 Skills: workflow, operational tools, and domain constraints
 agents/                 14 subagents
 claude/                 Claude Code plugin (hooks + skills)
 docs/                   Reference docs (skills, tips, external skills)
