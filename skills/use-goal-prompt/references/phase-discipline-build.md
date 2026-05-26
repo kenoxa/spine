@@ -26,6 +26,16 @@ Write atomically to `.scratch/<session>/build-status.json` on EVERY outcome (pas
 
 - **Emitter**: mainthread/orchestrator writes `build-status.json` only after all verification phases complete. Subagents (implementer/inspector/envoy) NEVER write the terminal artifact — they emit their own role-specific outputs, and mainthread synthesizes the final status.
 
+## Phase-Boundary Emission + Terminal Curate Gate
+
+Immediately BEFORE writing the terminal `build-status.json`:
+
+1. Emit a `phase.boundary` event with `to_phase:"complete"` via `sh skills/use-session/scripts/emit-event.sh .scratch/<session> phase.boundary '{"from_phase":"build","to_phase":"complete","artifact_path":".scratch/<session>/build-status.json","trigger":"auto"}'`.
+2. Invoke the task adapter: `sh hooks/_task_adapter.sh .scratch/<session> build complete auto` and execute the provider-specific tool call it surfaces (see `references/task-adapter-contract.md`).
+3. Invoke the curate terminal gate: `/run-curate --terminal --session=<id>` (which runs `sh skills/run-curate/scripts/terminal-gate.sh .scratch/<session>` to write `curate-report.md`, then optionally augments with AI synthesis under a 60s budget). Reference the report in `build-status.json` as `learnings.curate_report` + `learnings.curate_status`.
+
+On halt (review cap, slice exit gate fail, scope expansion), set `trigger:"halt"` with `reason` field BEFORE the build-status write, run the adapter with `halt`, SKIP the curate gate, and STOP — no further slices, no autonomous re-launch.
+
 ## Refuse
 
 Adjacent refactors, backcompat shims, scope creep — refuse immediately and surface to user.

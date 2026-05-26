@@ -19,7 +19,7 @@ Run from within the target project directory. `<skill-base-dir>` is the director
 
 | Subcommand | Does |
 |---|---|
-| `create <slug> [--refresh]` | New branch + worktree at `.worktrees/<slug>-<hash>/`, carry-over gitignored files |
+| `create [<slug>] [--session=<id>] [--refresh]` | New branch + worktree at `.worktrees/<slug>-<hash>/`, carry-over gitignored files. Omit `<slug>` to derive from the active session |
 | `list` | Show all worktrees annotated with `[spine]` for ones under `.worktrees/` |
 | `remove <name>` | Clean-check then remove worktree directory (branch kept) |
 | `prune` | Clear orphaned worktree admin files |
@@ -31,6 +31,7 @@ Run from within the target project directory. `<skill-base-dir>` is the director
 - **Ignore guard** — writes anchored entries (`/.worktrees/`, `/.scratch`) to the common git dir's `info/exclude` before planting; idempotent; never touches committed `.gitignore`. The `.scratch` anchor omits the trailing slash so it also matches the bridge symlink inside a worktree.
 - **Session bridge** — `.scratch/` is symlinked into the worktree so agents share one coherent Spine session (same `session.json`, `events.jsonl`, `session-log.md`, frame/design/build artifacts).
 - **Session attach** — when a bridged session exists, run `/use-session attach` and continue that session. Do not silently create a second `.scratch/<session>/`; writer conflicts or contradictory branch/worktree state mark `attention_required` and stop.
+- **Slug auto-derivation (G1)** — `create` with no slug picks the single `status: in_progress` session under `.scratch/*/session.json` (with `attention_required: false`) and strips the trailing `-<4hex>` from its `session_id` to recover the slug. Precedence: explicit `<slug>` > `--session=<id>` > sole active session. Refuses on zero or ambiguous active sessions. Keeps worktree slug and session name aligned without manual restatement.
 - **Carry-over** — gitignored working state (`.env.local`, `node_modules`, build output) is copy-on-write cloned (`cp -cR`, APFS `clonefile`); `--refresh` re-copies after main state changes. Skip-list: built-in `.worktrees` + `.scratch`, plus project-specific entries in `.worktree-skip` (one path per line, `#` comments).
 - **Clean-check on remove** — `git status --porcelain` (no `--ignored`) so carried artifacts + `.scratch` symlink are invisible; real tracked edits or genuine untracked files → refuse with detail.
 - **sync / land** — `sync` rebases the worktree branch onto the current main branch (no `git fetch` — branches are local-only, shared object store). `land` runs rebase → `--ff-only` merge into main → worktree remove → branch delete, in fixed order; halts before any destructive step (exit code 3) if the rebase produces a conflict, leaving main, the worktree, and the branch all untouched.

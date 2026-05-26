@@ -32,10 +32,30 @@ Each line is one JSON object:
 ```
 
 Allowed `type` values: `session.start`, `session.attach`, `phase.start`,
-`phase.finish`, `decision`, `artifact`, `verification`, `attention`, `terminal`.
+`phase.finish`, `phase.boundary`, `decision`, `artifact`, `verification`,
+`attention`, `terminal`.
 
 `terminal.payload.status` must be `complete`, `partial`, or `blocked`. Terminal
 events are authoritative evidence that a non-`in_progress` snapshot really ended.
+
+### `phase.boundary` payload contract
+
+`phase.boundary` is the **single cross-phase transition record** for `/goal`
+flows. Mainthread emits it immediately after writing the phase's artifact and
+before composing the next phase's prompt (or before terminal `build-status.json`
+for `to_phase="complete"`). Required payload fields:
+
+| Field | Contract |
+|---|---|
+| `from_phase` | `"frame"`, `"design"`, `"build"`, or `null` (initial) |
+| `to_phase` | `"design"`, `"build"`, or `"complete"` |
+| `artifact_path` | Repo-relative path to the phase artifact just written |
+| `trigger` | `"auto"` (self-transition), `"user"` (user advanced), or `"halt"` (stop signal) |
+
+`trigger="halt"` events SHOULD include `payload.reason` describing the halt
+condition (e.g., `"review-cap"`, `"divergence"`, `"phase-transition-failure"`).
+Every `phase.boundary` event has a matching row in `session-log.md` Phase Trace
+with the same `from_phase`/`to_phase`/`trigger` triple.
 
 ## Contradictions
 

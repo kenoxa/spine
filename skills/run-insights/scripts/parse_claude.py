@@ -235,6 +235,12 @@ def _parse_jsonl_session(path: Path) -> dict[str, Any] | None:
                 inp = block.get("input", {})
                 if not isinstance(inp, dict):
                     continue
+                # Capture model-invoked Skill tool calls: input.skill names the skill.
+                # Distinct from SKILL_RE which only catches user-typed /slash invocations.
+                if name == "Skill":
+                    skill_name = inp.get("skill")
+                    if isinstance(skill_name, str) and skill_name:
+                        skills_used.add(skill_name)
                 for key in ("file_path", "command", "path", "pattern"):
                     val = inp.get(key)
                     if isinstance(val, str):

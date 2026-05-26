@@ -82,6 +82,55 @@ _ensure_excluded() {
     fi
 }
 
+# --- Active session resolution (G1) ---
+# Find the single in-progress session under .scratch/, if any, by reading
+# session.json files. Returns 0 + prints session_id when exactly one active
+# session exists; returns 2 when none, 3 when ambiguous (prints candidate ids
+# on stderr in that case). Uses grep/sed only — avoids a JSON parser dependency.
+_resolve_active_session() {
+    root="$1"
+    scratch="$root/.scratch"
+    [ -d "$scratch" ] || return 2
+
+    found_sid=""
+    count=0
+    # Avoid noisy glob when the pattern doesn't match
+    for sjson in "$scratch"/*/session.json; do
+        [ -f "$sjson" ] || continue
+        status=$(grep -o '"status"[[:space:]]*:[[:space:]]*"[^"]*"' "$sjson" 2>/dev/null | head -1 | sed 's/.*"\([^"]*\)"$/\1/')
+        [ "$status" = "in_progress" ] || continue
+        # attention_required:true disqualifies
+        if grep -q '"attention_required"[[:space:]]*:[[:space:]]*true' "$sjson" 2>/dev/null; then
+            continue
+        fi
+        sid=$(grep -o '"session_id"[[:space:]]*:[[:space:]]*"[^"]*"' "$sjson" 2>/dev/null | head -1 | sed 's/.*"\([^"]*\)"$/\1/')
+        [ -n "$sid" ] || continue
+        count=$((count + 1))
+        if [ "$count" = "1" ]; then
+            found_sid="$sid"
+        else
+            printf 'worktree: ambiguous active session: %s\n' "$sid" >&2
+        fi
+    done
+
+    case "$count" in
+        0) return 2 ;;
+        1) printf '%s\n' "$found_sid"; return 0 ;;
+        *) printf 'worktree: ambiguous active session: %s\n' "$found_sid" >&2; return 3 ;;
+    esac
+}
+
+# Strip the trailing -<4-char> hash from a session_id to recover the slug.
+# Session ids follow `<slug>-<4-hex>` per SPINE.md; openssl rand -hex 2 generates
+# the hash. Match shape, not content.
+_slug_from_session_id() {
+    sid="$1"
+    case "$sid" in
+        *-????) printf '%s\n' "${sid%-????}" ;;
+        *) die "session_id '$sid' does not match <slug>-<4hex> shape" ;;
+    esac
+}
+
 # --- Read project skip-list ---
 # Returns newline-separated paths (trailing / stripped).
 _skip_set() {
@@ -106,19 +155,40 @@ _skip_set() {
 cmd_create() {
     slug=""
     refresh=0
+    session_id=""
 
     while [ $# -gt 0 ]; do
         case "$1" in
             --refresh) refresh=1; shift ;;
+            --session=*) session_id="${1#--session=}"; shift ;;
+            --session) shift; session_id="${1:-}"; [ -n "$session_id" ] || die "--session requires a value"; shift ;;
             -*) die "unknown flag '$1'" ;;
             *) slug="$1"; shift ;;
         esac
     done
 
-    [ -n "$slug" ] || die "create requires a slug argument"
-    valid_slug "$slug"
-
     root=$(main_root)
+
+    # G1: auto-derive slug from active session when not provided.
+    # Precedence: explicit slug > --session=<id> > single in-progress session.json
+    if [ -z "$slug" ]; then
+        if [ -z "$session_id" ]; then
+            if session_id=$(_resolve_active_session "$root" 2>/dev/null); then
+                :
+            else
+                rc=$?
+                case "$rc" in
+                    2) die "create requires a slug argument (no active session found under .scratch/)" ;;
+                    3) die "create requires a slug argument (multiple in_progress sessions under .scratch/ — pass --session=<id> or an explicit slug)" ;;
+                    *) die "create requires a slug argument" ;;
+                esac
+            fi
+        fi
+        slug=$(_slug_from_session_id "$session_id")
+        printf 'worktree: deriving slug=%s from session=%s\n' "$slug" "$session_id" >&2
+    fi
+
+    valid_slug "$slug"
     wt_parent="$root/.worktrees"
 
     # Ignore guard. The .scratch anchor has NO trailing slash on purpose: inside
@@ -387,7 +457,10 @@ usage() {
 Usage: sh worktree.sh <subcommand> [args]
 
 Subcommands:
-  create <slug> [--refresh]  New branch + worktree at .worktrees/<slug>-<hash>/
+  create [<slug>] [--session=<id>] [--refresh]
+                             New branch + worktree at .worktrees/<slug>-<hash>/
+                             Omit <slug> to derive it from the active session
+                             under .scratch/. --session=<id> disambiguates.
   list                       Show all worktrees (marks Spine-managed with [spine])
   remove <name>              Clean-check then remove worktree dir (branch kept)
   prune                      Clear orphaned worktree admin files

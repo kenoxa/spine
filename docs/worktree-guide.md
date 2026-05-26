@@ -33,6 +33,14 @@ Worktrees live **inside the repo** at `.worktrees/<slug>-<hash>/` — gitignored
 
 Re-run with `--refresh` to re-copy carried-over files after the main checkout's local state changes.
 
+**Session-bound creation (slug auto-derivation)** — invoking `create` with no slug derives one from the active Spine session. The script inspects `.scratch/*/session.json`, picks the single record with `status: in_progress` and `attention_required: false`, and strips the trailing `-<4hex>` suffix from the `session_id` to recover the slug. So:
+
+```
+/use-worktree create
+```
+
+inside a session named `phase-loop-build-cd10` creates `.worktrees/phase-loop-build-<hash>/` on branch `phase-loop-build`. The mapping is one-shot: pass `--session=<id>` to disambiguate when multiple sessions are in progress, or supply an explicit slug to bypass the lookup entirely. With zero active sessions or an ambiguous set, the script refuses and prints what it needs. This keeps the slug nomenclature aligned with `.scratch/<session>/` automatically — no manual restating of the session name.
+
 **Extending the carry-over skip-list** — create a `.worktree-skip` file at the repo root to exclude additional paths from carry-over. One path per line; `#` lines are comments.
 
 ```

@@ -78,6 +78,22 @@ write_hostile_git_config() {
     } > "$path"
 }
 
+# write_session_json <repo> <session_id> <status>
+# Materialises a minimal session record under .scratch/<session_id>/session.json
+# for G1 auto-derive tests. Status is one of: in_progress | done | blocked.
+write_session_json() {
+    local repo="$1" sid="$2" status="$3"
+    mkdir -p "$repo/.scratch/$sid"
+    cat > "$repo/.scratch/$sid/session.json" <<EOF
+{
+  "session_id": "$sid",
+  "status": "$status",
+  "attention_required": false,
+  "version": "v1"
+}
+EOF
+}
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Test 1: create → worktree dir exists at .worktrees/<slug>-<4hex>/, .git is a file
 # ─────────────────────────────────────────────────────────────────────────────
@@ -740,5 +756,163 @@ write_hostile_git_config() {
     ! grep -q '^|||||||' "$wt_dir/.keep"
 
     git -C "$wt_dir" rebase --abort 2>/dev/null || true
+    rm -rf "$repo"
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# G1: session-slug auto-passthrough
+# create without slug uses the single in_progress session.json to derive the slug.
+# Slug is everything before the trailing `-<4hex>` suffix per SPINE.md naming.
+# ─────────────────────────────────────────────────────────────────────────────
+
+@test "G1: create without slug derives slug from single in_progress session" {
+    local repo
+    repo=$(cd "$(mktemp -d /tmp/spine-test-wt-XXXXXX)" && pwd -P)
+    make_repo "$repo"
+    write_session_json "$repo" "myfeat-abcd" "in_progress"
+
+    cd "$repo"
+    run sh "$WT" create
+    [ "$status" -eq 0 ]
+
+    # Worktree directory must be named after the derived slug `myfeat`
+    local wt_dir
+    wt_dir=$(created_worktree_dir "$output" "myfeat")
+    [ -d "$wt_dir" ]
+    case "$wt_dir" in
+        "$repo/.worktrees/myfeat-"????) : ;;
+        *) printf 'unexpected worktree dir: %s\n' "$wt_dir" >&2; false ;;
+    esac
+
+    # Branch must be named after the derived slug
+    git -C "$repo" show-ref --verify --quiet "refs/heads/myfeat"
+
+    rm -rf "$repo"
+}
+
+@test "G1: create without slug fails when no active sessions" {
+    local repo
+    repo=$(cd "$(mktemp -d /tmp/spine-test-wt-XXXXXX)" && pwd -P)
+    make_repo "$repo"
+    # .scratch exists but no sessions
+    mkdir -p "$repo/.scratch"
+
+    cd "$repo"
+    run sh "$WT" create
+    [ "$status" -ne 0 ]
+    printf '%s\n' "$output" | grep -qi 'slug'
+    printf '%s\n' "$output" | grep -qi 'no active session'
+
+    rm -rf "$repo"
+}
+
+@test "G1: create without slug fails when only done/blocked sessions exist" {
+    local repo
+    repo=$(cd "$(mktemp -d /tmp/spine-test-wt-XXXXXX)" && pwd -P)
+    make_repo "$repo"
+    write_session_json "$repo" "olddone-1111" "done"
+    write_session_json "$repo" "oldblocked-2222" "blocked"
+
+    cd "$repo"
+    run sh "$WT" create
+    [ "$status" -ne 0 ]
+    printf '%s\n' "$output" | grep -qi 'no active session'
+
+    rm -rf "$repo"
+}
+
+@test "G1: create without slug fails on multiple in_progress sessions" {
+    local repo
+    repo=$(cd "$(mktemp -d /tmp/spine-test-wt-XXXXXX)" && pwd -P)
+    make_repo "$repo"
+    write_session_json "$repo" "alpha-1111" "in_progress"
+    write_session_json "$repo" "beta-2222" "in_progress"
+
+    cd "$repo"
+    run sh "$WT" create
+    [ "$status" -ne 0 ]
+    printf '%s\n' "$output" | grep -qi 'ambiguous\|multiple\|--session'
+
+    rm -rf "$repo"
+}
+
+@test "G1: explicit slug takes precedence over active session derivation" {
+    local repo
+    repo=$(cd "$(mktemp -d /tmp/spine-test-wt-XXXXXX)" && pwd -P)
+    make_repo "$repo"
+    write_session_json "$repo" "autoslug-1111" "in_progress"
+
+    cd "$repo"
+    run sh "$WT" create chosenslug
+    [ "$status" -eq 0 ]
+
+    local wt_dir
+    wt_dir=$(created_worktree_dir "$output" "chosenslug")
+    case "$wt_dir" in
+        "$repo/.worktrees/chosenslug-"????) : ;;
+        *) printf 'expected explicit slug to win: %s\n' "$wt_dir" >&2; false ;;
+    esac
+
+    rm -rf "$repo"
+}
+
+@test "G1: --session=<id> disambiguates when multiple active sessions exist" {
+    local repo
+    repo=$(cd "$(mktemp -d /tmp/spine-test-wt-XXXXXX)" && pwd -P)
+    make_repo "$repo"
+    write_session_json "$repo" "alpha-1111" "in_progress"
+    write_session_json "$repo" "beta-2222" "in_progress"
+
+    cd "$repo"
+    run sh "$WT" create --session=beta-2222
+    [ "$status" -eq 0 ]
+
+    local wt_dir
+    wt_dir=$(created_worktree_dir "$output" "beta")
+    case "$wt_dir" in
+        "$repo/.worktrees/beta-"????) : ;;
+        *) printf 'unexpected worktree dir: %s\n' "$wt_dir" >&2; false ;;
+    esac
+
+    rm -rf "$repo"
+}
+
+@test "G1: --session <id> (space-separated form) also works" {
+    local repo
+    repo=$(cd "$(mktemp -d /tmp/spine-test-wt-XXXXXX)" && pwd -P)
+    make_repo "$repo"
+    write_session_json "$repo" "gamma-3333" "in_progress"
+
+    cd "$repo"
+    run sh "$WT" create --session gamma-3333
+    [ "$status" -eq 0 ]
+
+    local wt_dir
+    wt_dir=$(created_worktree_dir "$output" "gamma")
+    [ -d "$wt_dir" ]
+
+    rm -rf "$repo"
+}
+
+@test "G1: attention_required=true disqualifies a session from auto-derivation" {
+    local repo
+    repo=$(cd "$(mktemp -d /tmp/spine-test-wt-XXXXXX)" && pwd -P)
+    make_repo "$repo"
+    # Single in_progress session, but it needs user attention — must NOT be picked
+    mkdir -p "$repo/.scratch/blocked-9999"
+    cat > "$repo/.scratch/blocked-9999/session.json" <<'EOF'
+{
+  "session_id": "blocked-9999",
+  "status": "in_progress",
+  "attention_required": true,
+  "version": "v1"
+}
+EOF
+
+    cd "$repo"
+    run sh "$WT" create
+    [ "$status" -ne 0 ]
+    printf '%s\n' "$output" | grep -qi 'no active session'
+
     rm -rf "$repo"
 }

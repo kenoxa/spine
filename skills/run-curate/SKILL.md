@@ -80,6 +80,29 @@ Gate: user approval received. On approval, mainthread applies changes:
 
 Skip actions the user explicitly declines. Report final state.
 
+## Terminal Mode (`--terminal`)
+
+When invoked as `/run-curate --terminal --session=<id>` by the build phase
+discipline (see `skills/use-goal-prompt/references/phase-discipline-build.md`,
+"Phase-Boundary Emission" step), this skill runs in **read-only terminal-gate
+mode**. It does NOT execute the standard Gather → Dispatch → Synthesize →
+Present → Apply pipeline.
+
+Terminal-mode contract:
+
+1. Invoke `sh scripts/terminal-gate.sh .scratch/<session>` — the driver writes
+   a structured `curate-report.md` skeleton (source-artifact inventory,
+   decisions extracted from Phase Trace rows, knowledge-candidate markers).
+2. If mainthread has budget (≤60s per spec §5.3), append an AI-synthesized
+   "Learnings" section to the report below the synthesis slot.
+3. Reference the report in `build-status.json` under `learnings.curate_report`
+   (path) and `learnings.curate_status` (`"complete"`, `"skeleton-only"`, or
+   `"failed"` with `curate_error`).
+
+Terminal mode NEVER promotes, updates, or prunes knowledge files — that
+remains user-initiated via standalone `/run-curate`. The skeleton is
+guaranteed-present so `build-status.json` always has something to reference.
+
 ## Anti-Patterns
 
 - Promoting E0/E1-only learnings without evidence anchor
