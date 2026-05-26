@@ -24,7 +24,7 @@ GLOBAL_SKILLS=(
   "wshobson/agents -s wcag-audit-patterns"
   "softaworks/agent-toolkit -s reducing-entropy"
   "mcollina/skills -s typescript-magician"
-  "trailofbits/skills -s differential-review -s fp-check"
+  "trailofbits/skills -s fp-check"
   "mattpocock/skills -s ubiquitous-language -s tdd"
   "GoogleChrome/modern-web-guidance -s modern-web-guidance"
 )

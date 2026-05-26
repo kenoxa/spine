@@ -57,7 +57,7 @@ Present synthesis to caller/user as `advise_artifact`.
 
 ### Re-dispatch
 
-Triggered by user pushback after synthesis (via caller like do-design Phase 4 loop).
+Triggered by user pushback after synthesis (via workflow orchestrator re-dispatch loop).
 
 **Steps**:
 1. **Archive**: invoke `scripts/rotate-round.sh <session-dir>` to archive current round outputs into `advise-r{N}/` subdirectory.

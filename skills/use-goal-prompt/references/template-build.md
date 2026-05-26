@@ -14,7 +14,7 @@ CONTEXT:
 Planning doc set (roadmap, decisions, risks) at [planning_docs_location] in the user's convention.
 Codebase: [codebase_state] — empty (greenfield) or present (extending).
 Scope: [scope_label] — full-system / subsystem / module. Not a slice or prototype.
-Use the `/do-build` skill to orchestrate this plan.
+Build discipline: See `skills/use-goal-prompt/references/phase-discipline-build.md`. MANDATORY: load before proceeding. In autonomous (/goal) flows, user-STOP gates become emit-artifact-and-halt signals.
 SESSION: Use `/use-session`; maintain session.json + events.jsonl + session-log.md. If worktree needed, use `/use-worktree` attach, not fork.
 
 CONSTRAINTS:
@@ -62,4 +62,5 @@ Halt when reality contradicts a decision and the user must adjudicate. Surface t
 Halt on scope expansion beyond the roadmap.
 Halt when a milestone's exit criteria cannot be met without violating a decision or a constraint.
 Do not invent architecture. Do not skip milestones. Do not defer test coverage to the end.
+Build-phase discipline stops: See `skills/use-goal-prompt/references/phase-discipline-build.md`. MANDATORY: load `skills/use-goal-prompt/references/phase-discipline-build.md` before proceeding.
 ```

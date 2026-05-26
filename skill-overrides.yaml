@@ -43,11 +43,6 @@ skills:
     description: >-
       Net-complexity measurement for run-review.
 
-  differential-review:
-    tier: sub-skill
-    description: >-
-      Security-focused PR review for run-review.
-
   fp-check:
     tier: sub-skill
     description: >-

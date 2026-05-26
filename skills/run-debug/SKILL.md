@@ -51,8 +51,8 @@ After each hypothesis dispatch, orchestrator reads `debug-hypothesis.md` header 
 
 ## Escalation
 
-- 3 failed hypotheses (`hypothesis_attempts >= 5`) → halt loop, report all dead-end evidence to user, suggest `/do-frame` for architectural investigation.
-- Architectural uncertainty or repeated cross-module failures → re-enter analysis (`/do-frame`).
+- 3 failed hypotheses (`hypothesis_attempts >= 5`) → halt loop, report all dead-end evidence to user, suggest `/use-goal-prompt interrogate` for architectural investigation.
+- Architectural uncertainty or repeated cross-module failures → re-enter analysis (frame phase via `/use-goal-prompt interrogate`).
 
 ## Anti-Patterns
 

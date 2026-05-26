@@ -13,6 +13,7 @@ Collapse parallel implementations of [subsystem] into a single canonical impleme
 CONTEXT:
 Subsystem contains multiple implementations of overlapping logic in [subsystem].
 Canonical choice: [canonical_choice] — user-specified or recommend after inventory.
+Design discipline: See `skills/use-goal-prompt/references/phase-discipline-design.md`. MANDATORY: load before proceeding. In autonomous (/goal) flows, user-STOP gates become emit-artifact-and-halt signals.
 SESSION: Use `/use-session`; maintain session.json + events.jsonl + session-log.md. If worktree needed, use `/use-worktree` attach, not fork.
 
 CONSTRAINTS:
@@ -54,4 +55,5 @@ STOP RULES:
 Halt when behavior across implementations diverges in a way that cannot be reconciled without a product decision.
 Surface ranked proposals when the canonical choice is ambiguous.
 Do not delete a non-canonical implementation until every caller is migrated and verified.
+Design-phase discipline stops: See `skills/use-goal-prompt/references/phase-discipline-design.md`. MANDATORY: load `skills/use-goal-prompt/references/phase-discipline-design.md` before proceeding.
 ```

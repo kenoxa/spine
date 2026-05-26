@@ -14,6 +14,7 @@ CONTEXT:
 Existing codebase with structural debt.
 Target scope: [target_scope].
 Test suite: [test_suite_status] — present / absent / insufficient. If absent or insufficient, surface this before proceeding.
+Design discipline: See `skills/use-goal-prompt/references/phase-discipline-design.md`. MANDATORY: load before proceeding. In autonomous (/goal) flows, user-STOP gates become emit-artifact-and-halt signals.
 SESSION: Use `/use-session`; maintain session.json + events.jsonl + session-log.md. If worktree needed, use `/use-worktree` attach, not fork.
 
 CONSTRAINTS:
@@ -58,4 +59,5 @@ Halt on entanglement of structural and behavioral changes.
 Surface ranked proposals when the structural goal could be achieved in multiple shapes.
 Do not proceed to the next commit until the current commit is approved.
 Do not expand scope beyond the stated target.
+Design-phase discipline stops: See `skills/use-goal-prompt/references/phase-discipline-design.md`. MANDATORY: load `skills/use-goal-prompt/references/phase-discipline-design.md` before proceeding.
 ```

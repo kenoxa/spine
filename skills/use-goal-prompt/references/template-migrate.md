@@ -16,6 +16,7 @@ Migration type: [migration_type] — dependency upgrade / schema / data / routin
 Cutover strategy: [cutover_strategy] — dual-write / dual-read / blue-green / canary / feature flag.
 Observation window: [observation_window].
 Rollback SLA: [rollback_sla].
+Build discipline: See `skills/use-goal-prompt/references/phase-discipline-build.md`. MANDATORY: load before proceeding. In autonomous (/goal) flows, user-STOP gates become emit-artifact-and-halt signals.
 SESSION: Use `/use-session`; maintain session.json + events.jsonl + session-log.md. If worktree needed, use `/use-worktree` attach, not fork.
 
 CONSTRAINTS:
@@ -66,4 +67,5 @@ Surface ranked proposals when the cutover strategy is ambiguous for a given cons
 Do not remove the old path until the observation window has fully passed.
 Do not skip the down migration test.
 Do not skip the data-migration dry-run.
+Build-phase discipline stops: See `skills/use-goal-prompt/references/phase-discipline-build.md`. MANDATORY: load `skills/use-goal-prompt/references/phase-discipline-build.md` before proceeding.
 ```

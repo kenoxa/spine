@@ -6,10 +6,10 @@
 
 Text after a slash command is the task scope. Examples:
 
-- `/do the auth flow feels broken on mobile`
-- `/do-frame add retry strategy for API calls`
-- `/do-design` — gather multi-model advisory on approach
-- `/do-build` — prototype, review, and polish
+- `/goal the auth flow feels broken on mobile`
+- `/use-goal-prompt interrogate add retry strategy for API calls` — frame/clarify the task
+- `/use-goal-prompt plan` — gather multi-model advisory on approach
+- `/use-goal-prompt build` — prototype, review, and polish
 - `/run-review` — reviews current changes
 - `/run-debug failing auth test in CI`
 - `/run-explore auth module architecture`
@@ -23,13 +23,13 @@ Text after a slash command is the task scope. Examples:
 ## Workflow Tips
 
 - **Domain skills auto-load** — `with-frontend`, `with-backend`, `with-testing` (test boundary decisions, mock strategy), and `with-terminology` activate automatically when the task matches. No slash command needed.
-- **Refine before building** — polish the advisory recommendation via messages before running `/do-build`. The recommendation drives all quality gates downstream.
+- **Refine before building** — polish the advisory recommendation via messages before running the build phase. The recommendation drives all quality gates downstream.
 - **Context rotation** — at ~60% context, run `/handoff` then `/clear` then `/catchup`. Prefer over `/compact` — compaction loses rationale and rejected approaches.
 - **Use subagents for parallel work** — `scout` handles breadth, `researcher` handles deep discovery plus bounded plan-local upstream checks, `navigator` handles broad/current external research, and `inspector` / `analyst` handle review lenses.
 - **Write-skeleton-early for limit resilience** — when dispatching subagents on long tasks, add the instruction: *"write the output-file structure (headers + empty sections) immediately after reading inputs, before analysis."* Agents that hit API usage limits error out atomically — zero output. An early skeleton write converts a total loss into a recoverable partial: re-dispatch completes against the stub. *Adjacent prior art: Skeleton-of-Thought (structure-first for latency, not resilience); Claude Code checkpointing (rewinds after errors, not zero-output cutoffs). This tip targets the narrower "rate-limit kills run before any artifact exists" mode.* `[ADVISORY: envoy]`
 - **Evidence levels matter** — all claims in plans, reviews, and execution are tagged E0–E3. Blocking claims require code evidence (E2+). Verification requires executed output (E3).
 - **Skill-craft for meta-work** — use `/use-skill-craft` to write, review, or audit skills, agent files, reference files, and AGENTS.md. It enforces the authoring test: every skill line must address something an LLM handles worse without guidance.
-- **Elicit use-case context for spawn-economics UX** — when designing cost or resource-preview UX (envoy, loop, do-build), intake must elicit (a) billing model (PAYG vs Max vs Team) AND (b) use-case context (overnight serial with backoff vs daytime parallel without backoff). Backoff-equipped serial runs aren't budget-constrained the same way parallel fanout is. Billing model alone is insufficient to choose framing.
+- **Elicit use-case context for spawn-economics UX** — when designing cost or resource-preview UX (envoy, loop, build phase), intake must elicit (a) billing model (PAYG vs Max vs Team) AND (b) use-case context (overnight serial with backoff vs daytime parallel without backoff). Backoff-equipped serial runs aren't budget-constrained the same way parallel fanout is. Billing model alone is insufficient to choose framing.
 
 ## Agent Mode
 
@@ -49,5 +49,5 @@ Spine assigns subagents to three tiers (Frontier/Standard/Fast) with provider-ma
 
 - **Subagent tiers are automatic:** agent frontmatter pins each subagent to a tier. The installer and runtime map tiers to provider-specific models. See [docs/model-selection.md](model-selection.md) for the full mapping.
 - **Mainthread guidance:** Standard (sonnet:medium / gpt-5.5:medium / auto) for all phases. Upgrade to Frontier when requirements are ambiguous, architectural decisions are cascading, or context exceeds ~50K tokens. See [docs/model-selection.md](model-selection.md) for escalation triggers.
-- **Consultation is the lever:** structured advisory (`/do-design`) improves output quality more than model choice alone. Strong model + consultation > strong model without consultation > weak model + consultation.
+- **Consultation is the lever:** structured advisory (design phase via `/use-goal-prompt plan`) improves output quality more than model choice alone. Strong model + consultation > strong model without consultation > weak model + consultation.
 - **Override envoy models:** set `SPINE_ENVOY_{TIER}_{PROVIDER}` in `~/.config/spine/.env` for per-tier envoy overrides.

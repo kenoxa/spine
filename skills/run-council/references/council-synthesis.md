@@ -58,7 +58,7 @@ Write to `{output_path}` as `council_artifact`. Required fields in this order:
 
 **This section documents orchestrator behavior — the Chairman is never dispatched when the skip condition fires.**
 
-See `skills/run-council/SKILL.md` Phase 1 (Intake) for the skip-condition definition and the full 8-field stub table written by the orchestrator. The output shape is conformant; downstream consumers (do-design, caller) treat it identically to a full Chairman synthesis.
+See `skills/run-council/SKILL.md` Phase 1 (Intake) for the skip-condition definition and the full 8-field stub table written by the orchestrator. The output shape is conformant; downstream consumers (workflow orchestrators, callers) treat it identically to a full Chairman synthesis.
 
 ## Constraints
 

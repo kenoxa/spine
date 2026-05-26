@@ -40,11 +40,11 @@ Write `architecture-findings.md` to `.scratch/<session>/`:
 1. **Summary** — scope audited, candidate count, top friction areas (2-3 sentences)
 2. **Candidate table** — module | depth | dependency category | priority
 3. **Per-candidate analysis** — coupling indicators, depth assessment, test impact, deepening approach
-4. **Next step** — suggest `/do-frame` for spec creation (large scope) or `/do-design` with `architecture-depth` lens (focused scope)
+4. **Next step** — suggest `/use-goal-prompt interrogate` for spec creation (large scope) or `/use-goal-prompt plan` with `architecture-depth` context (focused scope)
 
 ## Anti-Patterns
 
-- Proposing code changes (audit diagnoses; do-design/do-build prescribes)
+- Proposing code changes (audit diagnoses; design/build phases prescribe)
 - Auditing test quality in isolation (use run-review for that)
 - Skipping dependency classification (every candidate needs a category)
 - Conflating shallow modules with small modules (small + deep = fine)

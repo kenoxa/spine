@@ -75,8 +75,8 @@ truth.
 ### 4. Resume
 
 After user confirms state, recommend the next skill to invoke:
-- In-progress build → `/do-build`
-- No direction yet → `/do-design`
+- In-progress build → `/goal` (autonomous) or render via `/use-goal-prompt build`
+- No direction yet → `/goal frame this` or `/use-goal-prompt interrogate`
 - Plan complete, no commit → `/commit`
 - Unclear phase → ask before recommending
 

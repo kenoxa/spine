@@ -1,8 +1,8 @@
 ---
 updated: 2026-05-21
 paths:
-  - skills/do-build/references/build-status-schema.md
-  - skills/do-build/references/build-finalize.md
+  - skills/run-review/references/build-status-schema.md
+  - skills/run-review/references/build-finalize.md
 ---
 
 # Machine-Verifiable Terminal Contracts
@@ -25,14 +25,14 @@ working unchanged.
 
 ## Schema skeleton
 
-Exemplar: `build-status.json` emitted by `do-build` finalize. Key fields:
+Exemplar: `build-status.json` emitted by the build finalize phase. Key fields:
 
 | Field | Purpose |
 |-------|---------|
 | `schema_version` | Bump on breaking change; consumers refuse higher versions |
 | `status` | enum — `complete` \| `partial` \| `blocked` \| `in_progress` |
 | `exit_reason` | Short machine code (e.g. `review-accept`, `review-iterate-cap`, `budget-exceeded`) |
-| `session_id` | Carries from do-frame → do-design → do-build |
+| `session_id` | Session ID carried forward across phases, or generated at build entry for standalone builds |
 | `timestamp_utc` | RFC 3339 |
 | `base_rev` / `head_rev` | Full SHAs at entry / finalize |
 | `iteration` | 1-indexed; `1` for single-shot |
@@ -65,7 +65,7 @@ New optional fields are additive; consumers MUST ignore unknown fields.
 
 ## Reference implementations
 
-- **`do-build` finalize** (`skills/do-build/references/build-finalize.md:70-84`)
+- **Build finalize** (`skills/run-review/references/build-finalize.md:70-84`)
   writes `.scratch/<session>/build-status.json` atomically on every terminal
   outcome (ACCEPT, cap-reached, partial, question-answered=no).
   [E2: finalize ref; E3: first real-world emission at
@@ -75,7 +75,7 @@ New optional fields are additive; consumers MUST ignore unknown fields.
 
 - **Conditional emission.** Always emit — a missing artifact is a bug, not a
   silent skip. Downstream consumers treat absence as `in_progress` and may
-  stall. Guard: `do-build` finalize contract `build-finalize.md:84` states
+  stall. Guard: build finalize contract `skills/run-review/references/build-finalize.md:84` states
   "Always emit `build-status.json`."
 - **Non-atomic write.** `> final` leaves a window where a reader sees partial
   JSON. Always `.tmp + mv`.

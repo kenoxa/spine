@@ -40,6 +40,8 @@ Read AGENTS.md `## Project Knowledge` section and each referenced knowledge file
 
 **Glossary discovery** (optional): check for `UBIQUITOUS_LANGUAGE.md` at project root. If present, extract a lightweight term list (term + aliases if available). If absent, record `[GLOSSARY_SKIP: not found]` in session trace and continue — do not suggest creating one.
 
+**Structural lint** (standalone mode only): run the no-run-cycles lint at `references/lint-no-run-cycles.sh` (contract documented in `references/lint-no-run-cycles.md`). Surface any violations as `blocking` findings in the curate plan — do NOT promote knowledge or proceed to Dispatch until violations are resolved. Zero violations = continue.
+
 ### 2. Dispatch
 
 Dispatch `@curator` and `@envoy` in parallel:

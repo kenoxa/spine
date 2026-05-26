@@ -5,7 +5,7 @@ description: >-
 argument-hint: "[topic, problem, or decision to clarify]"
 ---
 
-Propose-and-refine interview producing `discuss_artifact`. Standalone or composed by `do-frame` / `do-design`.
+Propose-and-refine interview producing `discuss_artifact`. Standalone or composed by workflow orchestrators (frame and design phases).
 
 Accepts optional `scope` (frame|design), `goal`, and `codebase_signals` from parent skill. Standalone: infer scope from context, default frame.
 
@@ -19,7 +19,7 @@ Read [discuss-protocol.md](references/discuss-protocol.md) at session start.
 |---|-------|------|
 | 1 | Seed | mainthread |
 | 2 | Propose | mainthread (interactive) |
-| 3 | Probe | G — invoke `/run-explore` on demand |
+| 3 | Probe | G — dispatch `@scout` (breadth) or `@researcher` (depth) on demand |
 | 4 | Declare | mainthread |
 
 ### 1. Seed
@@ -36,7 +36,7 @@ Calibrated depth: simple (2-3 questions), complex (5-8).
 
 ### 3. Probe
 
-User response surfaces codebase question → invoke `/run-explore` for targeted probe. Feed result into known table. Skip user turn. Zero-dispatch when no codebase question surfaces — log with justification.
+User response surfaces codebase question → dispatch `@scout` (breadth) or `@researcher` (depth) for targeted probe. Feed result into known table. Skip user turn. Zero-dispatch when no codebase question surfaces — log with justification.
 
 ### 4. Declare
 

@@ -102,7 +102,7 @@ Provider-specific mappings are documented in [model-selection.md](model-selectio
 
 The `/do` orchestrator classifies task complexity at intake and routes accordingly.
 
-- **Routine tasks** (clear requirements, small scope, no ambiguity) skip frame and go directly to `do-design` or `do-build`.
+- **Routine tasks** (clear requirements, small scope, no ambiguity) skip frame and go directly to design or build phases via `/use-goal-prompt`.
 - **Ambiguous tasks** (vague problem statements, novel domains, multiple valid approaches) run the full frame → design workflow.
 
 **Routing by complexity reduces cost without sacrificing quality.** Google's hybrid SAS-MAS study (2025) found that routing simple tasks to single agents and complex tasks to multi-agent pipelines improved accuracy by 1--12% while reducing costs by up to 20%. The insight: not every task needs multi-agent coordination. Routine single-file edits with clear specifications gain nothing from a seven-phase discussion --- they need a plan and an implementation.

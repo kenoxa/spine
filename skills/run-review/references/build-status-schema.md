@@ -1,10 +1,10 @@
 # build-status.json — Schema
 
-Machine-readable terminal signal emitted by do-build finalize. Consumed by future wrappers, session resumers, and optional HTML visualizers. The natural-language completion declaration remains authoritative for humans.
+Machine-readable terminal signal emitted by the build finalize phase. Consumed by future wrappers, session resumers, and optional HTML visualizers. The natural-language completion declaration remains authoritative for humans.
 
 ## Path
 
-`.scratch/<session>/build-status.json` — do-build session id, carried forward from do-frame → do-design → do-build, or generated at entry for standalone builds.
+`.scratch/<session>/build-status.json` — session ID carried forward across workflow phases, or generated at build entry for standalone builds.
 
 ## Write Contract
 
@@ -39,9 +39,9 @@ Atomic: write `.tmp`, then `mv` to final path. Mid-build readers must never obse
 | `schema_version` | string | `"1"`. Bump on breaking change. |
 | `status` | enum | `complete` \| `partial` \| `blocked` \| `in_progress`. |
 | `exit_reason` | string | Short machine code — see below. Not user-facing. |
-| `session_id` | string | Do-build session id. |
+| `session_id` | string | Session ID for this build. |
 | `timestamp_utc` | RFC 3339 | UTC at emission. `date -u +%Y-%m-%dT%H:%M:%SZ`. |
-| `base_rev` | full SHA | `git rev-parse HEAD` at do-build entry. |
+| `base_rev` | full SHA | `git rev-parse HEAD` at build entry. |
 | `head_rev` | full SHA | `git rev-parse HEAD` at finalize. Equals `base_rev` if no commits. |
 | `dirty_start` | bool | `git status --porcelain` non-empty at entry. |
 | `dirty_end` | bool | `git status --porcelain` non-empty at finalize. A `true` in an autonomous wrapper is a trip-wire. |

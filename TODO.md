@@ -8,6 +8,8 @@
 - RTK Codex hooks: switch from instruction-only (`RTK.md`) to PreToolUse hook rewriting once Codex supports `updatedInput` + `permissionDecision:allow` — both are parsed but explicitly rejected as "unsupported" in `codex-rs/hooks/src/engine/output_parser.rs` (verified 2026-04-07). Blocked on Codex, not RTK. ([rtk#921](https://github.com/rtk-ai/rtk/issues/921), [codex#14754](https://github.com/openai/codex/issues/14754))
 - Codex hooks: enable `inject-types-on-read` and `check-on-edit` once Codex PostToolUse supports non-Bash tools (Read, Edit/Write); currently Bash-only ([codex#14754](https://github.com/openai/codex/issues/14754)); hooks are ready — just expand capability matrix in install.sh
 - doc co-evolution Phase 2: if lightweight guardrails (SPINE.md norm + Scope heuristic + finalize learnings) prove insufficient, add `docs_impact` to frame_artifact and `docs_plan` to design_artifact schema fields
+- Spine consolidation telemetry repair (follow-on from `.scratch/spine-workflow-consolidation-214f/`): the `skills_used` field in `claude_sessions.json` currently captures user-typed slash-command keywords only, not model-invoked Skill calls — produced a 10-skill gap in one Slice 5 sample (G1 in `telemetry-misdiagnosis-classification.md`). Repair the run-insights collector to record model-invoked Skill calls. Then redo the falsification gate against a corrected sample (filtered by terminal-failure criteria, not by synthesizer characterization). If the corrected gate fires NO-GO, revert per `docs/runbooks/spine-workflow-consolidation-rollback.md`.
+- Spine catalog audit (follow-on from `.scratch/spine-workflow-consolidation-214f/` — decoupled per design-artifact §5): audit every `skills/run-*/`, `skills/use-*/`, and external-sync skill in the catalog for retain/fold/delete verdicts. Heuristic: structural-role analysis (called by anything surviving the consolidation) + capability uniqueness. Ships as a separate spec post-consolidation.
 
 ## Integrate Fallow (codebase intelligence for TS/JS) into Spine
 
@@ -20,16 +22,16 @@ Explored but shelved. Session artifacts in `.scratch/fallow-integration/`.
 - **No new skill** — add `skills/use-shell/references/fallow.md` reference doc only.
 - **No hook integration** — Fallow lacks single-file mode; `audit --changed-since` needs git history.
 - **No `fallow-skills` package** — format mismatch with Spine's skill system.
-- **Review-time only** — wire into `run-review` verifier or `do-build` gate for JS/TS projects.
+- **Review-time only** — wire into `run-review` verifier or build-review-gate (now at `skills/run-review/references/build-review-gate.md`) for JS/TS projects.
 
 **Open questions** (needs user decision before build):
 1. Install via `install.sh` binary (follow `install_probe()` pattern) or rely on `npx fallow` only?
-2. Pre-review deterministic gate in `do-build` vs inside `run-review` verifier only?
+2. Pre-review deterministic gate in build phase vs inside `run-review` verifier only?
 3. Deterministic severity adapter (jq/shell) or let agents interpret raw Fallow JSON?
 
 **Key risk**: Envoy-Codex found `schema_version: 3` envelope with nested `schema_version: 4` payloads in live probe — schema stability weaker than assumed.
 
-**Next step**: Restart with fresh `/do-frame` + `/do-design` if/when priority shifts. All prior artifacts preserved in `.scratch/fallow-integration/` (frame-artifact, design-artifact, synthesis, 6 batch outputs).
+**Next step**: Restart with fresh `/goal frame this` (or `/use-goal-prompt interrogate`) if/when priority shifts. All prior artifacts preserved in `.scratch/fallow-integration/` (frame-artifact, design-artifact, synthesis, 6 batch outputs).
 
 ## Provide Shared System Setup for MacOS dotfiles
 

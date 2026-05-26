@@ -2,7 +2,7 @@
 
 ## Role
 
-Mainthread gate logic. Read run-review's output and determine ITERATE or ACCEPT verdict for do-build's correctness loop.
+Mainthread gate logic. Read run-review's output and determine ITERATE or ACCEPT verdict for the build correctness loop.
 
 ## Input
 
@@ -24,7 +24,7 @@ Run-review produces a findings artifact with severity-bucketed findings:
 
 ## On ITERATE
 
-Extract blocking findings as `fix_context` for `/run-implement` fix mode:
+Extract blocking findings as `fix_context` for the downstream implementer fix dispatch:
 - One line per finding: file, finding summary, evidence level
 - Omit should_fix and follow_up (those are polish territory)
 

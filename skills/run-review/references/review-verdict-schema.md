@@ -74,5 +74,5 @@ Gate: any `blocking` finding stops merge. `should_fix`/`follow_up` do not block 
 ## Cross-References
 
 - **Emission**: [`review-output.md`](review-output.md) — Phase 4 Output Assembly section.
-- **Sibling pattern**: [`skills/do-build/references/build-status-schema.md`](../../do-build/references/build-status-schema.md) — `build-status.json` follows the same atomicity and version contract.
+- **Sibling pattern**: [`build-status-schema.md`](build-status-schema.md) — `build-status.json` follows the same atomicity and version contract.
 - **Atomicity pattern**: [`docs/machine-verifiable-terminal-contracts.md`](../../../docs/machine-verifiable-terminal-contracts.md).

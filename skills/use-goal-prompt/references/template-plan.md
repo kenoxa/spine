@@ -14,7 +14,7 @@ CONTEXT:
 Brief confirmed: [brief_reference].
 Codebase: [codebase_state] — empty (greenfield) or present (extending).
 Doc convention: [doc_convention] — user-specified, or ask for a recommendation sized to scale and domain.
-Use the `/do-design` skill to produce the doc set.
+Design discipline: See `skills/use-goal-prompt/references/phase-discipline-design.md`. MANDATORY: load before proceeding. In autonomous (/goal) flows, user-STOP gates become emit-artifact-and-halt signals.
 SESSION: Use `/use-session`; maintain session.json + events.jsonl + session-log.md. If worktree needed, use `/use-worktree` attach, not fork.
 
 CONSTRAINTS:
@@ -78,4 +78,5 @@ Halt when a load-bearing seam cannot be confirmed against the code.
 Do not invent decisions, risks, milestones, steps, responsibilities, or filenames.
 Do not declare complete until the build-readiness walk is performed and clean.
 Do not exceed depth appropriate to project scale.
+Design-phase discipline stops: See `skills/use-goal-prompt/references/phase-discipline-design.md`. MANDATORY: load `skills/use-goal-prompt/references/phase-discipline-design.md` before proceeding.
 ```

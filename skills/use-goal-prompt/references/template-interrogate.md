@@ -13,7 +13,7 @@ Interrogate the user's idea exhaustively until zero assumptions remain, then out
 CONTEXT:
 User has a vague or semi-formed idea about [topic] and needs a structured intake interview that translates fuzzy language into concrete artifacts before any docs, plans, or code are written.
 User is assumed non-technical unless they signal otherwise.
-Use the `/do-frame` skill to conduct the interview.
+Frame discipline: See `skills/use-goal-prompt/references/phase-discipline-frame.md`. MANDATORY: load before proceeding. In autonomous (/goal) flows, user-STOP gates become emit-artifact-and-halt signals.
 SESSION: Use `/use-session`; maintain session.json + events.jsonl + session-log.md. If worktree needed, use `/use-worktree` attach, not fork.
 
 CONSTRAINTS:
@@ -63,4 +63,5 @@ STOP RULES:
 Halt and surface the gap when an answer would require inventing scope, audience, or success criteria.
 Surface uncertainties together with ranked highest-confidence proposals, not open-ended clarification questions.
 Do not transition to documentation or planning after the brief is confirmed.
+Frame-phase discipline stops: See `skills/use-goal-prompt/references/phase-discipline-frame.md`. MANDATORY: load `skills/use-goal-prompt/references/phase-discipline-frame.md` before proceeding.
 ```

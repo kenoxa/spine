@@ -14,7 +14,6 @@ npx skills add anthropics/claude-code -s frontend-design -a '*' -g -y
 npx skills add wshobson/agents -s wcag-audit-patterns -a '*' -g -y
 npx skills add softaworks/agent-toolkit -s reducing-entropy -a '*' -g -y
 npx skills add mcollina/skills -s typescript-magician -a '*' -g -y
-npx skills add trailofbits/skills -s differential-review -a '*' -g -y
 npx skills add trailofbits/skills -s fp-check -a '*' -g -y
 npx skills add mattpocock/skills -s ubiquitous-language -a '*' -g -y
 npx skills add mattpocock/skills -s tdd -a '*' -g -y
@@ -27,13 +26,12 @@ npx skills add GoogleChrome/modern-web-guidance -s modern-web-guidance -a '*' -g
 
 | Skill | Repo | Referenced by |
 |-------|------|---------------|
-| `brainstorming` | `obra/superpowers` | do-design, do-frame — divergent ideation when problem is known but solution space is open |
+| `brainstorming` | `obra/superpowers` | design phase — divergent ideation when problem is known but solution space is open |
 | `visual-explainer` | `nicobailon/visual-explainer` | `@visualizer` agent — visual architecture and diff explanations |
 | `security-reviewer` | `jeffallan/claude-skills` | run-review — high-risk security probe heuristics |
 | `frontend-design` | `anthropics/claude-code` | with-frontend — distinctive visual craft (typography, color, motion, composition) |
 | `wcag-audit-patterns` | `wshobson/agents` | with-frontend — comprehensive WCAG 2.2 audit methodology |
 | `reducing-entropy` | `softaworks/agent-toolkit` | run-review — net-complexity measurement, counters code bloat |
-| `differential-review` | `trailofbits/skills` | run-review — security-focused PR review with blast radius and regression detection |
 | `fp-check` | `trailofbits/skills` | run-review — systematic true/false positive verification for security findings |
 | `ubiquitous-language` | `mattpocock/skills` | with-terminology — DDD-style glossary extraction and canonical term formalization (expects sections: Relationships, Example dialogue, Flagged ambiguities) |
 | `tdd` | `mattpocock/skills` | with-testing — TDD cycle enforcement and mock implementation rules once test boundaries are mapped |

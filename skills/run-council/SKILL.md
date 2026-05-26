@@ -99,7 +99,7 @@ Retry once on empty output; halt and surface error on second failure.
 
 ### 5. Output
 
-Return `council_artifact` (path to `.scratch/<session>/council-synthesis.md`) to caller (do-design).
+Return `council_artifact` (path to `.scratch/<session>/council-synthesis.md`) to caller (workflow orchestrator or user).
 
 - **Embedded**: return `council_artifact` to caller.
 - **Standalone**: present synthesis to user for decision.

@@ -18,11 +18,11 @@
 ## Redirect Rule
 
 If user steers toward WHAT ("actually the real problem is..."):
-flag scope drift. "That sounds like a framing question. Should we return to `/do-frame`?"
+flag scope drift. "That sounds like a framing question. Should we return to the frame phase?"
 
 ## Artifact Projection
 
-`discuss_artifact` feeds into `do-design` advisory dispatch:
-- `known` items → constraints for `/run-advise` dispatch
+`discuss_artifact` feeds into the design phase advisory dispatch:
+- `known` items → constraints for advisor batch dispatch downstream
 - `proposals` (confirmed) → approach preferences / guardrails
 - `open_questions` → advisory focus areas

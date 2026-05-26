@@ -50,17 +50,19 @@ Shell fallback: prefer `rg`/`fd`/`jq`/`yq`/`sd`/`sg` over system defaults; `tras
 
 Plan before implementing when a task has 3+ steps or architectural decisions. For clear-scope tasks without design choices, execute directly — but state in 1–3 lines what will change and why before the first write/edit. Orientation, not a plan gate. If the approach stalls, stop and re-plan — don't keep pushing.
 
-After `do-design` emits a recommendation, STOP and await explicit user approval before proceeding to build. The recommendation is not approval.
+When `/use-goal-prompt` emits a design recommendation, STOP and await explicit user approval before proceeding to build. The recommendation is not approval.
 
-**Verification:** Never mark a task complete without proving it works. Run tests, check logs, demonstrate correctness.
+**Verification:** Never mark a task complete without proving it works.
 
-**Subagents:** Isolate subagents: one task, no inherited history. Every dispatch prompt MUST include the exact output file path and the constraint: "Write output to that path. Read any repo file. No edits outside `.scratch/<session>/`. No builds, tests, or destructive commands." Subagents may create a scratchspace directory alongside their output file by stripping the extension (e.g., `output.md` → `output/`, `output.html` → `output/`). Use for intermediate work — verification scripts, draft analysis, evidence traces. Inspectable but not formal output; synthesizer reads prescribed paths only. Cap: ≤ 6 agents per dispatch (including augmented). Read all relevant files and gather examples before synthesizing. Never pass `model` on Agent/Task dispatches — agent definitions declare their tier/model. User may override per-session; skills never do.
+**Subagents:** Isolate subagents: one task, no inherited history. Every dispatch prompt MUST include the exact output file path and the constraint: "Write output to that path. Read any repo file. No edits outside `.scratch/<session>/`. No builds, tests, or destructive commands." Subagents may create a scratchspace directory alongside their output file by stripping the extension (e.g., `output.md` → `output/`, `output.html` → `output/`). Use for intermediate work — verification scripts, draft analysis, evidence traces. Synthesizer reads prescribed paths only. Cap: ≤ 6 agents per dispatch (including augmented). Never pass `model` on Agent/Task dispatches — agent definitions declare their tier/model. User may override per-session; skills never do.
 
 **Phase Trace:** Workflow skills log a Phase Trace row to session-log at every phase boundary. Zero-dispatch phases require a row with justification.
 
+**No run-* cycles:** No `run-*` skill calls another `run-*` skill. Composition lives in orchestrators (`/use-goal-prompt`) or subagent role dispatch — prevents dependency graphs that break standalone invocation.
+
 **Sessions:** Workflow skills share a session directory at `.scratch/<session>/`. Session IDs: `{slug}-{hash}` — 5–7 word slug, 4-char hex from `openssl rand -hex 2`. Generate once at skill entry; carry forward across frame → design → build. The orchestrator maintains an append-only session log at `.scratch/<session>/session-log.md`, appending at phase boundaries and after significant decisions — subagents do not write to it. Each entry: phase, decision, rationale (with rejected alternatives), current state, next step.
 
-**Context:** Context window is volatile; filesystem persists. At ~60% context, run handoff → /clear → catchup. After any /clear or compaction, re-read session-log and verify state before continuing. Prefer subagent synthesis over mainthread when merging multiple outputs.
+**Context:** At ~60% context, run handoff → /clear → catchup. After any /clear or compaction, re-read session-log and verify state before continuing. Prefer subagent synthesis over mainthread when merging multiple outputs.
 
 **Compacting:** When compacting, preserve: session ID and `.scratch/<session>/session-log.md` path, current workflow phase and plan state, all modified file paths (exact repo-relative, not generalized), error messages and test failures verbatim, architecture decisions with rationale and rejected alternatives, evidence levels on blocking claims, uncommitted changes and current branch, and next concrete step.
 
@@ -70,7 +72,7 @@ After `do-design` emits a recommendation, STOP and await explicit user approval 
 
 **Spec IDs:** `{YY}{WW}` = 2-digit year + ISO week. Multiple specs per week share the same prefix with different slugs (e.g., `2614-implementer-standard-tier`).
 
-**Provider mode:** Codex sessions are batch-executor by design (single-turn, full-auto). Do not push interactive skills (`/do-frame`, `/do-design`) into Codex flows — bake intent into the initial prompt instead.
+**Provider mode:** Codex sessions are batch-executor by design (single-turn, full-auto). Do not push interactive skills into Codex flows — bake intent into the initial prompt instead.
 
 ## Evidence Levels
 

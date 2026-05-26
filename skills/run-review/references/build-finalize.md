@@ -23,7 +23,7 @@ Evaluate whether the build addressed the original intent:
 | `partially` | Core intent addressed but notable gaps remain |
 | `no` | Build does not answer the original question or recommendation |
 
-When `partially` or `no`: suggest re-direction to `/do-design` to reframe the problem before another build attempt. State what was missed and why re-framing may help.
+When `partially` or `no`: suggest re-direction to the design phase (via `/use-goal-prompt plan`) to reframe the problem before another build attempt. State what was missed and why re-framing may help.
 
 ### 2. Prototype Completion Gates
 
@@ -54,13 +54,13 @@ Propose only — never auto-apply. User must approve each update before it is wr
 
 ### 4. Knowledge Curation
 
-When any learning has `knowledge_candidate: yes`, invoke `/run-curate` with those candidates.
+When any learning has `knowledge_candidate: yes`, the orchestrator schedules knowledge curation with the items as candidates.
 
 ### 5. Completion Declaration
 
 - **ACCEPT + gates met + question answered `yes`**: `Build complete.`
-- **ACCEPT + gates met + question answered `partially`**: `Build complete (partial).` — list gaps; suggest `/do-design` for reframing.
-- **ACCEPT + question answered `no`**: `Build NOT complete.` — explain mismatch; suggest `/do-design`.
+- **ACCEPT + gates met + question answered `partially`**: `Build complete (partial).` — list gaps; suggest design phase reframing via `/use-goal-prompt plan`.
+- **ACCEPT + question answered `no`**: `Build NOT complete.` — explain mismatch; suggest design phase reframing via `/use-goal-prompt plan`.
 - **ITERATE (cap reached)**: `Build NOT complete.` — list remaining blockers from review.
 
 ### 6. Session Log

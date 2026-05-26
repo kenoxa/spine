@@ -79,7 +79,7 @@ agents use to skip steps.
 
 `## Completion` (optional): 3-6 concrete evidence requirements at skill exit. Tag
 each with required evidence level (E2/E3). Precedent: `run-debug/SKILL.md`,
-`do-build/references/build-finalize.md`. Workflow skills (`do-*`, `run-*`) with
+`run-review/references/build-finalize.md`. Workflow skills (`do-*`, `run-*`) with
 phase-gated exits should include this section.
 
 **Be concrete.** Vague directives fail the authoring test. See

@@ -4,7 +4,7 @@ paths:
   - skills/use-skill-craft/SKILL.md
   - CONTRIBUTING.md
   - SPINE.md
-  - skills/do-build/references/build-review-gate.md
+  - skills/run-review/references/build-review-gate.md
   - skills/run-review/references/template-review-brief.md
 ---
 
@@ -26,10 +26,10 @@ anti-pattern convention.
 ## Completion Sections
 
 Optional `## Completion` for workflow skills with phase-gated exits. 3-6
-evidence requirements, E-level tagged. Precedent: run-debug, do-build/finalize,
+evidence requirements, E-level tagged. Precedent: run-debug, run-review/build-finalize,
 phase-audit completion gates.
 
-Required for `do-*`/`run-*` with phase tables. Omit for `use-*`/`with-*`.
+Required for `run-*` with phase tables. Omit for `use-*`/`with-*`.
 
 ## Inline vs Hook Enforcement
 
@@ -60,7 +60,7 @@ conditions checked. Default to re-dispatch when any condition is uncertain.
 tiny," run the checklist. Condition 2 (no new files/attack surface) and
 Condition 1 (prior verifier was PASS) are the most common failure points.
 
-[E2: `skills/do-build/references/build-review-gate.md` §Budget-aware
+[E2: `skills/run-review/references/build-review-gate.md` §Budget-aware
 inline ACCEPT (conditional); commit `fc79e12`]
 
 ## Ecosystem Context

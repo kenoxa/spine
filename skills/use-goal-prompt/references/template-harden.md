@@ -14,6 +14,7 @@ CONTEXT:
 Existing codebase with gaps in test coverage, CI hygiene, security posture, or dependency hygiene.
 Scope: [scope].
 Risk threshold: [risk_threshold] — gaps above this trigger action; below are accepted or deferred.
+Build discipline: See `skills/use-goal-prompt/references/phase-discipline-build.md`. MANDATORY: load before proceeding. In autonomous (/goal) flows, user-STOP gates become emit-artifact-and-halt signals.
 SESSION: Use `/use-session`; maintain session.json + events.jsonl + session-log.md. If worktree needed, use `/use-worktree` attach, not fork.
 
 CONSTRAINTS:
@@ -55,4 +56,5 @@ STOP RULES:
 Halt on gaps that require a product decision to accept or close.
 Surface ranked proposals when multiple guardrail shapes are valid.
 Do not land a fix without its guardrail in the same change.
+Build-phase discipline stops: See `skills/use-goal-prompt/references/phase-discipline-build.md`. MANDATORY: load `skills/use-goal-prompt/references/phase-discipline-build.md` before proceeding.
 ```

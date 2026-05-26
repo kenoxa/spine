@@ -111,6 +111,6 @@ Before raising any finding, verify:
 
 ## See Also
 
-`security-reviewer` (deeper heuristics), `@visualizer` (visual diff review — dispatched after findings), `reducing-entropy` (net-complexity measurement), `differential-review` (security-focused PR review with blast radius detection), `fp-check` (systematic true/false positive verification).
+`security-reviewer` (deeper heuristics), `@visualizer` (visual diff review — dispatched after findings), `reducing-entropy` (net-complexity measurement), `fp-check` (systematic true/false positive verification), [`inspect-security-depth.md`](references/inspect-security-depth.md) (security-depth methodology for AUTH/CRYPTO/value-transfer surfaces).
 
 Machine verdict: see [`review-verdict-schema.md`](references/review-verdict-schema.md).

@@ -4,29 +4,13 @@
 
 ## Workflow Skills
 
-### do (orchestrator)
+### use-goal-prompt
 
-Single entry point that chains `do-frame` → `do-design` → `do-build`. Stateful coordinator using redirect model — suggests next phase skill, tracks state in session-log.md. Supports skip validation (skip analyze if problem is clear, skip consult if direction is clear). Catch-all for features, bugs, issues, ideas, questions.
+Read-only goal-prompt compiler with phase classification. Takes an intent template (`interrogate`, `plan`, `build`, `refactor`, `consolidate`, `harden`, `migrate`), classifies it into a workflow phase (frame / design / build), injects the matching phase-discipline block, and emits a structured 9-section goal prompt under a 4000-character hard cap. Overflows to a sibling `goal-brief.md` when needed. Use `--enrich` flag or let size-bound auto-enable kick in for richer prompts. Feed the emitted prompt to `/goal` for autonomous execution, or paste into your provider's chat.
 
-Canonical entry: [`skills/do/SKILL.md`](../skills/do/SKILL.md).
+Trigger phrases absorbed from the legacy do-* skills: "frame this", "scope this", "design", "plan the approach", "implement and review", "just ship it", "fix this", "add this".
 
-### do-frame
-
-Socratic WHAT-focused dialogue composing `run-explore` and `run-discuss`. Phases: orient (invoke `/run-explore`) → clarify (mainthread + `/run-discuss` + `/run-explore` on demand) → investigate (invoke `/run-explore`) → handoff. Produces `frame_artifact` with problem statement, constraints, blast radius, success criteria, key unknowns. Forbidden from prescribing HOW. WHAT/HOW escape hatch redirects to `/do-design` when feasibility knowledge is needed.
-
-Canonical entry: [`skills/do-frame/SKILL.md`](../skills/do-frame/SKILL.md).
-
-### do-design
-
-Multi-model HOW direction composing `run-advise`. Thin orchestrator: intake (mainthread) → invoke `/run-advise` (batch dispatch + synthesis) → user decision gate. Disagreement-as-signal. User decision gate: approve → `/do-build`, push back → re-dispatch, reject → `/do-frame`. Cap 3 re-dispatch rounds.
-
-Canonical entry: [`skills/do-design/SKILL.md`](../skills/do-design/SKILL.md).
-
-### do-build
-
-Automated build-review-polish loop composing `run-implement`, `run-review`, `run-polish`. Scope → `/run-implement` → `/run-review` ↔ `/run-implement` (fix) → `/run-polish` → finalize. Correctness loop (implement↔review, cap 3) then maintainability loop (polish until no E2+ findings, cap 3). Prototype completion gates (no mandatory test/doc gates).
-
-Canonical entry: [`skills/do-build/SKILL.md`](../skills/do-build/SKILL.md).
+Canonical entry: [`skills/use-goal-prompt/SKILL.md`](../skills/use-goal-prompt/SKILL.md).
 
 ### run-review
 
@@ -71,9 +55,9 @@ Canonical entry: [`skills/run-insights/SKILL.md`](../skills/run-insights/SKILL.m
 
 ### run-explore
 
-Bounded codebase exploration and architecture mapping. Answers "what's there?" — single-pass reconnaissance. For "what should we do about it?" use `do-frame` instead.
+Bounded codebase exploration and architecture mapping. Answers "what's there?" — single-pass reconnaissance. For "what should we do about it?" use `/use-goal-prompt interrogate` instead.
 
-Standalone invocation dispatches role-specific subagents (scout for breadth, researcher for depth, navigator for external research), synthesizes findings, and optionally generates visual recaps via `@visualizer`. Also invoked as a phase skill by `do-frame` (orient, clarify probes, investigate).
+Standalone invocation dispatches role-specific subagents (scout for breadth, researcher for depth, navigator for external research), synthesizes findings, and optionally generates visual recaps via `@visualizer`. Also invoked as a phase skill by the frame phase of `/use-goal-prompt` (orient, clarify probes, investigate).
 
 Canonical entry: [`skills/run-explore/SKILL.md`](../skills/run-explore/SKILL.md).
 
@@ -95,19 +79,19 @@ Canonical entry: [`skills/run-curate/SKILL.md`](../skills/run-curate/SKILL.md).
 
 ### run-implement
 
-Scoped code implementation with partition-parallel dispatch. Works standalone ("implement this") and as an embedded phase in `do-build`. Three phases: scope (mainthread) → implement (`@implementer` per partition) → report (mainthread). Fix mode: when invoked with `fix_context`, applies minimal fixes to blocking findings instead of full implementation.
+Scoped code implementation with partition-parallel dispatch. Works standalone ("implement this") and as an embedded phase in the build workflow. Three phases: scope (mainthread) → implement (`@implementer` per partition) → report (mainthread). Fix mode: when invoked with `fix_context`, applies minimal fixes to blocking findings instead of full implementation.
 
 Canonical entry: [`skills/run-implement/SKILL.md`](../skills/run-implement/SKILL.md).
 
 ### run-advise
 
-Multi-model perspective gathering with synthesis. Works standalone ("advise on this approach") and as an embedded phase in `do-design`. Dispatches `@consultant` (rigorous + creative angles) + `@navigator` + `@envoy` → `@synthesizer`. Produces `advise_artifact` with convergence/divergence map, tradeoffs, falsification risks. Standalone: thin input gets grounding question; embedded: dispatches directly from `frame_artifact`. Orchestration passes `{source_artifact_path}` so the synthesizer and envoy share the same authoritative on-disk artifact as the decision object (see `references/advise-synthesis.md`).
+Multi-model perspective gathering with synthesis. Works standalone ("advise on this approach") and as an embedded phase in the design workflow. Dispatches `@consultant` (rigorous + creative angles) + `@navigator` + `@envoy` → `@synthesizer`. Produces `advise_artifact` with convergence/divergence map, tradeoffs, falsification risks. Standalone: thin input gets grounding question; embedded: dispatches directly from `frame_artifact`. Orchestration passes `{source_artifact_path}` so the synthesizer and envoy share the same authoritative on-disk artifact as the decision object (see `references/advise-synthesis.md`).
 
 Canonical entry: [`skills/run-advise/SKILL.md`](../skills/run-advise/SKILL.md).
 
 ### run-council
 
-Thinking-lens stress-test that sequences after `run-advise` at `do-design` Phase 2. Dispatches 5 committed-perspective advisors (Contrarian, First Principles, Expansionist, Outsider, Executor) each reading only their own lens definition — no cross-lens visibility. Advisor outputs are anonymized (A–E, randomized order) and re-dispatched to the same 5 advisors for peer critique under anonymity. Chairman (`@synthesizer` + `council-synthesis.md` ref) ingests both advisor batch and peer reviews, then resolves conflicts and emits a single directional recommendation with Convergence Zones, Genuine Disagreements, Collective Blind Spots, and Falsification risks. Skip condition at Intake: when advise-synthesis has no divergence tags and `blast_radius.transitive` is empty, emits a ratified result without dispatching advisors.
+Thinking-lens stress-test that sequences after `run-advise` at the design phase Phase 2. Dispatches 5 committed-perspective advisors (Contrarian, First Principles, Expansionist, Outsider, Executor) each reading only their own lens definition — no cross-lens visibility. Advisor outputs are anonymized (A–E, randomized order) and re-dispatched to the same 5 advisors for peer critique under anonymity. Chairman (`@synthesizer` + `council-synthesis.md` ref) ingests both advisor batch and peer reviews, then resolves conflicts and emits a single directional recommendation with Convergence Zones, Genuine Disagreements, Collective Blind Spots, and Falsification risks. Skip condition at Intake: when advise-synthesis has no divergence tags and `blast_radius.transitive` is empty, emits a ratified result without dispatching advisors.
 
 Canonical entry: [`skills/run-council/SKILL.md`](../skills/run-council/SKILL.md).
 
@@ -169,12 +153,6 @@ Manual git-worktree lifecycle: create/list/remove/prune/sync/land. Worktrees liv
 
 Canonical entry: [`skills/use-worktree/SKILL.md`](../skills/use-worktree/SKILL.md).
 
-### use-goal-prompt
-
-Read-only `/goal` prompt compiler. Emits the 9-section prompt contract, keeps prompts under 4000 chars, and explicitly names `/use-session` plus `/use-worktree` when branch/worktree isolation is part of the task.
-
-Canonical entry: [`skills/use-goal-prompt/SKILL.md`](../skills/use-goal-prompt/SKILL.md).
-
 ## Subagents
 
 | Agent | Tier | Model | Effort | Purpose |
@@ -182,7 +160,7 @@ Canonical entry: [`skills/use-goal-prompt/SKILL.md`](../skills/use-goal-prompt/S
 | `scout` | Fast | haiku | medium | Fast codebase reconnaissance |
 | `researcher` | Standard | sonnet | high | Deep discovery and evidence gathering; local-depth first, may do bounded plan-specific upstream lookup |
 | `navigator` | Standard | sonnet | high | External-first research specialist for broad, ambiguous, comparative, or current external work |
-| `consultant` | Frontier | opus | xhigh | Perspective-committed recommendation for `do-design` |
+| `consultant` | Frontier | opus | xhigh | Perspective-committed recommendation for the design phase |
 | `curator` | Standard | sonnet | high | Knowledge curation — promote, review, prune knowledge files |
 | `debater` | Frontier | opus | xhigh | Multi-perspective Socratic dialogue |
 | `inspector` | Frontier | opus | xhigh | Verdict-focused code review, preloads `run-review` |
@@ -198,11 +176,10 @@ See [model-selection.md](model-selection.md) for provider mappings and tier deta
 
 ## Skill Prefix Convention
 
-Prefixes group skills in slash-autocomplete — type `do-`, `run-`, `with-`, or `use-` to filter to the category you need.
+Prefixes group skills in slash-autocomplete — type `run-`, `with-`, or `use-` to filter to the category you need.
 
 | Prefix | Semantic | When to use |
 |--------|----------|-------------|
-| `do-` | Primary flow | The workflow chain: frame → design → build |
 | `run-` | Utilities | Standalone actions invoked any time: debug, review, polish, insights, recap |
 | `with-` | Domain constraints | Applied passively when the task matches a specific domain — backend, frontend, terminology, testing |
 | `use-` | Operational tools | Invoked explicitly — utilities, conventions, and cross-provider tooling |

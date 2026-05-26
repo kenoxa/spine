@@ -28,7 +28,7 @@ Write to `{output_path}`. Structure per SKILL.md Output Format:
 1. **Summary** — scope audited, candidate count, top friction areas (2-3 sentences)
 2. **Candidate table** — module | depth | dependency category | priority
 3. **Per-candidate analysis** — coupling indicators, depth assessment, test impact, deepening approach
-4. **Next step** — `/do-frame` for large scope (3+ candidates, cross-cutting) or `/do-design` with `architecture-depth` lens for focused scope
+4. **Next step** — `/use-goal-prompt interrogate` for large scope (3+ candidates, cross-cutting) or `/use-goal-prompt plan` with `architecture-depth` context for focused scope
 
 ## Constraints
 

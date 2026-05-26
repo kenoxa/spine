@@ -167,12 +167,14 @@ See [docs/model-selection.md](docs/model-selection.md) for full tier guidance an
 Then start from the workflow:
 
 ```text
-/do -> /do-frame -> /do-design -> /do-build -> /commit
+/use-goal-prompt <template>  # compile-time: frame, plan, build, refactor, ...
+/goal <task>                 # autonomous entry point
+/commit                      # when the change is ready to stage and ship
 ```
 
 ## What You Get
 
-- A shared workflow: `do-frame`, `do-design`, `do-build`, `commit` (or `/do` as single entry point)
+- A shared workflow: `/use-goal-prompt` for compile-time control, `/goal` for autonomous runs, `commit` for staging
 - Utility skills for review, debugging, polish, insights, and recap
 - Shared guardrails through `SPINE.md` and your own global overrides through `AGENTS.md`
 - Shared subagents in `agents/`
@@ -209,12 +211,11 @@ If `~/.config/spine/.env` exists, the installer reads it for MCP authentication.
 
 ## Workflow
 
-1. **[Frame](docs/skills-reference.md#do-frame)** with `/do-frame` to define the problem, constraints, and success criteria.
-2. **[Design](docs/skills-reference.md#do-design)** with `/do-design` to compare approaches and get a cross-model recommendation.
-3. **[Build](docs/skills-reference.md#do-build)** with `/do-build` to prototype, review, and polish.
-4. **[Commit](docs/skills-reference.md#commit)** with `/commit` when the change is ready to stage and ship.
+1. **Compile** with `/use-goal-prompt <template>` to produce a structured goal prompt. Templates: `interrogate` (frame/clarify), `plan` (design), `build` (implement), `refactor`, `consolidate`, `harden`, `migrate`.
+2. **Run** the emitted prompt via `/goal` for autonomous execution, or paste into your provider's chat.
+3. **Commit** with `/commit` when the change is ready to stage and ship.
 
-Or use `/do` as a single entry point that routes through all three phases.
+Or use `/goal <task>` directly as the autonomous entry point — spine compiles the goal prompt and runs it in one shot.
 
 **Session model:** Standard is the default (sonnet:medium / gpt-5.5:medium / auto). Switch via your provider's model selector or `--model` flag when launching. See [docs/model-selection.md](docs/model-selection.md) for when to upgrade to Frontier and when to step down to Fast.
 
@@ -254,8 +255,8 @@ cd spine
 <summary>Install individual skills</summary>
 
 ```sh
-npx skills add kenoxa/spine -s do-build -a '*' -g -y
 npx skills add kenoxa/spine -s run-review -a '*' -g -y
+npx skills add kenoxa/spine -s use-goal-prompt -a '*' -g -y
 ```
 
 Public manual examples use `npx skills add` to match [skills.sh](https://skills.sh/). The installer can bootstrap the same `skills` CLI through another launcher.
