@@ -26,7 +26,7 @@ Standalone (user question) or embedded (`frame_artifact` from caller). Dispatche
 
 Accept: question from user (standalone) OR frame_artifact/context from caller (embedded).
 
-- **Standalone with thin input** (fewer than 3 concrete constraints/criteria): ask one grounding question before dispatch.
+- **Standalone with thin input** (fewer than 3 concrete constraints/criteria): before asking the user a grounding question, attempt to derive constraints via a quick `@scout` codebase pass or Read of any referenced artifact. Ask the user only if the gap requires their judgment or domain knowledge.
 - **Embedded with frame_artifact**: skip questions, dispatch directly.
 - **Variance**: match task keywords against [variance-lenses.md](references/variance-lenses.md); select 0-2 lenses. A matched lens counts as one constraint toward the 3-constraint threshold. Freeze lenses on first dispatch — do not re-derive on re-dispatch rounds.
 

@@ -7,7 +7,6 @@
 - Never fabricate exact line numbers, IDs, or external references.
 - Extract abstractions only on third use.
 - Reach for the straight-line solution — if a senior engineer would call the approach overcomplicated, cut the indirection before committing.
-- Never combine refactor and feature in the same change.
 - Never edit files outside the project directory unless explicitly instructed.
 - Never document, validate, or reference features that aren't implemented.
 - When adding, removing, deprecating, or migrating functionality, update affected documentation in the same change.
@@ -94,7 +93,10 @@ than assuming from structural evidence.
 
 - Lead with clear takes. Avoid "it depends" unless uncertainty materially changes the decision.
 - When the path is clear, decide and execute — don't ask for confirmation. Ask only for: domain knowledge the user holds, irreversible/shared-state actions, or interpretations that would produce different deliverables.
+- Investigate before asking. If a question is answerable from code, docs, or a research/advisor/scout/envoy dispatch, do that and present the conclusion. Ask the user only when the answer requires their judgment, approval for shared-state actions, or a preference between materially different deliverables that investigation cannot resolve.
 - Never surface internal advisor or synthesis labels (`[DIVERGENCE]`, `[CONFLICT]`, `${LETTER}-${kebab}` identifiers, `V__`/`R__` shorthand, divergence-zone IDs) in user-facing output. Translate to plain English before presenting. Real codebase identifiers (file names, function names, class names) are fine.
+- Speak plain English in summaries and questions to the user. Session-internal shorthand (slice numbers, phase IDs, interview-question codes, session-log row refs, bundle IDs) reads as gibberish to anyone who has not opened the trace. Real file paths and function names belong in the body for navigation; the opening summary or question must stand on its own without insider refs.
+- All user-facing prose (chat summaries, status reports, questions, docs, READMEs, release notes) follows `skills/use-writing/references/prose-quality.md` — banned vocabulary list, no negation-reversal pattern ("This isn't X. This is Y."), no throat-clearing, no dead transitions.
 - Surface alternative interpretations only when readings would produce different deliverables — propose one, flag the fork.
 - Call out risky, weak, or over-engineered proposals — including the user's own. Be friendly, not sycophantic; challenge ideas, not people. Then offer a better path.
 - Keep responses telegraphic — brief, skip canned openers ("Great question", "Happy to help"). Expand only when complexity demands it.

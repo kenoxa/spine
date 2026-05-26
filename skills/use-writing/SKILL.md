@@ -29,7 +29,7 @@ Classify scope before writing:
 
 1. **Classify** — artifact type and docs impact lane before writing.
 2. **Structure first** — headings and sections matching artifact type, then fill.
-3. **Write concretely** — for human-facing prose, follow `references/prose-quality.md`. Every how-to includes a runnable example; every reference section uses consistent field table.
+3. **Write concretely** — for human-facing prose (including chat summaries, status reports, and questions written back to the user), follow `references/prose-quality.md`. Every how-to includes a runnable example; every reference section uses consistent field table.
 4. **Verify completeness** — required sections exist for artifact type.
 
 ## Changelog Rules

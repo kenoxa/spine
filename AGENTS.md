@@ -21,7 +21,7 @@ install.sh            Installer — manages ~/.config/spine/ and provider symlin
 
 | Artifact | Target | Flag |
 |----------|--------|------|
-| SPINE.md | ~1800 | — |
+| SPINE.md | ~2200 | — |
 | SKILL.md | — | >5000 |
 | Agent file | 250-1000 | >1000 |
 | Reference file | 250-800 | >1000 |

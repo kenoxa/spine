@@ -54,7 +54,7 @@ Boundary: multiple parallel implementations → consolidate. One implementation 
 3. Inject discipline stubs at PLAN + STOP RULES seams:
    - PLAN seam: `Phase discipline: See <discipline-ref-path>. MANDATORY: load before proceeding. In autonomous (/goal) flows, user-STOP gates become emit-artifact-and-halt signals.`
    - STOP RULES seam: `Phase discipline stops: See <discipline-ref-path>.`
-4. Identify must-ask inputs (bracketed `[...]` placeholders). Ask ≤3 questions; group related. Require short references — paths, ticket IDs — never pasted content.
+4. Identify must-ask inputs (bracketed `[...]` placeholders). For each candidate question, first attempt to resolve via the source artifact, Read/Grep of repo paths, or a `@scout` dispatch — surface to the user only what genuinely requires their judgment or domain knowledge. Ask ≤3 questions; group related. Require short references — paths, ticket IDs — never pasted content.
 5. Stop asking once a non-trivial render is possible; remaining gaps → `<NEEDS: short description>`.
 6. Compose each section to fit the task. Keep all 9 section headers.
 7. Add `SESSION:` under `CONTEXT`: `Use /use-session; maintain session.json + events.jsonl + session-log.md. If worktree needed, use /use-worktree attach, not fork.`

@@ -32,11 +32,17 @@ Initialize `known`/`unknown` from `codebase_signals` and `goal`. Classify unknow
 
 For each blocking unknown: propose interpretation, ask user to confirm/redirect/reject. Batch 2-3 per exchange. Never ask blank questions — every question includes a proposed answer.
 
+**Preemptive probe gate.** Before posing any question to the user, ask: can the answer be derived from the source artifact, codebase Read/Grep, or a `@scout`/`@researcher` dispatch? If yes, dispatch Phase 3 Probe FIRST and present the derived answer. Only escalate to the user when the answer genuinely requires their judgment, domain knowledge, or a preference between materially different deliverables.
+
 Calibrated depth: simple (2-3 questions), complex (5-8).
 
 ### 3. Probe
 
-User response surfaces codebase question → dispatch `@scout` (breadth) or `@researcher` (depth) for targeted probe. Feed result into known table. Skip user turn. Zero-dispatch when no codebase question surfaces — log with justification.
+Two trigger paths:
+- **Preemptive** (preferred): Propose's preemptive-probe gate fires — dispatch BEFORE asking the user. Feed result into known table; if probe resolves the unknown, do not surface a question for that item.
+- **Reactive**: User response surfaces codebase question → dispatch on demand.
+
+Dispatch `@scout` (breadth) or `@researcher` (depth). Skip user turn. Zero-dispatch when no codebase question is open — log with justification.
 
 ### 4. Declare
 
