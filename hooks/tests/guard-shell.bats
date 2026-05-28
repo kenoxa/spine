@@ -651,3 +651,78 @@ load "test_helper"
   assert_failure 2
   assert_output --partial "deny"
 }
+
+# --- Destructive database operations ---
+
+@test "DB01: blocks dropdb" {
+  run_hook guard-shell.sh '{"tool_input":{"command":"dropdb myapp_development"}}'
+  assert_failure 2
+  assert_output --partial "deny"
+  assert_output --partial "Destructive database"
+}
+
+@test "DB02: blocks chained dropdb after &&" {
+  run_hook guard-shell.sh '{"tool_input":{"command":"echo reset && dropdb myapp_test"}}'
+  assert_failure 2
+  assert_output --partial "deny"
+}
+
+@test "DB03: blocks DROP DATABASE in psql" {
+  run_hook guard-shell.sh '{"tool_input":{"command":"psql -c \"DROP DATABASE myapp;\""}}'
+  assert_failure 2
+  assert_output --partial "deny"
+}
+
+@test "DB04: blocks DROP SCHEMA CASCADE" {
+  run_hook guard-shell.sh '{"tool_input":{"command":"psql -c \"DROP SCHEMA public CASCADE;\""}}'
+  assert_failure 2
+  assert_output --partial "deny"
+}
+
+@test "DB05: blocks mysqladmin drop" {
+  run_hook guard-shell.sh '{"tool_input":{"command":"mysqladmin drop mydb"}}'
+  assert_failure 2
+  assert_output --partial "deny"
+}
+
+@test "DB06: blocks redis-cli FLUSHALL" {
+  run_hook guard-shell.sh '{"tool_input":{"command":"redis-cli FLUSHALL"}}'
+  assert_failure 2
+  assert_output --partial "deny"
+}
+
+@test "DB07: blocks mongosh dropDatabase" {
+  run_hook guard-shell.sh '{"tool_input":{"command":"mongosh --eval \"db.dropDatabase()\""}}'
+  assert_failure 2
+  assert_output --partial "deny"
+}
+
+@test "DB08: blocks prisma migrate reset" {
+  run_hook guard-shell.sh '{"tool_input":{"command":"npx prisma migrate reset --force"}}'
+  assert_failure 2
+  assert_output --partial "deny"
+}
+
+@test "DB09: blocks rails db:drop" {
+  run_hook guard-shell.sh '{"tool_input":{"command":"bin/rails db:drop"}}'
+  assert_failure 2
+  assert_output --partial "deny"
+}
+
+@test "DB10: allows psql SELECT" {
+  run_hook guard-shell.sh '{"tool_input":{"command":"psql -c \"SELECT 1;\""}}'
+  assert_success
+  refute_output --partial "deny"
+}
+
+@test "DB11: allows createdb" {
+  run_hook guard-shell.sh '{"tool_input":{"command":"createdb myapp_test"}}'
+  assert_success
+  refute_output --partial "deny"
+}
+
+@test "RTK: blocks dropdb" {
+  run_hook guard-shell.sh '{"tool_input":{"command":"rtk dropdb myapp_development"}}'
+  assert_failure 2
+  assert_output --partial "deny"
+}

@@ -54,6 +54,7 @@ When filtered or truncated display lacks needed context, Read the saved file —
 
 ## Anti-Patterns
 
+- Destructive database commands (`dropdb`, `DROP DATABASE`, `db:drop`, `migrate reset`, `FLUSHALL`, etc.) without explicit user permission — guard-shell blocks these
 - Using `rm` or `rm -rf` instead of `trash`
 - Unquoted globs or regex in shell commands
 - Skipping `shellcheck` on committed shell scripts

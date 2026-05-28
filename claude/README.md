@@ -23,7 +23,7 @@ The plugin registers hooks via [`hooks/hooks.json`](hooks/hooks.json). All hook 
 |------|-------|--------|--------|
 | `inject-agents-md` | SessionStart | [`inject-agents-md.sh`](../hooks/inject-agents-md.sh) | Injects project `AGENTS.md` — Claude Code loads `CLAUDE.md` natively but not `AGENTS.md`. |
 | `inject-compact-essentials` | SessionStart (compact) | [`inject-compact-essentials.sh`](../hooks/inject-compact-essentials.sh) | Reinjects essential context on compaction events. |
-| `guard-shell` | PreToolUse (Bash) | [`guard-shell.sh`](../hooks/guard-shell.sh) | Security deny-list: recursive rm, docker container escapes (run + exec), file uploads. RTK-rewrite agnostic. |
+| `guard-shell` | PreToolUse (Bash) | [`guard-shell.sh`](../hooks/guard-shell.sh) | Security deny-list: recursive rm, docker container escapes (run + exec), file uploads, destructive database ops. RTK-rewrite agnostic. |
 | `guard-read-large` | PreToolUse (Read) | [`guard-read-large.sh`](../hooks/guard-read-large.sh) | Warns on files >2000 lines without `limit` parameter. |
 | `inject-types-on-read` | PostToolUse (Read) | [`inject-types-on-read.ts`](../hooks/inject-types-on-read.ts) | Injects JS/TS/Svelte, Python, and Java symbol signatures via `probe symbols` (tree-sitter, ~40ms). Runtime-agnostic: Bun, Node.js, or Deno. |
 | `check-on-edit` | PostToolUse (Edit/Write/MultiEdit) | [`check-on-edit.sh`](../hooks/check-on-edit.sh) | Runs `tsc`, `svelte-check`, `biome` after edits. Registry-based. |

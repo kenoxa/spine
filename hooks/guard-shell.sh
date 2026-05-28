@@ -1,7 +1,8 @@
 #!/bin/sh
 # guard-shell.sh
 # PreToolUse hook: security deny-list for shell commands.
-# Blocks dangerous patterns (docker escapes, file uploads, recursive rm).
+# Blocks dangerous patterns (docker escapes, file uploads, recursive rm,
+# destructive database operations).
 # Uses permissionDecision for providers that support it (Claude Code),
 # exit 2 for blocking on others.
 #
@@ -47,6 +48,9 @@ hook_deny() {
 
 hook_ask() {
   jq -n --arg r "$1" '{
+    "permission":"ask",
+    "user_message":$r,
+    "agent_message":$r,
     "hookSpecificOutput":{
       "hookEventName":"PreToolUse",
       "permissionDecision":"ask",
@@ -99,6 +103,39 @@ fi
 if echo "$cmd" | grep -qE -- '(^|[ ;&|])wget '; then
   echo "$cmd" | grep -qE -- '--post-file[= ]' && hook_deny "File upload: wget --post-file"
   exit 0
+fi
+
+# --- Destructive database operations ---
+# Irreversible data loss — block at the shell boundary; user must explicitly approve
+# (permission prompt or manual run) before any drop/reset/flush executes.
+_db_destructive_msg='Destructive database operation blocked — requires explicit user permission (dropdb, DROP DATABASE/SCHEMA, db:drop, migrate reset, FLUSHALL, etc.)'
+
+if echo "$cmd" | grep -qiE '(^|[ ;&|])dropdb([[:space:]]|$)'; then
+  hook_deny "$_db_destructive_msg"
+fi
+
+if echo "$cmd" | grep -qiE 'DROP[[:space:]]+(DATABASE|SCHEMA)\b'; then
+  hook_deny "$_db_destructive_msg"
+fi
+
+if echo "$cmd" | grep -qiE '(^|[ ;&|])mysqladmin[[:space:]]+drop\b'; then
+  hook_deny "$_db_destructive_msg"
+fi
+
+if echo "$cmd" | grep -qiE '(^|[ ;&|])redis-cli\b' && echo "$cmd" | grep -qiE '\bFLUSH(ALL|DB)\b'; then
+  hook_deny "$_db_destructive_msg"
+fi
+
+if echo "$cmd" | grep -qiE '\bdropDatabase\s*\('; then
+  hook_deny "$_db_destructive_msg"
+fi
+
+if echo "$cmd" | grep -qiE '(^|[ ;&|])(npx[[:space:]]+)?prisma[[:space:]]+migrate[[:space:]]+reset\b'; then
+  hook_deny "$_db_destructive_msg"
+fi
+
+if echo "$cmd" | grep -qiE '(^|[ ;&|])(bundle[[:space:]]+exec[[:space:]]+)?(bin/)?(rails|rake)[[:space:]]+(db:drop|db:reset)\b'; then
+  hook_deny "$_db_destructive_msg"
 fi
 
 # Non-matching: passthrough

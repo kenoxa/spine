@@ -54,10 +54,17 @@ export const SpineHooks = async () => {
 
       if (input.tool === "bash" || input.tool === "shell") {
         const result = runShellHook("guard-shell.sh", hookInput);
-        if (result.includes('"deny"')) {
+        if (
+          result.includes('"permissionDecision":"deny"') ||
+          result.includes('"permissionDecision":"ask"')
+        ) {
           try {
             const parsed = JSON.parse(result);
-            throw new Error(parsed.hookSpecificOutput?.permissionDecisionReason ?? "Blocked by guard-shell");
+            throw new Error(
+              parsed.hookSpecificOutput?.permissionDecisionReason ??
+                parsed.user_message ??
+                "Blocked by guard-shell",
+            );
           } catch (e) {
             if (e instanceof Error && e.message !== "Blocked by guard-shell") throw e;
             throw new Error("Blocked by guard-shell");

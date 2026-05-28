@@ -133,7 +133,7 @@ skills/use-session/references/session-v1-examples.md: 741
 skills/use-session/SKILL.md: 705
 skills/use-shell/references/ast-grep.md: 932
 skills/use-shell/references/probe.md: 290
-skills/use-shell/SKILL.md: 747
+skills/use-shell/SKILL.md: 787
 skills/use-skill-craft/references/examples.md: 531
 skills/use-skill-craft/references/phase-audit.md: 373
 skills/use-skill-craft/references/workflow-patterns.md: 997
@@ -147,4 +147,4 @@ skills/with-frontend/references/svelte.md: 644
 skills/with-frontend/SKILL.md: 350
 skills/with-terminology/SKILL.md: 392
 skills/with-testing/SKILL.md: 385
-SPINE.md: 2098
+SPINE.md: 2155

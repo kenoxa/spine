@@ -3,6 +3,7 @@
 ## Behavior
 
 - Never expand scope beyond request. Flag adjacent risks; don't fix without approval.
+- Never run destructive database commands (`dropdb`, `DROP DATABASE`/`SCHEMA`, `db:drop`, `migrate reset`, `FLUSHALL`, etc.) without explicit user permission — hook-enforced via guard-shell; ask first, user approves or runs manually.
 - Pursue root-cause fixes. Never apply temporary workarounds without user approval and a tracked follow-up.
 - Never fabricate exact line numbers, IDs, or external references.
 - Extract abstractions only on third use.
