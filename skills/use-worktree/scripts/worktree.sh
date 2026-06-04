@@ -150,6 +150,45 @@ _skip_set() {
     fi
 }
 
+# --- Worktree argument resolution ---
+# Resolve a remove/sync/land argument to an absolute worktree directory.
+# Accepts, in precedence order:
+#   1. a path to an existing directory (absolute or relative)
+#   2. an exact directory name under .worktrees/ (the full <slug>-<hash>)
+#   3. a bare slug / branch name → the .worktrees/<slug>-<4hex> created for it
+# create always names a worktree .worktrees/<slug>-<4hex> with branch == slug,
+# so the slug IS the branch name. The -???? glob matches that 4-hex suffix
+# exactly, so slug `foo` never collides with slug `foo-bar`. Prints the resolved
+# path; dies on no match, or — should two ever share a slug — on ambiguity.
+_resolve_worktree() {
+    rw_root="$1" rw_name="$2"
+
+    # 1. Existing directory path (absolute or relative)
+    if [ -d "$rw_name" ]; then
+        printf '%s\n' "$rw_name"
+        return 0
+    fi
+
+    # 2. Exact <slug>-<hash> directory name under .worktrees/
+    if [ -d "$rw_root/.worktrees/$rw_name" ]; then
+        printf '%s\n' "$rw_root/.worktrees/$rw_name"
+        return 0
+    fi
+
+    # 3. Bare slug / branch name → .worktrees/<slug>-<4hex>
+    rw_match="" rw_count=0
+    for rw_d in "$rw_root/.worktrees/$rw_name"-????/; do
+        [ -d "$rw_d" ] || continue
+        rw_count=$((rw_count + 1))
+        rw_match="${rw_d%/}"
+    done
+    case "$rw_count" in
+        1) printf '%s\n' "$rw_match"; return 0 ;;
+        0) die "no worktree found for '$rw_name' — pass a path, the .worktrees/ directory name, or the branch/slug; run 'sh worktree.sh list' to see them" ;;
+        *) die "ambiguous name '$rw_name' — matches $rw_count worktrees under .worktrees/; pass the full <slug>-<hash> directory name" ;;
+    esac
+}
+
 # --- Subcommands ---
 
 cmd_create() {
@@ -201,7 +240,7 @@ cmd_create() {
     if [ "$refresh" = "1" ]; then
         # Find existing worktree for this slug
         wt=""
-        for d in "$wt_parent/$slug"-*/; do
+        for d in "$wt_parent/$slug"-????/; do
             if [ -d "$d" ]; then
                 wt="${d%/}"
                 break
@@ -210,7 +249,7 @@ cmd_create() {
         [ -n "$wt" ] || die "no worktree for slug '$slug' to refresh"
     else
         # Die if slug already used (dir or branch)
-        for d in "$wt_parent/$slug"-*/; do
+        for d in "$wt_parent/$slug"-????/; do
             if [ -d "$d" ]; then
                 die "worktree or branch for slug '$slug' already exists — pass --refresh to re-copy carry-over, or remove it first"
             fi
@@ -336,13 +375,7 @@ cmd_remove() {
     name="$1"
     root=$(main_root)
 
-    # Resolve: absolute path or name under .worktrees/
-    if [ -d "$name" ]; then
-        wt="$name"
-    else
-        wt="$root/.worktrees/$name"
-    fi
-    [ -d "$wt" ] || die "no worktree directory found: $name"
+    wt=$(_resolve_worktree "$root" "$name")
 
     # Clean-check (no --ignored: carried artifacts + .scratch symlink invisible)
     status_out=$(git -C "$wt" status --porcelain 2>/dev/null) || die "git status failed in '$wt'"
@@ -370,13 +403,7 @@ cmd_sync() {
     name="$1"
     root=$(main_root)
 
-    # Resolve: absolute path or name under .worktrees/
-    if [ -d "$name" ]; then
-        wt="$name"
-    else
-        wt="$root/.worktrees/$name"
-    fi
-    [ -d "$wt" ] || die "no worktree directory found: $name"
+    wt=$(_resolve_worktree "$root" "$name")
     wt=$(cd "$wt" && pwd -P) || die "cannot resolve worktree path: $name"
 
     main_branch=$(git -C "$root" symbolic-ref --short HEAD 2>/dev/null) \
@@ -402,13 +429,7 @@ cmd_land() {
     name="$1"
     root=$(main_root)
 
-    # Resolve: absolute path or name under .worktrees/
-    if [ -d "$name" ]; then
-        wt="$name"
-    else
-        wt="$root/.worktrees/$name"
-    fi
-    [ -d "$wt" ] || die "no worktree directory found: $name"
+    wt=$(_resolve_worktree "$root" "$name")
     wt=$(cd "$wt" && pwd -P) || die "cannot resolve worktree path: $name"
     [ "$wt" != "$root" ] || die "cannot land the main worktree"
 
@@ -466,6 +487,9 @@ Subcommands:
   prune                      Clear orphaned worktree admin files
   sync <name>                Rebase worktree branch onto current main (no fetch)
   land <name>                Rebase, merge into main, remove worktree and branch
+
+<name> for remove/sync/land accepts a path, the .worktrees/ directory name
+(<slug>-<hash>), or the bare branch/slug — all resolve to the same worktree.
 EOF
 }
 

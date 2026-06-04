@@ -198,7 +198,7 @@ Worktrees are never auto-deleted. Remove one explicitly:
 
 **Worktree** — a second working directory for the same repo, on its own branch, sharing one git history and object store.
 
-**`<slug>-<hash>`** — the worktree directory name, e.g. `fix-session-expiry-a1b2`. `slug` is yours; `hash` is a 4-char random suffix matching Spine's `.scratch/` session convention.
+**`<slug>-<hash>`** — the worktree directory name, e.g. `fix-session-expiry-a1b2`. `slug` is yours; `hash` is a 4-char random suffix matching Spine's `.scratch/` session convention. `sync`, `remove`, and `land` accept the bare `<slug>` (the branch name) too — `land fix-session-expiry` resolves to the one `fix-session-expiry-<hash>` worktree, so you rarely need to type the hash.
 
 **Carry-over** — the gitignored working state (`.env.local`, `node_modules`, build output) copy-on-write cloned into a new worktree so it runs immediately. Independent clones, not symlinks — editing them in one branch never touches another.
 

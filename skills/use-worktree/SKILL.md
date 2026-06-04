@@ -26,6 +26,8 @@ Run from within the target project directory. `<skill-base-dir>` is the director
 | `sync <name>` | Rebase the worktree branch onto current main (no fetch — shared object store) |
 | `land <name>` | Rebase → fast-forward merge into main → remove worktree → delete branch |
 
+`<name>` for `remove`/`sync`/`land` resolves any of: a path, the `.worktrees/` directory name (`<slug>-<hash>`), or the bare branch/slug — so `land my-feature` works without the hash suffix.
+
 ## Key Behaviors
 
 - **Ignore guard** — writes anchored entries (`/.worktrees/`, `/.scratch`) to the common git dir's `info/exclude` before planting; idempotent; never touches committed `.gitignore`. The `.scratch` anchor omits the trailing slash so it also matches the bridge symlink inside a worktree.

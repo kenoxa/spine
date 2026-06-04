@@ -916,3 +916,150 @@ EOF
 
     rm -rf "$repo"
 }
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Argument resolution: remove/sync/land accept a bare branch/slug or the bare
+# <slug>-<hash> directory name, not only a full path. Regression for the
+# papercut where `land <slug>` failed because only the hashed form resolved.
+# ─────────────────────────────────────────────────────────────────────────────
+
+@test "resolve: land accepts a bare branch/slug (no hash suffix)" {
+    local repo
+    repo=$(cd "$(mktemp -d /tmp/spine-test-wt-XXXXXX)" && pwd -P)
+    make_repo "$repo"
+
+    cd "$repo"
+    run sh "$WT" create landslug
+    [ "$status" -eq 0 ]
+    local wt_dir
+    wt_dir=$(created_worktree_dir "$output" "landslug")
+
+    # Commit a change on the worktree branch
+    printf 'land-change\n' > "$wt_dir/land-file.txt"
+    git -C "$wt_dir" add land-file.txt
+    git -C "$wt_dir" commit -q -m "land slug feature commit"
+
+    # Land by the BARE slug (the branch name) — not the hashed dir, not a path
+    run sh "$WT" land landslug
+    [ "$status" -eq 0 ]
+
+    git -C "$repo" log --oneline | grep -q "land slug feature commit"
+    [ ! -d "$wt_dir" ]
+    run git -C "$repo" show-ref --verify --quiet "refs/heads/landslug"
+    [ "$status" -ne 0 ]
+
+    rm -rf "$repo"
+}
+
+@test "resolve: remove accepts a bare branch/slug (no hash suffix)" {
+    local repo
+    repo=$(cd "$(mktemp -d /tmp/spine-test-wt-XXXXXX)" && pwd -P)
+    make_repo "$repo"
+
+    cd "$repo"
+    sh "$WT" create rmslug >/dev/null 2>&1
+    local wt_dir
+    wt_dir=$(spine_worktree_dir "$repo" "rmslug")
+
+    run sh "$WT" remove rmslug
+    [ "$status" -eq 0 ]
+    [ ! -d "$wt_dir" ]
+    # Branch kept (remove never deletes the branch)
+    git -C "$repo" show-ref --verify --quiet "refs/heads/rmslug"
+
+    rm -rf "$repo"
+}
+
+@test "resolve: sync accepts a bare branch/slug (no hash suffix)" {
+    local repo
+    repo=$(cd "$(mktemp -d /tmp/spine-test-wt-XXXXXX)" && pwd -P)
+    make_repo "$repo"
+
+    cd "$repo"
+    run sh "$WT" create syncslug
+    [ "$status" -eq 0 ]
+    local wt_dir
+    wt_dir=$(created_worktree_dir "$output" "syncslug")
+
+    printf 'wt-change\n' > "$wt_dir/wt-file.txt"
+    git -C "$wt_dir" add wt-file.txt
+    git -C "$wt_dir" commit -q -m "worktree commit"
+
+    printf 'main-change\n' > "$repo/main-file.txt"
+    git -C "$repo" add main-file.txt
+    git -C "$repo" commit -q -m "main advance commit"
+    local main_head
+    main_head=$(git -C "$repo" rev-parse HEAD)
+
+    run sh "$WT" sync syncslug
+    [ "$status" -eq 0 ]
+    git -C "$wt_dir" merge-base --is-ancestor "$main_head" HEAD
+
+    rm -rf "$repo"
+}
+
+@test "resolve: remove accepts the bare <slug>-<hash> directory name" {
+    local repo
+    repo=$(cd "$(mktemp -d /tmp/spine-test-wt-XXXXXX)" && pwd -P)
+    make_repo "$repo"
+
+    cd "$repo"
+    sh "$WT" create dirname >/dev/null 2>&1
+    local wt_dir
+    wt_dir=$(spine_worktree_dir "$repo" "dirname")
+    local base
+    base=$(basename "$wt_dir")
+
+    # Pass just the directory name (slug-hash), not a path or bare slug
+    run sh "$WT" remove "$base"
+    [ "$status" -eq 0 ]
+    [ ! -d "$wt_dir" ]
+
+    rm -rf "$repo"
+}
+
+@test "resolve: slug 'foo' and 'foo-bar' coexist; bare 'foo' targets only foo-<hash>" {
+    local repo
+    repo=$(cd "$(mktemp -d /tmp/spine-test-wt-XXXXXX)" && pwd -P)
+    make_repo "$repo"
+
+    cd "$repo"
+
+    # Create foo-bar FIRST: exercises the create duplicate-guard precision fix —
+    # `create foo` must NOT be blocked by the pre-existing foo-bar-<hash>.
+    run sh "$WT" create foo-bar
+    [ "$status" -eq 0 ]
+    local foobar_dir
+    foobar_dir=$(created_worktree_dir "$output" "foo-bar")
+
+    run sh "$WT" create foo
+    [ "$status" -eq 0 ]
+    local foo_dir
+    foo_dir=$(created_worktree_dir "$output" "foo")
+
+    # Dirs (captured precisely from create output) must be distinct
+    [ "$foo_dir" != "$foobar_dir" ]
+
+    # Removing the bare slug 'foo' must resolve to foo-<hash> only, leaving
+    # foo-bar-<hash> intact (the -???? glob does not match foo-bar-<hash>).
+    run sh "$WT" remove foo
+    [ "$status" -eq 0 ]
+    [ ! -d "$foo_dir" ]
+    [ -d "$foobar_dir" ]
+
+    rm -rf "$repo"
+}
+
+@test "resolve: unknown name → exit 1 with a helpful message" {
+    local repo
+    repo=$(cd "$(mktemp -d /tmp/spine-test-wt-XXXXXX)" && pwd -P)
+    make_repo "$repo"
+
+    cd "$repo"
+    run sh "$WT" land does-not-exist
+    [ "$status" -eq 1 ]
+    printf '%s\n' "$output" | grep -qi 'no worktree found'
+    printf '%s\n' "$output" | grep -qi 'branch/slug'
+
+    rm -rf "$repo"
+}
