@@ -18,7 +18,7 @@ Self-references are excluded: a skill referencing its own directory path or slas
 The executable lint lives at sibling path [`lint-no-run-cycles.sh`](lint-no-run-cycles.sh). Invoke via:
 
 ```bash
-bash skills/run-curate/references/lint-no-run-cycles.sh
+bash "${SPINE_SKILLS_DIR:-$HOME/.agents/skills}/run-curate/references/lint-no-run-cycles.sh"
 ```
 
 ## Pass Criterion
@@ -28,6 +28,7 @@ Exit code 0, output line: `PASS: 0 cross-run-* violations`.
 ## False-Positive Guidance
 
 - Glob patterns like `run-*` in prose are excluded by the `grep -v "run-\*"` filter.
+- Installed script paths using `$HOME/.agents/skills/run-*`, `.agents/skills/run-*`, or `SPINE_SKILLS_DIR` are excluded; they are filesystem resolution, not skill composition.
 - `See Also` sections that mention sibling skills by name (not path) are advisory references, not invocations. If they generate false positives, exclude the specific line pattern with an additional `grep -v`.
 - Documentation files that discuss the invariant itself (e.g., this file) live under `run-curate/` — they are scanned but the self-exclusion covers `run-curate` refs inside `run-curate/`.
 
@@ -37,5 +38,5 @@ Run this lint during `run-curate` Gather phase (standalone mode) as a structural
 
 ```bash
 # Quick inline invocation from run-curate Gather phase:
-bash skills/run-curate/references/lint-no-run-cycles.sh
+bash "${SPINE_SKILLS_DIR:-$HOME/.agents/skills}/run-curate/references/lint-no-run-cycles.sh"
 ```

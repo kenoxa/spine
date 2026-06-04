@@ -90,7 +90,7 @@ Present → Apply pipeline.
 
 Terminal-mode contract:
 
-1. Invoke `sh scripts/terminal-gate.sh .scratch/<session>` — the driver writes
+1. Invoke `sh "${SPINE_SKILLS_DIR:-$HOME/.agents/skills}/run-curate/scripts/terminal-gate.sh" .scratch/<session>` — the driver writes
    a structured `curate-report.md` skeleton (source-artifact inventory,
    decisions extracted from Phase Trace rows, knowledge-candidate markers).
 2. If mainthread has budget (≤60s per spec §5.3), append an AI-synthesized

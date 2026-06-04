@@ -132,10 +132,16 @@ A **provider-aware task adapter** lives in each provider's plugin/integration la
 
 ### 4.3 Wiring
 
-The adapter is invoked from mainthread immediately after `phase.boundary` event emission (step 2 in §3.3). Mainthread does not directly call provider APIs — it calls a thin shim (`hooks/_task_adapter.sh` for shell-side, or an inline helper script depending on provider). The shim dispatches based on detected provider:
+The adapter is invoked from mainthread immediately after `phase.boundary` event emission (step 2 in §3.3). Mainthread does not directly call provider APIs — it calls the installed Spine hook wrapper:
+
+```sh
+sh "${SPINE_HOME:-$HOME/.config/spine}/hooks/_env.sh" _task_adapter.sh .scratch/<session> <from_phase> <to_phase> <trigger>
+```
+
+The shim dispatches based on detected provider:
 
 ```
-provider detected via: $CLAUDE_CODE / $CODEX_ENV / $CURSOR / fallback to "unknown"
+provider detected via: SPINE_PROVIDER override / Claude Code env / Codex env / Cursor env / OpenCode env / fallback to "unknown"
 ```
 
 For "unknown" provider, the adapter is a no-op (the workflow still works; only the task-tracker UX is missing).

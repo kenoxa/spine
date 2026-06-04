@@ -17,7 +17,7 @@ Dispatch provides:
 Run:
 
 ```sh
-COLLECT="$HOME/.agents/skills/run-insights/scripts/collect_sessions.sh"
+COLLECT="${SPINE_SKILLS_DIR:-$HOME/.agents/skills}/run-insights/scripts/collect_sessions.sh"
 "$COLLECT" --days "${DAYS:-14}" --session "<session>"
 ```
 

@@ -9,7 +9,8 @@
 import { execFileSync } from "node:child_process";
 import { join } from "node:path";
 
-const HOOKS_DIR = join(process.env.HOME ?? "", ".config/spine/hooks");
+const SPINE_HOME = process.env.SPINE_HOME ?? join(process.env.HOME ?? "", ".config/spine");
+const HOOKS_DIR = process.env.SPINE_HOOKS_DIR ?? join(SPINE_HOME, "hooks");
 const ENV_SH = join(HOOKS_DIR, "_env.sh");
 const TS_SH = join(HOOKS_DIR, "_ts.sh");
 

@@ -349,7 +349,7 @@ export EXA_API_KEY=your-key-here
 <details>
 <summary id="hooks-installed">Hooks installed</summary>
 
-The installer copies shared hooks to `~/.config/spine/hooks/` with shebang rewriting, then generates provider-specific hook configs. TypeScript hooks that use local modules (for example `inject-types-on-read.ts` plus the `inject-types/` directory) are copied as a tree so imports resolve after install. Not all providers support all hook events.
+The installer copies shared hooks to `${SPINE_HOME:-$HOME/.config/spine}/hooks/` with shebang rewriting, then generates provider-specific hook configs. TypeScript hooks that use local modules (for example `inject-types-on-read.ts` plus the `inject-types/` directory) are copied as a tree so imports resolve after install. Not all providers support all hook events.
 
 | Hook | Event | What it does |
 |------|-------|-------------|

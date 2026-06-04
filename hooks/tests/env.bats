@@ -68,12 +68,19 @@ ENV_SH="$HOOKS_DIR/_env.sh"
   assert_failure 42
 }
 
-# --- SPINE_HOOKS_DIR export ---
+# --- Spine location exports ---
 
 @test "_env.sh: exports SPINE_HOOKS_DIR" {
   run sh -c '. "$1" && echo "$SPINE_HOOKS_DIR"' -- "$ENV_SH"
   assert_success
   assert_output --partial ".config/spine/hooks"
+}
+
+@test "_env.sh: exports Spine install roots" {
+  run sh -c '. "$1" && printf "%s\n%s\n" "$SPINE_HOME" "$SPINE_SKILLS_DIR"' -- "$ENV_SH"
+  assert_success
+  assert_output --partial ".config/spine"
+  assert_output --partial ".agents/skills"
 }
 
 # --- Diagnostic mode ---

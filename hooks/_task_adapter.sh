@@ -13,8 +13,9 @@
 # Phase Trace row to session-log.md so the UX surface is preserved.
 #
 # Provider detection (in order):
+#   SPINE_PROVIDER       → explicit provider override
 #   CLAUDECODE=1        → claude-code
-#   CODEX_HOME / CODEX_EXEC → codex
+#   CODEX_HOME / CODEX_EXEC / CODEX_SANDBOX / CODEX_THREAD_ID / CODEX_CI → codex
 #   SPINE_PROVIDER_IS_CURSOR=1 → cursor (set by _env.sh)
 #   OPENCODE_PROJECT_ROOT → opencode
 #   else                → unknown (no-op)
@@ -39,19 +40,56 @@ trigger="$4"
 }
 
 # Provider detection
-if [ "${CLAUDECODE:-}" = "1" ] || [ -n "${CLAUDE_CODE_VERSION:-}" ]; then
+case "${SPINE_PROVIDER:-}" in
+    claude|claude-code)
+        provider="claude-code"
+        action="TaskUpdate(prev → completed) + TaskCreate(next phase)"
+        ;;
+    codex)
+        provider="codex"
+        action="update_plan: prev step → completed; next step → in_progress"
+        ;;
+    cursor)
+        provider="cursor"
+        action="log-only (session-log.md Phase Trace row)"
+        ;;
+    opencode)
+        provider="opencode"
+        action="TBD (opencode/spine-hooks.ts shim)"
+        ;;
+    unknown)
+        provider="unknown"
+        action="no-op"
+        ;;
+    "")
+        provider=""
+        action=""
+        ;;
+    *)
+        provider="unknown"
+        action="no-op"
+        ;;
+esac
+
+if [ -z "$provider" ] && { [ "${CLAUDECODE:-}" = "1" ] || [ -n "${CLAUDE_CODE_VERSION:-}" ]; }; then
     provider="claude-code"
     action="TaskUpdate(prev → completed) + TaskCreate(next phase)"
-elif [ -n "${CODEX_HOME:-}" ] || [ -n "${CODEX_EXEC:-}" ]; then
+elif [ -z "$provider" ] && {
+    [ -n "${CODEX_HOME:-}" ] ||
+    [ -n "${CODEX_EXEC:-}" ] ||
+    [ -n "${CODEX_SANDBOX:-}" ] ||
+    [ -n "${CODEX_THREAD_ID:-}" ] ||
+    [ -n "${CODEX_CI:-}" ]
+}; then
     provider="codex"
     action="update_plan: prev step → completed; next step → in_progress"
-elif [ "${SPINE_PROVIDER_IS_CURSOR:-}" = "1" ]; then
+elif [ -z "$provider" ] && [ "${SPINE_PROVIDER_IS_CURSOR:-}" = "1" ]; then
     provider="cursor"
     action="log-only (session-log.md Phase Trace row)"
-elif [ -n "${OPENCODE_PROJECT_ROOT:-}" ]; then
+elif [ -z "$provider" ] && [ -n "${OPENCODE_PROJECT_ROOT:-}" ]; then
     provider="opencode"
     action="TBD (opencode/spine-hooks.ts shim)"
-else
+elif [ -z "$provider" ]; then
     provider="unknown"
     action="no-op"
 fi
@@ -69,15 +107,52 @@ if [ "$trigger" = "halt" ]; then
 fi
 
 # Audit event: record adapter dispatch in events.jsonl via emit-event.sh.
-# Resolves emit-event.sh path relative to this script regardless of install layout.
 script_dir=$(cd "$(dirname "$0")" && pwd)
-emit="$script_dir/../skills/use-session/scripts/emit-event.sh"
-if [ ! -f "$emit" ]; then
-    # Installed layout: hooks/ and skills/ live as siblings under ~/.config/spine/
-    emit="$script_dir/../use-session/scripts/emit-event.sh"
+spine_home="${SPINE_HOME:-$(cd "$script_dir/.." && pwd)}"
+home_dir="${HOME:-}"
+skills_dir="${SPINE_SKILLS_DIR:-}"
+if [ -z "$skills_dir" ] && [ -n "$home_dir" ]; then
+    skills_dir="$home_dir/.agents/skills"
 fi
 
-if [ -f "$emit" ]; then
+resolve_emit_event() {
+    if [ -n "${SPINE_EMIT_EVENT:-}" ] && [ -f "$SPINE_EMIT_EVENT" ]; then
+        printf '%s\n' "$SPINE_EMIT_EVENT"
+        return 0
+    fi
+
+    candidate="$script_dir/../skills/use-session/scripts/emit-event.sh"
+    if [ -f "$candidate" ]; then
+        printf '%s\n' "$candidate"
+        return 0
+    fi
+
+    if [ -n "$skills_dir" ] && [ -f "$skills_dir/use-session/scripts/emit-event.sh" ]; then
+        printf '%s\n' "$skills_dir/use-session/scripts/emit-event.sh"
+        return 0
+    fi
+
+    if [ -n "$home_dir" ] && [ -f "$home_dir/.agents/skills/use-session/scripts/emit-event.sh" ]; then
+        printf '%s\n' "$home_dir/.agents/skills/use-session/scripts/emit-event.sh"
+        return 0
+    fi
+
+    for candidate in \
+        "$spine_home/skills/use-session/scripts/emit-event.sh" \
+        "$script_dir/../use-session/scripts/emit-event.sh"
+    do
+        if [ -f "$candidate" ]; then
+            printf '%s\n' "$candidate"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+emit=$(resolve_emit_event || true)
+
+if [ -n "$emit" ]; then
     payload=$(jq -nc \
         --arg from "$from_phase" --arg to "$to_phase" --arg trig "$trigger" \
         --arg prov "$provider" --arg act "$action" \

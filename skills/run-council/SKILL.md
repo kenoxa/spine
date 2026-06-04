@@ -76,7 +76,7 @@ Lenses, files, and slugs:
 
 ### 3. Peer Review
 
-1. **Anonymize**: run `skills/run-council/scripts/anonymize-advisors.sh .scratch/<session>/` — outputs `council-advisor-anon-{A–E}.md` + `council-anon-map.json` in the session directory. Fail if any of the 5 batch outputs from Phase 2 are missing.
+1. **Anonymize**: run `sh "${SPINE_SKILLS_DIR:-$HOME/.agents/skills}/run-council/scripts/anonymize-advisors.sh" .scratch/<session>/` — outputs `council-advisor-anon-{A–E}.md` + `council-anon-map.json` in the session directory. Fail if any of the 5 batch outputs from Phase 2 are missing.
 2. **Dispatch in parallel** — one `@advisor` per lens via `references/council-peer-review.md`. Each receives:
    - Its lens file (same as Batch — own definition only)
    - `{anon_dir}`: `.scratch/<session>/` (session directory containing the anonymized outputs)

@@ -9,6 +9,7 @@ repo_root="$(git rev-parse --show-toplevel)"
 violations=0
 for dir in "$repo_root"/skills/run-*/; do
   self="$(basename "$dir")"
+  # shellcheck disable=SC2016  # literal install-path patterns, not shell expansions
   results=$(grep -rn \
     -e "/run-[a-z][a-z-]*" \
     -e "skills/run-[a-z][a-z-]*/" \
@@ -18,6 +19,7 @@ for dir in "$repo_root"/skills/run-*/; do
     | grep -v "/${self}[^a-z-]" \
     | grep -v "/${self}$" \
     | grep -v '\$HOME.*skills/run-' \
+    | grep -v 'SPINE_SKILLS_DIR.*run-' \
     | grep -v '\.agents/skills/run-' \
     ) || true
   if [ -n "$results" ]; then

@@ -188,7 +188,8 @@ inheritance). `export -f` (function export) is a bashism — unavailable in `#!/
 
 Any cross-hook state from `_env.sh` must use `export VAR=value`, not functions.
 Check in hook body with `[ "${FLAG:-}" = "1" ]`. Existing vars that follow this
-pattern: `SPINE_ENV_LOADED`, `PATH`, `SPINE_HOOKS_DIR`, `SPINE_PROVIDER_IS_CURSOR`.
+pattern: `SPINE_ENV_LOADED`, `PATH`, `SPINE_HOME`, `SPINE_HOOKS_DIR`,
+`SPINE_SKILLS_DIR`, `SPINE_PROVIDER_IS_CURSOR`.
 Vars sourced from `~/.config/spine/.env` must also use `export`; bare assignments
 survive in `_env.sh`'s local env but are dropped by the `exec` handoff. [E3]
 

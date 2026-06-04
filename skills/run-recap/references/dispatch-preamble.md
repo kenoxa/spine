@@ -14,7 +14,7 @@ Defaults: `days=7`, `format=standup`. Validate format.
 
 **Working days**: use `{working_days}` exactly — do not recalculate calendar. The orchestrator pre-computes working days (excluding weekends + holidays) and injects the list with redistribution annotations.
 
-**Scripts**: `$HOME/.agents/skills/run-insights/scripts/collect_sessions.sh --days "${DAYS:-7}" --session "<session>"`. Verify `analytics.json` exists. Zero sessions → report "No AI sessions found in the last N days. Try increasing --days." and stop.
+**Scripts**: `"${SPINE_SKILLS_DIR:-$HOME/.agents/skills}/run-insights/scripts/collect_sessions.sh" --days "${DAYS:-7}" --session "<session>"`. Verify `analytics.json` exists. Zero sessions → report "No AI sessions found in the last N days. Try increasing --days." and stop.
 
 **Git log**: build a project candidate set before formatting, then collect commits for every candidate. Candidates come from explicit `project` fields, session `cwd`, `files_touched` path prefixes, user prompts that mention project/release names, `{known_projects}`, and release distribution repos/domains such as `dl.identity-hub.io`. Per candidate: resolve path (`~/Projects/{project}` or cwd), read `SINCE` from `collect.env`, run `git log --oneline --since="$SINCE"` for the date range, and write `git_log.json` as `{project: [commit_lines]}`. Skip only when the repo path cannot be resolved or has no commits. Best-effort, but do not stop after the dominant project.
 

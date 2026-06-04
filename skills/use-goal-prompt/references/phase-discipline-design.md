@@ -31,7 +31,7 @@ Write `design-artifact.md` per `skills/use-goal-prompt/references/design-artifac
 
 ## Phase-Boundary Emission
 
-Immediately after `design-artifact.md` write succeeds, emit a `phase.boundary` event via `sh skills/use-session/scripts/emit-event.sh .scratch/<session> phase.boundary '{"from_phase":"design","to_phase":"build","artifact_path":".scratch/<session>/design-artifact.md","trigger":"auto"}'`. Then invoke the task adapter: `sh hooks/_task_adapter.sh .scratch/<session> design build auto` and execute the provider-specific tool call it surfaces (see `references/task-adapter-contract.md`). Mainthread then reads `phase-discipline-build.md` + the build template and composes the build prompt in the same conversation. On halt (divergence, re-dispatch cap, or interactive STOP), set `trigger:"halt"` with `reason` field, run the adapter with `halt`, and STOP.
+Immediately after `design-artifact.md` write succeeds, emit a `phase.boundary` event via `sh "${SPINE_SKILLS_DIR:-$HOME/.agents/skills}/use-session/scripts/emit-event.sh" .scratch/<session> phase.boundary '{"from_phase":"design","to_phase":"build","artifact_path":".scratch/<session>/design-artifact.md","trigger":"auto"}'`. Then invoke the task adapter via the installed Spine hook wrapper: `sh "${SPINE_HOME:-$HOME/.config/spine}/hooks/_env.sh" _task_adapter.sh .scratch/<session> design build auto` and execute the provider-specific tool call it surfaces (see `references/task-adapter-contract.md`). Mainthread then reads `phase-discipline-build.md` + the build template and composes the build prompt in the same conversation. On halt (divergence, re-dispatch cap, or interactive STOP), set `trigger:"halt"` with `reason` field, run the adapter with `halt`, and STOP.
 
 ## Autonomous Halt Signals
 

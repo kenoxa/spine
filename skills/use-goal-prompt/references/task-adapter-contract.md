@@ -1,19 +1,23 @@
 # Task-Adapter Contract (Slice B)
 
-`hooks/_task_adapter.sh` is a provider-aware shim invoked by mainthread
-immediately after every `phase.boundary` event lands in `events.jsonl`. Its
-job is to surface the transition in the active provider's task tracker so the
-user sees progress at a glance.
+The installed Spine task adapter is a provider-aware shim invoked by
+mainthread immediately after every `phase.boundary` event lands in
+`events.jsonl`. Its job is to surface the transition in the active provider's
+task tracker so the user sees progress at a glance.
 
 ## Invocation
 
 ```sh
-sh hooks/_task_adapter.sh .scratch/<session> <from_phase> <to_phase> <trigger>
+sh "${SPINE_HOME:-$HOME/.config/spine}/hooks/_env.sh" _task_adapter.sh .scratch/<session> <from_phase> <to_phase> <trigger>
 ```
 
 - `<from_phase>`: `frame`, `design`, `build`, or the literal `null` for the initial boundary.
 - `<to_phase>`: `design`, `build`, or `complete`.
 - `<trigger>`: `auto`, `user`, or `halt`.
+
+Do not call a project-local `hooks/` path. Project checkouts usually do not
+contain Spine hooks; the installed wrapper above works from any checkout and
+loads `~/.config/spine/.env` before dispatching the adapter.
 
 The shim writes a `task.adapter` event (audit trail) into the same
 `events.jsonl`, then prints the detected provider on stdout and the suggested
@@ -36,11 +40,24 @@ model-side tool calls — those have to come from mainthread.
 ## Provider detection
 
 The shim probes env vars in this order:
-1. `CLAUDECODE=1` or `CLAUDE_CODE_VERSION` set → `claude-code`
-2. `CODEX_HOME` or `CODEX_EXEC` set → `codex`
-3. `SPINE_PROVIDER_IS_CURSOR=1` (exported by `hooks/_env.sh`) → `cursor`
-4. `OPENCODE_PROJECT_ROOT` set → `opencode`
-5. Otherwise → `unknown`
+1. `SPINE_PROVIDER` set to `claude-code`, `codex`, `cursor`, `opencode`, or `unknown` → explicit override
+2. `CLAUDECODE=1` or `CLAUDE_CODE_VERSION` set → `claude-code`
+3. `CODEX_HOME`, `CODEX_EXEC`, `CODEX_SANDBOX`, `CODEX_THREAD_ID`, or `CODEX_CI` set → `codex`
+4. `SPINE_PROVIDER_IS_CURSOR=1` (exported by `_env.sh`) → `cursor`
+5. `OPENCODE_PROJECT_ROOT` set → `opencode`
+6. Otherwise → `unknown`
+
+Codex shells that expose none of the native `CODEX_*` signals should run the
+canonical invocation with `SPINE_PROVIDER=codex`.
+
+## Install-layout decision
+
+Spine hooks are installed under `${SPINE_HOME:-$HOME/.config/spine}/hooks`.
+Spine skills are installed separately under
+`${SPINE_SKILLS_DIR:-$HOME/.agents/skills}`. The adapter therefore lives behind
+the installed `_env.sh` wrapper and resolves `use-session`'s `emit-event.sh`
+from the installed skills root, while still supporting source-tree execution
+for local tests.
 
 ## Failure mode
 

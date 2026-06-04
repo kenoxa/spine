@@ -60,7 +60,7 @@ Present synthesis to caller/user as `advise_artifact`.
 Triggered by user pushback after synthesis (via workflow orchestrator re-dispatch loop).
 
 **Steps**:
-1. **Archive**: invoke `scripts/rotate-round.sh <session-dir>` to archive current round outputs into `advise-r{N}/` subdirectory.
+1. **Archive**: invoke `sh "${SPINE_SKILLS_DIR:-$HOME/.agents/skills}/run-advise/scripts/rotate-round.sh" <session-dir>` to archive current round outputs into `advise-r{N}/` subdirectory.
 2. **Assemble context**: `prior_round_dir` = archived directory path (e.g., `advise-r1/`), `user_pushback` = inline text from user/caller.
 3. **Return to Phase 2** (Batch) with re-dispatch context. Agents receive `prior_round_dir` + `user_pushback` and read selectively from the archived directory.
 

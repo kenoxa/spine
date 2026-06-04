@@ -17,15 +17,20 @@ esac
 # Idempotency guard
 if [ -n "$SPINE_ENV_LOADED" ]; then
   $_spine_env_exec && [ $# -gt 0 ] && exec "$@"
+  # shellcheck disable=SC2317  # reachable when this file is sourced
   return 0 2>/dev/null || exit 0
 fi
 export SPINE_ENV_LOADED=1
 
 # Source user environment (POSIX-safe — .zshenv must use [ ] not [[ ]])
+# shellcheck disable=SC1091  # user-local optional environment file
 [ -f "$HOME/.zshenv" ] && . "$HOME/.zshenv" || true
 
 # Source Spine configuration
-[ -f "$HOME/.config/spine/.env" ] && . "$HOME/.config/spine/.env" || true
+export SPINE_HOME="${SPINE_HOME:-$HOME/.config/spine}"
+# shellcheck disable=SC1091  # user-local optional Spine config
+[ -f "$SPINE_HOME/.env" ] && . "$SPINE_HOME/.env" || true
+export SPINE_HOME="${SPINE_HOME:-$HOME/.config/spine}"
 
 # Prepend known tool paths (skip already-present entries)
 for _spine_p in \
@@ -46,8 +51,9 @@ done
 unset _spine_p
 export PATH
 
-# Export hooks directory for hook scripts
-export SPINE_HOOKS_DIR="${SPINE_HOOKS_DIR:-$HOME/.config/spine/hooks}"
+# Export installed Spine locations for hook scripts and manual helper calls.
+export SPINE_HOOKS_DIR="${SPINE_HOOKS_DIR:-$SPINE_HOME/hooks}"
+export SPINE_SKILLS_DIR="${SPINE_SKILLS_DIR:-$HOME/.agents/skills}"
 
 # Detect Cursor plugin execution context — exported so value survives exec boundary.
 # CURSOR_PLUGIN_ROOT is set by Cursor in hook subprocess env (confirmed E3: v3.0.9).
