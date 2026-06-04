@@ -47,7 +47,7 @@ discover_files() {
     for f in claude/agents/**/*.md; do
       [ -f "$f" ] && echo "$f"
     done
-  } | sort -u
+  } | LC_ALL=C sort -u
 }
 
 # --- Token counting ---
@@ -100,9 +100,9 @@ do_check() {
 
   # Strip comments for comparison
   local old_data=""
-  old_data="$(grep -v '^#' "$MANIFEST" | grep -v '^$' | sort)"
+  old_data="$(grep -v '^#' "$MANIFEST" | grep -v '^$' | LC_ALL=C sort)"
   local new_data=""
-  new_data="$(grep -v '^#' "$CHECK_TMP" | grep -v '^$' | sort)"
+  new_data="$(grep -v '^#' "$CHECK_TMP" | grep -v '^$' | LC_ALL=C sort)"
 
   if [ "$old_data" = "$new_data" ]; then
     return 0
