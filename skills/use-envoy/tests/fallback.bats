@@ -17,10 +17,10 @@ _load_cursor_model_fn() {
     eval "$(sed -n '/^to_cursor_model()/,/^}/p' "$SCRIPTS_DIR/invoke-cursor.sh")"
 }
 
-@test "to_cursor_model: opus + high → claude-opus-4-7-high-thinking" {
+@test "to_cursor_model: opus + high → claude-opus-4-7-thinking-high" {
     _load_cursor_model_fn
     to_cursor_model opus high
-    assert_equal "$_cursor_model" "claude-opus-4-7-high-thinking"
+    assert_equal "$_cursor_model" "claude-opus-4-7-thinking-high"
 }
 
 @test "to_cursor_model: sonnet + high → claude-4.6-sonnet-medium-thinking" {
@@ -69,6 +69,13 @@ _load_cursor_model_fn() {
     _load_cursor_model_fn
     run to_cursor_model unknown-model high
     assert_failure
+}
+
+@test "resolve_tier: OpenCode Standard primary is MiMo with DeepSeek in fanout" {
+    . "$SCRIPTS_DIR/_common.sh"
+    resolve_tier standard opencode
+    assert_equal "$_tier_model" "opencode-go/mimo-v2.5-pro"
+    assert_equal "$_tier_fanout" "opencode-go/mimo-v2.5-pro opencode-go/kimi-k2.6 opencode-go/deepseek-v4-pro opencode-go/qwen3.6-plus"
 }
 
 # =============================================================================

@@ -92,8 +92,8 @@ resolve_tier() {
             _tier_fanout="opencode-go/kimi-k2.6 opencode-go/deepseek-v4-pro opencode-go/glm-5.1"
             _tier_effort=high ;;
         standard:opencode)
-            _tier_model=opencode-go/deepseek-v4-pro
-            _tier_fanout="opencode-go/minimax-m2.7 opencode-go/deepseek-v4-pro opencode-go/qwen3.6-plus opencode-go/mimo-v2.5-pro"
+            _tier_model=opencode-go/mimo-v2.5-pro
+            _tier_fanout="opencode-go/mimo-v2.5-pro opencode-go/kimi-k2.6 opencode-go/deepseek-v4-pro opencode-go/qwen3.6-plus"
             _tier_effort=high ;;
         fast:opencode)
             _tier_model=opencode-go/deepseek-v4-flash

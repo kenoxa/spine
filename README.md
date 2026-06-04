@@ -26,10 +26,10 @@ Install and sign in to the provider tools you want Spine to configure first. Spi
 
 | Provider | CLI | Host | Skills | Subagents | Envoy | Notes |
 |----------|-----|------|--------|-----------|-------|-------|
-| **Claude Code** | `claude` | Full | Full | Full | Default | Primary recommended. SWE-Bench 80.8% (Opus). |
-| **Codex** | `codex` | Full | Full | Full | Default | Strongest agentic tool use (Terminal-Bench 75.1%). |
+| **Claude Code** | `claude` | Full | Full | Full | Default | Strong planning/review. Opus escalation for high-risk work. |
+| **Codex** | `codex` | Full | Full | Full | Default | Best current long-horizon coding signal (DeepSWE/GPT-5.5). |
 | **Cursor** | `cursor-agent` | Full | Full | Partial¹ | Default | Best IDE integration. Monthly cap. |
-| **OpenCode** | `opencode` | Full | Full | Full | Availability-gated | Multi-model gateway (GLM, MiniMax). Go subscription + Free tier. |
+| **OpenCode** | `opencode` | Full | Full | Full | Availability-gated | Multi-model gateway. Strong for cost/diversity; weaker DeepSWE coding signal. |
 
 ¹ Legacy plans ignore subagent model config.
 
@@ -158,7 +158,7 @@ For Claude Code, the installer also attempts to install the [Spine plugin](claud
 | Claude Code | sonnet:medium | opus:high |
 | Codex | gpt-5.5:medium | gpt-5.5:high |
 | Cursor | auto | composer-2.5 |
-| OpenCode | deepseek-v4-pro (Go) / minimax-m2.5-free (Free) | kimi-k2.6 |
+| OpenCode | deepseek-v4-flash (Go light work) / minimax-m2.5-free (Free) | mimo-v2.5-pro or kimi-k2.6 |
 
 See [docs/model-selection.md](docs/model-selection.md) for full tier guidance and escalation triggers.
 
@@ -437,6 +437,8 @@ dev-browser install
 <summary>Model selection</summary>
 
 **Standard tier is the recommended default** (sonnet:medium / gpt-5.5:medium / auto). Subagents use specialized models by tier automatically — frontier for gate authority and synthesis, standard for `@implementer`, fast for recon — regardless of your session choice.
+
+For long-horizon delegated implementation, Codex/GPT-5.5 is the current quality default. Claude remains strong for planning, review, and high-risk escalation. OpenCode Go now routes Standard work to MiMo by default, but treat it as low-marginal-cost diversity or bounded work until native-harness evidence says otherwise.
 
 **When to upgrade the session (mainthread) to Frontier:** ambiguous requirements, cascading architectural decisions, elusive root causes, very large accumulated context (~50K+ tokens across subagent work), or tangled phase gates. **When implementation alone needs more:** cross-cutting multi-file refactors that outrun the design artifact — escalate `@implementer` workload or partition scope (see [docs/model-tier-assignments.md](docs/model-tier-assignments.md)); that is not always the same as upgrading the orchestrator.
 

@@ -15,7 +15,7 @@
 | Tier | Purpose | Claude | Codex | Cursor | OpenCode (Go) | OpenCode (Free) |
 |------|---------|--------|-------|--------|---------------|-----------------|
 | Frontier | Complex reasoning, gate authority | opus:high² | gpt-5.5:high² | composer-2.5 | opencode-go/kimi-k2.6 | opencode/qwen3.6-plus-free |
-| Standard | Advisory, research, pattern matching | sonnet:medium | gpt-5.5:medium | composer-2.5 | opencode-go/deepseek-v4-pro | opencode/minimax-m2.5-free |
+| Standard | Advisory, research, pattern matching | sonnet:medium | gpt-5.5:medium | composer-2.5 | opencode-go/mimo-v2.5-pro | opencode/minimax-m2.5-free |
 | Fast | Reconnaissance, extraction | haiku:medium | gpt-5.4-mini:medium | auto¹ | opencode-go/deepseek-v4-flash | opencode/mimo-v2-pro-free |
 
 Session quality/cost is chosen on the mainthread.
@@ -28,25 +28,28 @@ Session quality/cost is chosen on the mainthread.
 
 Pick your session model by task depth and expected context size, not a fixed tier label. Sub-agents use their own fixed tiers regardless of session choice — Frontier handles gate authority, Fast handles recon — so you get quality where it matters without paying frontier prices on the mainthread.
 
+**DeepSWE update (2026-06-04).** [DeepSWE](https://deepswe.datacurve.ai/) is now the strongest public signal for long-horizon delegated implementation: 113 original tasks, 91 repositories, behavior verifiers, and one fixed mini-swe-agent harness. Use it to route autonomous multi-file coding work. Keep Terminal-Bench for terminal-tool competence, SWE-Bench/LiveCodeBench for continuity with older claims, and context-window evidence for orchestration.
+
 The table below covers the viable main-thread options for **OpenCode Go**. Non-OpenCode providers have simpler stacks (Claude: sonnet/opus, Codex: gpt-5.5).
 
 ### OpenCode Go Session Model
 
 | Session Type | Model | req/5h | Effective Context | Why |
 |---|---|---|---|---|
-| **Daily driver** — quick lookups, simple edits, boilerplate, test gen, most routine coding | **DeepSeek V4 Flash** | 31,650 | ~150K | Unlimited headroom, 2.3× faster than Pro, 1.6pp gap to Pro is invisible at IDE-task scale. Default to this for 70–80% of sessions. |
-| **Agentic tool-calling** — autonomous agent with heavy tool use, codebase fits <200K | **MiniMax M2.5** | 6,300 | ~197K | 80.2% SWE-bench (matches Opus 4.6), #1 BFCL multi-turn (76.8%, beats Opus by 13.5pt). Best agentic workhorse when context allows. |
-| **Standard day-to-day** — feature implementation, debugging, code review, moderate refactoring | **DeepSeek V4 Pro** | 3,450 | ~200K | Highest coding benchmarks in Standard tier (80.6% SWE-V, 93.5% LCB, 67.9% TB2). Reach for this when Flash isn't enough. **Compact context every ~200K tokens** — 8-needle retrieval drops from 82% at 256K to 41% at 1M. |
-| **Standard alternative** — if you prefer stability/balance | **MiniMax M2.7** | 3,400 | ~150K | Comparable volume, retrieval holds across full 200K window. Less benchmark depth than V4 Pro but solid daily alternative. |
-| **Frontend/visual-heavy** — UI work, 3D scenes, game dev | **Qwen3.6 Plus** | 3,300 | ~200K | Niche leader: 91% 3D ELO, 88% Game Dev in Design Arena. Fixes Qwen3.5's agentic bugs. Fastest output (158 tok/s). |
-| **Long agentic session** — 200+ turns, long context, focused session | **MiMo-V2.5-Pro** | 1,290 | ~256K | 40–60% fewer tokens per trajectory vs frontier rivals. Harness awareness for self-managed context. Tight volume — use for focused sessions, not daily driving. |
-| **Complex orchestration** — multi-session, >200K context, conflict resolution | **Kimi K2.6** | 1,150 | ~200K | Best long-context coherence among OC Go models. Tight volume — **sub-agent only**, not a daily session model. |
-| **Rare planning escalation** — architecture, novel problems | **GLM-5.1** | 880 | ~150K | Highest code cleanliness scores. Tightest volume — **sub-agent only**. |
+| **Daily driver** — quick lookups, simple edits, boilerplate, test gen, most routine coding | **DeepSeek V4 Flash** | 31,650 | ~150K | High-volume OpenCode default for scouting, cheap orchestration, and bounded edits. Not a long-horizon implementation pick: DeepSWE did not publish Flash, and V4 Pro reached only 8% on the same benchmark. |
+| **Tool-calling niche** — autonomous agent with heavy API/tool use, codebase fits <200K | **MiniMax M2.5** | 6,300 | ~197K | BFCL multi-turn score remains useful, but SWE-Bench-only confidence is weak after MiniMax M2.7 reached 0.2% on DeepSWE. Validate on your repo before giving it autonomous coding work. |
+| **Standard bounded work** — feature implementation, debugging, code review, moderate refactoring | **DeepSeek V4 Pro** | 3,450 | ~200K | Strong SWE-V/LCB/TB2 history, but DeepSWE reached only 8%. Use for bounded/local OpenCode work, not as the default long-horizon autonomous implementer. **Compact context every ~200K tokens** — 8-needle retrieval drops from 82% at 256K to 41% at 1M. |
+| **Standard alternative** — if you prefer stability/balance | **MiniMax M2.7** | 3,400 | ~150K | Comparable volume and stable retrieval, but DeepSWE reached only 0.2%. Keep for non-coding advisory or known-good local experience, not delegated implementation. |
+| **Frontend/visual-heavy** — UI work, 3D scenes, game dev | **Qwen3.6 Plus** | 3,300 | ~200K | Niche Design Arena leader and fastest output. DeepSWE reached 2.7%, so keep it scoped to visual/frontend work rather than general coding. |
+| **Long agentic OpenCode session** — 200+ turns, long context, focused session | **MiMo-V2.5-Pro** | 1,290 | ~256K | 19% DeepSWE, the strongest current Standard-fanout OpenCode result after Kimi. Tight volume — use for focused sessions, not daily driving. |
+| **Complex orchestration** — multi-session, >200K context, conflict resolution | **Kimi K2.6** | 1,150 | ~200K | Best OpenCode Go DeepSWE result (24%) and good long-context coherence. Tight volume — **sub-agent only**, not a daily session model. |
+| **Rare planning escalation** — architecture, novel problems | **GLM-5.1** | 880 | ~150K | Clean code style, 18% DeepSWE, tightest volume — **sub-agent only**. |
 
 **Key caveats:**
 
 - **DeepSeek V4 Pro claims 1M context** but effective multi-needle reasoning drops sharply past ~200K (82% at 256K → 59% at 1M on MRCR, 41% at 1M on NIAH-8). Compact your conversation context around every 200K tokens for reliable multi-fact reasoning.
 - **Qwen3.5 Plus (10,200 req/5h) is not recommended** for agentic sessions. Has critical bugs: tool-calling breaks after 1–2 calls (reverts to raw text), reasoning tokens suppressed when tools present. Qwen3.6 Plus fixes these.
+- **DeepSWE is a fixed-harness benchmark.** It runs every model through mini-swe-agent, not native Codex CLI, Claude Code, Cursor, or OpenCode product scaffolding. Treat it as model-behavior evidence, then validate critical workflow choices on your own repo.
 - **Effective context** measures where multi-needle reasoning quality holds, not advertised max. Single-fact retrieval tolerates larger windows, but agentic coding is multi-needle by nature.
 - All volumes are per 5-hour rolling window on OpenCode Go subscription. See [OpenCode Request Volume Reference](#opencode-request-volume-reference) for the full table.
 
@@ -56,16 +59,18 @@ For day-to-day work, each provider has different strengths:
 
 | | Claude Code | Codex | Cursor | OpenCode |
 |---|------------|-------|--------|----------|
-| **Strength** | Code reasoning (SWE-Bench) | Agentic tool use (Terminal-Bench 75.1%) | IDE integration, cheapest agentic model | Multi-model gateway (MiMo, MiniMax, GLM); Go subscription + Free tier |
+| **Strength** | Planning/review depth, environment awareness | Long-horizon delegated implementation (DeepSWE), terminal tool use | IDE integration, cheapest agentic model | Multi-model gateway and low marginal cost; weaker DeepSWE coding signal |
 | **Budget** | 5h / 7-day rolling (generous) | 5h / 7-day rolling (generous) | ~$20-30 / month (tight) | Go subscription (free at margin) or Free tier (zero cost) |
 | **Best for** | Planning, debugging, complex reasoning | Sandboxed execution, tool-heavy tasks | Focused implementation, inline edits | Analytical diversity, cost-sensitive workloads, chain terminus fallback |
 | **Default model** | sonnet | gpt-5.5 | auto | opencode-go/deepseek-v4-flash (Go daily driver) / opencode/minimax-m2.5-free (Free) |
 
-**Recommended primary**: Claude Code — highest code quality benchmarks, generous rolling budget, full Spine skill and subagent support. Use Standard (sonnet) as daily driver.
+**Recommended primary for autonomous implementation**: Codex — GPT-5.5 is the DeepSWE leader, and GPT-5.5 medium is already competitive with Opus medium while cheaper and faster on that benchmark. Use `gpt-5.5:medium` for normal delegated coding, `gpt-5.5:high` or `xhigh` for high-failure-cost implementation.
+
+**Recommended primary for planning/review**: Claude Code — Sonnet remains a good mainthread default, and Opus remains a strong escalation model for judgment-heavy phases. DeepSWE's qualitative analysis says Claude is more prone to missing parallel prompt requirements, so spell out mirrored branches and use verification gates on implementation-heavy Claude runs.
 
 **Recommended secondary**: Cursor — best for IDE-integrated editing and visual multi-file changes. Composer pool is generous for daily work but watch the monthly cap. Use for focused implementation sessions.
 
-**Envoy / cross-provider value**: Codex — GPT-5.5's Terminal-Bench 2.0 lead (82.7% vs Sonnet's ~59%) catches agentic blind spots that Claude misses. Different training produces genuinely different failure modes, making cross-provider envoy dispatch more valuable than same-family second opinions.
+**Envoy / cross-provider value**: Codex + Claude — GPT models are strongest on long-horizon implementation; Claude remains valuable for alternative reasoning and environment-sensitive review. Different training produces genuinely different failure modes, making cross-provider envoy dispatch more valuable than same-family second opinions.
 
 Heavy multi-agent sessions can exhaust Claude Code Max 5x Opus hours in 2-3 days and Cursor Pro credits in a single day. Standard-tier defaults mitigate this.
 
@@ -73,17 +78,17 @@ Heavy multi-agent sessions can exhaust Claude Code Max 5x Opus hours in 2-3 days
 
 | Provider | Budget model | Default | Upgrade | Recommendation |
 |----------|-------------|---------|---------|----------------|
-| Claude Code | 5h / 7-day rolling | sonnet:medium | opus:high | Generous budget — upgrade to opus freely for complex phases |
+| Claude Code | 5h / 7-day rolling | sonnet:medium | opus:high | Generous budget — upgrade to opus for complex planning, review, and high-risk implementation |
 | Codex | 5h / 7-day rolling | gpt-5.5:medium | gpt-5.5:high | Generous budget — upgrade effort freely for complex phases |
 | Cursor | ~$20-30 / month | auto | composer-2.5 | Tight monthly cap — stay on auto, upgrade selectively to composer-2.5 |
-| OpenCode Go | $60/mo flat ($10 sub), $12/5h · $30/wk rolling caps | deepseek-v4-flash (Daily driver) | deepseek-v4-pro (Depth) | See [OpenCode Go Session Model](#opencode-go-session-model) for full decision table. Multi-model fanout within OpenCode via envoy (Frontier: kimi-k2.6 + deepseek-v4-pro + glm-5.1; Standard: minimax-m2.7 + deepseek-v4-pro + qwen3.6-plus + mimo-v2.5-pro; Fast: deepseek-v4-flash + qwen3.5-plus + minimax-m2.5). Kimi K2.6 (1,150 req/5h) is Frontier sub-agents only — Flash (31,650 req/5h) for daily driving, V4 Pro (3,450 req/5h) for depth. |
+| OpenCode Go | $60/mo flat ($10 sub), $12/5h · $30/wk rolling caps | deepseek-v4-flash (Daily driver) | mimo-v2.5-pro or kimi-k2.6 for hard coding | See [OpenCode Go Session Model](#opencode-go-session-model) for full decision table. Multi-model fanout within OpenCode via envoy (Frontier: kimi-k2.6 + deepseek-v4-pro + glm-5.1; Standard: mimo-v2.5-pro + kimi-k2.6 + deepseek-v4-pro + qwen3.6-plus; Fast: deepseek-v4-flash + qwen3.5-plus + minimax-m2.5). For long-horizon implementation, prefer Codex/Claude first; OpenCode Go is mainly cost/diversity, with MiMo now the Standard primary. |
 
 ### Cost per million tokens
 
 | Tier | Claude | Codex | Cursor | OpenCode (Go) | OpenCode (Free) |
 |------|--------|-------|--------|---------------|-----------------|
 | Frontier | opus ($5/$25) | gpt-5.5 ($5/$30) | composer-2.5 ($0.50/$2.50) | kimi-k2.6 ($0, sub) | qwen3.6-plus-free (**free**) |
-| Standard | sonnet ($3/$15) | gpt-5.5 ($5/$30) | composer-2.5 ($0.50/$2.50) | deepseek-v4-pro ($0, sub) | minimax-m2.5-free (**free**) |
+| Standard | sonnet ($3/$15) | gpt-5.5 ($5/$30) | composer-2.5 ($0.50/$2.50) | mimo-v2.5-pro ($0, sub) | minimax-m2.5-free (**free**) |
 | Fast | haiku ($1/$5) | gpt-5.4-mini¹ ($0.75/$4.50) | auto ($1.25/$6.00) | deepseek-v4-flash ($0, sub) | mimo-v2-pro-free (**free**) |
 
 > Cursor models draw from the Auto+Composer pool with a monthly allowance. Per-token cost matters less than staying within your monthly budget. Composer 2.5 Fast ($3.00/$15.00) offers the same quality at higher speed but 6× the cost — use selectively when latency matters. For higher quality beyond the pool, override to API-pool models (e.g., gpt-5.4) at provider pricing.
@@ -174,7 +179,7 @@ Env var changes take effect immediately (runtime). Model mapping changes require
 ## When to Upgrade Models
 
 - Monitor provider deprecation announcements
-- Test on representative tasks (SWE-Bench, Terminal-Bench equivalents) before switching
+- Test on representative tasks before switching: DeepSWE-style long-horizon tasks for delegated coding, Terminal-Bench-style tasks for terminal execution, and your own repo tasks for native-harness behavior
 - Pin versions in env vars during migration windows
 
 ## Cursor Limitations
@@ -185,66 +190,75 @@ Env var changes take effect immediately (runtime). Model mapping changes require
 
 ## Benchmarks
 
+> **DeepSWE** is the best public benchmark for long-horizon delegated coding. It uses original tasks and behavior verifiers, but all models run through mini-swe-agent rather than each provider's native product harness.
+>
 > SWE-Bench Verified (Anthropic) and SWE-Bench Pro (OpenAI) are **different benchmarks** — not directly comparable. Verified uses a curated subset; Pro uses harder, contamination-resistant tasks.
 >
-> **Terminal-Bench 2.0** is the most directly comparable benchmark across all providers — it measures agentic terminal tool use.
+> **Terminal-Bench 2.0** remains the best public signal for terminal-tool execution.
 
 ### Cross-Provider Benchmark Leaderboard
 
-Sorted by Terminal-Bench 2.0. Bold = best in column.
+Sorted by DeepSWE where available. Bold = best in column.
 
-| Model | Provider | Terminal-Bench 2.0 | SWE-Bench Verified | SWE-Bench Pro | LiveCodeBench | Price (in/out per M) |
-|-------|----------|-------------------|-------------------|--------------|---------------|----------------------|
-| GPT-5.5 | Codex | **82.7%** | — | 58.6% | — | $5 / $30 |
-| GPT-5.3 Codex | Codex | **77.3%** | ~80%‡ | — | — | $1.75 / $14 |
-| Gemini 3.1 Pro | Google | **75.5%** | — | — | — | — |
-| GPT-5.4 | Codex | 75.1% | — | **57.7%** | — | $2.50 / $15 |
-| Claude Opus 4.7 | Claude | 69.4% | **87.6%** | — | — | $5 / $25 |
-| Cursor Composer 2.5 | Cursor | 69.3% | — | — | — | $0.50 / $2.50 |
-| DeepSeek V4 Pro | OpenCode | 67.9% | **80.6%** | 55.4% | **93.5%** | $0 (Go sub) |
-| Kimi K2.6 | OpenCode | 66.7% | 80.2% | 58.6% | 89.6% | $0 (Go sub) |
-| GLM-5.1 | OpenCode | 63.5% | — | 58.4% | — | $0 (Go sub) |
-| GPT-5.4 mini | Codex | 60.0% | — | 54.4% | — | $0.75 / $4.50 |
-| Claude Sonnet 4.6 | Claude | ~59% | 79.6% | — | — | $3 / $15 |
-| DeepSeek V4 Flash | OpenCode | 56.9% | — | 52.6% | 91.6% | $0 (Go sub) |
-| GPT-5.4 nano | Codex | 46.3%† | — | 52.4% | — | $0.20 / $1.25 |
-| Claude Haiku 4.5 | Claude | — | >73% | — | — | $1 / $5 |
+| Model | Provider | DeepSWE pass@1 | Best DeepSWE effort | Terminal-Bench 2.0 | SWE-Bench Verified / Pro | Price (in/out per M) |
+|-------|----------|----------------|---------------------|--------------------|------------------------|----------------------|
+| GPT-5.5 | Codex | **70.0%** | xhigh | **82.7%** | Pro 58.6% | $5 / $30 |
+| Claude Opus 4.8 | Claude | 58.2% | max | — | — | $5 / $25 |
+| GPT-5.4 | Codex | 55.5% | xhigh | 75.1% | Pro 57.7% | $2.50 / $15 |
+| Claude Opus 4.7 | Claude | 54.2% | max | 69.4% | Verified 87.6% | $5 / $25 |
+| Claude Sonnet 4.6 | Claude | 31.8% | high | ~59% | Verified 79.6% | $3 / $15 |
+| GPT-5.4 mini | Codex | 24.3% | xhigh | 60.0% | Pro 54.4% | $0.75 / $4.50 |
+| Kimi K2.6 | OpenCode | 23.9% | default | 66.7% | Verified 80.2% / Pro 58.6% | $0 (Go sub) |
+| MiMo-V2.5-Pro | OpenCode | 19.5% | default | — | Pro 57.2% | $0 (Go sub) |
+| GLM-5.1 | OpenCode | 17.5% | default | 63.5% | Pro 58.4% | $0 (Go sub) |
+| Gemini 3.1 Pro | Google | 9.7% | default | 75.5% | — | — |
+| DeepSeek V4 Pro | OpenCode | 7.5% | default | 67.9% | Verified 80.6% / Pro 55.4% | $0 (Go sub) |
+| Qwen3.6 Plus | OpenCode | 2.7% | default | — | — | $0 (Go sub) |
+| Claude Haiku 4.5 | Claude | 0.2% | default | — | Verified >73% | $1 / $5 |
+| MiniMax M2.7 | OpenCode | 0.2% | default | — | — | $0 (Go sub) |
+| Cursor Composer 2.5 | Cursor | — | — | 69.3% | — | $0.50 / $2.50 |
+| DeepSeek V4 Flash | OpenCode | — | — | 56.9% | Pro 52.6% | $0 (Go sub) |
+| GPT-5.3 Codex | Codex | — | — | 77.3% | Verified ~80% | $1.75 / $14 |
 
-† not independently verified · ‡ SWE-Bench Verified (not Pro)
+DeepSWE values are from Datacurve's live aggregate generated 2026-05-30. Pass@1 is scored rollout attempts; provider/verifier/network errors are excluded. Context-window failures and agent timeouts count as failures.
 
 ### Quick Picks: Which Model for Which Goal?
 
 | Goal | Best Choice | Runner-up | Why |
 |------|-------------|-----------|-----|
-| Maximum code quality (unlimited budget) | Claude Opus 4.7 | GPT-5.3 Codex | Highest SWE-V (87.6%), strong TB2 |
-| Best agentic tool use | GPT-5.5 | GPT-5.3 Codex / Gemini 3.1 Pro | Top TB2 (82.7%) |
-| Best free option | DeepSeek V4 Pro (OpenCode Go) | Kimi K2.6 | SWE-V #1, LCB #1, zero cost |
-| Daily driver (quality / price) | Claude Sonnet 4.6 | GPT-5.4 | Strong at mid-tier price |
+| Long-horizon delegated implementation | GPT-5.5 | Claude Opus 4.8 / GPT-5.4 | DeepSWE leader by a large margin; xhigh for high-stakes work, medium for normal work |
+| Cost-efficient long-horizon coding | GPT-5.5 medium | GPT-5.4 xhigh | GPT-5.5 medium reaches 48% DeepSWE at lower cost/time than Opus medium; GPT-5.4 is the cheaper high-score route |
+| Planning / review escalation | Claude Opus 4.8 | GPT-5.5 high | Opus remains useful for judgment-heavy phases; verify mirrored requirements carefully |
+| Best terminal-tool use | GPT-5.5 | GPT-5.3 Codex / Gemini 3.1 Pro | Top Terminal-Bench 2.0 |
+| Best OpenCode Go coding option | Kimi K2.6 | MiMo-V2.5-Pro | Best DeepSWE results in the Go roster, but still far below GPT/Opus |
+| Daily driver (quality / price) | GPT-5.5 medium | Claude Sonnet 4.6 | Codex is stronger for delegated coding; Sonnet remains good for planning and review |
 | Fast recon / extraction | DeepSeek V4 Flash | Claude Haiku 4.5 | Free, 91.6% LCB, high throughput |
 | IDE-integrated editing | Cursor Composer 2.5 | — | Cheapest pool, solid TB2 (69.3%) |
 | Long-context orchestration | Kimi K2.6 | GLM-5.1 | 400k–700k effective context |
 
 ### Per-Provider Notes
 
-**Claude**: Opus 4.6 (SWE-V 80.8%) was superseded by Opus 4.7 on 2026-04-16.
+**Claude**: Opus 4.8 improved the Claude ceiling on DeepSWE (58.2% max vs Opus 4.7 at 54.2% max) but still trails GPT-5.5. Avoid making Opus max the default: DeepSWE shows a steep jump in cost, time, and output tokens from high to max. Claude's common failure mode on DeepSWE is missing one branch of multi-part requirements, so prompts and review briefs should enumerate mirrored behavior.
 
-**GPT**: GPT-5.5 (released 2026-04-23) leads Terminal-Bench 2.0 at 82.7% and is the Spine Frontier and Standard model for Codex. GPT-5.3 Codex reports ~80% on SWE-Bench **Verified** (not Pro), making it comparable to Claude Opus tier rather than GPT-5.4's Pro score. GPT-5.4 leads Toolathlon at 54.6%.
+**GPT**: GPT-5.5 leads both DeepSWE and Terminal-Bench 2.0 and is the Spine Frontier and Standard model for Codex. DeepSWE's qualitative analysis says GPT has the lowest missed-requirement rate among tested configurations. GPT-5.4 remains a strong cost-efficient high-effort route.
 
 **Cursor**: Composer 2.5 (released 2026-05-18) raised Terminal-Bench 2.0 to 69.3% (from Composer 2's 61.7%). Two usage pools — **Auto+Composer** (Composer 2.5, Auto) and **API** (Composer 1.5, GPT-5.4, Claude). Both reset monthly. Composer 2.5 Fast offers identical quality at 6× the per-token cost — use only when latency matters.
 
+**OpenCode Go**: Older SWE-Bench and LiveCodeBench scores overstated its usefulness for long-horizon autonomous coding. Kimi K2.6 is the best Go-roster DeepSWE result at 23.9%; MiMo-V2.5-Pro follows at 19.5%; DeepSeek V4 Pro drops to 7.5%. Keep OpenCode Go for low marginal cost, diversity, and bounded work unless you explicitly select Kimi/MiMo for focused implementation.
+
 ### OpenCode Model Reference
 
-| Model | Tier | Effective Context | req/5h | Notes |
-|-------|------|-------------------|--------|-------|
-| Kimi K2.6 | Frontier | ~200K | 1,150 | Best long-context coherence among OC Go. Full window 256K — modest enough to hold well. Auto-compression extends beyond window. |
-| GLM-5.1 | Frontier | ~150K | 880 | Highest code cleanliness. DSA compressed attention. 200K full window — limited degradation risk. |
-| DeepSeek V4 Pro | Standard | ~200K | 3,450 | Advertised 1M, but 8-needle retrieval drops: 82% at 256K → 59% at 1M. Compact every ~200K. |
-| MiniMax M2.7 | Standard | ~150K | 3,400 | Retrieval holds across full 200K window. "I haven't hit the severe NIH degradation that plagues cheaper models" — independent review. |
-| Qwen3.6 Plus | Standard | ~200K | 3,300 | 1M advertised, Alibaba docs warn "lost in the middle." Always-on CoT eats into usable budget. Fastest output (158 tok/s). No independent long-context evals. |
-| MiMo-V2.5-Pro | Standard | ~256K | 1,290 | SWA+GA hybrid attention. GraphWalks scores meaningful at 1M (BFS 0.37, Parents 0.62). Third-party evals pending (Apr 22 release). |
-| DeepSeek V4 Flash | Fast | ~150K | 31,650 | Weaker retrieval than Pro at all lengths (58% at 1M vs Pro's 66%). Stay under 150K. |
-| MiniMax M2.5 | Fast | ~197K | 6,300 | Full window 200K. 80.2% SWE-bench (matches Opus 4.6). Best agentic workhorse for fitting codebases. |
-| Qwen3.5 Plus | Fast | ~150K | 10,200 | **Not recommended for agentic use** — tool-calling breaks after 1–2 calls, reasoning suppressed when tools present. Single-turn structured tasks only. |
+| Model | Tier | Effective Context | req/5h | DeepSWE | Notes |
+|-------|------|-------------------|--------|---------|-------|
+| Kimi K2.6 | Frontier | ~200K | 1,150 | 23.9% | Best OpenCode Go long-horizon coding result and good long-context coherence. Full window 256K — modest enough to hold well. Auto-compression extends beyond window. |
+| GLM-5.1 | Frontier | ~150K | 880 | 17.5% | Clean code style. DSA compressed attention. 200K full window — limited degradation risk. |
+| DeepSeek V4 Pro | Standard | ~200K | 3,450 | 7.5% | Older benchmark strength, weak DeepSWE. Advertised 1M, but 8-needle retrieval drops: 82% at 256K → 59% at 1M. Compact every ~200K. |
+| MiniMax M2.7 | Standard | ~150K | 3,400 | 0.2% | Stable retrieval, but not a delegated coding pick after DeepSWE. Keep for known-good local advisory behavior only. |
+| Qwen3.6 Plus | Standard | ~200K | 3,300 | 2.7% | 1M advertised, Alibaba docs warn "lost in the middle." Always-on CoT eats into usable budget. Fastest output (158 tok/s). Use mainly for frontend/visual work. |
+| MiMo-V2.5-Pro | Standard | ~256K | 1,290 | 19.5% | Best Standard-fanout Go result after Kimi. SWA+GA hybrid attention. GraphWalks scores meaningful at 1M (BFS 0.37, Parents 0.62). Tight volume. |
+| DeepSeek V4 Flash | Fast | ~150K | 31,650 | — | Weaker retrieval than Pro at all lengths (58% at 1M vs Pro's 66%). Stay under 150K and use for recon/simple edits. |
+| MiniMax M2.5 | Fast | ~197K | 6,300 | — | Full window 200K. BFCL tool-calling signal remains useful, but do not infer long-horizon coding strength from older SWE-Bench claims. |
+| Qwen3.5 Plus | Fast | ~150K | 10,200 | — | **Not recommended for agentic use** — tool-calling breaks after 1–2 calls, reasoning suppressed when tools present. Single-turn structured tasks only. |
 
 See the [leaderboard above](#cross-provider-benchmark-leaderboard) for benchmarks. All OpenCode Go models are zero marginal cost within the subscription allowance.
 
@@ -253,8 +267,8 @@ See the [leaderboard above](#cross-provider-benchmark-leaderboard) for benchmark
 Tier assignments are driven by **context behavior + role fit + request volume**, not benchmark ranking alone:
 
 - **Frontier** (coordination, synthesis, gate authority, sub-agent only): **Kimi K2.6** — best long-context coherence across OC Go models, holds well within its 256K window. **GLM-5.1** — solid fallback with highest code cleanliness. Both are tight on volume (880–1,150 req/5h) — reserved for gate authority, not session use.
-- **Standard** (scoped implementation, debugging, advisory): **DeepSeek V4 Pro** — best coding benchmarks in tier (80.6% SWE-V, 93.5% LCB), comfortable 3,450 req/5h. Effective context ~200K — compact around this. **MiniMax M2.7** — comparable volume (3,400 req/5h), stable retrieval. **Qwen3.6 Plus** — niche leader for frontend/visual work. **MiMo-V2.5-Pro** — token-efficient for long agentic sessions but tight volume (1,290 req/5h).
-- **Fast** (recon, extraction, daily driving): **DeepSeek V4 Flash** — unlimited headroom (31,650 req/5h), 2.3× faster than Pro. **MiniMax M2.5** — dark horse: 80.2% SWE-bench, #1 BFCL multi-turn tool calling. **Qwen3.5 Plus** — not recommended for agentic use (critical tool-calling bugs).
+- **Standard** (scoped implementation, debugging, advisory): **DeepSeek V4 Pro** remains the high-volume default for bounded OpenCode Standard work, but DeepSWE makes it a weak long-horizon coding choice. **MiMo-V2.5-Pro** is the stronger Standard candidate for focused implementation. **MiniMax M2.7** and **Qwen3.6 Plus** should not be treated as general delegated coding picks without local proof.
+- **Fast** (recon, extraction, daily driving): **DeepSeek V4 Flash** — unlimited headroom (31,650 req/5h), 2.3× faster than Pro. **MiniMax M2.5** keeps a tool-calling niche. **Qwen3.5 Plus** — not recommended for agentic use (critical tool-calling bugs).
 
 ### OpenCode Context-Driven Routing
 
@@ -263,7 +277,7 @@ Pick by effective context and role, not "smartness" alone. These thresholds are 
 | Context | Session Model | Envoy Tier |
 |---------|--------------|------------|
 | >200K tokens | Kimi K2.6 (sub-agent only; or compact context and step down) | Frontier (Kimi K2.6, DeepSeek V4 Pro, GLM-5.1) |
-| 100K–200K tokens | DeepSeek V4 Pro, MiniMax M2.7, Qwen3.6 Plus, MiMo-V2.5-Pro | Standard fanout (primary: DeepSeek V4 Pro) |
+| 100K–200K tokens | MiMo-V2.5-Pro for focused implementation; DeepSeek V4 Pro for bounded diversity | Standard fanout (primary: MiMo; diversity: Kimi/DeepSeek/Qwen) |
 | <100K tokens | DeepSeek V4 Flash, MiniMax M2.5 | Fast fanout |
 
 Routing rules:
@@ -281,15 +295,17 @@ Mental model:
 
 Pick your session model from the [OpenCode Go Session Model](#opencode-go-session-model) table above. The short version:
 
-**DeepSeek V4 Flash is the recommended daily driver.** 31,650 req/5h (effectively unlimited), 2.3× faster than Pro, and the 1.6pp SWE-bench gap to Pro is functionally invisible at IDE-task scale. Use it for 70–80% of your sessions.
+**DeepSeek V4 Flash is the recommended OpenCode daily driver for light work.** 31,650 req/5h (effectively unlimited) and 2.3× faster than Pro. Use it for scouting, summarization, simple edits, and cheap orchestration. Do not use the old 1.6pp SWE-Bench gap as evidence for long-horizon implementation quality.
 
-**DeepSeek V4 Pro is your depth option.** When Flash isn't enough (complex debugging, architectural decisions, multi-file changes), switch to V4 Pro. 3,450 req/5h is comfortable. Compact context every ~200K tokens.
+**MiMo-V2.5-Pro is the OpenCode Standard worker.** Use it for focused implementation when you want OpenCode Go's cost/diversity path. Tight volume (1,290 req/5h) means it is not the all-day daily driver.
 
-**MiniMax M2.5 is the agentic dark horse.** If you're running an autonomous agent with heavy tool-calling and your codebase fits under 200K, M2.5 matches Opus 4.6 on SWE-bench (80.2%) and dominates multi-turn tool calling (76.8% BFCL).
+**DeepSeek V4 Pro is a bounded-depth fanout model.** It stays in Standard envoy fanout for localized debugging/code-review diversity. 3,450 req/5h is comfortable. Compact context every ~200K tokens.
+
+**MiniMax M2.5 is a tool-calling niche.** If you're running an autonomous agent with heavy tool-calling and your codebase fits under 200K, BFCL remains a positive signal. Validate on your repo before assigning coding work.
 
 **MiMo-V2.5-Pro for long agentic sessions.** 40–60% fewer tokens per trajectory. Tight volume (1,290 req/5h) — use for focused long sessions, not daily driving.
 
-**Qwen3.6 Plus for frontend-heavy work.** Niche leader at 91% 3D ELO. Fixes Qwen3.5's agentic bugs. Fastest output at 158 tok/s.
+**Qwen3.6 Plus for frontend-heavy work.** Niche leader at 91% 3D ELO. Fixes Qwen3.5's agentic bugs. Fastest output at 158 tok/s. DeepSWE is weak, so keep it out of general coding defaults.
 
 **Kimi K2.6 and GLM-5.1 are sub-agent only.** Their tight volumes (880–1,150 req/5h) make them unsuitable as session models. Reserved for Frontier gate authority roles (consultant, inspector, verifier, synthesizer).
 
@@ -340,7 +356,7 @@ Envoy dispatch within OpenCode uses multi-model fanout per tier. Each model runs
 | Tier | Models | Fanout |
 |------|--------|--------|
 | Frontier | Kimi K2.6 + DeepSeek V4 Pro + GLM-5.1 | 3 models, 3 labs (Moonshot / DeepSeek / Z.AI-Tsinghua) |
-| Standard | DeepSeek V4 Pro† + MiniMax M2.7 + Qwen3.6 Plus + MiMo-V2.5-Pro | 4 models, 4 labs (DeepSeek / MiniMax / Alibaba / Xiaomi) |
+| Standard | MiMo-V2.5-Pro† + Kimi K2.6 + DeepSeek V4 Pro + Qwen3.6 Plus | 4 models, 4 labs (Xiaomi / Moonshot / DeepSeek / Alibaba); diversity/cost fanout, not DeepSWE-leading |
 | Fast | DeepSeek V4 Flash† + MiniMax M2.5 + Qwen3.5 Plus | 3 models, 3 labs (DeepSeek / MiniMax / Alibaba) |
 
 † Primary model — used for sub-agent pinning. Fanout includes all listed models for envoy diversity.
@@ -349,7 +365,7 @@ Envoy dispatch within OpenCode uses multi-model fanout per tier. Each model runs
 
 **Override**: `SPINE_ENVOY_{TIER}_OPENCODE` env vars disable fanout. When set, the tier runs single-model (same as other providers).
 
-**Note on MiMo-V2.5-Pro**: Included in Standard fanout for its token efficiency in agentic tasks (40–60% fewer tokens per trajectory). Not promoted to Frontier despite competitive SWE-bench Pro scores — its reasoning depth limitation (commit-to-first-chain) makes it unreliable for gate authority roles. Use `SPINE_ENVOY_STANDARD_OPENCODE` to override.
+**Note on MiMo-V2.5-Pro**: Standard primary for token efficiency and the strongest current Standard DeepSWE result among OpenCode Go models. Not promoted to Frontier despite competitive SWE-bench Pro scores — its reasoning depth limitation (commit-to-first-chain) makes it unreliable for gate authority roles.
 
 **Note on Qwen3.5 Plus**: In Fast fanout for volume (10,200 req/5h) but not recommended for agentic envoy dispatch due to critical tool-calling bugs. Remove or replace via `SPINE_ENVOY_FAST_OPENCODE` if you encounter failures.
 
@@ -364,7 +380,7 @@ Four mapping points encode the tier tables:
 - **`invoke-cursor.sh`** `to_cursor_model()` — maps canonical model + effort to cursor-agent model IDs for fallback after Claude/Codex failure. Each model owns its full cursor-agent ID (no shared prefix).
 - **`_opencode-common.sh`** — shared transport helper for OpenCode. Owns CLI invocation, JSONL parsing, `step_finish` completeness gate, and OpenCode env sanitization.
 
-All mapping points agree on tier:provider mappings. Intentional surface differences: Cursor Fast uses `fast` in install-time frontmatter (actual subagent dispatch) but `auto` in envoy CLI dispatch (tier table); Frontier and Standard are the only tiers meaningfully used in envoy for Cursor. Effort applies to Claude and Codex only — Cursor has no effort parameter. OpenCode uses full prefixed model strings (e.g., `opencode-go/deepseek-v4-pro`) with no runtime prefix probing. OpenCode automatically detects Go subscription vs Free tier models. OpenCode envoy dispatch fans out to multiple models per tier (see Multi-Model Dispatch above); subagent pinning uses the primary model only.
+All mapping points agree on tier:provider mappings. Intentional surface differences: Cursor Fast uses `fast` in install-time frontmatter (actual subagent dispatch) but `auto` in envoy CLI dispatch (tier table); Frontier and Standard are the only tiers meaningfully used in envoy for Cursor. Effort applies to Claude and Codex only — Cursor has no effort parameter. OpenCode uses full prefixed model strings (e.g., `opencode-go/mimo-v2.5-pro`) with no runtime prefix probing. OpenCode automatically detects Go subscription vs Free tier models. OpenCode envoy dispatch fans out to multiple models per tier (see Multi-Model Dispatch above); subagent pinning uses the primary model only.
 
 ### Agent Tier Assignments
 
@@ -378,7 +394,7 @@ All mapping points agree on tier:provider mappings. Intentional surface differen
 
 **Pinned to Standard** so the implementer never tracks a Fast session model down to Haiku-class quality. Implementation quality should not depend on whether you temporarily downgraded the mainthread for cheap exploration.
 
-**Gate dependency:** Frontier roles produce plans, merges, and review verdicts; Frontier gates absorb any benchmark gap by design — the implementer executes partitioned writes behind those gates (see benchmarks above). Treating the implementer as a Standard worker behind Frontier gates matches the "strong gates, efficient workers" pattern described in [model-tier-assignments.md](model-tier-assignments.md).
+**Gate dependency:** Frontier roles produce plans, merges, and review verdicts. Gates reduce worker-model risk, but they do not make a weak implementer free on long-horizon coding. If implementation quality is the bottleneck, route the work to Codex/GPT-5.5, use Opus for high-risk implementation, override the provider-specific worker where possible, or split the patch smaller.
 
 ### Escalation: session vs implementer
 
