@@ -99,10 +99,10 @@ skills/run-research/SKILL.md: 593
 skills/run-research/references/gather-researcher.md: 414
 skills/run-research/references/gather-scout.md: 325
 skills/run-research/references/template-prompt.md: 801
-skills/run-review/SKILL.md: 1403
-skills/run-review/references/build-finalize.md: 951
-skills/run-review/references/build-review-gate.md: 473
-skills/run-review/references/build-status-schema.md: 1105
+skills/run-review/SKILL.md: 1552
+skills/run-review/references/build-finalize.md: 1368
+skills/run-review/references/build-review-gate.md: 814
+skills/run-review/references/build-status-schema.md: 1421
 skills/run-review/references/inspect-envoy.md: 377
 skills/run-review/references/inspect-risk-reviewer.md: 628
 skills/run-review/references/inspect-security-depth.md: 786
@@ -111,7 +111,7 @@ skills/run-review/references/inspect-verifier.md: 862
 skills/run-review/references/review-change-evidence-schema.md: 149
 skills/run-review/references/review-output.md: 679
 skills/run-review/references/review-verdict-schema.md: 899
-skills/run-review/references/scope-context.md: 1010
+skills/run-review/references/scope-context.md: 1321
 skills/run-review/references/security-probe.md: 1002
 skills/run-review/references/template-review-brief.md: 344
 skills/use-browser/SKILL.md: 604
@@ -123,7 +123,7 @@ skills/use-envoy/references/prompt-patterns.md: 203
 skills/use-goal-prompt/SKILL.md: 1660
 skills/use-goal-prompt/references/design-artifact-schema.md: 354
 skills/use-goal-prompt/references/goal-brief-schema.md: 334
-skills/use-goal-prompt/references/phase-discipline-build.md: 738
+skills/use-goal-prompt/references/phase-discipline-build.md: 1065
 skills/use-goal-prompt/references/phase-discipline-design.md: 642
 skills/use-goal-prompt/references/phase-discipline-frame.md: 618
 skills/use-goal-prompt/references/task-adapter-contract.md: 911

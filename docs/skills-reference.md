@@ -16,12 +16,14 @@ Canonical entry: [`skills/use-goal-prompt/SKILL.md`](../skills/use-goal-prompt/S
 
 Structured code review with severity-bucketed findings and evidence-level gating. Four phases:
 
-1. **Scope + Context** — classify depth, build understanding, emit review brief (Gate A); recommended Gate A2 writes `review-change-evidence.md` (diff/patch) for shared evidence with envoy.
+1. **Scope + Context** — classify depth and Review Target (dirty local / branch vs base / single commit), build understanding, emit review brief (Gate A); recommended Gate A2 writes `review-change-evidence.md` (diff/patch) for shared evidence with envoy.
 2. **Inspect** — parallel dispatch: `@verifier` (plan/spec compliance + logic correctness + E3 probes) + `@inspector` (risk lens: security, perf, scale) + cross-provider `@envoy`. Verifier runs at standard and deep depth; focused depth is inline-only. Same `{review_brief_path}` / `{change_evidence_path}` for all roles and synthesis (see `use-envoy` per-phase evidence plane).
 3. **Synthesis** — `@synthesizer` merges verifier VERDICT, inspector findings, and envoy output. VERDICT propagation: FAIL/PARTIAL → blocking flag in synthesis header.
 4. **Output** — conflict resolution, severity re-sort, user-facing findings, visual diff report.
 
 Findings are bucketed as `blocking` (must fix, E2+ required), `should_fix` (recommended, blocks unless deferred), or `follow_up` (tracked debt). Review is read-only — `@verifier` may run non-destructive commands (build, test, lint) for E3 probes; all other agents are read-only.
+
+**Build closeout.** `/goal` builds make review unavoidable for meaningful work: non-trivial code changes must reach `review-verdict.json` ACCEPT (`standard`/`deep`); trivial, docs-only, or no-code changes take the lightweight `focused` path with a recorded reason. Findings are advisory until verified against real code — verify before fixing, prefer the smallest fix at the right ownership boundary, then rerun focused tests and re-review until ACCEPT. This strengthens review without making it mutating, and stays separate from Clawpatch.
 
 Canonical entry: [`skills/run-review/SKILL.md`](../skills/run-review/SKILL.md).
 

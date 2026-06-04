@@ -25,15 +25,27 @@ Classify and lock at end of Phase 1. May upgrade during Phase 2 on strong eviden
 
 **Default standalone: `standard`.**
 
+### Review Target
+
+Independent of depth — identify which change set is under review. The target picks the diff source for Gate A2 and the noise baseline (pre-existing vs introduced by the change):
+
+| Target | Change set | Diff source |
+|--------|-----------|-------------|
+| dirty local | uncommitted working tree (staged + unstaged + untracked) | `git diff HEAD` + untracked files |
+| branch vs base | a feature/PR branch against its base | `git diff <base>...HEAD` (PR base via `gh pr view --json baseRefName --jq .baseRefName`, else `origin/<default-branch>`) |
+| single commit | one already-landed commit | `git show <ref>` |
+
+A clean dirty-local review only proves there is no local patch. For committed or pushed work, target the commit or branch diff — never force dirty mode because it is listed first. Reviewing a clean branch against its own pushed base is usually an empty diff. Record the chosen target in the review brief; it gates which diff Gate A2 captures.
+
 ### Session
 
 At `standard`/`deep`: generate session ID after depth classification. Format: `{slug}-{hash}` — 3-5 words from review scope, hash from `openssl rand -hex 2`. Inherit active session ID when invoked from another skill. All scratch paths: `.scratch/<session>/`.
 
-At `focused`: no session ID.
+At `focused`: no session ID generated standalone. When invoked from another skill (e.g., a `/goal` build's lightweight closeout), inherit the caller's active session ID so the `review-verdict.json` sidecar lands in the shared session dir — the closeout records that `verdict_path` in `build-status.json.review`.
 
 ### Phase 1: Scope
 
-Main thread (all depths). Confirm what was requested and what changed. Classify depth. Lock risk level.
+Main thread (all depths). Confirm what was requested and what changed. Classify depth. Identify the Review Target (dirty local / branch vs base / single commit). Lock risk level.
 
 When a caller supplies `risk_level`, use it as the floor — may upgrade on evidence, never downgrade below caller's classification. This ensures the build phase risk assessment (e.g., `high` for auth changes) is not silently reduced.
 
@@ -71,7 +83,7 @@ After writing review_brief, read it back and confirm all 7 fields present. Dispa
 
 ### Gate A2: review change evidence (recommended)
 
-After Gate A, if a diff exists: write `.scratch/<session>/review-change-evidence.md` per [review-change-evidence-schema.md](review-change-evidence-schema.md) — diff/patch/excerpts, not paths-only. Omit → `inspect-envoy` uses deterministic gap string (see ref).
+After Gate A, if a diff exists: capture it from the Review Target's diff source and write `.scratch/<session>/review-change-evidence.md` per [review-change-evidence-schema.md](review-change-evidence-schema.md) — diff/patch/excerpts, not paths-only. Omit → `inspect-envoy` uses deterministic gap string (see ref).
 
 ## Output
 

@@ -83,12 +83,15 @@ Preloaded by `@inspector`, `@analyst`, `@debater` via `skills:` frontmatter. Mus
 | Medium | + testing-depth |
 | High | + security probe |
 
+Multi-reviewer panels (augmented `@inspector` variance lenses at `deep`) are opt-in — engaged by risk tier or explicit request, never the default for routine review.
+
 ### Noise Filtering
 
 Before raising any finding, verify:
 - Introduced or worsened by reviewed change — pre-existing issues out of scope
 - Discrete and actionable — not general codebase observations
 - Does not demand rigor absent from rest of codebase
+- Realistic and concrete — not a speculative edge case or hypothetical risk, and not remediation that demands a broad rewrite or over-complicates the code. Prefer the smallest fix at the right ownership boundary
 - Security findings at high risk: apply exclusion rules from [references/security-probe.md](references/security-probe.md)
 - Consistent with project intent — deliberate tradeoffs documented in plan or spec are not defects
 
@@ -102,6 +105,8 @@ Before raising any finding, verify:
 - Merging review with implementation unless user asked for immediate fixes
 - "The change is small, inline review is fine" — depth classification decides fanout, not gut feel
 - "Verifier passed, skip synthesis" — synthesis catches cross-role conflicts verifier alone misses
+- Invoking nested reviewers or another `run-*` skill from inside review — `run-review` builds evidence and stops; it never calls `/run-polish`, `/run-implement`, or itself
+- "Run one more pass for a cleaner verdict" — once findings are clean (verdict ACCEPT), stop; a redundant re-review buys nothing
 
 ## Completion
 

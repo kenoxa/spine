@@ -13,6 +13,16 @@ Sole completion authority (mainthread-only). Evaluates prototype completion, pro
 
 ## Instructions
 
+### Review Closeout — mandatory gate
+
+Review is unavoidable for meaningful work. Check this gate before any completion declaration:
+
+- **Non-trivial code changes** MUST reach `review-verdict.json` `verdict: "ACCEPT"` from a `/run-review` (`standard` or `deep`) run. After review-triggered edits, rerun the focused tests and re-review until ACCEPT or the user explicitly defers a `should_fix`/`follow_up` (see [build-review-gate.md](build-review-gate.md)).
+- **Trivial work** — docs-only, comment-only, config-only, or no-code — may take the lightweight path: `/run-review` at `focused` depth (verdict sidecar only; the focused closeout inherits the build's session ID per [scope-context.md](scope-context.md) §Session — never run it standalone). The focused run should still reach `ACCEPT`; a non-`ACCEPT` focused verdict means the work was misclassified as trivial — re-run at `standard`. Record the trivial classification and reason in `session-log.md` and `build-status.json.review`.
+- "Trivial" = no new or altered logic, no new attack surface, prose/config only. When in doubt, run `standard`.
+
+A finalize with non-trivial changes and no ACCEPT verdict is `blocked`, not `complete`. This gate never forces `standard`/`deep` on trivial or docs-only work — the lightweight path with a recorded reason satisfies it.
+
 ### 1. Question Answered
 
 Evaluate whether the build addressed the original intent:
@@ -67,11 +77,13 @@ When any learning has `knowledge_candidate: yes`, the orchestrator schedules kno
 
 Append: completion declaration, question-answered assessment, final `files_modified`, learnings proposals if any, open items.
 
+Include a **review summary**: target + depth used, verdict, findings accepted/rejected (one line each, with why), focused tests run, and the clean result — or, for the lightweight path, the trivial classification and reason. Do not run an extra review just to improve this wording; report the run that actually produced the verdict.
+
 ### 7. Structured Completion Artifact
 
 Write `.scratch/<session>/build-status.json` on every terminal outcome (ACCEPT, cap-reached, partial, question-answered=no). Schema and field semantics: [build-status-schema.md](build-status-schema.md). Atomic write via `.tmp + mv` — never emit half-written JSON.
 
-Required fields on emission: `schema_version`, `status`, `exit_reason`, `session_id`, `timestamp_utc`, `base_rev`, `head_rev`, `dirty_start`, `dirty_end`, `iteration`, `commits`, `files_modified`. Optional: `iteration_cost_usd` (only when invoking harness set `--max-budget-usd`).
+Required fields on emission: `schema_version`, `status`, `exit_reason`, `session_id`, `timestamp_utc`, `base_rev`, `head_rev`, `dirty_start`, `dirty_end`, `iteration`, `commits`, `files_modified`. Optional: `iteration_cost_usd` (only when invoking harness set `--max-budget-usd`); `review` block recording the review-closeout decision (`{mode, depth, verdict, verdict_path, trivial_exception, reason}`) — see [build-status-schema.md](build-status-schema.md).
 
 The artifact is additive — it does not replace the natural-language declaration. Existing consumers reading stdout/session-log continue to work unchanged. Downstream consumers can read the JSON as the terminal signal.
 

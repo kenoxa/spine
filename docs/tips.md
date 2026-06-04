@@ -10,7 +10,7 @@ Text after a slash command is the task scope. Examples:
 - `/use-goal-prompt interrogate add retry strategy for API calls` — frame/clarify the task
 - `/use-goal-prompt plan` — gather multi-model advisory on approach
 - `/use-goal-prompt build` — prototype, review, and polish
-- `/run-review` — reviews current changes
+- `/run-review` — reviews current changes (dirty local, branch vs base, or a single commit); the mandatory closeout for non-trivial build work, with a lightweight `focused` path for trivial/docs
 - `/run-debug failing auth test in CI`
 - `/run-explore auth module architecture`
 

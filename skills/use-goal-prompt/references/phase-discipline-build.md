@@ -13,14 +13,24 @@ Execute slices in declared order. NEVER advance past a slice without E3 exit gat
 ## Per-Slice Loop
 
 1. **Implement** — invoke `@implementer` with slice scope.
-2. **Review** — invoke `@inspector`. Binary gate: PASS → advance; BLOCKED → invoke `/run-polish` (max 3 polish iterations per slice), then re-review.
+2. **Review** — invoke `@inspector` (in-loop binary gate; does not replace closeout review). PASS → advance; BLOCKED → invoke `/run-polish` (max 3 polish iterations per slice), then re-review.
 3. **Cap** — 5 review iterations per slice. At cap: write `build-status.json` `status=blocked`, halt.
 4. **Exit gate (E3)** — verify deliverables exist at declared paths.
+
+## Review Closeout (before terminal)
+
+Before writing the terminal `build-status.json`, pass the **review-closeout gate** ([build-finalize.md](../../run-review/references/build-finalize.md) §Review Closeout):
+
+- **Non-trivial code changes** → run `/run-review` (`standard`/`deep`) to `review-verdict.json` ACCEPT. Apply findings per [build-review-gate.md](../../run-review/references/build-review-gate.md): verify before fixing, smallest fix at the ownership boundary, sweep the bug class, rerun focused tests, re-review until ACCEPT or explicit deferral.
+- **Trivial / docs-only / no-code** → lightweight `/run-review` at `focused` depth (must still reach `ACCEPT`; a non-`ACCEPT` focused verdict means the change was misclassified as trivial — re-run at `standard`); record the trivial classification + reason in session-log and `build-status.json.review`.
+
+Record the Review Target as `build-status.json.review.mode` (dirty local→`local`, branch vs base→`branch`, single commit→`commit`) plus outcome. Non-trivial changes with no ACCEPT verdict finalize as `blocked`, not `complete`. This gate never forces `standard`/`deep` on trivial work.
 
 ## Terminal Outcome — ALWAYS write build-status.json
 
 Write atomically to `.scratch/<session>/build-status.json` on EVERY outcome (pass/blocked/failed):
-`{ session, slice, status, reason, evidence: [...], learnings: [...], next }`
+`{ session, slice, status, reason, review, evidence: [...], learnings: [...], next }`
+(`review` object shape: see [build-status-schema.md](../../run-review/references/build-status-schema.md) §Review block.)
 
 **Learnings field is MANDATORY regardless of outcome.**
 
@@ -46,4 +56,5 @@ Adjacent refactors, backcompat shims, scope creep — refuse immediately and sur
 |--------|--------|
 | review cap reached (5) | build-status blocked → halt |
 | slice exit gate fails | build-status blocked → halt |
+| non-trivial change, no ACCEPT verdict (no explicit user deferral) | build-status blocked → halt |
 | scope expansion detected | refuse → surface to user → halt |

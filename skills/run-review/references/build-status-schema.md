@@ -49,6 +49,31 @@ Atomic: write `.tmp`, then `mv` to final path. Mid-build readers must never obse
 | `commits` | `[{sha,subject}]` | Commits created in this iteration. `[]` if none. |
 | `files_modified` | `[string]` | Repo-relative paths touched this iteration. Sorted, deduplicated. |
 | `iteration_cost_usd` | number \| null | API cost, when `--max-budget-usd` was set and cost is observable. |
+| `review` | object \| absent | Optional. Records the review-closeout decision — see below. |
+
+## Review block
+
+Optional. Records how the [review-closeout gate](build-finalize.md) was satisfied. Additive-optional — its absence means "not recorded", never "review skipped".
+
+```json
+"review": {
+  "mode": "branch",
+  "depth": "standard",
+  "verdict": "ACCEPT",
+  "verdict_path": ".scratch/<session>/review-verdict.json",
+  "trivial_exception": false,
+  "reason": null
+}
+```
+
+| Subfield | Type | Semantics |
+|----------|------|-----------|
+| `mode` | enum | Review target: `local` (dirty local) \| `branch` (branch vs base) \| `commit` (single commit). |
+| `depth` | enum | `focused` \| `standard` \| `deep`. |
+| `verdict` | enum | Mirror of `review-verdict.json` (`ACCEPT`/`ITERATE`/`REJECT`) — the verdict sidecar stays authoritative. |
+| `verdict_path` | string | Path to the authoritative `review-verdict.json`. |
+| `trivial_exception` | bool | `true` when the lightweight (`focused`) path was taken for trivial/docs/no-code work. |
+| `reason` | string \| null | Required string when `trivial_exception` is `true`: the trivial classification justification. |
 
 ## Status → consumer action
 

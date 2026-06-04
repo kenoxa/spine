@@ -1,11 +1,14 @@
 ---
-updated: 2026-05-21
+updated: 2026-06-04
 paths:
   - skills/use-skill-craft/SKILL.md
   - CONTRIBUTING.md
   - SPINE.md
   - skills/run-review/references/build-review-gate.md
+  - skills/run-review/references/build-finalize.md
+  - skills/run-review/references/scope-context.md
   - skills/run-review/references/template-review-brief.md
+  - skills/use-goal-prompt/references/phase-discipline-build.md
 ---
 
 # Skill Guardrail Patterns
@@ -62,6 +65,35 @@ Condition 1 (prior verifier was PASS) are the most common failure points.
 
 [E2: `skills/run-review/references/build-review-gate.md` §Budget-aware
 inline ACCEPT (conditional); commit `fc79e12`]
+
+## Mandatory-Review Closeout + Advisory-Until-Verified
+
+`/goal` builds make review unavoidable for meaningful work. Non-trivial code
+changes must reach `review-verdict.json` ACCEPT (`standard`/`deep`) before
+`complete`; trivial/docs/no-code take the lightweight `focused` path with a
+recorded reason in `session-log.md` + `build-status.json.review`. The gate
+never forces heavy review on trivial work — the exception is first-class.
+
+Two-tier, not one: per-slice `@inspector` is the in-loop gate; the closeout
+`/run-review` is the unavoidable final gate. Maps OpenClaw `autoreview`'s
+"after non-trivial edits, before final/commit/ship" onto Spine's existing loop
+without a new skill and without mutating `run-review`.
+
+**Advisory-until-verified.** Review output is advisory until checked against
+real code. Verify each accepted finding (read the path + adjacent files + any
+dependency it leans on) before fixing; reject speculative edge cases, broad
+rewrites, and over-complicated fixes; prefer the smallest fix at the right
+ownership boundary; sweep the bug class for siblings; rerun focused tests and
+re-review until ACCEPT. Stop at clean — no extra pass for tidier wording.
+
+Read-only contract preserved: `run-review` produces verified findings; the
+build consumer applies them. Clawpatch stays separate — review never triggers
+it. Source: OpenClaw `autoreview` Contract (behaviors absorbed; helper, model,
+and provider specifics rejected). `[ADVISORY]`
+
+[E2: `skills/run-review/references/build-finalize.md` §Review Closeout;
+`skills/use-goal-prompt/references/phase-discipline-build.md` §Review Closeout;
+`skills/run-review/references/build-review-gate.md` §Applying findings]
 
 ## Ecosystem Context
 
