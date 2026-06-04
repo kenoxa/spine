@@ -107,6 +107,17 @@ Brief-driven Git conflict resolver for merge, sync, or land operations. Consumes
 
 Canonical entry: [`skills/run-merge/SKILL.md`](../skills/run-merge/SKILL.md).
 
+### run-clawpatch
+
+Async Clawpatch **review → classify → fix → revalidate** campaign driven over the external `clawpatch` CLI (0.4.0+). Explicit and stateful — it activates only on clawpatch-specific intent, never automatically. The mainthread orchestrates the CLI loop directly (clawpatch holds `.clawpatch/` locks, so findings are worked one at a time, not fanned out). Makes no provider/model/feature assumptions — those live in the project's own `clawpatch.config.json`.
+
+- **Direct preflight** — `/run-clawpatch status` (or `--local-only`) runs `doctor`/`status`/dry-run, read-only, no worktree.
+- **Recommended campaign** — `/goal /run-clawpatch --since <ref>`; `/goal` installs the Stop hook so the agent works the whole loop autonomously, and user-STOP gates become emit-artifact-and-halt signals.
+
+Tiny scope surface (`--since` / `--days` / `--last-run` / `--all-open`, default `--last-run`), resolved by `scripts/resolve-scope.sh`. Five references cover scope resolution, worktree+session isolation, manual-feature ownership reconciliation (manual `*_manual.json` is source of truth; `review --since` is selection, not coverage proof), the per-finding fix→revalidate guardrail, and the final report. No `/run-*` calls (composition lives in `/goal`).
+
+Canonical entry: [`skills/run-clawpatch/SKILL.md`](../skills/run-clawpatch/SKILL.md).
+
 ### commit
 
 Scoped staging with conventional commits.
