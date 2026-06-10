@@ -1,76 +1,76 @@
 {
-	"hooks": {
-		"SessionStart": [
-			{
-				"hooks": [
-					{
-						"type": "command",
-						"command": "$HOME/.config/spine/hooks/inject-agents-md.sh"
-					}
-				]
-			},
-			{
-				"matcher": "compact",
-				"hooks": [
-					{
-						"type": "command",
-						"command": "$HOME/.config/spine/hooks/inject-compact-essentials.sh"
-					}
-				]
-			}
-		],
-		"PreToolUse": [
-			{
-				"matcher": "Bash",
-				"hooks": [
-					{
-						"type": "command",
-						"command": "$HOME/.config/spine/hooks/guard-shell.sh"
-					}
-				]
-			},
-			{
-				"matcher": "Read",
-				"hooks": [
-					{
-						"type": "command",
-						"command": "$HOME/.config/spine/hooks/guard-read-large.sh",
-						"timeout": 10
-					}
-				]
-			}
-		],
-		"PostToolUse": [
-			{
-				"matcher": "Read",
-				"hooks": [
-					{
-						"type": "command",
-						"command": "$HOME/.config/spine/hooks/_ts.sh $HOME/.config/spine/hooks/inject-types-on-read.ts",
-						"timeout": 30
-					}
-				]
-			},
-			{
-				"matcher": "Edit|Write|MultiEdit",
-				"hooks": [
-					{
-						"type": "command",
-						"command": "$HOME/.config/spine/hooks/check-on-edit.sh",
-						"timeout": 30
-					}
-				]
-			}
-		],
-		"PreCompact": [
-			{
-				"hooks": [
-					{
-						"type": "prompt",
-						"prompt": "Context compaction is about to run. Before it does, capture current session state: run the do-handoff workflow to write a handoff artifact to .scratch/. Include all decisions made, rationale, rejected approaches, current state, and next steps. This is a safety net — write the artifact, then compaction will proceed."
-					}
-				]
-			}
-		]
-	}
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.config/spine/hooks/inject-agents-md.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.config/spine/hooks/inject-compact-essentials.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.config/spine/hooks/guard-shell.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.config/spine/hooks/guard-read-large.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.config/spine/hooks/_ts.sh $HOME/.config/spine/hooks/inject-types-on-read.ts",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.config/spine/hooks/check-on-edit.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.config/spine/hooks/pre-compact.sh"
+          }
+        ]
+      }
+    ]
+  }
 }
