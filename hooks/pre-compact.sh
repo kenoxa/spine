@@ -1,4 +1,4 @@
-#!/usr/bin/env _env.sh
+#!/bin/sh
 # pre-compact.sh
 # PreCompact hook — emits agentMessage with handoff instructions before compaction.
 # Reads pre-compact.prompt from the same directory (resolved at runtime).
