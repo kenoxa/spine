@@ -71,11 +71,11 @@ _load_cursor_model_fn() {
     assert_failure
 }
 
-@test "resolve_tier: OpenCode Standard primary is MiMo with DeepSeek in fanout" {
+@test "resolve_tier: OpenCode Standard primary is MiMo with M3 and GLM in fanout" {
     . "$SCRIPTS_DIR/_common.sh"
     resolve_tier standard opencode
     assert_equal "$_tier_model" "opencode-go/mimo-v2.5-pro"
-    assert_equal "$_tier_fanout" "opencode-go/mimo-v2.5-pro opencode-go/kimi-k2.6 opencode-go/deepseek-v4-pro opencode-go/qwen3.6-plus"
+    assert_equal "$_tier_fanout" "opencode-go/mimo-v2.5-pro opencode-go/kimi-k2.6 opencode-go/minimax-m3 opencode-go/glm-5.1"
 }
 
 # =============================================================================

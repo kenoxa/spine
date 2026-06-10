@@ -2446,7 +2446,7 @@ main() {
       _SPINE_OPENCODE_TIER="go"
       # Validate configured model slugs exist in opencode-go roster
       _oc_models=$(timeout 10 opencode models opencode-go 2>/dev/null || true)
-      for _slug in deepseek-v4-pro kimi-k2.6 deepseek-v4-flash mimo-v2.5-pro qwen3.6-plus glm-5.1; do
+      for _slug in deepseek-v4-pro deepseek-v4-flash kimi-k2.6 mimo-v2.5-pro minimax-m2.5 minimax-m3 qwen3.6-plus qwen3.7-plus glm-5.1; do
         if ! printf '%s\n' "$_oc_models" | grep -qFx "opencode-go/$_slug"; then
           warn "OpenCode Go model not found in roster: opencode-go/$_slug"
         fi

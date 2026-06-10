@@ -65,7 +65,7 @@ If the mainthread cannot hold the task state or routing breaks down, upgrade the
 
 ## Provider Notes
 
-- **OpenCode Go**: See [model-selection.md#opencode-go-session-model](model-selection.md#opencode-go-session-model) for the full session model decision table. Daily driver: DeepSeek V4 Flash (31,650 req/5h) for light work. Standard now maps to MiMo-V2.5-Pro. DeepSeek V4 Pro stays in Standard envoy fanout for diversity, but is no longer the primary worker after DeepSWE.
+- **OpenCode Go**: See [model-selection.md#opencode-go-session-model](model-selection.md#opencode-go-session-model) for the full session model decision table. Daily driver: DeepSeek V4 Flash (31,650 req/5h) for light work. Standard maps to MiMo-V2.5-Pro. MiniMax M3 is now the stronger secondary Standard fanout model after DeepSWE; DeepSeek V4 Pro is no longer part of the default Standard fanout.
 - **OpenCode Free**: Lower quota, recommended for lighter orchestrators. See mapping table above.
 - **Claude Code**: Standard (Sonnet) for most sessions. Frontier (Opus) for heavy planning/architecture checkpoints and final critical review. Fast (Haiku) for cheap explore/summarization.
 - **Cursor**: `auto` and `composer-2.5` draw from the same included pool — no cost advantage between them. Both are cheaper than API-pool models (Claude/GPT selections).

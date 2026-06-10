@@ -26,7 +26,7 @@ Key implications from the 2026-05-30 live aggregate:
 
 - **Codex/GPT-5.5 becomes the long-horizon implementation quality default.** GPT-5.5 xhigh reaches 70.0% pass@1; GPT-5.5 medium still reaches 48.0% with much lower cost/time.
 - **Claude remains strong but no longer owns "maximum coding quality."** Opus 4.8 max reaches 58.2%; Opus 4.7 max reaches 54.2%; Sonnet 4.6 high reaches 31.8%. Use Opus for planning, review, and high-risk implementation, with explicit mirrored-requirement checks.
-- **OpenCode Go coding claims need narrower wording.** Kimi K2.6 is the best Go-roster result at 23.9%; MiMo-V2.5-Pro reaches 19.5%; GLM-5.1 reaches 17.5%; DeepSeek V4 Pro reaches 7.5%; Qwen3.6 Plus reaches 2.7%; MiniMax M2.7 reaches 0.2%. Keep Go models for cost, diversity, and bounded work unless local native-harness evidence says otherwise.
+- **OpenCode Go coding claims need narrower wording.** Kimi K2.6 is the best Go-roster result at 23.9%; MiniMax M3 reaches 20.0%; MiMo-V2.5-Pro reaches 19.5%; GLM-5.1 reaches 17.5%; DeepSeek V4 Pro reaches 7.5%; Qwen3.6 Plus reaches 2.7%; MiniMax M2.7 reaches 0.2%. Keep Go models for cost, diversity, and bounded work unless local native-harness evidence says otherwise.
 - **Older SWE-Bench/BFCL/LCB wins are upper bounds for agentic implementation.** They still inform role fit, context, and tool-use niches, but they should not be the load-bearing evidence for autonomous multi-file coding.
 
 ## Research Findings
@@ -43,9 +43,11 @@ Key implications from the 2026-05-30 live aggregate:
 
 **Long agentic sessions (session)**: MiMo-V2.5-Pro — 40–60% fewer tokens per trajectory, harness awareness for self-managed context, 19.5% DeepSWE. 1,290 req/5h — use for focused long sessions.
 
+**Standard diversity candidate**: MiniMax M3 — 20.0% DeepSWE with higher volume than MiMo (3,200 req/5h). Useful as a second Standard fanout voice when you want stronger coding signal than DeepSeek V4 Pro without promoting it to the primary worker.
+
 **Frontier sub-agents (not session)**: Kimi K2.6 (1,150 req/5h) and GLM-5.1 (880 req/5h) — tight volumes make them sub-agent only. Reserved for gate authority roles (consultant, inspector, verifier, synthesizer).
 
-**Not recommended**: Qwen3.5 Plus — critical bugs: tool-calling breaks after 1–2 calls, reasoning suppressed when tools present. Despite 10,200 req/5h, unreliable for agentic use.
+**Not recommended**: Qwen3.7 Plus should be routed as a controlled fast-fanout member first, then validated per workflow before assigning primary agentic work.
 
 ### Claude Code
 
@@ -73,8 +75,8 @@ Key implications from the 2026-05-30 live aggregate:
 | Tier | Primary Model | Fan-out Options | Session Viable? |
 |------|---------------|-----------------|-----------------|
 | Frontier | kimi-k2.6 | kimi-k2.6, deepseek-v4-pro, glm-5.1 | No — 880–1,150 req/5h too tight |
-| Standard | mimo-v2.5-pro | mimo-v2.5-pro, kimi-k2.6, deepseek-v4-pro, qwen3.6-plus | Yes — 1,150–3,450 req/5h |
-| Fast | deepseek-v4-flash | deepseek-v4-flash, qwen3.5-plus, minimax-m2.5 | Yes — 6,300–31,650 req/5h |
+| Standard | mimo-v2.5-pro | mimo-v2.5-pro, kimi-k2.6, minimax-m3, glm-5.1 | Yes — 880–3,200 req/5h |
+| Fast | deepseek-v4-flash | deepseek-v4-flash, qwen3.7-plus, minimax-m2.5 | Yes — 4,300–31,650 req/5h |
 
 ### Claude Code
 
@@ -110,7 +112,8 @@ Key implications from the 2026-05-30 live aggregate:
 - **DeepSeek V4 Flash promoted to light-work daily driver** (May 2026) — real-world experience and A/B tests showed enough quality for scouting, simple edits, and orchestration. DeepSWE later narrowed this recommendation away from long-horizon implementation. 31,650 req/5h headroom makes it the clear OpenCode light-work default. See model-selection.md for the full session model table.
 - DeepSeek V4 Pro effective context corrected to ~200K (May 2026) — independent NIAH-2 multi-needle testing shows 8-needle retrieval drops from 82% at 256K to 41% at 1M. CSA+HCA attention compression introduces multi-fact distortion at extreme range.
 - MiniMax M2.5 recognized as agentic dark horse (May 2026) — 80.2% SWE-bench (matches Opus 4.6), #1 BFCL multi-turn (76.8%). Niche: agentic tool-calling when codebase fits in 197K.
-- Qwen3.5 Plus flagged as not recommended for agentic use (May 2026) — critical tool-calling bugs discovered. Qwen3.6 Plus fixes these.
-- MiMo-V2.5-Pro promoted to OpenCode Go Standard primary — strongest Standard DeepSWE result in the Go roster, token-efficient agentic coding, and 1,290 req/5h limits it to focused work rather than all-day driving.
+- Qwen3.5 Plus was previously flagged for agentic instability in earlier tests; the current Go roster uses Qwen3.7 Plus in fast fanout.
+- MiMo-V2.5-Pro remains the OpenCode Go Standard primary — strongest token-efficiency tradeoff among the better DeepSWE Standard candidates, even though MiniMax M3 scores slightly higher.
+- MiniMax M3 added to Standard fanout (June 2026) — 20.0% DeepSWE makes it a better coding-signal diversity member than DeepSeek V4 Pro or Qwen3.6 Plus.
 - DeepSeek V4 Flash selected for highest request economy in Fast tier (31,650 req/5h).
 - DeepSWE incorporated (June 2026) — promoted Codex/GPT-5.5 to long-horizon implementation quality default; narrowed OpenCode Go recommendations to cost/diversity/bounded-work unless local native-harness evidence says otherwise.
