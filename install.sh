@@ -1314,7 +1314,14 @@ $_agent_body"
     echo "name: $_agent_name"
     printf 'description: >-\n  %s\n' "$_agent_description"
     map_model_for_provider "$_agent_model" cursor
-    [ -n "$_mapped_model" ] && echo "model: $_mapped_model"
+    if [ -n "$_mapped_model" ]; then
+      # Cursor silently resolves composer-2.5 to the fast variant unless
+      # bracket-wrapped — confirmed by Cursor staff (forum.cursor.com, 2026-06).
+      case "$_mapped_model" in
+        composer-2.5) echo "model: [$_mapped_model]" ;;
+        *)            echo "model: $_mapped_model" ;;
+      esac
+    fi
     # effort: omitted — Cursor has no effort parameter (subagent or CLI)
     # skills: omitted — Cursor ignores frontmatter skills; embedded in body above
     [ "$_agent_readonly" = "true" ] && echo 'readonly: true'
