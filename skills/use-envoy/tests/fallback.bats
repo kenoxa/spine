@@ -71,11 +71,18 @@ _load_cursor_model_fn() {
     assert_failure
 }
 
-@test "resolve_tier: OpenCode Standard primary is MiMo with M3 and GLM in fanout" {
+@test "resolve_tier: OpenCode Standard primary is MiMo with M3 and Kimi K2.7 Code in fanout" {
     . "$SCRIPTS_DIR/_common.sh"
     resolve_tier standard opencode
     assert_equal "$_tier_model" "opencode-go/mimo-v2.5-pro"
-    assert_equal "$_tier_fanout" "opencode-go/mimo-v2.5-pro opencode-go/kimi-k2.6 opencode-go/minimax-m3 opencode-go/glm-5.1"
+    assert_equal "$_tier_fanout" "opencode-go/mimo-v2.5-pro opencode-go/minimax-m3 opencode-go/kimi-k2.7-code"
+}
+
+@test "resolve_tier: OpenCode Frontier primary is Kimi K2.7 Code with Qwen3.7 Max and GLM in fanout" {
+    . "$SCRIPTS_DIR/_common.sh"
+    resolve_tier frontier opencode
+    assert_equal "$_tier_model" "opencode-go/kimi-k2.7-code"
+    assert_equal "$_tier_fanout" "opencode-go/kimi-k2.7-code opencode-go/qwen3.7-max opencode-go/glm-5.1"
 }
 
 # =============================================================================

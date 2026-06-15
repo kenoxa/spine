@@ -76,4 +76,4 @@ Default envoy dispatches 3 providers. Tiered routing possible: single model for 
 
 ## OpenCode Intra-Provider Multi-Model
 
-Within OpenCode envoy dispatch, each tier fans out to multiple models (Frontier: 3, Standard: 2, Fast: 1) with per-process `XDG_DATA_HOME` isolation. See [model-selection.md](model-selection.md) §OpenCode Multi-Model Dispatch for fanout composition. Concurrency verified: slice 2 of spec 2618, 4/4 criteria PASS (2026-04-27).
+Within OpenCode envoy dispatch, each tier fans out to multiple models (Frontier: 3, Standard: 3, Fast: 3) with per-process `XDG_DATA_HOME` isolation. See [model-selection.md](model-selection.md) §OpenCode Multi-Model Dispatch for fanout composition. Concurrency verified: slice 2 of spec 2618, 4/4 criteria PASS (2026-04-27).

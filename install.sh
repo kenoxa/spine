@@ -1314,7 +1314,7 @@ map_model_for_provider() {
     sonnet:cursor) _mapped_model="composer-2.5" ;;
     haiku:codex)   _mapped_model="gpt-5.4-mini" ;;
     haiku:cursor)  _mapped_model="fast" ;;
-    opus:opencode-go)     _mapped_model="opencode-go/kimi-k2.6" ;;
+    opus:opencode-go)     _mapped_model="opencode-go/kimi-k2.7-code" ;;
     sonnet:opencode-go)   _mapped_model="opencode-go/mimo-v2.5-pro" ;;
     haiku:opencode-go)    _mapped_model="opencode-go/deepseek-v4-flash" ;;
     opus:opencode-free)   _mapped_model="opencode/qwen3.6-plus-free" ;;
@@ -2558,7 +2558,7 @@ main() {
       _SPINE_OPENCODE_TIER="go"
       # Validate configured model slugs exist in opencode-go roster
       _oc_models=$(timeout 10 opencode models opencode-go 2>/dev/null || true)
-      for _slug in deepseek-v4-pro deepseek-v4-flash kimi-k2.6 mimo-v2.5-pro minimax-m2.5 minimax-m3 qwen3.6-plus qwen3.7-plus glm-5.1; do
+      for _slug in deepseek-v4-flash kimi-k2.7-code mimo-v2.5-pro minimax-m2.7 minimax-m3 qwen3.7-max qwen3.7-plus glm-5.1; do
         if ! printf '%s\n' "$_oc_models" | grep -qFx "opencode-go/$_slug"; then
           warn "OpenCode Go model not found in roster: opencode-go/$_slug"
         fi

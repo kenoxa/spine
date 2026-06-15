@@ -20,7 +20,7 @@ Source: `docs/model-selection.md` agent table + agent frontmatter.
 
 | Tier | Claude Code | OpenCode Go | OpenCode Free | Codex | Cursor |
 |------|-------------|-------------|---------------|-------|--------|
-| Frontier | opus | kimi-k2.6 | qwen3.6-plus-free | gpt-5.5 | composer-2.5 |
+| Frontier | opus | kimi-k2.7-code | qwen3.6-plus-free | gpt-5.5 | composer-2.5 |
 | Standard | sonnet | mimo-v2.5-pro | minimax-m2.5-free | gpt-5.5 | composer-2.5 |
 | Fast | haiku | deepseek-v4-flash | mimo-v2-pro-free | gpt-5.4-mini | auto |
 
@@ -32,7 +32,7 @@ Source: `docs/model-selection.md` agent table + agent frontmatter.
 
 ## Session Model (Main-Thread)
 
-**Pick your session model by task depth and expected context.** For long-horizon delegated implementation, Codex/GPT-5.5 is the quality default; use high or xhigh effort when failure cost is high. Claude Sonnet remains a good planning/review mainthread, with Opus for judgment-heavy escalation. OpenCode Go defaults optimize cost and diversity: DeepSeek V4 Flash is the light-work daily driver, MiMo is the Standard worker, and Kimi remains the Frontier gate/diversity choice. See [model-selection.md#opencode-go-session-model](model-selection.md#opencode-go-session-model).
+**Pick your session model by task depth and expected context.** For long-horizon delegated implementation, Codex/GPT-5.5 is the quality default; use high or xhigh effort when failure cost is high. Claude Sonnet remains a good planning/review mainthread, with Opus for judgment-heavy escalation. OpenCode Go defaults optimize cost and diversity: DeepSeek V4 Flash is the light-work daily driver, MiMo is the Standard worker, and Kimi K2.7 Code is the Frontier gate/diversity choice. See [model-selection.md#opencode-go-session-model](model-selection.md#opencode-go-session-model).
 
 Frontier subagents (consultant, inspector, verifier, synthesizer) handle gate decisions regardless of session model — strong gates, efficient workers. Frontier gates reduce worker-model risk; they do not erase a large implementation-quality gap. If implementation is the bottleneck, route the work to a stronger implementation model or split the patch smaller.
 
@@ -65,7 +65,7 @@ If the mainthread cannot hold the task state or routing breaks down, upgrade the
 
 ## Provider Notes
 
-- **OpenCode Go**: See [model-selection.md#opencode-go-session-model](model-selection.md#opencode-go-session-model) for the full session model decision table. Daily driver: DeepSeek V4 Flash (31,650 req/5h) for light work. Standard maps to MiMo-V2.5-Pro. MiniMax M3 is now the stronger secondary Standard fanout model after DeepSWE; DeepSeek V4 Pro is no longer part of the default Standard fanout.
+- **OpenCode Go**: See [model-selection.md#opencode-go-session-model](model-selection.md#opencode-go-session-model) for the full session model decision table. Daily driver: DeepSeek V4 Flash (31,650 req/5h) for light work. Frontier maps to **Kimi K2.7 Code** (coding-specialized successor to K2.6 — same arch/price, more request headroom). Standard maps to MiMo-V2.5-Pro (now 3,250 req/5h — daily-driver viable). Fanouts are assigned by DeepSWE × volume: Frontier (gate authority, sub-agent only) = Kimi K2.7 Code + Qwen3.7 Max + GLM-5.1 (Moonshot/Alibaba/Z.AI, all 880–1,350 req/5h); Standard = MiMo-V2.5-Pro + MiniMax M3 + Kimi K2.7 Code (Xiaomi/MiniMax/Moonshot); Fast unchanged. **DeepSeek V4 Pro (8% DeepSWE) is removed from all default fanouts** — override-only for bounded-depth diversity.
 - **OpenCode Free**: Lower quota, recommended for lighter orchestrators. See mapping table above.
 - **Claude Code**: Standard (Sonnet) for most sessions. Frontier (Opus) for heavy planning/architecture checkpoints and final critical review. Fast (Haiku) for cheap explore/summarization.
 - **Cursor**: `auto` and `composer-2.5` draw from the same included pool — no cost advantage between them. Both are cheaper than API-pool models (Claude/GPT selections).
