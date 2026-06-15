@@ -474,6 +474,105 @@ install_probe() {
   ui_ok "probe" "$latest_tag"
 }
 
+# Compose a one-line progress string from the dev-browser/Playwright install log.
+# Pure: reads the log, holds no state. Playwright prints `NN% of XXX.X MiB` lines.
+_provision_line() {
+  local logf="$1" elapsed="$2" slow_after="$3" attempt="$4" max="$5"
+  local pct mmss activity note="" retry=""
+  pct=$(grep -oE '[0-9]+% of [0-9.]+ [KMG]i?B' "$logf" 2>/dev/null | tail -1 || true)
+  mmss=$(printf '%d:%02d' $((elapsed / 60)) $((elapsed % 60)))
+  if [ -z "$pct" ]; then
+    activity="provisioning browser"
+  elif [ "${pct%%%*}" = "100" ]; then
+    activity="extracting browser"   # download done; Playwright is unpacking (silent)
+  else
+    activity="downloading Chromium ${pct}"
+  fi
+  [ "$elapsed" -ge "$slow_after" ] && note=" — taking longer than expected"
+  [ "$attempt" -gt 1 ] && retry=" (retry ${attempt}/${max})"
+  printf '%s · %s%s%s' "$activity" "$mmss" "$note" "$retry"
+}
+
+# Erase the in-place provisioning line (TTY only).
+_provision_clear() {
+  $_UI_CAN_MOVE && printf "\r\033[K" >&2 || true
+}
+
+# Kill a process and ALL its descendants, deepest first. The Playwright download
+# runs three levels below `dev-browser install` (npm → playwright → oopDownload),
+# and the deepest child holds the registry lock — killing only the parent orphans
+# it and blocks the next attempt. Walk descendants while the tree is still intact.
+_kill_tree() {
+  local p="$1" child
+  for child in $(pgrep -P "$p" 2>/dev/null); do
+    _kill_tree "$child"
+  done
+  kill "$p" 2>/dev/null || true
+}
+
+# Provision Playwright Chromium + dev-browser runtime assets. The slowest install
+# step: a cold cache downloads ~160MB+ of browser binaries. Stream live progress,
+# escalate to a "taking longer" notice past slow_after, and retry a stalled download
+# (no log growth for stall_secs) so a dropped connection can't wedge the installer.
+# Returns: 0 = provisioned (work done), 2 = nothing to do (all cached), 1 = failed.
+provision_browser_assets() {
+  local bin="$1"
+  local logf; logf=$(mktemp)
+  local stall_secs=120 slow_after=45 poll=2 print_every=15
+  local max_attempts=3 attempt=0 rc=1 stalled=false
+
+  while [ "$attempt" -lt "$max_attempts" ]; do
+    attempt=$((attempt + 1)); stalled=false
+    : > "$logf"
+    "$bin" install </dev/null >"$logf" 2>&1 &
+    local pid=$!
+    local start=$SECONDS last_size=0 last_change=$SECONDS last_print=0
+
+    while kill -0 "$pid" 2>/dev/null; do
+      sleep "$poll"
+      local now=$SECONDS elapsed=$((SECONDS - start)) size
+      size=$(wc -c <"$logf" 2>/dev/null || echo 0)
+      if [ "$size" -ne "$last_size" ]; then
+        last_size=$size; last_change=$now
+      elif [ $((now - last_change)) -ge "$stall_secs" ]; then
+        stalled=true
+        _kill_tree "$pid"
+        break
+      fi
+      local line; line=$(_provision_line "$logf" "$elapsed" "$slow_after" "$attempt" "$max_attempts")
+      if $_UI_CAN_MOVE; then
+        printf "\r\033[K  ${_C_BLUE}▸${_C_RESET}  dev-browser  ${_C_DIM}%s${_C_RESET}" "$line" >&2
+      elif [ $((elapsed - last_print)) -ge "$print_every" ]; then
+        last_print=$elapsed
+        printf "    dev-browser: %s\n" "$line" >&2
+      fi
+    done
+
+    set +e; wait "$pid" 2>/dev/null; local wrc=$?; set -e
+    if $stalled; then
+      _provision_clear
+      if [ "$attempt" -lt "$max_attempts" ]; then
+        warn "dev-browser: download stalled — retrying (${attempt}/${max_attempts})"
+      fi
+      continue
+    fi
+    rc=$wrc
+    break
+  done
+
+  _provision_clear
+  if [ "$rc" -ne 0 ]; then
+    warn "dev-browser: Chromium install failed after ${attempt} attempt(s) — run 'dev-browser install' manually"
+    tail -8 "$logf" >&2 2>/dev/null || true
+    rm -f "$logf"
+    return 1
+  fi
+  local did_work=2
+  if grep -q "Downloading" "$logf" 2>/dev/null; then did_work=0; fi
+  rm -f "$logf"
+  return "$did_work"
+}
+
 # Install dev-browser (direct binary, no Homebrew formula)
 install_dev_browser() {
   local DEV_BROWSER_REPO="SawyerHood/dev-browser"
@@ -545,13 +644,11 @@ install_dev_browser() {
     binary_changed=true
   fi
 
-  # Install/repair Playwright Chromium and dev-browser runtime assets. Keep success
-  # quiet, but preserve failure output.
-  local chromium_output=""
-  if ! chromium_output=$("$INSTALL_DIR/dev-browser" install 2>&1); then
-    warn "dev-browser: Chromium install failed — run 'dev-browser install' manually"
-    [ -n "$chromium_output" ] && printf '%s\n' "$chromium_output" >&2
-  fi
+  # Install/repair Playwright Chromium + dev-browser runtime. First run pulls
+  # ~160MB+ of browser binaries; stream progress and retry a stalled download so a
+  # dropped connection can't wedge the installer (see install.sh git history).
+  local provision_rc=0
+  provision_browser_assets "$INSTALL_DIR/dev-browser" || provision_rc=$?
 
   if $binary_changed; then
     # Write manifest — atomic tmpfile+mv
@@ -560,9 +657,17 @@ install_dev_browser() {
     [ -f "$MANIFEST" ] && grep -v "^dev-browser=" "$MANIFEST" > "$manifest_tmp" || true
     echo "dev-browser=$latest_tag" >> "$manifest_tmp"
     mv "$manifest_tmp" "$MANIFEST"
-
-    ui_ok "dev-browser" "$latest_tag"
   fi
+
+  # One status line. Show ✓ when the binary changed or browsers were provisioned;
+  # stay silent when everything was already cached (provision_rc=2, binary unchanged).
+  local tag="$latest_tag"
+  $binary_changed || tag="${installed_tag:-$latest_tag}"
+  case "$provision_rc" in
+    0) ui_ok "dev-browser" "$tag" ;;
+    2) $binary_changed && ui_ok "dev-browser" "$tag" || true ;;
+    *) ui_fail "dev-browser" "Chromium incomplete — run 'dev-browser install' manually" ;;
+  esac
 }
 
 # Ensure system deps are available. Attempts brew install on macOS; prints hints otherwise.
