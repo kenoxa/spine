@@ -57,5 +57,7 @@ Dispatch `@visualizer` → `references/present-visualizer.md` if complexity warr
 - Inventing task descriptions — follow full fallback chain (brief_summary → underlying_goal → title → thread_name → summary → all user_prompts → files_touched → git commit → session ID placeholder); never use "unspecified task"
 - Collapsing smaller customer projects into the dominant repo when they have explicit session, prompt, file, or commit evidence
 - Customer-facing timesheet lines that name internal process labels instead of the product scenario or release value
+- Activity descriptions instead of outcome descriptions — "investigated X" is not billable language; "X now works correctly for customers" is
+- Weak prose: passive voice, vague quantities ("significant"), banned AI vocabulary (leverage, robust, seamless) — see Writing Quality section in template-timesheet.md
 - Multiple subagent dispatches — single `@miner` per invocation
 - Modifying scripts in `run-insights/scripts/`

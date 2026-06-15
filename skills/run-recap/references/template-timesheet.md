@@ -122,6 +122,36 @@ Before writing the final output, run this private lint pass and rewrite failures
 - Internal implementation details are allowed only after translation into customer value
 - If a line could apply to any software project, rewrite it with the project-specific scenario or release/backport detail
 
+## Writing Quality
+
+Apply these rules to every entry. Frame entries as **what the customer gained**, not what we did internally.
+
+**Delete without replacement:**
+- Weak adverbs: "reliably", "efficiently", "consistently", "effectively" — drop the word
+- Process meta-commentary: "This ensures that", "This allows", "This helps" — lead with the outcome
+
+**Never use:**
+- Dead AI verbs: delve, leverage, utilize, harness, unlock, supercharge
+- Vague adjectives: robust, seamless, straightforward, cutting-edge
+- Dead transitions as sentence openers: Furthermore, Additionally, Moreover
+
+**Replace:**
+- Passive voice: "was fixed" → "fixed"; "is now available" → "now available"
+- Vague quantities: "significant improvement" → state the measurement ("10–40× faster", "65s → 4.5ms")
+- Process as subject: "investigated slow query routing" → "sorted searches now skip unnecessary scan work"
+
+**Activity → outcome rewrites:**
+- ✗ "Approval baseline regeneration for planner SQL shapes"
+  ✓ "Paginated OR-filter searches no longer duplicate overlapping results"
+- ✗ "Investigated and fixed sort-order regression"
+  ✓ "Sorted searches now include entries without a sort value in the correct RFC 2891 position"
+- ✗ "Clawpatch review cycles; correctness finding triage"
+  ✓ "Fixed [specific customer-visible behavior] — name the actual fix"
+- ✗ "JWKS consumer refresh per validation"
+  ✓ "Token validation refreshes signing keys on each request, preventing stale-key failures"
+
+Every billing line must complete this sentence: _"The customer now has ___."_ If it doesn't, rewrite it.
+
 ## Output Format
 Group by date (most recent first):
 - `### YYYY-MM-DD (Weekday)` (append redistribution annotation if applicable)
